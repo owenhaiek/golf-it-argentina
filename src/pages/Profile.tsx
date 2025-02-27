@@ -1,5 +1,7 @@
+
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,9 +9,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { Loader2, Trash2 } from "lucide-react";
+import { Loader2, Trash2, LogOut } from "lucide-react";
 
 const Profile = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -68,7 +71,10 @@ const Profile = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['rounds', user?.id] });
+      queryClient.invalidateQueries({ 
+        queryKey: ['rounds', user?.id],
+        exact: true 
+      });
       toast({
         title: "Round deleted successfully",
       });
@@ -149,7 +155,26 @@ const Profile = () => {
 
   const handleDeleteRound = async (roundId: string) => {
     if (window.confirm('Are you sure you want to delete this round?')) {
-      await deleteRound.mutateAsync(roundId);
+      try {
+        await deleteRound.mutateAsync(roundId);
+      } catch (error) {
+        console.error('Error deleting round:', error);
+      }
+    }
+  };
+
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast({
+        title: "Error logging out",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Logged out successfully",
+      });
+      navigate('/auth');
     }
   };
 
@@ -213,7 +238,7 @@ const Profile = () => {
               </>
             )}
           </CardHeader>
-          <CardContent className="text-center">
+          <CardContent className="text-center space-y-4">
             {isEditing ? (
               <div className="space-x-2">
                 <Button type="submit">Save</Button>
@@ -226,9 +251,19 @@ const Profile = () => {
                 </Button>
               </div>
             ) : (
-              <Button variant="outline" onClick={() => setIsEditing(true)}>
-                Edit Profile
-              </Button>
+              <div className="space-x-2">
+                <Button variant="outline" onClick={() => setIsEditing(true)}>
+                  Edit Profile
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  onClick={handleLogout}
+                  className="text-red-600 hover:bg-red-600/10 transition-colors"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Logout
+                </Button>
+              </div>
             )}
           </CardContent>
         </Card>
