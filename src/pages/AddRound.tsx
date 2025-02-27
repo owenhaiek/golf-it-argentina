@@ -41,6 +41,7 @@ const AddRound = () => {
 
   // Show courses only when searching
   useEffect(() => {
+    if (searchQuery === "" && !showCourses) return;
     setShowCourses(searchQuery.length > 0);
   }, [searchQuery]);
 
@@ -130,8 +131,20 @@ const AddRound = () => {
             <Input
               type="text"
               placeholder="Search for a course..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              value={selectedCourseData ? selectedCourseData.name : searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                if (selectedCourse && e.target.value !== selectedCourseData?.name) {
+                  setSelectedCourse("");
+                }
+              }}
+              onFocus={() => {
+                if (selectedCourse) {
+                  setSearchQuery("");
+                  setSelectedCourse("");
+                }
+                setShowCourses(true);
+              }}
               className="pl-9"
             />
           </div>
@@ -175,7 +188,7 @@ const AddRound = () => {
         <Card>
           <CardHeader>
             <CardTitle className="flex justify-between items-center">
-              <span>Score Card</span>
+              <span>Score Card - {selectedCourseData.name}</span>
               <div className="text-sm font-normal space-y-1 text-right">
                 <div>Your Score: {currentTotal}</div>
                 <div>Course Par: {totalPar}</div>
