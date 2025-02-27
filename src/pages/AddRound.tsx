@@ -102,14 +102,18 @@ const AddRound = () => {
     }
   };
 
-  const chartData = selectedCourseData?.hole_pars?.slice(0, selectedCourseData.holes).map((par, index) => ({
-    hole: `${index + 1}`,
-    score: scores[index] || 0,
-    par: par,
-  })) || [];
+  const chartData = selectedCourseData?.hole_pars
+    ?.slice(0, selectedCourseData.holes)
+    .map((par, index) => ({
+      hole: index + 1,
+      score: scores[index] || null,
+      par: par || 0,
+    })) || [];
 
   const numberOfHoles = selectedCourseData?.holes || 18;
-  const totalPar = selectedCourseData?.hole_pars?.slice(0, numberOfHoles).reduce((a, b) => a + b, 0) || 0;
+  const totalPar = selectedCourseData?.hole_pars
+    ?.slice(0, numberOfHoles)
+    .reduce((a, b) => a + (b || 0), 0) || 0;
   const currentTotal = scores.slice(0, numberOfHoles).reduce((a, b) => a + b, 0);
 
   return (
@@ -133,23 +137,30 @@ const AddRound = () => {
           </div>
           {showCourses && filteredCourses.length > 0 && (
             <div className="max-h-[200px] overflow-y-auto space-y-2">
-              {filteredCourses.map((course) => (
-                <Button
-                  key={course.id}
-                  variant={selectedCourse === course.id ? "default" : "outline"}
-                  className="w-full justify-between"
-                  onClick={() => {
-                    setSelectedCourse(course.id);
-                    setSearchQuery("");
-                    setShowCourses(false);
-                  }}
-                >
-                  <span>{course.name}</span>
-                  <span className="text-sm text-muted-foreground">
-                    Par {course.hole_pars?.reduce((a, b) => a + b, 0)}
-                  </span>
-                </Button>
-              ))}
+              {filteredCourses.map((course) => {
+                const coursePar = course.hole_pars
+                  ?.slice(0, course.holes)
+                  .reduce((a, b) => a + (b || 0), 0) || 0;
+                return (
+                  <Button
+                    key={course.id}
+                    variant={selectedCourse === course.id ? "default" : "outline"}
+                    className="w-full justify-between"
+                    onClick={() => {
+                      setSelectedCourse(course.id);
+                      setSearchQuery("");
+                      setShowCourses(false);
+                      // Reset scores when changing course
+                      setScores(Array(course.holes).fill(0));
+                    }}
+                  >
+                    <span>{course.name}</span>
+                    <span className="text-sm text-muted-foreground">
+                      Par {coursePar}
+                    </span>
+                  </Button>
+                );
+              })}
             </div>
           )}
           {showCourses && filteredCourses.length === 0 && (
@@ -176,8 +187,15 @@ const AddRound = () => {
             <div className="h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={chartData}>
-                  <XAxis dataKey="hole" />
-                  <YAxis />
+                  <XAxis 
+                    dataKey="hole"
+                    type="number"
+                    domain={[1, numberOfHoles]}
+                    allowDecimals={false}
+                  />
+                  <YAxis 
+                    domain={['auto', 'auto']}
+                  />
                   <Tooltip />
                   <Legend />
                   <Line 
@@ -188,6 +206,7 @@ const AddRound = () => {
                     dot={{ fill: "#2A4746" }}
                     name="Your Score"
                     animationDuration={300}
+                    connectNulls
                   />
                   <Line 
                     type="monotone" 
@@ -208,7 +227,7 @@ const AddRound = () => {
                     Hole {index + 1}
                     {selectedCourseData?.hole_pars && (
                       <div className="text-xs text-muted-foreground">
-                        Par {selectedCourseData.hole_pars[index]}
+                        Par {selectedCourseData.hole_pars[index] || '-'}
                       </div>
                     )}
                   </div>
