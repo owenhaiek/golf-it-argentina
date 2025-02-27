@@ -9,6 +9,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import Home from "./pages/Home";
 import Search from "./pages/Search";
 import Profile from "./pages/Profile";
+import Course from "./pages/Course";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import { useAuth } from "./contexts/AuthContext";
@@ -46,6 +47,7 @@ const App = () => (
               }
             >
               <Route path="/" element={<Home />} />
+              <Route path="/course/:id" element={<Course />} />
               <Route path="/search" element={<Search />} />
               <Route path="/profile" element={<Profile />} />
             </Route>

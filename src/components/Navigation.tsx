@@ -1,13 +1,13 @@
 
 import { NavLink } from "react-router-dom";
-import { Home, Search, User } from "lucide-react";
+import { Flag, Search, User } from "lucide-react";
 
 export const Navigation = () => {
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-border px-4 py-2 md:py-3">
       <div className="container max-w-lg mx-auto">
         <ul className="flex items-center justify-around">
-          <NavItem to="/" icon={<Home size={24} />} label="Home" />
+          <NavItem to="/" icon={<Flag size={24} className="text-[#2A4746]" />} label="Home" />
           <NavItem to="/search" icon={<Search size={24} />} label="Search" />
           <NavItem to="/profile" icon={<User size={24} />} label="Profile" />
         </ul>
