@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -17,12 +17,14 @@ const Profile = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
-  const [newUsername, setNewUsername] = useState("");
-  const [newFullName, setNewFullName] = useState("");
-  const [newHandicap, setNewHandicap] = useState<string>("");
+  const [formData, setFormData] = useState({
+    username: "",
+    fullName: "",
+    handicap: "",
+  });
   const [deletingRoundId, setDeletingRoundId] = useState<string | null>(null);
-  
-  // Profile query
+
+  // Profile Query
   const { data: profile, isLoading: profileLoading } = useQuery({
     queryKey: ['profile', user?.id],
     queryFn: async () => {
@@ -38,20 +40,10 @@ const Profile = () => {
     enabled: !!user?.id,
   });
 
-  // Update form fields when profile data changes or when entering edit mode
-  useEffect(() => {
-    if (profile && isEditing) {
-      setNewUsername(profile.username || "");
-      setNewFullName(profile.full_name || "");
-      setNewHandicap(profile.handicap?.toString() || "");
-    }
-  }, [profile, isEditing]);
-
-  // Rounds query
-  const { data: rounds, isLoading: roundsLoading, refetch: refetchRounds } = useQuery({
+  // Rounds Query
+  const { data: rounds, isLoading: roundsLoading } = useQuery({
     queryKey: ['rounds', user?.id],
     queryFn: async () => {
-      console.log("Fetching rounds for user", user?.id);
       const { data, error } = await supabase
         .from('rounds')
         .select(`
@@ -66,46 +58,88 @@ const Profile = () => {
         .order('created_at', { ascending: false })
         .limit(5);
       
-      if (error) {
-        console.error("Error fetching rounds:", error);
-        throw error;
-      }
-      
-      console.log("Fetched rounds:", data);
+      if (error) throw error;
       return data;
     },
     enabled: !!user?.id,
   });
 
-  // Delete round mutation
+  // Profile Update Mutation
+  const updateProfile = useMutation({
+    mutationFn: async (formData: {
+      username: string;
+      fullName: string;
+      handicap: string;
+      avatarFile?: File;
+    }) => {
+      let avatarUrl = profile?.avatar_url;
+
+      // Handle avatar upload if a new file is provided
+      if (formData.avatarFile) {
+        const fileExt = formData.avatarFile.name.split('.').pop();
+        const filePath = `${user?.id}/${Math.random()}.${fileExt}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('avatars')
+          .upload(filePath, formData.avatarFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('avatars')
+          .getPublicUrl(filePath);
+
+        avatarUrl = publicUrl;
+      }
+
+      // Update profile data
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          username: formData.username,
+          full_name: formData.fullName,
+          handicap: formData.handicap ? parseFloat(formData.handicap) : null,
+          avatar_url: avatarUrl,
+        })
+        .eq('id', user?.id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['profile', user?.id] });
+      setIsEditing(false);
+      toast({
+        title: "Profile updated successfully",
+      });
+    },
+    onError: (error) => {
+      console.error('Profile update error:', error);
+      toast({
+        title: "Error updating profile",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Round Deletion Mutation
   const deleteRound = useMutation({
     mutationFn: async (roundId: string) => {
-      console.log("Deleting round:", roundId);
-      setDeletingRoundId(roundId);
-      
       const { error } = await supabase
         .from('rounds')
         .delete()
         .eq('id', roundId)
         .eq('user_id', user?.id);
-      
-      if (error) {
-        console.error("Error in deleteRound mutation:", error);
-        throw error;
-      }
-      
-      console.log("Round deleted successfully");
+
+      if (error) throw error;
     },
     onSuccess: () => {
-      // Explicitly refetch rounds after successful deletion
-      refetchRounds();
-      
+      queryClient.invalidateQueries({ queryKey: ['rounds', user?.id] });
       toast({
         title: "Round deleted successfully",
       });
     },
     onError: (error) => {
-      console.error('Delete round error:', error);
+      console.error('Round deletion error:', error);
       toast({
         title: "Error deleting round",
         variant: "destructive",
@@ -116,89 +150,49 @@ const Profile = () => {
     },
   });
 
-  // Update profile mutation
-  const updateProfile = useMutation({
-    mutationFn: async (formData: FormData) => {
-      console.log("Updating profile...");
-      let avatarUrl = profile?.avatar_url;
-
-      if (formData.has('avatar')) {
-        const avatarFile = formData.get('avatar') as File;
-        if (avatarFile.size > 0) {
-          const fileExt = avatarFile.name.split('.').pop();
-          const filePath = `${user?.id}/${Math.random()}.${fileExt}`;
-
-          const { error: uploadError } = await supabase.storage
-            .from('avatars')
-            .upload(filePath, avatarFile);
-
-          if (uploadError) throw uploadError;
-
-          const { data: { publicUrl } } = supabase.storage
-            .from('avatars')
-            .getPublicUrl(filePath);
-
-          avatarUrl = publicUrl;
-        }
-      }
-
-      const updateData = {
-        username: newUsername,
-        full_name: newFullName,
-        handicap: newHandicap ? parseFloat(newHandicap) : null,
-        avatar_url: avatarUrl,
-      };
-
-      console.log("Profile update data:", updateData);
-
-      const { error } = await supabase
-        .from('profiles')
-        .update(updateData)
-        .eq('id', user?.id);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ 
-        queryKey: ['profile', user?.id] 
-      });
-      setIsEditing(false);
-      toast({
-        title: "Profile updated successfully",
-      });
-    },
-    onError: (error) => {
-      console.error('Update profile error:', error);
-      toast({
-        title: "Error updating profile",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const handleAvatarClick = () => {
-    if (!isEditing) return;
-    document.getElementById('avatar-upload')?.click();
-  };
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    updateProfile.mutate(formData);
-  };
-
+  // Handle starting edit mode
   const handleEditClick = () => {
-    // Only set editing mode to true, form fields will be updated by useEffect
+    setFormData({
+      username: profile?.username || "",
+      fullName: profile?.full_name || "",
+      handicap: profile?.handicap?.toString() || "",
+    });
     setIsEditing(true);
   };
 
+  // Handle form changes
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Handle profile update submission
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formElement = e.currentTarget;
+    const avatarInput = formElement.querySelector('input[type="file"]') as HTMLInputElement;
+    const avatarFile = avatarInput?.files?.[0];
+
+    await updateProfile.mutateAsync({
+      ...formData,
+      avatarFile,
+    });
+  };
+
+  // Handle round deletion
   const handleDeleteRound = async (roundId: string) => {
-    if (window.confirm('Are you sure you want to delete this round?')) {
-      try {
-        await deleteRound.mutateAsync(roundId);
-      } catch (error) {
-        console.error('Error deleting round:', error);
-      }
+    if (!window.confirm('Are you sure you want to delete this round?')) {
+      return;
+    }
+
+    setDeletingRoundId(roundId);
+    try {
+      await deleteRound.mutateAsync(roundId);
+    } catch (error) {
+      console.error('Error deleting round:', error);
     }
   };
 
@@ -232,7 +226,7 @@ const Profile = () => {
             <div className="relative w-20 h-20 mx-auto">
               <Avatar 
                 className="w-20 h-20 cursor-pointer hover:opacity-80 transition-opacity"
-                onClick={handleAvatarClick}
+                onClick={() => isEditing && document.getElementById('avatar-upload')?.click()}
               >
                 <AvatarImage src={profile?.avatar_url} />
                 <AvatarFallback>{profile?.full_name?.[0] || 'U'}</AvatarFallback>
@@ -241,7 +235,6 @@ const Profile = () => {
                 <input
                   id="avatar-upload"
                   type="file"
-                  name="avatar"
                   accept="image/*"
                   className="hidden"
                 />
@@ -251,21 +244,24 @@ const Profile = () => {
             {isEditing ? (
               <div className="space-y-4 mt-4">
                 <Input
+                  name="username"
                   placeholder="Username"
-                  value={newUsername}
-                  onChange={(e) => setNewUsername(e.target.value)}
+                  value={formData.username}
+                  onChange={handleInputChange}
                 />
                 <Input
+                  name="fullName"
                   placeholder="Full Name"
-                  value={newFullName}
-                  onChange={(e) => setNewFullName(e.target.value)}
+                  value={formData.fullName}
+                  onChange={handleInputChange}
                 />
                 <Input
+                  name="handicap"
                   placeholder="Handicap"
                   type="number"
                   step="0.1"
-                  value={newHandicap}
-                  onChange={(e) => setNewHandicap(e.target.value)}
+                  value={formData.handicap}
+                  onChange={handleInputChange}
                 />
               </div>
             ) : (
@@ -312,7 +308,7 @@ const Profile = () => {
           </CardContent>
         </Card>
       </form>
-      
+
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">Recent Rounds</CardTitle>
@@ -324,7 +320,6 @@ const Profile = () => {
                 const totalPar = round.golf_courses.hole_pars
                   ?.slice(0, round.golf_courses.holes)
                   .reduce((a, b) => a + b, 0) || 0;
-                
                 const vsParScore = round.score - totalPar;
                 const isDeleting = deletingRoundId === round.id;
                 
