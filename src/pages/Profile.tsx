@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -56,7 +55,7 @@ const Profile = () => {
   });
 
   const deleteRound = useMutation({
-    mutationFn: async (roundId: number) => {
+    mutationFn: async (roundId: string) => {
       const { error } = await supabase
         .from('rounds')
         .delete()
@@ -65,12 +64,13 @@ const Profile = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['rounds'] });
+      queryClient.invalidateQueries({ queryKey: ['rounds', user?.id] });
       toast({
         title: "Round deleted successfully",
       });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Delete round error:', error);
       toast({
         title: "Error deleting round",
         variant: "destructive",
@@ -140,9 +140,9 @@ const Profile = () => {
     updateProfile.mutate(formData);
   };
 
-  const handleDeleteRound = (roundId: number) => {
+  const handleDeleteRound = async (roundId: string) => {
     if (window.confirm('Are you sure you want to delete this round?')) {
-      deleteRound.mutate(roundId);
+      await deleteRound.mutateAsync(roundId);
     }
   };
 
