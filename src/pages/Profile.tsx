@@ -62,22 +62,23 @@ const Profile = () => {
 
   const deleteRound = useMutation({
     mutationFn: async (roundId: string) => {
-      setDeletingRoundId(roundId);
       const { error } = await supabase
         .from('rounds')
         .delete()
         .eq('id', roundId);
       
       if (error) throw error;
+      
+      // Immediately refetch rounds after successful deletion
+      await queryClient.invalidateQueries({ 
+        queryKey: ['rounds', user?.id],
+      });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ 
-        queryKey: ['rounds', user?.id],
-        exact: true 
-      });
       toast({
         title: "Round deleted successfully",
       });
+      setDeletingRoundId(null);
     },
     onError: (error) => {
       console.error('Delete round error:', error);
@@ -85,8 +86,6 @@ const Profile = () => {
         title: "Error deleting round",
         variant: "destructive",
       });
-    },
-    onSettled: () => {
       setDeletingRoundId(null);
     },
   });
@@ -252,7 +251,11 @@ const Profile = () => {
               </div>
             ) : (
               <div className="space-x-2">
-                <Button variant="outline" onClick={() => setIsEditing(true)}>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setIsEditing(true)}
+                  className="hover:bg-green-600/10 hover:text-green-600 transition-colors"
+                >
                   Edit Profile
                 </Button>
                 <Button 
