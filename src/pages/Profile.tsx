@@ -17,8 +17,9 @@ const Profile = () => {
   const [newUsername, setNewUsername] = useState("");
   const [newFullName, setNewFullName] = useState("");
   const [newHandicap, setNewHandicap] = useState<string>("");
+  const [deletingRoundId, setDeletingRoundId] = useState<string | null>(null);
 
-  const { data: profile } = useQuery({
+  const { data: profile, isLoading: profileLoading } = useQuery({
     queryKey: ['profile', user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -30,9 +31,10 @@ const Profile = () => {
       if (error) throw error;
       return data;
     },
+    enabled: !!user?.id,
   });
 
-  const { data: rounds } = useQuery({
+  const { data: rounds, isLoading: roundsLoading } = useQuery({
     queryKey: ['rounds', user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -52,10 +54,12 @@ const Profile = () => {
       if (error) throw error;
       return data;
     },
+    enabled: !!user?.id,
   });
 
   const deleteRound = useMutation({
     mutationFn: async (roundId: string) => {
+      setDeletingRoundId(roundId);
       const { error } = await supabase
         .from('rounds')
         .delete()
@@ -75,6 +79,9 @@ const Profile = () => {
         title: "Error deleting round",
         variant: "destructive",
       });
+    },
+    onSettled: () => {
+      setDeletingRoundId(null);
     },
   });
 
@@ -145,6 +152,13 @@ const Profile = () => {
       await deleteRound.mutateAsync(roundId);
     }
   };
+
+  if (profileLoading || roundsLoading) {
+    return <div className="animate-pulse space-y-4">
+      <div className="h-6 w-1/3 bg-secondary/20 rounded" />
+      <div className="h-64 bg-secondary/20 rounded-lg" />
+    </div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -233,6 +247,7 @@ const Profile = () => {
                   .reduce((a, b) => a + b, 0) || 0;
                 
                 const vsParScore = round.score - totalPar;
+                const isDeleting = deletingRoundId === round.id;
                 
                 return (
                   <div 
@@ -262,9 +277,9 @@ const Profile = () => {
                         size="icon"
                         className="text-red-600 hover:bg-red-600/10 transition-colors"
                         onClick={() => handleDeleteRound(round.id)}
-                        disabled={deleteRound.isPending}
+                        disabled={isDeleting}
                       >
-                        {deleteRound.isPending ? (
+                        {isDeleting ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
                         ) : (
                           <Trash2 className="h-4 w-4" />
