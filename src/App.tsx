@@ -7,7 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Layout } from "./components/Layout";
 import { AuthProvider } from "./contexts/AuthContext";
 import Home from "./pages/Home";
-import Search from "./pages/Search";
+import AddRound from "./pages/AddRound";
 import Profile from "./pages/Profile";
 import Course from "./pages/Course";
 import Auth from "./pages/Auth";
@@ -48,7 +48,7 @@ const App = () => (
             >
               <Route path="/" element={<Home />} />
               <Route path="/course/:id" element={<Course />} />
-              <Route path="/search" element={<Search />} />
+              <Route path="/add-round" element={<AddRound />} />
               <Route path="/profile" element={<Profile />} />
             </Route>
             <Route path="*" element={<NotFound />} />

@@ -1,6 +1,6 @@
 
 import { NavLink } from "react-router-dom";
-import { Flag, Search, User } from "lucide-react";
+import { Flag, Scoreboard, User } from "lucide-react";
 
 export const Navigation = () => {
   return (
@@ -8,7 +8,7 @@ export const Navigation = () => {
       <div className="container max-w-lg mx-auto">
         <ul className="flex items-center justify-around">
           <NavItem to="/" icon={<Flag size={24} className="text-[#2A4746]" />} label="Home" />
-          <NavItem to="/search" icon={<Search size={24} />} label="Search" />
+          <NavItem to="/add-round" icon={<Scoreboard size={24} />} label="Add Round" />
           <NavItem to="/profile" icon={<User size={24} />} label="Profile" />
         </ul>
       </div>
