@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -65,8 +64,7 @@ const Profile = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['rounds'] });
-      queryClient.invalidateQueries({ queryKey: ['profile'] });
+      queryClient.invalidateQueries({ queryKey: ['rounds', user?.id] });
       toast({
         title: "Round deleted successfully",
       });
@@ -262,7 +260,7 @@ const Profile = () => {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="text-destructive hover:bg-destructive hover:text-white transition-colors"
+                        className="text-red-600 hover:bg-red-600/10 transition-colors"
                         onClick={() => handleDeleteRound(round.id)}
                         disabled={deleteRound.isPending}
                       >
