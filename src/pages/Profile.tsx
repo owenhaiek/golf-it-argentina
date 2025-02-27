@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -7,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { Trash2 } from "lucide-react";
 
 const Profile = () => {
   const { user } = useAuth();
@@ -53,11 +55,33 @@ const Profile = () => {
     },
   });
 
+  const deleteRound = useMutation({
+    mutationFn: async (roundId: number) => {
+      const { error } = await supabase
+        .from('rounds')
+        .delete()
+        .eq('id', roundId);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['rounds'] });
+      toast({
+        title: "Round deleted successfully",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error deleting round",
+        variant: "destructive",
+      });
+    },
+  });
+
   const updateProfile = useMutation({
     mutationFn: async (formData: FormData) => {
       let avatarUrl = profile?.avatar_url;
 
-      // Handle avatar upload if there's a file
       if (formData.has('avatar')) {
         const avatarFile = formData.get('avatar') as File;
         if (avatarFile.size > 0) {
@@ -114,6 +138,12 @@ const Profile = () => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     updateProfile.mutate(formData);
+  };
+
+  const handleDeleteRound = (roundId: number) => {
+    if (window.confirm('Are you sure you want to delete this round?')) {
+      deleteRound.mutate(roundId);
+    }
   };
 
   return (
@@ -207,24 +237,34 @@ const Profile = () => {
                 return (
                   <div 
                     key={round.id} 
-                    className="flex justify-between items-center p-3 bg-secondary/10 rounded-lg"
+                    className="flex justify-between items-start p-3 bg-secondary/10 rounded-lg"
                   >
                     <div>
                       <h3 className="font-medium">{round.golf_courses.name}</h3>
                       <p className="text-sm text-muted-foreground">
-                        {new Date(round.date).toLocaleDateString()}
+                        {new Date(round.created_at).toLocaleDateString()}
                       </p>
                     </div>
-                    <div className="text-right space-y-1">
-                      <div className="text-lg font-bold">
-                        Score: {round.score}
+                    <div className="flex items-start gap-4">
+                      <div className="text-right space-y-1">
+                        <div className="text-lg font-bold">
+                          Score: {round.score}
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          Course Par: {totalPar}
+                        </p>
+                        <p className={`text-sm ${vsParScore <= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {vsParScore <= 0 ? '' : '+' }{vsParScore} vs Par
+                        </p>
                       </div>
-                      <p className="text-sm text-muted-foreground">
-                        Course Par: {totalPar}
-                      </p>
-                      <p className={`text-sm ${vsParScore <= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        {vsParScore <= 0 ? '' : '+' }{vsParScore} vs Par
-                      </p>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-destructive hover:text-destructive/90"
+                        onClick={() => handleDeleteRound(round.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
                 );
