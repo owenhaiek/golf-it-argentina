@@ -202,6 +202,8 @@ const Profile = () => {
                   ?.slice(0, round.golf_courses.holes)
                   .reduce((a, b) => a + b, 0) || 0;
                 
+                const vsParScore = round.score - totalPar;
+                
                 return (
                   <div 
                     key={round.id} 
@@ -213,10 +215,15 @@ const Profile = () => {
                         {new Date(round.date).toLocaleDateString()}
                       </p>
                     </div>
-                    <div className="text-right">
-                      <span className="text-lg font-bold">{round.score}</span>
+                    <div className="text-right space-y-1">
+                      <div className="text-lg font-bold">
+                        Score: {round.score}
+                      </div>
                       <p className="text-sm text-muted-foreground">
-                        Par {totalPar}
+                        Course Par: {totalPar}
+                      </p>
+                      <p className={`text-sm ${vsParScore <= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {vsParScore <= 0 ? '' : '+' }{vsParScore} vs Par
                       </p>
                     </div>
                   </div>

@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { Search } from "lucide-react";
 
 const AddRound = () => {
   const { user } = useAuth();
@@ -18,6 +19,7 @@ const AddRound = () => {
   const [selectedCourse, setSelectedCourse] = useState<string>("");
   const [scores, setScores] = useState<number[]>(Array(18).fill(0));
   const [notes, setNotes] = useState("");
+  const [showCourses, setShowCourses] = useState(false);
 
   const { data: courses = [], isLoading: isLoadingCourses } = useQuery({
     queryKey: ['courses'],
@@ -37,6 +39,11 @@ const AddRound = () => {
 
   const selectedCourseData = courses?.find(course => course.id === selectedCourse);
 
+  // Show courses only when searching
+  useEffect(() => {
+    setShowCourses(searchQuery.length > 0);
+  }, [searchQuery]);
+
   const handleScoreChange = (index: number, value: number) => {
     const newScores = [...scores];
     newScores[index] = value;
@@ -44,12 +51,18 @@ const AddRound = () => {
   };
 
   const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>, currentIndex: number) => {
+    const numberOfHoles = selectedCourseData?.holes || 18;
+    
     if (event.key === 'Enter' || event.key === 'ArrowRight') {
-      const nextInput = document.querySelector(`input[data-index="${currentIndex + 1}"]`) as HTMLInputElement;
-      if (nextInput) nextInput.focus();
+      if (currentIndex < numberOfHoles - 1) {
+        const nextInput = document.querySelector(`input[data-index="${currentIndex + 1}"]`) as HTMLInputElement;
+        if (nextInput) nextInput.focus();
+      }
     } else if (event.key === 'ArrowLeft') {
-      const prevInput = document.querySelector(`input[data-index="${currentIndex - 1}"]`) as HTMLInputElement;
-      if (prevInput) prevInput.focus();
+      if (currentIndex > 0) {
+        const prevInput = document.querySelector(`input[data-index="${currentIndex - 1}"]`) as HTMLInputElement;
+        if (prevInput) prevInput.focus();
+      }
     }
   };
 
@@ -108,24 +121,42 @@ const AddRound = () => {
           <CardTitle>Select Course</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Input
-            type="text"
-            placeholder="Search for a course..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          <div className="max-h-[200px] overflow-y-auto space-y-2">
-            {filteredCourses.map((course) => (
-              <Button
-                key={course.id}
-                variant={selectedCourse === course.id ? "default" : "outline"}
-                className="w-full justify-start"
-                onClick={() => setSelectedCourse(course.id)}
-              >
-                {course.name}
-              </Button>
-            ))}
+          <div className="relative">
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Search for a course..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9"
+            />
           </div>
+          {showCourses && filteredCourses.length > 0 && (
+            <div className="max-h-[200px] overflow-y-auto space-y-2">
+              {filteredCourses.map((course) => (
+                <Button
+                  key={course.id}
+                  variant={selectedCourse === course.id ? "default" : "outline"}
+                  className="w-full justify-between"
+                  onClick={() => {
+                    setSelectedCourse(course.id);
+                    setSearchQuery("");
+                    setShowCourses(false);
+                  }}
+                >
+                  <span>{course.name}</span>
+                  <span className="text-sm text-muted-foreground">
+                    Par {course.hole_pars?.reduce((a, b) => a + b, 0)}
+                  </span>
+                </Button>
+              ))}
+            </div>
+          )}
+          {showCourses && filteredCourses.length === 0 && (
+            <div className="text-center text-muted-foreground py-4">
+              No courses found
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -134,13 +165,15 @@ const AddRound = () => {
           <CardHeader>
             <CardTitle className="flex justify-between items-center">
               <span>Score Card</span>
-              <span className="text-sm font-normal">
-                Total: {currentTotal} / Par {totalPar}
-              </span>
+              <div className="text-sm font-normal space-y-1 text-right">
+                <div>Your Score: {currentTotal}</div>
+                <div>Course Par: {totalPar}</div>
+                <div>vs Par: {currentTotal - totalPar}</div>
+              </div>
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="h-[300px] w-full mb-6">
+          <CardContent className="space-y-6">
+            <div className="h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={chartData}>
                   <XAxis dataKey="hole" />
@@ -154,6 +187,7 @@ const AddRound = () => {
                     strokeWidth={2}
                     dot={{ fill: "#2A4746" }}
                     name="Your Score"
+                    animationDuration={300}
                   />
                   <Line 
                     type="monotone" 
