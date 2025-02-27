@@ -6,20 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Check, ChevronsUpDown } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
@@ -27,7 +14,7 @@ const AddRound = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [open, setOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedCourse, setSelectedCourse] = useState<string>("");
   const [scores, setScores] = useState<number[]>(Array(18).fill(0));
   const [notes, setNotes] = useState("");
@@ -43,6 +30,10 @@ const AddRound = () => {
       return data || [];
     },
   });
+
+  const filteredCourses = courses.filter(course =>
+    course.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const selectedCourseData = courses?.find(course => course.id === selectedCourse);
 
@@ -116,49 +107,25 @@ const AddRound = () => {
         <CardHeader>
           <CardTitle>Select Course</CardTitle>
         </CardHeader>
-        <CardContent>
-          <Popover open={open} onOpenChange={setOpen}>
-            <PopoverTrigger asChild>
+        <CardContent className="space-y-4">
+          <Input
+            type="text"
+            placeholder="Search for a course..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          <div className="max-h-[200px] overflow-y-auto space-y-2">
+            {filteredCourses.map((course) => (
               <Button
-                variant="outline"
-                role="combobox"
-                aria-expanded={open}
-                className="w-full justify-between"
+                key={course.id}
+                variant={selectedCourse === course.id ? "default" : "outline"}
+                className="w-full justify-start"
+                onClick={() => setSelectedCourse(course.id)}
               >
-                {selectedCourse
-                  ? courses?.find((course) => course.id === selectedCourse)?.name
-                  : "Select a course..."}
-                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                {course.name}
               </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-full p-0" align="start">
-              <Command>
-                <CommandInput placeholder="Search for a course..." className="h-9" />
-                <CommandEmpty>No course found.</CommandEmpty>
-                <CommandGroup className="max-h-[200px] overflow-y-auto">
-                  {courses.map((course) => (
-                    <CommandItem
-                      key={course.id}
-                      value={course.name}
-                      onSelect={() => {
-                        setSelectedCourse(course.id === selectedCourse ? "" : course.id);
-                        setOpen(false);
-                      }}
-                      className="cursor-pointer"
-                    >
-                      <Check
-                        className={cn(
-                          "mr-2 h-4 w-4",
-                          selectedCourse === course.id ? "opacity-100" : "opacity-0"
-                        )}
-                      />
-                      {course.name}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </Command>
-            </PopoverContent>
-          </Popover>
+            ))}
+          </div>
         </CardContent>
       </Card>
 
