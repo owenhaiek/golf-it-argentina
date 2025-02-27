@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -37,6 +37,15 @@ const Profile = () => {
     enabled: !!user?.id,
   });
 
+  // Update form fields when profile data changes
+  useEffect(() => {
+    if (profile) {
+      setNewUsername(profile.username || "");
+      setNewFullName(profile.full_name || "");
+      setNewHandicap(profile.handicap?.toString() || "");
+    }
+  }, [profile]);
+
   const { data: rounds, isLoading: roundsLoading } = useQuery({
     queryKey: ['rounds', user?.id],
     queryFn: async () => {
@@ -67,13 +76,14 @@ const Profile = () => {
         .from('rounds')
         .delete()
         .eq('id', roundId)
-        .eq('user_id', user?.id); // Ensure user owns the round
+        .eq('user_id', user?.id);
       
       if (error) throw error;
     },
     onSuccess: () => {
-      // Invalidate and refetch rounds
-      queryClient.invalidateQueries({ queryKey: ['rounds'] });
+      queryClient.invalidateQueries({ 
+        queryKey: ['rounds', user?.id] 
+      });
       toast({
         title: "Round deleted successfully",
       });
@@ -114,26 +124,31 @@ const Profile = () => {
         }
       }
 
+      const updateData = {
+        username: newUsername,
+        full_name: newFullName,
+        handicap: newHandicap ? parseFloat(newHandicap) : null,
+        avatar_url: avatarUrl,
+      };
+
       const { error } = await supabase
         .from('profiles')
-        .update({
-          username: newUsername || profile?.username,
-          full_name: newFullName || profile?.full_name,
-          handicap: newHandicap ? parseFloat(newHandicap) : profile?.handicap,
-          avatar_url: avatarUrl,
-        })
+        .update(updateData)
         .eq('id', user?.id);
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['profile'] });
+      queryClient.invalidateQueries({ 
+        queryKey: ['profile', user?.id] 
+      });
       setIsEditing(false);
       toast({
         title: "Profile updated successfully",
       });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Update profile error:', error);
       toast({
         title: "Error updating profile",
         variant: "destructive",
@@ -154,15 +169,15 @@ const Profile = () => {
 
   const handleEditClick = () => {
     setIsEditing(true);
-    // Initialize form fields with current values
-    setNewUsername(profile?.username || "");
-    setNewFullName(profile?.full_name || "");
-    setNewHandicap(profile?.handicap?.toString() || "");
   };
 
   const handleDeleteRound = async (roundId: string) => {
     if (window.confirm('Are you sure you want to delete this round?')) {
-      await deleteRound.mutateAsync(roundId);
+      try {
+        await deleteRound.mutateAsync(roundId);
+      } catch (error) {
+        console.error('Error deleting round:', error);
+      }
     }
   };
 
