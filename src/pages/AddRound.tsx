@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
-import { Input } from "@/components/ui/input";
 import {
   Command,
   CommandEmpty,
@@ -33,7 +32,7 @@ const AddRound = () => {
   const [scores, setScores] = useState<number[]>(Array(18).fill(0));
   const [notes, setNotes] = useState("");
 
-  const { data: courses, isLoading: isLoadingCourses } = useQuery({
+  const { data: courses = [], isLoading: isLoadingCourses } = useQuery({
     queryKey: ['courses'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -41,7 +40,7 @@ const AddRound = () => {
         .select('id, name, holes, hole_pars')
         .order('name');
       if (error) throw error;
-      return data;
+      return data || [];
     },
   });
 
@@ -132,19 +131,20 @@ const AddRound = () => {
                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-full p-0">
+            <PopoverContent className="w-full p-0" align="start">
               <Command>
-                <CommandInput placeholder="Search for a course..." />
+                <CommandInput placeholder="Search for a course..." className="h-9" />
                 <CommandEmpty>No course found.</CommandEmpty>
-                <CommandGroup>
-                  {courses?.map((course) => (
+                <CommandGroup className="max-h-[200px] overflow-y-auto">
+                  {courses.map((course) => (
                     <CommandItem
                       key={course.id}
                       value={course.name}
                       onSelect={() => {
-                        setSelectedCourse(course.id);
+                        setSelectedCourse(course.id === selectedCourse ? "" : course.id);
                         setOpen(false);
                       }}
+                      className="cursor-pointer"
                     >
                       <Check
                         className={cn(
