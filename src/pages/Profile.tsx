@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -40,7 +39,9 @@ const Profile = () => {
         .select(`
           *,
           golf_courses (
-            name
+            name,
+            hole_pars,
+            holes
           )
         `)
         .eq('user_id', user?.id)
@@ -196,23 +197,31 @@ const Profile = () => {
         <CardContent>
           {rounds && rounds.length > 0 ? (
             <div className="space-y-4">
-              {rounds.map((round) => (
-                <div 
-                  key={round.id} 
-                  className="flex justify-between items-center p-3 bg-secondary/10 rounded-lg"
-                >
-                  <div>
-                    <h3 className="font-medium">{round.golf_courses.name}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {new Date(round.date).toLocaleDateString()}
-                    </p>
+              {rounds.map((round) => {
+                const totalPar = round.golf_courses.hole_pars
+                  ?.slice(0, round.golf_courses.holes)
+                  .reduce((a, b) => a + b, 0) || 0;
+                
+                return (
+                  <div 
+                    key={round.id} 
+                    className="flex justify-between items-center p-3 bg-secondary/10 rounded-lg"
+                  >
+                    <div>
+                      <h3 className="font-medium">{round.golf_courses.name}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {new Date(round.date).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-lg font-bold">{round.score}</span>
+                      <p className="text-sm text-muted-foreground">
+                        Par {totalPar}
+                      </p>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <span className="text-lg font-bold">{round.score}</span>
-                    <p className="text-sm text-muted-foreground">Total Score</p>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <div className="text-center text-muted-foreground">

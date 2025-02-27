@@ -6,13 +6,21 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
+import { Input } from "@/components/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
@@ -20,6 +28,7 @@ const AddRound = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [open, setOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<string>("");
   const [scores, setScores] = useState<number[]>(Array(18).fill(0));
   const [notes, setNotes] = useState("");
@@ -44,6 +53,16 @@ const AddRound = () => {
     setScores(newScores);
   };
 
+  const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>, currentIndex: number) => {
+    if (event.key === 'Enter' || event.key === 'ArrowRight') {
+      const nextInput = document.querySelector(`input[data-index="${currentIndex + 1}"]`) as HTMLInputElement;
+      if (nextInput) nextInput.focus();
+    } else if (event.key === 'ArrowLeft') {
+      const prevInput = document.querySelector(`input[data-index="${currentIndex - 1}"]`) as HTMLInputElement;
+      if (prevInput) prevInput.focus();
+    }
+  };
+
   const handleSubmit = async () => {
     if (!selectedCourse) {
       toast({
@@ -53,7 +72,7 @@ const AddRound = () => {
       return;
     }
 
-    const totalScore = scores.reduce((a, b) => a + b, 0);
+    const totalScore = scores.slice(0, selectedCourseData?.holes || 18).reduce((a, b) => a + b, 0);
     
     try {
       const { error } = await supabase
@@ -80,13 +99,15 @@ const AddRound = () => {
     }
   };
 
-  const chartData = selectedCourseData?.hole_pars?.map((par, index) => ({
+  const chartData = selectedCourseData?.hole_pars?.slice(0, selectedCourseData.holes).map((par, index) => ({
     hole: `${index + 1}`,
     score: scores[index] || 0,
     par: par,
   })) || [];
 
   const numberOfHoles = selectedCourseData?.holes || 18;
+  const totalPar = selectedCourseData?.hole_pars?.slice(0, numberOfHoles).reduce((a, b) => a + b, 0) || 0;
+  const currentTotal = scores.slice(0, numberOfHoles).reduce((a, b) => a + b, 0);
 
   return (
     <div className="space-y-6">
@@ -97,76 +118,114 @@ const AddRound = () => {
           <CardTitle>Select Course</CardTitle>
         </CardHeader>
         <CardContent>
-          <Select value={selectedCourse} onValueChange={setSelectedCourse}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select a course" />
-            </SelectTrigger>
-            <SelectContent>
-              {courses?.map((course) => (
-                <SelectItem key={course.id} value={course.id}>
-                  {course.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                aria-expanded={open}
+                className="w-full justify-between"
+              >
+                {selectedCourse
+                  ? courses?.find((course) => course.id === selectedCourse)?.name
+                  : "Select a course..."}
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-full p-0">
+              <Command>
+                <CommandInput placeholder="Search for a course..." />
+                <CommandEmpty>No course found.</CommandEmpty>
+                <CommandGroup>
+                  {courses?.map((course) => (
+                    <CommandItem
+                      key={course.id}
+                      value={course.name}
+                      onSelect={() => {
+                        setSelectedCourse(course.id);
+                        setOpen(false);
+                      }}
+                    >
+                      <Check
+                        className={cn(
+                          "mr-2 h-4 w-4",
+                          selectedCourse === course.id ? "opacity-100" : "opacity-0"
+                        )}
+                      />
+                      {course.name}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </Command>
+            </PopoverContent>
+          </Popover>
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Score Card</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-[300px] w-full mb-6">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData}>
-                <XAxis dataKey="hole" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line 
-                  type="monotone" 
-                  dataKey="score" 
-                  stroke="#2A4746" 
-                  strokeWidth={2}
-                  dot={{ fill: "#2A4746" }}
-                  name="Your Score"
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="par" 
-                  stroke="#888888" 
-                  strokeWidth={2}
-                  dot={{ fill: "#888888" }}
-                  name="Par"
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+      {selectedCourseData && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex justify-between items-center">
+              <span>Score Card</span>
+              <span className="text-sm font-normal">
+                Total: {currentTotal} / Par {totalPar}
+              </span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px] w-full mb-6">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={chartData}>
+                  <XAxis dataKey="hole" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Line 
+                    type="monotone" 
+                    dataKey="score" 
+                    stroke="#2A4746" 
+                    strokeWidth={2}
+                    dot={{ fill: "#2A4746" }}
+                    name="Your Score"
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="par" 
+                    stroke="#888888" 
+                    strokeWidth={2}
+                    dot={{ fill: "#888888" }}
+                    name="Par"
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
 
-          <div className="grid grid-cols-6 gap-2">
-            {Array.from({ length: numberOfHoles }).map((_, index) => (
-              <div key={index} className="text-center">
-                <div className="text-xs text-muted-foreground mb-1">
-                  Hole {index + 1}
-                  {selectedCourseData?.hole_pars && (
-                    <div className="text-xs text-muted-foreground">
-                      Par {selectedCourseData.hole_pars[index]}
-                    </div>
-                  )}
+            <div className="grid grid-cols-6 gap-2">
+              {Array.from({ length: numberOfHoles }).map((_, index) => (
+                <div key={index} className="text-center">
+                  <div className="text-xs text-muted-foreground mb-1">
+                    Hole {index + 1}
+                    {selectedCourseData?.hole_pars && (
+                      <div className="text-xs text-muted-foreground">
+                        Par {selectedCourseData.hole_pars[index]}
+                      </div>
+                    )}
+                  </div>
+                  <input
+                    type="number"
+                    min="0"
+                    data-index={index}
+                    value={scores[index] || ''}
+                    onChange={(e) => handleScoreChange(index, parseInt(e.target.value) || 0)}
+                    onKeyDown={(e) => handleKeyPress(e, index)}
+                    className="w-full p-2 text-center border rounded-md"
+                  />
                 </div>
-                <input
-                  type="number"
-                  min="0"
-                  value={scores[index] || ''}
-                  onChange={(e) => handleScoreChange(index, parseInt(e.target.value) || 0)}
-                  className="w-full p-2 text-center border rounded-md"
-                />
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Button 
         onClick={handleSubmit} 
