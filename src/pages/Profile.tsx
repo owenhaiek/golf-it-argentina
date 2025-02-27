@@ -21,7 +21,8 @@ const Profile = () => {
   const [newFullName, setNewFullName] = useState("");
   const [newHandicap, setNewHandicap] = useState<string>("");
   const [deletingRoundId, setDeletingRoundId] = useState<string | null>(null);
-
+  
+  // Profile query
   const { data: profile, isLoading: profileLoading } = useQuery({
     queryKey: ['profile', user?.id],
     queryFn: async () => {
@@ -37,18 +38,20 @@ const Profile = () => {
     enabled: !!user?.id,
   });
 
-  // Update form fields when profile data changes
+  // Update form fields when profile data changes or when entering edit mode
   useEffect(() => {
-    if (profile) {
+    if (profile && isEditing) {
       setNewUsername(profile.username || "");
       setNewFullName(profile.full_name || "");
       setNewHandicap(profile.handicap?.toString() || "");
     }
-  }, [profile]);
+  }, [profile, isEditing]);
 
-  const { data: rounds, isLoading: roundsLoading } = useQuery({
+  // Rounds query
+  const { data: rounds, isLoading: roundsLoading, refetch: refetchRounds } = useQuery({
     queryKey: ['rounds', user?.id],
     queryFn: async () => {
+      console.log("Fetching rounds for user", user?.id);
       const { data, error } = await supabase
         .from('rounds')
         .select(`
@@ -63,27 +66,40 @@ const Profile = () => {
         .order('created_at', { ascending: false })
         .limit(5);
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching rounds:", error);
+        throw error;
+      }
+      
+      console.log("Fetched rounds:", data);
       return data;
     },
     enabled: !!user?.id,
   });
 
+  // Delete round mutation
   const deleteRound = useMutation({
     mutationFn: async (roundId: string) => {
+      console.log("Deleting round:", roundId);
       setDeletingRoundId(roundId);
+      
       const { error } = await supabase
         .from('rounds')
         .delete()
         .eq('id', roundId)
         .eq('user_id', user?.id);
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error in deleteRound mutation:", error);
+        throw error;
+      }
+      
+      console.log("Round deleted successfully");
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ 
-        queryKey: ['rounds', user?.id] 
-      });
+      // Explicitly refetch rounds after successful deletion
+      refetchRounds();
+      
       toast({
         title: "Round deleted successfully",
       });
@@ -100,8 +116,10 @@ const Profile = () => {
     },
   });
 
+  // Update profile mutation
   const updateProfile = useMutation({
     mutationFn: async (formData: FormData) => {
+      console.log("Updating profile...");
       let avatarUrl = profile?.avatar_url;
 
       if (formData.has('avatar')) {
@@ -130,6 +148,8 @@ const Profile = () => {
         handicap: newHandicap ? parseFloat(newHandicap) : null,
         avatar_url: avatarUrl,
       };
+
+      console.log("Profile update data:", updateData);
 
       const { error } = await supabase
         .from('profiles')
@@ -168,6 +188,7 @@ const Profile = () => {
   };
 
   const handleEditClick = () => {
+    // Only set editing mode to true, form fields will be updated by useEffect
     setIsEditing(true);
   };
 
