@@ -62,23 +62,21 @@ const Profile = () => {
 
   const deleteRound = useMutation({
     mutationFn: async (roundId: string) => {
+      setDeletingRoundId(roundId);
       const { error } = await supabase
         .from('rounds')
         .delete()
-        .eq('id', roundId);
+        .eq('id', roundId)
+        .eq('user_id', user?.id); // Ensure user owns the round
       
       if (error) throw error;
-      
-      // Immediately refetch rounds after successful deletion
-      await queryClient.invalidateQueries({ 
-        queryKey: ['rounds', user?.id],
-      });
     },
     onSuccess: () => {
+      // Invalidate and refetch rounds
+      queryClient.invalidateQueries({ queryKey: ['rounds'] });
       toast({
         title: "Round deleted successfully",
       });
-      setDeletingRoundId(null);
     },
     onError: (error) => {
       console.error('Delete round error:', error);
@@ -86,6 +84,8 @@ const Profile = () => {
         title: "Error deleting round",
         variant: "destructive",
       });
+    },
+    onSettled: () => {
       setDeletingRoundId(null);
     },
   });
@@ -152,13 +152,17 @@ const Profile = () => {
     updateProfile.mutate(formData);
   };
 
+  const handleEditClick = () => {
+    setIsEditing(true);
+    // Initialize form fields with current values
+    setNewUsername(profile?.username || "");
+    setNewFullName(profile?.full_name || "");
+    setNewHandicap(profile?.handicap?.toString() || "");
+  };
+
   const handleDeleteRound = async (roundId: string) => {
     if (window.confirm('Are you sure you want to delete this round?')) {
-      try {
-        await deleteRound.mutateAsync(roundId);
-      } catch (error) {
-        console.error('Error deleting round:', error);
-      }
+      await deleteRound.mutateAsync(roundId);
     }
   };
 
@@ -212,19 +216,19 @@ const Profile = () => {
               <div className="space-y-4 mt-4">
                 <Input
                   placeholder="Username"
-                  defaultValue={profile?.username}
+                  value={newUsername}
                   onChange={(e) => setNewUsername(e.target.value)}
                 />
                 <Input
                   placeholder="Full Name"
-                  defaultValue={profile?.full_name}
+                  value={newFullName}
                   onChange={(e) => setNewFullName(e.target.value)}
                 />
                 <Input
                   placeholder="Handicap"
                   type="number"
                   step="0.1"
-                  defaultValue={profile?.handicap}
+                  value={newHandicap}
                   onChange={(e) => setNewHandicap(e.target.value)}
                 />
               </div>
@@ -252,8 +256,9 @@ const Profile = () => {
             ) : (
               <div className="space-x-2">
                 <Button 
+                  type="button"
                   variant="outline" 
-                  onClick={() => setIsEditing(true)}
+                  onClick={handleEditClick}
                   className="hover:bg-green-600/10 hover:text-green-600 transition-colors"
                 >
                   Edit Profile
