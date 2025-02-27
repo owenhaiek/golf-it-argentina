@@ -25,13 +25,10 @@ const Profile = () => {
   const [deletingRoundId, setDeletingRoundId] = useState<string | null>(null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
 
-  console.log("Rendering Profile component, isEditing:", isEditing);
-
   // Profile Query
   const { data: profile, isLoading: profileLoading } = useQuery({
     queryKey: ['profile', user?.id],
     queryFn: async () => {
-      console.log("Fetching profile data for user:", user?.id);
       try {
         const { data, error } = await supabase
           .from('profiles')
@@ -39,14 +36,10 @@ const Profile = () => {
           .eq('id', user?.id)
           .single();
         
-        if (error) {
-          console.error("Error fetching profile:", error);
-          throw error;
-        }
-        console.log("Profile data fetched:", data);
+        if (error) throw error;
         return data;
       } catch (error) {
-        console.error("Error in profile query:", error);
+        console.error("Error fetching profile:", error);
         throw error;
       }
     },
@@ -54,10 +47,9 @@ const Profile = () => {
   });
 
   // Rounds Query
-  const { data: rounds, isLoading: roundsLoading, refetch: refetchRounds } = useQuery({
+  const { data: rounds, isLoading: roundsLoading } = useQuery({
     queryKey: ['rounds', user?.id],
     queryFn: async () => {
-      console.log("Fetching rounds for user:", user?.id);
       try {
         const { data, error } = await supabase
           .from('rounds')
@@ -73,15 +65,10 @@ const Profile = () => {
           .order('created_at', { ascending: false })
           .limit(5);
         
-        if (error) {
-          console.error("Error fetching rounds:", error);
-          throw error;
-        }
-        
-        console.log("Rounds data fetched:", data);
+        if (error) throw error;
         return data;
       } catch (error) {
-        console.error("Error in rounds query:", error);
+        console.error("Error fetching rounds:", error);
         throw error;
       }
     },
@@ -91,7 +78,7 @@ const Profile = () => {
   // Initialize form data when entering edit mode
   useEffect(() => {
     if (isEditing && profile) {
-      console.log("Initializing form data with profile:", profile);
+      // Only set initial values when entering edit mode
       setFormData({
         username: profile.username || "",
         fullName: profile.full_name || "",
@@ -103,12 +90,10 @@ const Profile = () => {
   // Profile Update Mutation
   const updateProfile = useMutation({
     mutationFn: async () => {
-      console.log("Updating profile with data:", formData, "avatarFile:", avatarFile);
       let avatarUrl = profile?.avatar_url;
 
       // Handle avatar upload if a new file is provided
       if (avatarFile) {
-        console.log("Uploading avatar file:", avatarFile.name);
         try {
           const fileExt = avatarFile.name.split('.').pop();
           const filePath = `${user?.id}/${Math.random()}.${fileExt}`;
@@ -117,16 +102,12 @@ const Profile = () => {
             .from('avatars')
             .upload(filePath, avatarFile);
 
-          if (uploadError) {
-            console.error("Avatar upload error:", uploadError);
-            throw uploadError;
-          }
+          if (uploadError) throw uploadError;
 
           const { data: { publicUrl } } = supabase.storage
             .from('avatars')
             .getPublicUrl(filePath);
 
-          console.log("Avatar uploaded successfully, public URL:", publicUrl);
           avatarUrl = publicUrl;
         } catch (error) {
           console.error("Error uploading avatar:", error);
@@ -136,7 +117,6 @@ const Profile = () => {
 
       // Update profile data
       try {
-        console.log("Sending profile update to Supabase");
         const { error } = await supabase
           .from('profiles')
           .update({
@@ -147,19 +127,13 @@ const Profile = () => {
           })
           .eq('id', user?.id);
 
-        if (error) {
-          console.error("Profile update error:", error);
-          throw error;
-        }
-        
-        console.log("Profile update successful");
+        if (error) throw error;
       } catch (error) {
-        console.error("Error in profile update:", error);
+        console.error("Error updating profile:", error);
         throw error;
       }
     },
     onSuccess: () => {
-      console.log("Profile update mutation successful, invalidating queries");
       queryClient.invalidateQueries({ queryKey: ['profile', user?.id] });
       setIsEditing(false);
       setAvatarFile(null);
@@ -172,44 +146,32 @@ const Profile = () => {
       toast({
         title: "Error updating profile",
         variant: "destructive",
-        description: "Please try again",
       });
     },
   });
 
   // Round Deletion Mutation
-  const deleteRoundMutation = useMutation({
+  const deleteRound = useMutation({
     mutationFn: async (roundId: string) => {
-      console.log("Starting round deletion for:", roundId);
-      try {
-        const { error } = await supabase
-          .from('rounds')
-          .delete()
-          .eq('id', roundId)
-          .eq('user_id', user?.id);
+      const { error } = await supabase
+        .from('rounds')
+        .delete()
+        .eq('id', roundId)
+        .eq('user_id', user?.id);
 
-        if (error) {
-          console.error("Round deletion database error:", error);
-          throw error;
-        }
-        
-        console.log("Round deleted successfully in database");
-        return roundId;
-      } catch (error) {
-        console.error("Error in round deletion:", error);
-        throw error;
-      }
+      if (error) throw error;
+      
+      return roundId;
     },
     onSuccess: (deletedRoundId) => {
-      console.log("Round deletion successful, invalidating queries");
-      // Directly update the cache to remove the deleted round
-      queryClient.setQueryData(['rounds', user?.id], (oldData: any) => {
-        if (!oldData) return oldData;
-        return oldData.filter((round: any) => round.id !== deletedRoundId);
+      // Update the local cache immediately to remove the deleted round
+      queryClient.setQueryData(['rounds', user?.id], (oldData: any[]) => {
+        if (!oldData) return [];
+        return oldData.filter(round => round.id !== deletedRoundId);
       });
       
-      // Also refetch to ensure data consistency
-      refetchRounds();
+      // Also invalidate the query to ensure data consistency
+      queryClient.invalidateQueries({ queryKey: ['rounds', user?.id] });
       
       toast({
         title: "Round deleted successfully",
@@ -220,25 +182,22 @@ const Profile = () => {
       toast({
         title: "Error deleting round",
         variant: "destructive",
-        description: "Please try again",
       });
     },
     onSettled: () => {
-      console.log("Round deletion settled, clearing deletingRoundId");
       setDeletingRoundId(null);
     },
   });
 
   // Handle starting edit mode
   const handleEditClick = () => {
-    console.log("Edit button clicked, entering edit mode");
     setIsEditing(true);
+    // Initial form data will be set by useEffect
   };
 
   // Handle form changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    console.log(`Form input changed: ${name} = ${value}`);
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -248,44 +207,33 @@ const Profile = () => {
   // Handle avatar file change
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      console.log("Avatar file selected:", file.name);
-      setAvatarFile(file);
+      setAvatarFile(e.target.files[0]);
     }
   };
 
   // Handle profile update submission
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log("Profile form submitted");
     updateProfile.mutate();
   };
 
   // Handle round deletion
   const handleDeleteRound = (roundId: string) => {
-    console.log("Delete round button clicked for:", roundId);
-    if (!window.confirm('Are you sure you want to delete this round?')) {
-      console.log("Round deletion cancelled by user");
-      return;
+    if (window.confirm('Are you sure you want to delete this round?')) {
+      setDeletingRoundId(roundId);
+      deleteRound.mutate(roundId);
     }
-
-    console.log("Proceeding with round deletion for:", roundId);
-    setDeletingRoundId(roundId);
-    deleteRoundMutation.mutate(roundId);
   };
 
   const handleLogout = async () => {
-    console.log("Logout button clicked");
     try {
       const { error } = await supabase.auth.signOut();
       if (error) {
-        console.error("Logout error:", error);
         toast({
           title: "Error logging out",
           variant: "destructive",
         });
       } else {
-        console.log("Logout successful");
         toast({
           title: "Logged out successfully",
         });
@@ -297,7 +245,6 @@ const Profile = () => {
   };
 
   if (profileLoading || roundsLoading) {
-    console.log("Profile page is loading");
     return <div className="animate-pulse space-y-4">
       <div className="h-6 w-1/3 bg-secondary/20 rounded" />
       <div className="h-64 bg-secondary/20 rounded-lg" />
@@ -355,6 +302,9 @@ const Profile = () => {
             ) : (
               <>
                 <CardTitle className="mt-4">{profile?.full_name || 'Anonymous'}</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  {profile?.username ? `@${profile.username}` : ''}
+                </p>
                 <p className="text-sm text-muted-foreground">
                   {profile?.handicap ? `Handicap: ${profile.handicap}` : 'No handicap set'}
                 </p>
@@ -450,7 +400,7 @@ const Profile = () => {
                         size="icon"
                         className="text-red-600 hover:bg-red-600/10 transition-colors"
                         onClick={() => handleDeleteRound(round.id)}
-                        disabled={isDeleting || deleteRoundMutation.isPending}
+                        disabled={isDeleting || deleteRound.isPending}
                       >
                         {isDeleting ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
