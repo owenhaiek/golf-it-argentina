@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 const AddRound = () => {
   const { user } = useAuth();
@@ -29,12 +29,14 @@ const AddRound = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('golf_courses')
-        .select('id, name')
+        .select('id, name, holes, hole_pars')
         .order('name');
       if (error) throw error;
       return data;
     },
   });
+
+  const selectedCourseData = courses?.find(course => course.id === selectedCourse);
 
   const handleScoreChange = (index: number, value: number) => {
     const newScores = [...scores];
@@ -78,10 +80,13 @@ const AddRound = () => {
     }
   };
 
-  const chartData = scores.map((score, index) => ({
-    hole: `Hole ${index + 1}`,
-    score: score || 0,
-  }));
+  const chartData = selectedCourseData?.hole_pars?.map((par, index) => ({
+    hole: `${index + 1}`,
+    score: scores[index] || 0,
+    par: par,
+  })) || [];
+
+  const numberOfHoles = selectedCourseData?.holes || 18;
 
   return (
     <div className="space-y-6">
@@ -112,33 +117,48 @@ const AddRound = () => {
           <CardTitle>Score Card</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-[200px] w-full mb-6">
+          <div className="h-[300px] w-full mb-6">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData}>
                 <XAxis dataKey="hole" />
                 <YAxis />
                 <Tooltip />
+                <Legend />
                 <Line 
                   type="monotone" 
                   dataKey="score" 
                   stroke="#2A4746" 
                   strokeWidth={2}
                   dot={{ fill: "#2A4746" }}
+                  name="Your Score"
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="par" 
+                  stroke="#888888" 
+                  strokeWidth={2}
+                  dot={{ fill: "#888888" }}
+                  name="Par"
                 />
               </LineChart>
             </ResponsiveContainer>
           </div>
 
           <div className="grid grid-cols-6 gap-2">
-            {scores.map((score, index) => (
+            {Array.from({ length: numberOfHoles }).map((_, index) => (
               <div key={index} className="text-center">
                 <div className="text-xs text-muted-foreground mb-1">
-                  {index + 1}
+                  Hole {index + 1}
+                  {selectedCourseData?.hole_pars && (
+                    <div className="text-xs text-muted-foreground">
+                      Par {selectedCourseData.hole_pars[index]}
+                    </div>
+                  )}
                 </div>
                 <input
                   type="number"
                   min="0"
-                  value={score || ''}
+                  value={scores[index] || ''}
                   onChange={(e) => handleScoreChange(index, parseInt(e.target.value) || 0)}
                   className="w-full p-2 text-center border rounded-md"
                 />
