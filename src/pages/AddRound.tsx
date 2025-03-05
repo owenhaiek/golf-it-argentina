@@ -116,6 +116,7 @@ const AddRound = () => {
     ?.slice(0, numberOfHoles)
     .reduce((a, b) => a + (b || 0), 0) || 0;
   const currentTotal = scores.slice(0, numberOfHoles).reduce((a, b) => a + b, 0);
+  const vsParScore = currentTotal - totalPar;
 
   return (
     <div className="space-y-6">
@@ -187,16 +188,37 @@ const AddRound = () => {
       {selectedCourseData && (
         <Card>
           <CardHeader>
-            <CardTitle className="flex justify-between items-center">
-              <span>Score Card - {selectedCourseData.name}</span>
-              <div className="text-sm font-normal space-y-1 text-right">
-                <div>Your Score: {currentTotal}</div>
-                <div>Course Par: {totalPar}</div>
-                <div>vs Par: {currentTotal - totalPar}</div>
-              </div>
-            </CardTitle>
+            <CardTitle>Score Card - {selectedCourseData.name}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
+            {/* Enhanced Score Display */}
+            <div className="grid grid-cols-3 gap-4 mb-6">
+              <div className="bg-secondary/20 p-4 rounded-lg text-center transition-all hover:shadow-md">
+                <h3 className="text-sm text-muted-foreground mb-1">Your Score</h3>
+                <div className="text-3xl font-bold">{currentTotal}</div>
+              </div>
+              
+              <div className="bg-secondary/20 p-4 rounded-lg text-center transition-all hover:shadow-md">
+                <h3 className="text-sm text-muted-foreground mb-1">Course Par</h3>
+                <div className="text-3xl font-bold">{totalPar}</div>
+              </div>
+              
+              <div className={`p-4 rounded-lg text-center transition-all hover:shadow-md ${
+                vsParScore <= 0 
+                  ? 'bg-green-100 dark:bg-green-900/20' 
+                  : 'bg-red-100 dark:bg-red-900/20'
+              }`}>
+                <h3 className="text-sm text-muted-foreground mb-1">vs Par</h3>
+                <div className={`text-3xl font-bold ${
+                  vsParScore <= 0 
+                    ? 'text-green-600 dark:text-green-400' 
+                    : 'text-red-600 dark:text-red-400'
+                }`}>
+                  {vsParScore <= 0 ? vsParScore : `+${vsParScore}`}
+                </div>
+              </div>
+            </div>
+
             <div className="h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={chartData}>

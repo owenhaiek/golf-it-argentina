@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/lib/supabase";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { Loader2, Trash2, LogOut } from "lucide-react";
 
@@ -35,7 +35,6 @@ const Profile = () => {
   const { 
     data: profile, 
     isLoading: profileLoading,
-    refetch: refetchProfile
   } = useQuery({
     queryKey: ['profile', user?.id],
     queryFn: async () => {
@@ -61,7 +60,6 @@ const Profile = () => {
   const { 
     data: rounds, 
     isLoading: roundsLoading,
-    refetch: refetchRounds
   } = useQuery({
     queryKey: ['rounds', user?.id],
     queryFn: async () => {
@@ -100,6 +98,7 @@ const Profile = () => {
         handicap: profile.handicap?.toString() || "",
       });
       
+      // Set avatar preview to current avatar
       setAvatarPreview(profile.avatar_url || null);
       setAvatarFile(null); // Clear any previously selected file
     }
@@ -126,6 +125,7 @@ const Profile = () => {
       // Step 1: Upload avatar if a new file is selected
       if (avatarFile) {
         const fileExt = avatarFile.name.split('.').pop();
+        // Use current timestamp and random string to ensure unique filename
         const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}`;
         const filePath = `${user.id}/${fileName}.${fileExt}`;
 
@@ -164,8 +164,8 @@ const Profile = () => {
       return true;
     },
     onSuccess: () => {
-      // Explicitly refetch profile data
-      refetchProfile();
+      // Invalidate and refetch profile data to ensure UI is updated
+      queryClient.invalidateQueries({ queryKey: ['profile', user?.id] });
       
       // Reset state
       setIsEditing(false);
@@ -206,8 +206,8 @@ const Profile = () => {
       return roundId;
     },
     onSuccess: (deletedRoundId) => {
-      // Explicitly refetch rounds data
-      refetchRounds();
+      // Invalidate and refetch rounds data to ensure UI is updated
+      queryClient.invalidateQueries({ queryKey: ['rounds', user?.id] });
       
       // Show success message
       toast({
@@ -335,7 +335,7 @@ const Profile = () => {
             )}
             
             {/* Edit indicator */}
-            {isEditing && avatarPreview && (
+            {isEditing && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-full text-white text-xs">
                 Click to change
               </div>
