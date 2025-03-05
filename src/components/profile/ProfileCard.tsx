@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -41,7 +41,7 @@ const ProfileCard = ({ user, profile, profileLoading }: ProfileCardProps) => {
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
   // Initialize form data when entering edit mode
-  useState(() => {
+  useEffect(() => {
     if (isEditing && profile) {
       setFormData({
         username: profile.username || "",
@@ -53,10 +53,10 @@ const ProfileCard = ({ user, profile, profileLoading }: ProfileCardProps) => {
       setAvatarPreview(profile.avatar_url || null);
       setAvatarFile(null); // Clear any previously selected file
     }
-  });
+  }, [isEditing, profile]);
 
   // Create temporary URL for avatar preview
-  useState(() => {
+  useEffect(() => {
     if (avatarFile) {
       const url = URL.createObjectURL(avatarFile);
       setAvatarPreview(url);
@@ -64,7 +64,7 @@ const ProfileCard = ({ user, profile, profileLoading }: ProfileCardProps) => {
       // Clean up the temporary URL when component unmounts or avatar changes
       return () => URL.revokeObjectURL(url);
     }
-  });
+  }, [avatarFile]);
 
   // Profile Update Mutation
   const updateProfileMutation = useMutation({
