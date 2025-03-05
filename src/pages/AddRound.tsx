@@ -1,25 +1,21 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
-import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { Search } from "lucide-react";
+import CourseSearch from "@/components/rounds/CourseSearch";
+import ScoreCard from "@/components/rounds/ScoreCard";
 
 const AddRound = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [searchQuery, setSearchQuery] = useState("");
   const [selectedCourse, setSelectedCourse] = useState<string>("");
   const [scores, setScores] = useState<number[]>(Array(18).fill(0));
   const [notes, setNotes] = useState("");
-  const [showCourses, setShowCourses] = useState(false);
 
   const { data: courses = [], isLoading: isLoadingCourses } = useQuery({
     queryKey: ['courses'],
@@ -33,38 +29,12 @@ const AddRound = () => {
     },
   });
 
-  const filteredCourses = courses.filter(course =>
-    course.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
   const selectedCourseData = courses?.find(course => course.id === selectedCourse);
-
-  // Show courses only when searching
-  useEffect(() => {
-    if (searchQuery === "" && !showCourses) return;
-    setShowCourses(searchQuery.length > 0);
-  }, [searchQuery]);
 
   const handleScoreChange = (index: number, value: number) => {
     const newScores = [...scores];
     newScores[index] = value;
     setScores(newScores);
-  };
-
-  const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>, currentIndex: number) => {
-    const numberOfHoles = selectedCourseData?.holes || 18;
-    
-    if (event.key === 'Enter' || event.key === 'ArrowRight') {
-      if (currentIndex < numberOfHoles - 1) {
-        const nextInput = document.querySelector(`input[data-index="${currentIndex + 1}"]`) as HTMLInputElement;
-        if (nextInput) nextInput.focus();
-      }
-    } else if (event.key === 'ArrowLeft') {
-      if (currentIndex > 0) {
-        const prevInput = document.querySelector(`input[data-index="${currentIndex - 1}"]`) as HTMLInputElement;
-        if (prevInput) prevInput.focus();
-      }
-    }
   };
 
   const handleSubmit = async () => {
@@ -103,183 +73,34 @@ const AddRound = () => {
     }
   };
 
-  const chartData = selectedCourseData?.hole_pars
-    ?.slice(0, selectedCourseData.holes)
-    .map((par, index) => ({
-      hole: index + 1,
-      score: scores[index] || null,
-      par: par || 0,
-    })) || [];
-
-  const numberOfHoles = selectedCourseData?.holes || 18;
-  const totalPar = selectedCourseData?.hole_pars
-    ?.slice(0, numberOfHoles)
-    .reduce((a, b) => a + (b || 0), 0) || 0;
-  const currentTotal = scores.slice(0, numberOfHoles).reduce((a, b) => a + b, 0);
-  const vsParScore = currentTotal - totalPar;
+  const handleSelectCourse = (courseId: string) => {
+    setSelectedCourse(courseId);
+    // Reset scores when changing course
+    if (courseId) {
+      const course = courses.find(c => c.id === courseId);
+      if (course) {
+        setScores(Array(course.holes).fill(0));
+      }
+    }
+  };
 
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Add Round Score</h1>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Select Course</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder="Search for a course..."
-              value={selectedCourseData ? selectedCourseData.name : searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                if (selectedCourse && e.target.value !== selectedCourseData?.name) {
-                  setSelectedCourse("");
-                }
-              }}
-              onFocus={() => {
-                if (selectedCourse) {
-                  setSearchQuery("");
-                  setSelectedCourse("");
-                }
-                setShowCourses(true);
-              }}
-              className="pl-9"
-            />
-          </div>
-          {showCourses && filteredCourses.length > 0 && (
-            <div className="max-h-[200px] overflow-y-auto space-y-2">
-              {filteredCourses.map((course) => {
-                const coursePar = course.hole_pars
-                  ?.slice(0, course.holes)
-                  .reduce((a, b) => a + (b || 0), 0) || 0;
-                return (
-                  <Button
-                    key={course.id}
-                    variant={selectedCourse === course.id ? "default" : "outline"}
-                    className="w-full justify-between"
-                    onClick={() => {
-                      setSelectedCourse(course.id);
-                      setSearchQuery("");
-                      setShowCourses(false);
-                      // Reset scores when changing course
-                      setScores(Array(course.holes).fill(0));
-                    }}
-                  >
-                    <span>{course.name}</span>
-                    <span className="text-sm text-muted-foreground">
-                      Par {coursePar}
-                    </span>
-                  </Button>
-                );
-              })}
-            </div>
-          )}
-          {showCourses && filteredCourses.length === 0 && (
-            <div className="text-center text-muted-foreground py-4">
-              No courses found
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <CourseSearch 
+        courses={courses}
+        isLoading={isLoadingCourses}
+        selectedCourse={selectedCourse}
+        onSelectCourse={handleSelectCourse}
+      />
 
       {selectedCourseData && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Score Card - {selectedCourseData.name}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Enhanced Score Display */}
-            <div className="grid grid-cols-3 gap-4 mb-6">
-              <div className="bg-secondary/20 p-4 rounded-lg text-center transition-all hover:shadow-md">
-                <h3 className="text-sm text-muted-foreground mb-1">Your Score</h3>
-                <div className="text-3xl font-bold">{currentTotal}</div>
-              </div>
-              
-              <div className="bg-secondary/20 p-4 rounded-lg text-center transition-all hover:shadow-md">
-                <h3 className="text-sm text-muted-foreground mb-1">Course Par</h3>
-                <div className="text-3xl font-bold">{totalPar}</div>
-              </div>
-              
-              <div className={`p-4 rounded-lg text-center transition-all hover:shadow-md ${
-                vsParScore <= 0 
-                  ? 'bg-green-100 dark:bg-green-900/20' 
-                  : 'bg-red-100 dark:bg-red-900/20'
-              }`}>
-                <h3 className="text-sm text-muted-foreground mb-1">vs Par</h3>
-                <div className={`text-3xl font-bold ${
-                  vsParScore <= 0 
-                    ? 'text-green-600 dark:text-green-400' 
-                    : 'text-red-600 dark:text-red-400'
-                }`}>
-                  {vsParScore <= 0 ? vsParScore : `+${vsParScore}`}
-                </div>
-              </div>
-            </div>
-
-            <div className="h-[300px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData}>
-                  <XAxis 
-                    dataKey="hole"
-                    type="number"
-                    domain={[1, numberOfHoles]}
-                    allowDecimals={false}
-                  />
-                  <YAxis 
-                    domain={['auto', 'auto']}
-                  />
-                  <Tooltip />
-                  <Legend />
-                  <Line 
-                    type="monotone" 
-                    dataKey="score" 
-                    stroke="#2A4746" 
-                    strokeWidth={2}
-                    dot={{ fill: "#2A4746" }}
-                    name="Your Score"
-                    animationDuration={300}
-                    connectNulls
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="par" 
-                    stroke="#888888" 
-                    strokeWidth={2}
-                    dot={{ fill: "#888888" }}
-                    name="Par"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-
-            <div className="grid grid-cols-6 gap-2">
-              {Array.from({ length: numberOfHoles }).map((_, index) => (
-                <div key={index} className="text-center">
-                  <div className="text-xs text-muted-foreground mb-1">
-                    Hole {index + 1}
-                    {selectedCourseData?.hole_pars && (
-                      <div className="text-xs text-muted-foreground">
-                        Par {selectedCourseData.hole_pars[index] || '-'}
-                      </div>
-                    )}
-                  </div>
-                  <input
-                    type="number"
-                    min="0"
-                    data-index={index}
-                    value={scores[index] || ''}
-                    onChange={(e) => handleScoreChange(index, parseInt(e.target.value) || 0)}
-                    onKeyDown={(e) => handleKeyPress(e, index)}
-                    className="w-full p-2 text-center border rounded-md"
-                  />
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        <ScoreCard
+          selectedCourseData={selectedCourseData}
+          scores={scores}
+          onScoreChange={handleScoreChange}
+        />
       )}
 
       <Button 
