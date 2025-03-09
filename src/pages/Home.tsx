@@ -1,26 +1,47 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { Card, CardContent } from "@/components/ui/card";
-import { MapPin, Phone, Globe, Flag, Search } from "lucide-react";
+import { MapPin, Phone, Globe, Flag, Search, Filter } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import FilterPanel from "@/components/FilterPanel";
+
+type FilterOptions = {
+  holes: string;
+  location: string;
+};
 
 const Home = () => {
   const [search, setSearch] = useState("");
   const [isSearchVisible, setIsSearchVisible] = useState(false);
+  const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
+  const [filters, setFilters] = useState<FilterOptions>({
+    holes: "",
+    location: ""
+  });
 
   const { data: courses, isLoading } = useQuery({
-    queryKey: ['courses', search],
+    queryKey: ['courses', search, filters],
     queryFn: async () => {
-      const query = supabase
+      let query = supabase
         .from('golf_courses')
         .select('*')
         .order('name');
       
       if (search) {
-        query.ilike('name', `%${search}%`);
+        query = query.ilike('name', `%${search}%`);
+      }
+      
+      // Apply filters
+      if (filters.holes) {
+        query = query.eq('holes', parseInt(filters.holes));
+      }
+      
+      if (filters.location) {
+        query = query.or(`city.ilike.%${filters.location}%,state.ilike.%${filters.location}%`);
       }
       
       const { data, error } = await query;
@@ -29,16 +50,22 @@ const Home = () => {
     },
   });
 
+  const handleApplyFilters = (newFilters: FilterOptions) => {
+    setFilters(newFilters);
+  };
+
   return (
     <div className="space-y-4 -mt-6 -mx-4">
       <div className="flex items-center justify-between px-4 pt-6">
         <h1 className="text-2xl font-bold">Golf Courses</h1>
-        <button 
-          onClick={() => setIsSearchVisible(!isSearchVisible)}
-          className="p-2 hover:bg-secondary/20 rounded-full transition-colors"
-        >
-          <Search size={20} />
-        </button>
+        <div className="flex gap-2">
+          <button 
+            onClick={() => setIsSearchVisible(!isSearchVisible)}
+            className="p-2 hover:bg-secondary/20 rounded-full transition-colors"
+          >
+            <Search size={20} />
+          </button>
+        </div>
       </div>
 
       {isSearchVisible && (
@@ -50,6 +77,22 @@ const Home = () => {
             onChange={(e) => setSearch(e.target.value)}
             className="w-full"
           />
+        </div>
+      )}
+
+      {/* Active filters indicator */}
+      {(filters.holes || filters.location) && (
+        <div className="px-4 flex flex-wrap gap-2">
+          {filters.holes && (
+            <div className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">
+              {filters.holes} Holes
+            </div>
+          )}
+          {filters.location && (
+            <div className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">
+              Location: {filters.location}
+            </div>
+          )}
         </div>
       )}
 
@@ -111,7 +154,40 @@ const Home = () => {
             </Link>
           ))
         )}
+
+        {courses?.length === 0 && !isLoading && (
+          <div className="text-center py-8 text-muted-foreground">
+            <p>No courses found matching your criteria</p>
+            <Button 
+              variant="outline" 
+              className="mt-2"
+              onClick={() => {
+                setFilters({ holes: "", location: "" });
+                setSearch("");
+              }}
+            >
+              Reset filters
+            </Button>
+          </div>
+        )}
       </div>
+
+      {/* Floating filter button */}
+      <Button
+        onClick={() => setIsFilterPanelOpen(true)}
+        className="fixed right-4 bottom-20 h-12 w-12 rounded-full shadow-lg"
+        size="icon"
+      >
+        <Filter size={20} />
+      </Button>
+
+      {/* Filter Panel */}
+      <FilterPanel
+        isOpen={isFilterPanelOpen}
+        onClose={() => setIsFilterPanelOpen(false)}
+        onApplyFilters={handleApplyFilters}
+        currentFilters={filters}
+      />
     </div>
   );
 };
