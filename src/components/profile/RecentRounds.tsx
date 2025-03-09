@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/components/ui/use-toast";
 import { Loader2, Trash2, Calendar, Trophy, MapPin, Flag } from "lucide-react";
-import { formatRelative, format } from "date-fns";
+import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 
@@ -56,10 +56,10 @@ const RecentRounds = ({ userId, rounds, roundsLoading }: RecentRoundsProps) => {
       return roundId;
     },
     onSuccess: (deletedRoundId) => {
-      // Update local state immediately for better UX
-      queryClient.setQueryData(['rounds', userId], (oldData: any) => {
+      // Update cache to remove the deleted round
+      queryClient.setQueryData(['rounds', userId], (oldData: Round[] | undefined) => {
         if (!oldData) return [];
-        return oldData.filter((round: Round) => round.id !== deletedRoundId);
+        return oldData.filter((round) => round.id !== deletedRoundId);
       });
       
       // Then invalidate to get fresh data from the server
@@ -121,12 +121,7 @@ const RecentRounds = ({ userId, rounds, roundsLoading }: RecentRoundsProps) => {
         {rounds && rounds.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
             {rounds.map((round) => {
-              const totalPar = round.golf_courses.hole_pars
-                ?.slice(0, round.golf_courses.holes)
-                .reduce((a, b) => a + b, 0) || 0;
-              const vsParScore = round.score - totalPar;
               const isDeleting = deletingRoundId === round.id;
-              
               const formattedDate = format(new Date(round.date || round.created_at), 'MMM d, yyyy');
               
               return (
@@ -173,12 +168,10 @@ const RecentRounds = ({ userId, rounds, roundsLoading }: RecentRoundsProps) => {
                       </div>
                       
                       <div className="flex flex-col items-end">
+                        <div className="text-sm text-muted-foreground mb-1">Total Score</div>
                         <div className="text-2xl font-bold text-primary">
                           {round.score}
                         </div>
-                        <Badge className={`mt-1 ${vsParScore <= 0 ? 'bg-green-600' : 'bg-red-600'}`}>
-                          {vsParScore <= 0 ? '' : '+' }{vsParScore}
-                        </Badge>
                       </div>
                     </div>
                     
@@ -187,7 +180,7 @@ const RecentRounds = ({ userId, rounds, roundsLoading }: RecentRoundsProps) => {
                       size="sm"
                       className="mt-3 text-red-500 hover:bg-red-50 hover:text-red-600 transition-colors w-full"
                       onClick={() => handleDeleteRound(round.id)}
-                      disabled={isDeleting || deleteRoundMutation.isPending}
+                      disabled={isDeleting}
                     >
                       {isDeleting ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
