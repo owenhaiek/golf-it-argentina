@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { Card, CardContent } from "@/components/ui/card";
-import { MapPin, Phone, Globe, Flag, Search, Filter } from "lucide-react";
+import { MapPin, Phone, Globe, Flag, Search, Filter, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -54,6 +54,13 @@ const Home = () => {
     setFilters(newFilters);
   };
 
+  const handleResetFilters = () => {
+    setFilters({ holes: "", location: "" });
+    setSearch("");
+  };
+
+  const hasActiveFilters = filters.holes || filters.location;
+
   return (
     <div className="space-y-4 -mt-6 -mx-4">
       <div className="flex items-center justify-between px-4 pt-6">
@@ -80,19 +87,31 @@ const Home = () => {
         </div>
       )}
 
-      {/* Active filters indicator */}
-      {(filters.holes || filters.location) && (
-        <div className="px-4 flex flex-wrap gap-2">
-          {filters.holes && (
-            <div className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">
-              {filters.holes} Holes
+      {/* Active filters indicator with reset button */}
+      {hasActiveFilters && (
+        <div className="px-4">
+          <div className="flex justify-between items-center">
+            <div className="flex flex-wrap gap-2">
+              {filters.holes && (
+                <div className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">
+                  {filters.holes} Holes
+                </div>
+              )}
+              {filters.location && (
+                <div className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">
+                  Location: {filters.location}
+                </div>
+              )}
             </div>
-          )}
-          {filters.location && (
-            <div className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">
-              Location: {filters.location}
-            </div>
-          )}
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={handleResetFilters}
+              className="rounded-full"
+            >
+              <X size={18} />
+            </Button>
+          </div>
         </div>
       )}
 
@@ -161,10 +180,7 @@ const Home = () => {
             <Button 
               variant="outline" 
               className="mt-2"
-              onClick={() => {
-                setFilters({ holes: "", location: "" });
-                setSearch("");
-              }}
+              onClick={handleResetFilters}
             >
               Reset filters
             </Button>

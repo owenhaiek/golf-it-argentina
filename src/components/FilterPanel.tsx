@@ -50,7 +50,7 @@ const FilterPanel = ({
         isOpen ? "translate-y-0" : "translate-y-full"
       }`}
     >
-      <Card className="rounded-t-xl border-b-0 pb-8 pt-4 px-4 shadow-lg">
+      <Card className="rounded-t-xl border-b-0 pb-8 pt-4 px-4 shadow-lg bg-white">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold">Filter Courses</h3>
           <Button
