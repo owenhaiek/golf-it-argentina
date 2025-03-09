@@ -4,6 +4,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import ProfileCard from "@/components/profile/ProfileCard";
 import RecentRounds from "@/components/profile/RecentRounds";
+import { User } from "lucide-react";
 
 const Profile = () => {
   // Core state and hooks
@@ -68,11 +69,14 @@ const Profile = () => {
   });
 
   return (
-    <div className="space-y-6 max-w-3xl mx-auto px-4 py-6 animate-fadeIn">
-      <h1 className="text-2xl font-bold text-primary mb-6 hidden sm:block">Your Profile</h1>
+    <div className="max-w-4xl mx-auto px-4 py-6 animate-fadeIn">
+      <div className="flex items-center mb-8 gap-2">
+        <User className="text-primary h-6 w-6" />
+        <h1 className="text-2xl font-bold text-primary">Your Profile</h1>
+      </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="md:col-span-1">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-1">
           <ProfileCard 
             user={user} 
             profile={profile} 
@@ -80,7 +84,7 @@ const Profile = () => {
           />
         </div>
         
-        <div className="md:col-span-2">
+        <div className="lg:col-span-2">
           <RecentRounds 
             userId={user?.id} 
             rounds={rounds} 

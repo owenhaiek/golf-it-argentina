@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/components/ui/use-toast";
-import { Loader2, Trash2, Calendar, Flag, GolfClub } from "lucide-react";
-import { formatRelative } from "date-fns";
+import { Loader2, Trash2, Calendar, Flag, Golf } from "lucide-react";
+import { formatRelative, format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 
 interface Round {
@@ -84,23 +84,30 @@ const RecentRounds = ({ userId, rounds, roundsLoading }: RecentRoundsProps) => {
 
   if (roundsLoading) {
     return (
-      <div className="animate-pulse">
-        <div className="h-6 w-1/3 bg-secondary/20 rounded mb-4" />
-        <div className="space-y-3">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="h-24 bg-secondary/20 rounded-lg" />
-          ))}
-        </div>
-      </div>
+      <Card className="border-0 shadow-md bg-gradient-to-br from-white to-muted">
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold text-primary">Your Recent Rounds</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-24 bg-secondary/10 rounded-lg animate-pulse" />
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg">Recent Rounds</CardTitle>
+    <Card className="border-0 shadow-md bg-gradient-to-br from-white to-muted overflow-hidden">
+      <CardHeader className="border-b border-muted/20 pb-4">
+        <CardTitle className="text-xl font-semibold text-primary flex items-center gap-2">
+          <Golf className="h-5 w-5 text-accent" />
+          Your Recent Rounds
+        </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-4">
         {rounds && rounds.length > 0 ? (
           <div className="space-y-4">
             {rounds.map((round) => {
@@ -110,33 +117,43 @@ const RecentRounds = ({ userId, rounds, roundsLoading }: RecentRoundsProps) => {
               const vsParScore = round.score - totalPar;
               const isDeleting = deletingRoundId === round.id;
               
+              const formattedDate = format(new Date(round.created_at), 'MMM d, yyyy');
+              
               return (
                 <div 
                   key={round.id} 
-                  className="flex justify-between items-start p-3 bg-secondary/10 rounded-lg"
+                  className="group relative flex flex-col md:flex-row md:justify-between md:items-center p-4 bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 border border-muted/10"
                 >
-                  <div>
-                    <h3 className="font-medium">{round.golf_courses.name}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {new Date(round.created_at).toLocaleDateString()}
-                    </p>
+                  <div className="flex items-start gap-3">
+                    <div className="hidden md:flex h-12 w-12 rounded-full bg-secondary/10 items-center justify-center">
+                      <Flag className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-lg text-primary">{round.golf_courses.name}</h3>
+                      <p className="text-sm text-muted-foreground flex items-center gap-1">
+                        <Calendar className="h-3 w-3" /> {formattedDate}
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex items-start gap-4">
+                  
+                  <div className="flex items-center gap-4 mt-3 md:mt-0">
                     <div className="text-right space-y-1">
-                      <div className="text-lg font-bold">
-                        Score: {round.score}
+                      <div className="text-xl font-bold text-primary">
+                        {round.score}
                       </div>
-                      <p className="text-sm text-muted-foreground">
-                        Course Par: {totalPar}
-                      </p>
-                      <p className={`text-sm ${vsParScore <= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        {vsParScore <= 0 ? '' : '+' }{vsParScore} vs Par
-                      </p>
+                      <div className="flex flex-col md:flex-row items-end md:items-center md:gap-2">
+                        <span className="text-xs text-muted-foreground">
+                          Par: {totalPar}
+                        </span>
+                        <span className={`text-sm font-medium ${vsParScore <= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {vsParScore <= 0 ? '' : '+' }{vsParScore}
+                        </span>
+                      </div>
                     </div>
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="text-red-600 hover:bg-red-600/10 transition-colors"
+                      className="text-red-500 hover:bg-red-50 hover:text-red-600 transition-colors"
                       onClick={() => handleDeleteRound(round.id)}
                       disabled={isDeleting || deleteRoundMutation.isPending}
                     >
@@ -152,8 +169,16 @@ const RecentRounds = ({ userId, rounds, roundsLoading }: RecentRoundsProps) => {
             })}
           </div>
         ) : (
-          <div className="text-center text-muted-foreground">
-            No rounds recorded yet
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <Golf className="h-12 w-12 text-muted-foreground/50 mb-4" />
+            <p className="text-muted-foreground">No rounds recorded yet</p>
+            <Button 
+              className="mt-4" 
+              variant="outline"
+              onClick={() => navigate('/add-round')}
+            >
+              Add Your First Round
+            </Button>
           </div>
         )}
       </CardContent>

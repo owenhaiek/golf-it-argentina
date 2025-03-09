@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/components/ui/use-toast";
-import { Loader2, LogOut, Edit3, Check, X } from "lucide-react";
+import { Loader2, LogOut, Edit3, Check, X, Camera, User, Hash } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface ProfileData {
@@ -27,6 +27,7 @@ const ProfileCard = ({ user, profile, profileLoading }: ProfileCardProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   // UI state
   const [isEditing, setIsEditing] = useState(false);
@@ -40,7 +41,7 @@ const ProfileCard = ({ user, profile, profileLoading }: ProfileCardProps) => {
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
-  // Initialize form data when profile data changes or when entering edit mode
+  // Initialize form data when profile data changes
   useEffect(() => {
     if (profile) {
       setFormData({
@@ -48,13 +49,21 @@ const ProfileCard = ({ user, profile, profileLoading }: ProfileCardProps) => {
         fullName: profile.full_name || "",
         handicap: profile.handicap?.toString() || "",
       });
-      
-      // Reset avatar preview to current avatar
-      if (!avatarFile) {
-        setAvatarPreview(profile.avatar_url || null);
-      }
     }
-  }, [profile, isEditing]);
+  }, [profile]);
+
+  // Reset form data when entering edit mode
+  useEffect(() => {
+    if (isEditing && profile) {
+      setFormData({
+        username: profile.username || "",
+        fullName: profile.full_name || "",
+        handicap: profile.handicap?.toString() || "",
+      });
+      setAvatarFile(null);
+      setAvatarPreview(profile.avatar_url || null);
+    }
+  }, [isEditing, profile]);
 
   // Create temporary URL for avatar preview when file changes
   useEffect(() => {
@@ -166,6 +175,13 @@ const ProfileCard = ({ user, profile, profileLoading }: ProfileCardProps) => {
     }
   };
 
+  // Handle avatar click to trigger file input
+  const handleAvatarClick = () => {
+    if (isEditing && fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
   // Handle profile update form submission
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -200,18 +216,24 @@ const ProfileCard = ({ user, profile, profileLoading }: ProfileCardProps) => {
   // Show loading state while data is being fetched
   if (profileLoading) {
     return (
-      <div className="animate-pulse space-y-4">
-        <div className="h-6 w-1/3 bg-secondary/20 rounded" />
-        <div className="h-64 bg-secondary/20 rounded-lg" />
-      </div>
+      <Card className="border-0 shadow-md bg-gradient-to-br from-white to-muted h-full">
+        <CardHeader className="flex items-center justify-center pb-0">
+          <div className="w-24 h-24 rounded-full bg-muted animate-pulse" />
+        </CardHeader>
+        <CardContent className="space-y-4 mt-6">
+          <div className="h-6 w-3/4 mx-auto bg-muted animate-pulse rounded" />
+          <div className="h-4 w-1/2 mx-auto bg-muted animate-pulse rounded" />
+          <div className="h-10 w-2/3 mx-auto bg-muted animate-pulse rounded-full mt-8" />
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <Card className="overflow-hidden border-0 shadow-md bg-gradient-to-br from-white to-muted">
+    <Card className="overflow-hidden border-0 shadow-md bg-gradient-to-br from-white to-muted h-full">
       <CardHeader className="relative pb-0 text-center">
-        <div className="absolute right-4 top-4 flex gap-2">
-          {!isEditing ? (
+        {!isEditing && (
+          <div className="absolute right-4 top-4 flex gap-2">
             <Button 
               variant="ghost" 
               size="icon"
@@ -220,18 +242,20 @@ const ProfileCard = ({ user, profile, profileLoading }: ProfileCardProps) => {
             >
               <Edit3 className="h-5 w-5" />
             </Button>
-          ) : null}
-        </div>
+          </div>
+        )}
         
-        <div className="relative w-24 h-24 mx-auto mb-2">
+        <div className="relative w-28 h-28 mx-auto mb-2">
           {/* Avatar with preview support */}
-          <div className={`relative w-24 h-24 rounded-full ${isEditing ? 'ring-2 ring-primary ring-offset-2' : ''} transition-all duration-200`}>
+          <div 
+            className={`relative w-28 h-28 rounded-full ${isEditing ? 'ring-2 ring-primary ring-offset-2 cursor-pointer' : ''} transition-all duration-200`}
+            onClick={handleAvatarClick}
+          >
             <Avatar 
-              className="w-24 h-24 cursor-pointer hover:opacity-80 transition-opacity border-4 border-white shadow-md"
-              onClick={() => isEditing && document.getElementById('avatar-upload')?.click()}
+              className="w-28 h-28 border-4 border-white shadow-md hover:opacity-95 transition-opacity"
             >
               <AvatarImage src={avatarPreview || profile?.avatar_url} />
-              <AvatarFallback className="bg-primary/10 text-primary text-2xl font-bold">
+              <AvatarFallback className="bg-primary/10 text-primary text-3xl font-bold">
                 {profile?.full_name?.[0] || user?.email?.[0]?.toUpperCase() || 'U'}
               </AvatarFallback>
             </Avatar>
@@ -239,6 +263,7 @@ const ProfileCard = ({ user, profile, profileLoading }: ProfileCardProps) => {
             {/* Hidden file input for avatar upload */}
             {isEditing && (
               <input
+                ref={fileInputRef}
                 id="avatar-upload"
                 name="avatar"
                 type="file"
@@ -250,8 +275,8 @@ const ProfileCard = ({ user, profile, profileLoading }: ProfileCardProps) => {
             
             {/* Edit indicator */}
             {isEditing && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-full text-white text-xs font-medium">
-                Change Photo
+              <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-full text-white">
+                <Camera className="h-6 w-6" />
               </div>
             )}
           </div>
@@ -259,24 +284,10 @@ const ProfileCard = ({ user, profile, profileLoading }: ProfileCardProps) => {
         
         {/* Profile Information or Edit Form */}
         {isEditing ? (
-          <form id="profile-form" onSubmit={handleSubmit} className="space-y-4 mt-4 px-4">
+          <form id="profile-form" onSubmit={handleSubmit} className="space-y-4 mt-6 px-4">
             <div>
-              <label htmlFor="username" className="text-sm font-medium text-muted-foreground block mb-1 text-left">
-                Username
-              </label>
-              <Input
-                id="username"
-                name="username"
-                placeholder="Username"
-                value={formData.username}
-                onChange={handleInputChange}
-                className="border-primary/20 focus:border-primary"
-              />
-            </div>
-            
-            <div>
-              <label htmlFor="fullName" className="text-sm font-medium text-muted-foreground block mb-1 text-left">
-                Full Name
+              <label htmlFor="fullName" className="flex items-center gap-2 text-sm font-medium text-muted-foreground mb-1 text-left">
+                <User className="h-4 w-4" /> Full Name
               </label>
               <Input
                 id="fullName"
@@ -289,8 +300,22 @@ const ProfileCard = ({ user, profile, profileLoading }: ProfileCardProps) => {
             </div>
             
             <div>
-              <label htmlFor="handicap" className="text-sm font-medium text-muted-foreground block mb-1 text-left">
-                Handicap
+              <label htmlFor="username" className="flex items-center gap-2 text-sm font-medium text-muted-foreground mb-1 text-left">
+                <Hash className="h-4 w-4" /> Username
+              </label>
+              <Input
+                id="username"
+                name="username"
+                placeholder="Username"
+                value={formData.username}
+                onChange={handleInputChange}
+                className="border-primary/20 focus:border-primary"
+              />
+            </div>
+            
+            <div>
+              <label htmlFor="handicap" className="flex items-center gap-2 text-sm font-medium text-muted-foreground mb-1 text-left">
+                <User className="h-4 w-4" /> Handicap
               </label>
               <Input
                 id="handicap"
@@ -305,25 +330,27 @@ const ProfileCard = ({ user, profile, profileLoading }: ProfileCardProps) => {
             </div>
           </form>
         ) : (
-          <div className="mt-2">
+          <div className="mt-4">
             <CardTitle className="text-2xl font-bold text-primary">
               {profile?.full_name || 'Anonymous'}
             </CardTitle>
             {profile?.username && (
-              <p className="text-sm text-muted-foreground mb-1">
+              <p className="text-sm text-muted-foreground mb-2">
                 @{profile.username}
               </p>
             )}
-            <p className="text-sm text-muted-foreground mt-1 inline-block bg-secondary/10 px-3 py-1 rounded-full">
-              {profile?.handicap !== null && profile?.handicap !== undefined 
-                ? `Handicap: ${profile.handicap}` 
-                : 'No handicap set'}
-            </p>
+            <div className="flex items-center justify-center mt-3">
+              <span className="text-sm font-medium inline-flex items-center gap-1 bg-secondary/10 text-primary px-4 py-1.5 rounded-full">
+                {profile?.handicap !== null && profile?.handicap !== undefined 
+                  ? `Handicap: ${profile.handicap}` 
+                  : 'No handicap set'}
+              </span>
+            </div>
           </div>
         )}
       </CardHeader>
       
-      <CardContent className="text-center pt-4 pb-6">
+      <CardContent className="text-center pt-6 pb-6">
         {isEditing ? (
           <div className="flex justify-center space-x-3 mt-4">
             <Button 
@@ -356,11 +383,11 @@ const ProfileCard = ({ user, profile, profileLoading }: ProfileCardProps) => {
             </Button>
           </div>
         ) : (
-          <div className="mt-4">
+          <div className="mt-6">
             <Button 
               variant="outline" 
               onClick={handleLogout}
-              className="text-red-600 hover:bg-red-600/10 transition-colors"
+              className="text-red-500 hover:bg-red-50 hover:text-red-600 transition-colors border border-red-200"
             >
               <LogOut className="w-4 h-4 mr-2" />
               Logout
