@@ -68,18 +68,26 @@ const Profile = () => {
   });
 
   return (
-    <div className="space-y-6">
-      <ProfileCard 
-        user={user} 
-        profile={profile} 
-        profileLoading={profileLoading} 
-      />
+    <div className="space-y-6 max-w-3xl mx-auto px-4 py-6 animate-fadeIn">
+      <h1 className="text-2xl font-bold text-primary mb-6 hidden sm:block">Your Profile</h1>
       
-      <RecentRounds 
-        userId={user?.id} 
-        rounds={rounds} 
-        roundsLoading={roundsLoading} 
-      />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="md:col-span-1">
+          <ProfileCard 
+            user={user} 
+            profile={profile} 
+            profileLoading={profileLoading} 
+          />
+        </div>
+        
+        <div className="md:col-span-2">
+          <RecentRounds 
+            userId={user?.id} 
+            rounds={rounds} 
+            roundsLoading={roundsLoading} 
+          />
+        </div>
+      </div>
     </div>
   );
 };

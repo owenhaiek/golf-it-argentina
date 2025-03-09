@@ -5,12 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/components/ui/use-toast";
-import { Loader2, Trash2 } from "lucide-react";
+import { Loader2, Trash2, Calendar, Flag, GolfClub } from "lucide-react";
+import { formatRelative } from "date-fns";
+import { useNavigate } from "react-router-dom";
 
 interface Round {
   id: string;
   score: number;
   created_at: string;
+  date: string;
   golf_courses: {
     name: string;
     hole_pars: number[];
@@ -27,6 +30,7 @@ interface RecentRoundsProps {
 const RecentRounds = ({ userId, rounds, roundsLoading }: RecentRoundsProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [deletingRoundId, setDeletingRoundId] = useState<string | null>(null);
 
   // Round Deletion Mutation

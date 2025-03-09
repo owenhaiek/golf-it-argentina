@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/components/ui/use-toast";
-import { Loader2, LogOut } from "lucide-react";
+import { Loader2, LogOut, Edit3, Check, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface ProfileData {
@@ -40,22 +40,23 @@ const ProfileCard = ({ user, profile, profileLoading }: ProfileCardProps) => {
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
-  // Initialize form data when entering edit mode
+  // Initialize form data when profile data changes or when entering edit mode
   useEffect(() => {
-    if (isEditing && profile) {
+    if (profile) {
       setFormData({
         username: profile.username || "",
         fullName: profile.full_name || "",
         handicap: profile.handicap?.toString() || "",
       });
       
-      // Set avatar preview to current avatar
-      setAvatarPreview(profile.avatar_url || null);
-      setAvatarFile(null); // Clear any previously selected file
+      // Reset avatar preview to current avatar
+      if (!avatarFile) {
+        setAvatarPreview(profile.avatar_url || null);
+      }
     }
-  }, [isEditing, profile]);
+  }, [profile, isEditing]);
 
-  // Create temporary URL for avatar preview
+  // Create temporary URL for avatar preview when file changes
   useEffect(() => {
     if (avatarFile) {
       const url = URL.createObjectURL(avatarFile);
@@ -120,8 +121,6 @@ const ProfileCard = ({ user, profile, profileLoading }: ProfileCardProps) => {
       
       // Reset state
       setIsEditing(false);
-      setAvatarFile(null);
-      setAvatarPreview(null);
       
       // Show success message
       toast({
@@ -141,24 +140,14 @@ const ProfileCard = ({ user, profile, profileLoading }: ProfileCardProps) => {
   // Handle starting edit mode
   const handleEditClick = () => {
     setIsEditing(true);
-    if (profile) {
-      setFormData({
-        username: profile.username || "",
-        fullName: profile.full_name || "",
-        handicap: profile.handicap?.toString() || "",
-      });
-      
-      // Set avatar preview to current avatar
-      setAvatarPreview(profile.avatar_url || null);
-      setAvatarFile(null); // Clear any previously selected file
-    }
   };
 
   // Handle canceling edit mode
   const handleCancelEdit = () => {
     setIsEditing(false);
     setAvatarFile(null);
-    setAvatarPreview(null);
+    // Reset avatar preview to profile avatar
+    setAvatarPreview(profile?.avatar_url || null);
   };
 
   // Handle form input changes
@@ -219,115 +208,157 @@ const ProfileCard = ({ user, profile, profileLoading }: ProfileCardProps) => {
   }
 
   return (
-    <Card>
-      <CardHeader className="text-center pb-2">
-        <div className="relative w-20 h-20 mx-auto">
+    <Card className="overflow-hidden border-0 shadow-md bg-gradient-to-br from-white to-muted">
+      <CardHeader className="relative pb-0 text-center">
+        <div className="absolute right-4 top-4 flex gap-2">
+          {!isEditing ? (
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={handleEditClick}
+              className="text-primary hover:bg-primary/10 rounded-full"
+            >
+              <Edit3 className="h-5 w-5" />
+            </Button>
+          ) : null}
+        </div>
+        
+        <div className="relative w-24 h-24 mx-auto mb-2">
           {/* Avatar with preview support */}
-          <Avatar 
-            className="w-20 h-20 cursor-pointer hover:opacity-80 transition-opacity"
-            onClick={() => isEditing && document.getElementById('avatar-upload')?.click()}
-          >
-            <AvatarImage src={avatarPreview || profile?.avatar_url} />
-            <AvatarFallback>
-              {profile?.full_name?.[0] || user?.email?.[0]?.toUpperCase() || 'U'}
-            </AvatarFallback>
-          </Avatar>
-          
-          {/* Hidden file input for avatar upload */}
-          {isEditing && (
-            <input
-              id="avatar-upload"
-              name="avatar"
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleAvatarChange}
-            />
-          )}
-          
-          {/* Edit indicator */}
-          {isEditing && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-full text-white text-xs">
-              Click to change
-            </div>
-          )}
+          <div className={`relative w-24 h-24 rounded-full ${isEditing ? 'ring-2 ring-primary ring-offset-2' : ''} transition-all duration-200`}>
+            <Avatar 
+              className="w-24 h-24 cursor-pointer hover:opacity-80 transition-opacity border-4 border-white shadow-md"
+              onClick={() => isEditing && document.getElementById('avatar-upload')?.click()}
+            >
+              <AvatarImage src={avatarPreview || profile?.avatar_url} />
+              <AvatarFallback className="bg-primary/10 text-primary text-2xl font-bold">
+                {profile?.full_name?.[0] || user?.email?.[0]?.toUpperCase() || 'U'}
+              </AvatarFallback>
+            </Avatar>
+            
+            {/* Hidden file input for avatar upload */}
+            {isEditing && (
+              <input
+                id="avatar-upload"
+                name="avatar"
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleAvatarChange}
+              />
+            )}
+            
+            {/* Edit indicator */}
+            {isEditing && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-full text-white text-xs font-medium">
+                Change Photo
+              </div>
+            )}
+          </div>
         </div>
         
         {/* Profile Information or Edit Form */}
         {isEditing ? (
-          <form id="profile-form" onSubmit={handleSubmit} className="space-y-4 mt-4">
-            <Input
-              name="username"
-              placeholder="Username"
-              value={formData.username}
-              onChange={handleInputChange}
-            />
-            <Input
-              name="fullName"
-              placeholder="Full Name"
-              value={formData.fullName}
-              onChange={handleInputChange}
-            />
-            <Input
-              name="handicap"
-              placeholder="Handicap (optional)"
-              type="number"
-              step="0.1"
-              value={formData.handicap}
-              onChange={handleInputChange}
-            />
+          <form id="profile-form" onSubmit={handleSubmit} className="space-y-4 mt-4 px-4">
+            <div>
+              <label htmlFor="username" className="text-sm font-medium text-muted-foreground block mb-1 text-left">
+                Username
+              </label>
+              <Input
+                id="username"
+                name="username"
+                placeholder="Username"
+                value={formData.username}
+                onChange={handleInputChange}
+                className="border-primary/20 focus:border-primary"
+              />
+            </div>
+            
+            <div>
+              <label htmlFor="fullName" className="text-sm font-medium text-muted-foreground block mb-1 text-left">
+                Full Name
+              </label>
+              <Input
+                id="fullName"
+                name="fullName"
+                placeholder="Full Name"
+                value={formData.fullName}
+                onChange={handleInputChange}
+                className="border-primary/20 focus:border-primary"
+              />
+            </div>
+            
+            <div>
+              <label htmlFor="handicap" className="text-sm font-medium text-muted-foreground block mb-1 text-left">
+                Handicap
+              </label>
+              <Input
+                id="handicap"
+                name="handicap"
+                placeholder="Handicap (optional)"
+                type="number"
+                step="0.1"
+                value={formData.handicap}
+                onChange={handleInputChange}
+                className="border-primary/20 focus:border-primary"
+              />
+            </div>
           </form>
         ) : (
-          <>
-            <CardTitle className="mt-4">{profile?.full_name || 'Anonymous'}</CardTitle>
+          <div className="mt-2">
+            <CardTitle className="text-2xl font-bold text-primary">
+              {profile?.full_name || 'Anonymous'}
+            </CardTitle>
             {profile?.username && (
               <p className="text-sm text-muted-foreground mb-1">
                 @{profile.username}
               </p>
             )}
-            <p className="text-sm text-muted-foreground">
-              {profile?.handicap ? `Handicap: ${profile.handicap}` : 'No handicap set'}
+            <p className="text-sm text-muted-foreground mt-1 inline-block bg-secondary/10 px-3 py-1 rounded-full">
+              {profile?.handicap !== null && profile?.handicap !== undefined 
+                ? `Handicap: ${profile.handicap}` 
+                : 'No handicap set'}
             </p>
-          </>
+          </div>
         )}
       </CardHeader>
       
-      <CardContent className="text-center space-y-4">
+      <CardContent className="text-center pt-4 pb-6">
         {isEditing ? (
-          <div className="space-x-2">
+          <div className="flex justify-center space-x-3 mt-4">
             <Button 
               type="submit"
               form="profile-form"
               disabled={updateProfileMutation.isPending}
+              className="px-6"
             >
               {updateProfileMutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Saving...
                 </>
-              ) : 'Save Changes'}
+              ) : (
+                <>
+                  <Check className="mr-2 h-4 w-4" />
+                  Save Changes
+                </>
+              )}
             </Button>
             <Button 
               type="button" 
               variant="outline" 
               onClick={handleCancelEdit}
               disabled={updateProfileMutation.isPending}
+              className="px-6"
             >
+              <X className="mr-2 h-4 w-4" />
               Cancel
             </Button>
           </div>
         ) : (
-          <div className="space-x-2">
+          <div className="mt-4">
             <Button 
-              type="button"
               variant="outline" 
-              onClick={handleEditClick}
-              className="hover:bg-green-600/10 hover:text-green-600 transition-colors"
-            >
-              Edit Profile
-            </Button>
-            <Button 
-              variant="ghost" 
               onClick={handleLogout}
               className="text-red-600 hover:bg-red-600/10 transition-colors"
             >
