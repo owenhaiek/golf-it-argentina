@@ -77,12 +77,12 @@ const Profile = () => {
         <h1 className="text-2xl font-bold text-primary">Your Profile</h1>
       </div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pb-6 px-0">
-        <div className="lg:col-span-4">
+      <div className="flex flex-col gap-6 pb-6 px-0">
+        <div className="w-full">
           <ProfileCard user={user} profile={profile} profileLoading={profileLoading} />
         </div>
         
-        <div className="lg:col-span-8">
+        <div className="w-full">
           <RecentRounds userId={user?.id} rounds={rounds} roundsLoading={roundsLoading} />
         </div>
       </div>
