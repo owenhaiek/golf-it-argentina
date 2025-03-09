@@ -8,7 +8,6 @@ import { useToast } from "@/components/ui/use-toast";
 import { Loader2, Trash2, Calendar, Trophy, MapPin, Flag, Plus, Minus, Check } from "lucide-react";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
-import { Badge } from "@/components/ui/badge";
 
 interface Round {
   id: string;
@@ -53,6 +52,8 @@ const RecentRounds = ({
   const deleteRoundMutation = useMutation({
     mutationFn: async (roundId: string) => {
       if (!userId) throw new Error("User not authenticated");
+      
+      // Ensure we're deleting the correct round
       const { error } = await supabase
         .from('rounds')
         .delete()
@@ -63,6 +64,7 @@ const RecentRounds = ({
         console.error("Round deletion failed:", error);
         throw error;
       }
+      
       return roundId;
     },
     onMutate: async (deletedId) => {
@@ -80,11 +82,14 @@ const RecentRounds = ({
       // Return a context object with the snapshotted value
       return { previousRounds };
     },
-    onSuccess: (deletedRoundId) => {
+    onSuccess: () => {
       toast({
         title: "Round deleted successfully",
         description: "Your round has been removed from your history"
       });
+      
+      // Invalidate and refetch
+      queryClient.invalidateQueries({ queryKey: ['rounds', userId] });
     },
     onError: (error, _, context) => {
       // If there was an error, revert back to the previous rounds
@@ -100,8 +105,7 @@ const RecentRounds = ({
       });
     },
     onSettled: () => {
-      // Always invalidate to ensure data is fresh
-      queryClient.invalidateQueries({ queryKey: ['rounds', userId] });
+      // Clear the deleting state
       setDeletingRoundId(null);
     }
   });

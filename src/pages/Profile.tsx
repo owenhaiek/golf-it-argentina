@@ -66,7 +66,8 @@ const Profile = () => {
       }
       return data || [];
     },
-    enabled: !!user?.id
+    enabled: !!user?.id,
+    staleTime: 0 // Force a refetch each time
   });
 
   return (
