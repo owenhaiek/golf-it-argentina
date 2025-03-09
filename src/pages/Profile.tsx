@@ -51,7 +51,11 @@ const Profile = () => {
           golf_courses (
             name,
             hole_pars,
-            holes
+            holes,
+            image_url,
+            address,
+            city,
+            state
           )
         `)
         .eq('user_id', user.id)
@@ -75,8 +79,8 @@ const Profile = () => {
         <h1 className="text-2xl font-bold text-primary">Your Profile</h1>
       </div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 px-4 pb-6">
-        <div className="lg:col-span-1">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 px-4 pb-6">
+        <div className="lg:col-span-4">
           <ProfileCard 
             user={user} 
             profile={profile} 
@@ -84,7 +88,7 @@ const Profile = () => {
           />
         </div>
         
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-8">
           <RecentRounds 
             userId={user?.id} 
             rounds={rounds} 
