@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/components/ui/use-toast";
-import { Loader2, Trash2, Calendar, Trophy, MapPin, Golf, Flag } from "lucide-react";
+import { Loader2, Trash2, Calendar, Trophy, MapPin, Flag } from "lucide-react";
 import { formatRelative, format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
@@ -55,11 +55,16 @@ const RecentRounds = ({ userId, rounds, roundsLoading }: RecentRoundsProps) => {
       
       return roundId;
     },
-    onSuccess: () => {
-      // Invalidate and refetch rounds data to ensure UI is updated
+    onSuccess: (deletedRoundId) => {
+      // Update local state immediately for better UX
+      queryClient.setQueryData(['rounds', userId], (oldData: any) => {
+        if (!oldData) return [];
+        return oldData.filter((round: Round) => round.id !== deletedRoundId);
+      });
+      
+      // Then invalidate to get fresh data from the server
       queryClient.invalidateQueries({ queryKey: ['rounds', userId] });
       
-      // Show success message
       toast({
         title: "Round deleted successfully",
         description: "Your round has been removed from your history",
@@ -114,7 +119,7 @@ const RecentRounds = ({ userId, rounds, roundsLoading }: RecentRoundsProps) => {
       </CardHeader>
       <CardContent className="pt-4">
         {rounds && rounds.length > 0 ? (
-          <div className="space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
             {rounds.map((round) => {
               const totalPar = round.golf_courses.hole_pars
                 ?.slice(0, round.golf_courses.holes)
@@ -127,78 +132,72 @@ const RecentRounds = ({ userId, rounds, roundsLoading }: RecentRoundsProps) => {
               return (
                 <div 
                   key={round.id} 
-                  className="group relative rounded-xl overflow-hidden bg-white shadow-md hover:shadow-lg transition-all duration-200 border border-muted/10"
+                  className="group relative rounded-xl overflow-hidden bg-white shadow-lg hover:shadow-xl transition-all duration-200 border border-muted/10 flex flex-col"
                 >
                   {/* Image Section */}
-                  {round.golf_courses.image_url ? (
-                    <div className="w-full h-40 overflow-hidden">
-                      <img 
-                        src={round.golf_courses.image_url} 
-                        alt={round.golf_courses.name}
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                      />
+                  <div className="relative">
+                    {round.golf_courses.image_url ? (
+                      <div className="w-full h-32 overflow-hidden">
+                        <img 
+                          src={round.golf_courses.image_url} 
+                          alt={round.golf_courses.name}
+                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-full h-32 bg-gradient-to-r from-secondary/30 to-primary/20 flex items-center justify-center">
+                        <Trophy className="h-10 w-10 text-primary/40" />
+                      </div>
+                    )}
+                    <div className="absolute top-2 left-2 bg-black/60 text-white px-2 py-1 rounded-md text-xs flex items-center gap-1">
+                      <Calendar className="h-3 w-3" /> {formattedDate}
                     </div>
-                  ) : (
-                    <div className="w-full h-40 bg-gradient-to-r from-secondary/30 to-primary/20 flex items-center justify-center">
-                      <Trophy className="h-12 w-12 text-primary/40" />
-                    </div>
-                  )}
+                  </div>
                   
                   {/* Content Section */}
-                  <div className="p-4">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-semibold text-lg text-primary mb-1">{round.golf_courses.name}</h3>
-                        {round.golf_courses.city && (
-                          <p className="text-sm text-muted-foreground flex items-center gap-1 mb-2">
-                            <MapPin className="h-3 w-3" /> 
-                            {[round.golf_courses.address, round.golf_courses.city].filter(Boolean).join(', ')}
-                          </p>
-                        )}
-                        <p className="text-sm text-muted-foreground flex items-center gap-1 mb-3">
-                          <Calendar className="h-3 w-3" /> {formattedDate}
+                  <div className="p-4 flex-grow flex flex-col">
+                    <div>
+                      <h3 className="font-semibold text-lg text-primary mb-1">{round.golf_courses.name}</h3>
+                      {round.golf_courses.city && (
+                        <p className="text-sm text-muted-foreground flex items-center gap-1 mb-2">
+                          <MapPin className="h-3 w-3" /> 
+                          {[round.golf_courses.address, round.golf_courses.city].filter(Boolean).join(', ')}
                         </p>
+                      )}
+                    </div>
+                    
+                    <div className="mt-auto pt-3 flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        <Flag className="h-4 w-4 text-primary" />
+                        <span className="text-sm font-medium">{round.golf_courses.holes} holes</span>
                       </div>
                       
                       <div className="flex flex-col items-end">
                         <div className="text-2xl font-bold text-primary">
                           {round.score}
                         </div>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-xs text-muted-foreground">
-                            Par: {totalPar}
-                          </span>
-                          <Badge className={`${vsParScore <= 0 ? 'bg-green-600' : 'bg-red-600'}`}>
-                            {vsParScore <= 0 ? '' : '+' }{vsParScore}
-                          </Badge>
-                        </div>
+                        <Badge className={`mt-1 ${vsParScore <= 0 ? 'bg-green-600' : 'bg-red-600'}`}>
+                          {vsParScore <= 0 ? '' : '+' }{vsParScore}
+                        </Badge>
                       </div>
                     </div>
                     
-                    {/* Course details */}
-                    <div className="flex justify-between items-center mt-3 pt-3 border-t border-muted/10">
-                      <div className="flex items-center gap-2">
-                        <Flag className="h-4 w-4 text-primary" />
-                        <span className="text-sm font-medium">{round.golf_courses.holes} holes</span>
-                      </div>
-                      
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-red-500 hover:bg-red-50 hover:text-red-600 transition-colors"
-                        onClick={() => handleDeleteRound(round.id)}
-                        disabled={isDeleting || deleteRoundMutation.isPending}
-                      >
-                        {isDeleting ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <>
-                            <Trash2 className="h-4 w-4 mr-1" />
-                            Delete
-                          </>
-                        )}
-                      </Button>
-                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="mt-3 text-red-500 hover:bg-red-50 hover:text-red-600 transition-colors w-full"
+                      onClick={() => handleDeleteRound(round.id)}
+                      disabled={isDeleting || deleteRoundMutation.isPending}
+                    >
+                      {isDeleting ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <>
+                          <Trash2 className="h-4 w-4 mr-1" />
+                          Delete Round
+                        </>
+                      )}
+                    </Button>
                   </div>
                 </div>
               );
