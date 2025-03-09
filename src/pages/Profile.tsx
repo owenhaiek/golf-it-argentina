@@ -1,14 +1,14 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import ProfileCard from "@/components/profile/ProfileCard";
 import RecentRounds from "@/components/profile/RecentRounds";
 import { User } from "lucide-react";
+
 const Profile = () => {
   // Core state and hooks
-  const {
-    user
-  } = useAuth();
+  const { user } = useAuth();
 
   // Profile Query - Fetch user profile data
   const {
@@ -18,10 +18,12 @@ const Profile = () => {
     queryKey: ['profile', user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
-      const {
-        data,
-        error
-      } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .maybeSingle();
+        
       if (error) {
         console.error("Profile fetch error:", error);
         throw error;
@@ -39,10 +41,9 @@ const Profile = () => {
     queryKey: ['rounds', user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
-      const {
-        data,
-        error
-      } = await supabase.from('rounds').select(`
+      const { data, error } = await supabase
+        .from('rounds')
+        .select(`
           *,
           golf_courses (
             name,
@@ -51,11 +52,14 @@ const Profile = () => {
             image_url,
             address,
             city,
-            state
+            state,
+            par
           )
-        `).eq('user_id', user.id).order('created_at', {
-        ascending: false
-      }).limit(5);
+        `)
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(5);
+        
       if (error) {
         console.error("Rounds fetch error:", error);
         throw error;
@@ -64,7 +68,9 @@ const Profile = () => {
     },
     enabled: !!user?.id
   });
-  return <div className="max-w-7xl mx-auto animate-fadeIn">
+
+  return (
+    <div className="max-w-7xl mx-auto animate-fadeIn">
       <div className="flex items-center mb-6 gap-2 px-4">
         <User className="text-primary h-6 w-6" />
         <h1 className="text-2xl font-bold text-primary">Your Profile</h1>
@@ -79,6 +85,8 @@ const Profile = () => {
           <RecentRounds userId={user?.id} rounds={rounds} roundsLoading={roundsLoading} />
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default Profile;
