@@ -69,13 +69,13 @@ const Profile = () => {
   });
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6 animate-fadeIn">
-      <div className="flex items-center mb-8 gap-2">
+    <div className="max-w-7xl mx-auto animate-fadeIn">
+      <div className="flex items-center mb-6 gap-2 px-4">
         <User className="text-primary h-6 w-6" />
         <h1 className="text-2xl font-bold text-primary">Your Profile</h1>
       </div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 px-4 pb-6">
         <div className="lg:col-span-1">
           <ProfileCard 
             user={user} 

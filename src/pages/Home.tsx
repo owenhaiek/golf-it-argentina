@@ -30,8 +30,8 @@ const Home = () => {
   });
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 -mt-6 -mx-4">
+      <div className="flex items-center justify-between px-4 pt-6">
         <h1 className="text-2xl font-bold">Golf Courses</h1>
         <button 
           onClick={() => setIsSearchVisible(!isSearchVisible)}
@@ -42,7 +42,7 @@ const Home = () => {
       </div>
 
       {isSearchVisible && (
-        <div className="animate-in slide-in-from-top duration-300">
+        <div className="animate-in slide-in-from-top duration-300 px-4">
           <Input
             type="text"
             placeholder="Search courses..."
@@ -53,38 +53,40 @@ const Home = () => {
         </div>
       )}
 
-      <div className="space-y-4">
+      <div className="space-y-6">
         {isLoading ? (
           // Loading skeleton
           [1, 2, 3].map((i) => (
-            <Card key={i} className="overflow-hidden">
-              <CardContent className="p-4">
+            <Card key={i} className="overflow-hidden rounded-none border-x-0">
+              <CardContent className="p-0">
                 <div className="animate-pulse space-y-3">
-                  <div className="h-40 bg-secondary/20 rounded-lg" />
-                  <div className="h-4 w-2/3 bg-secondary/20 rounded" />
-                  <div className="h-4 w-1/2 bg-secondary/20 rounded" />
+                  <div className="h-48 bg-secondary/20" />
+                  <div className="p-4">
+                    <div className="h-4 w-2/3 bg-secondary/20 rounded mb-2" />
+                    <div className="h-4 w-1/2 bg-secondary/20 rounded" />
+                  </div>
                 </div>
               </CardContent>
             </Card>
           ))
         ) : (
           courses?.map((course) => (
-            <Link to={`/course/${course.id}`} key={course.id}>
-              <Card className="overflow-hidden hover:shadow-lg transition-shadow">
-                <CardContent className="p-4">
-                  <div className="space-y-4">
+            <Link to={`/course/${course.id}`} key={course.id} className="block">
+              <Card className="overflow-hidden hover:shadow-lg transition-shadow rounded-none border-x-0">
+                <CardContent className="p-0">
+                  <div>
                     {course.image_url ? (
                       <img
                         src={course.image_url}
                         alt={course.name}
-                        className="w-full h-40 object-cover rounded-lg"
+                        className="w-full h-48 object-cover"
                       />
                     ) : (
-                      <div className="w-full h-40 bg-secondary/20 rounded-lg flex items-center justify-center text-muted-foreground">
+                      <div className="w-full h-48 bg-secondary/20 flex items-center justify-center text-muted-foreground">
                         No image available
                       </div>
                     )}
-                    <div className="space-y-2">
+                    <div className="p-4 space-y-2">
                       <h2 className="text-xl font-semibold">{course.name}</h2>
                       {course.description && (
                         <p className="text-muted-foreground line-clamp-2">{course.description}</p>

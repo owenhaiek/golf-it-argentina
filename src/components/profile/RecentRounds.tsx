@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/components/ui/use-toast";
-import { Loader2, Trash2, Calendar, Flag, Golf } from "lucide-react";
+import { Loader2, Trash2, Calendar, Flag, Trophy } from "lucide-react";
 import { formatRelative, format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 
@@ -84,7 +84,7 @@ const RecentRounds = ({ userId, rounds, roundsLoading }: RecentRoundsProps) => {
 
   if (roundsLoading) {
     return (
-      <Card className="border-0 shadow-md bg-gradient-to-br from-white to-muted">
+      <Card className="border-0 shadow-md h-full">
         <CardHeader>
           <CardTitle className="text-lg font-semibold text-primary">Your Recent Rounds</CardTitle>
         </CardHeader>
@@ -100,10 +100,10 @@ const RecentRounds = ({ userId, rounds, roundsLoading }: RecentRoundsProps) => {
   }
 
   return (
-    <Card className="border-0 shadow-md bg-gradient-to-br from-white to-muted overflow-hidden">
+    <Card className="border-0 shadow-md overflow-hidden h-full">
       <CardHeader className="border-b border-muted/20 pb-4">
         <CardTitle className="text-xl font-semibold text-primary flex items-center gap-2">
-          <Golf className="h-5 w-5 text-accent" />
+          <Trophy className="h-5 w-5 text-accent" />
           Your Recent Rounds
         </CardTitle>
       </CardHeader>
@@ -117,7 +117,7 @@ const RecentRounds = ({ userId, rounds, roundsLoading }: RecentRoundsProps) => {
               const vsParScore = round.score - totalPar;
               const isDeleting = deletingRoundId === round.id;
               
-              const formattedDate = format(new Date(round.created_at), 'MMM d, yyyy');
+              const formattedDate = format(new Date(round.date || round.created_at), 'MMM d, yyyy');
               
               return (
                 <div 
@@ -170,7 +170,7 @@ const RecentRounds = ({ userId, rounds, roundsLoading }: RecentRoundsProps) => {
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-12 text-center">
-            <Golf className="h-12 w-12 text-muted-foreground/50 mb-4" />
+            <Trophy className="h-12 w-12 text-muted-foreground/50 mb-4" />
             <p className="text-muted-foreground">No rounds recorded yet</p>
             <Button 
               className="mt-4" 
