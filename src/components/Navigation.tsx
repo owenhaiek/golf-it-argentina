@@ -1,6 +1,6 @@
 
 import { NavLink } from "react-router-dom";
-import { Flag, BarChart, User } from "lucide-react";
+import { Flag, BarChart, User, Route } from "lucide-react";
 
 export const Navigation = () => {
   return (
@@ -10,6 +10,7 @@ export const Navigation = () => {
           <NavItem to="/" icon={<Flag size={24} />} label="Home" />
           <NavItem to="/add-round" icon={<BarChart size={24} />} label="Add Round" />
           <NavItem to="/profile" icon={<User size={24} />} label="Profile" />
+          <NavItem to="/roadmap" icon={<Route size={24} />} label="Roadmap" />
         </ul>
       </div>
     </nav>

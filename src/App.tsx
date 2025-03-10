@@ -12,6 +12,7 @@ import Profile from "./pages/Profile";
 import Course from "./pages/Course";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import Roadmap from "./pages/Roadmap";
 import { useAuth } from "./contexts/AuthContext";
 
 const queryClient = new QueryClient();
@@ -50,6 +51,7 @@ const App = () => (
               <Route path="/course/:id" element={<Course />} />
               <Route path="/add-round" element={<AddRound />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/roadmap" element={<Roadmap />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
