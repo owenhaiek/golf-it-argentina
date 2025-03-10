@@ -42,16 +42,27 @@ export const Layout = () => {
     // Prevent scrolling the body
     document.body.style.overflow = 'hidden';
     
+    // Force fullscreen mode for iOS Safari
+    if (navigator.standalone === false) {
+      // Add a visual indicator for "Add to Home Screen"
+      const appHeight = () => {
+        document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
+      };
+      window.addEventListener('resize', appHeight);
+      appHeight();
+    }
+    
     return () => {
       // Cleanup if needed
       document.body.style.overflow = '';
+      window.removeEventListener('resize', () => {});
     };
   }, []);
 
   return (
     <div className="fixed inset-0 flex flex-col bg-muted">
-      <main className="flex-1 overflow-y-auto">
-        <div className="container max-w-lg mx-auto px-4 pb-24 pt-4 animate-in">
+      <main className="flex-1 overflow-y-auto pb-16">
+        <div className="container max-w-lg mx-auto px-4 pt-4 animate-in">
           <Outlet />
         </div>
       </main>
