@@ -6,8 +6,8 @@ import { cn } from "@/lib/utils";
 export const Navigation = () => {
   return (
     <div className="fixed bottom-0 left-0 right-0 px-6 py-6 flex justify-center pointer-events-none">
-      <nav className="bg-primary rounded-full shadow-lg pointer-events-auto w-full max-w-xl">
-        <ul className="flex items-center justify-between h-14 px-6">
+      <nav className="bg-primary rounded-2xl shadow-lg pointer-events-auto w-full max-w-xl">
+        <ul className="flex items-center justify-between h-14 px-4">
           <NavItem to="/" icon={<Flag size={20} />} label="Home" />
           <NavItem 
             to="/add-round" 
@@ -36,16 +36,16 @@ const NavItem = ({
   className?: string;
   activeClassName?: string;
 }) => (
-  <li className="px-3">
+  <li className="px-4">
     <NavLink
       to={to}
       className={({ isActive }) =>
         cn(
           "flex items-center justify-center transition-all duration-300 ease-in-out",
-          className || "px-6 py-3 rounded-lg min-w-[3.5rem] relative overflow-hidden",
+          className || "px-8 py-3 rounded-xl min-w-[4rem] relative overflow-hidden",
           isActive 
-            ? (activeClassName || "text-white after:absolute after:inset-0 after:bg-white after:opacity-20 after:rounded-lg") 
-            : "text-white/70 hover:text-white hover:bg-primary-light hover:rounded-lg"
+            ? (activeClassName || "text-white after:absolute after:inset-0 after:bg-white after:opacity-20 after:rounded-xl") 
+            : "text-white/70 hover:text-white hover:bg-primary-light hover:rounded-xl"
         )
       }
       aria-label={label}
