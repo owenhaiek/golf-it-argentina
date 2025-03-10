@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -53,7 +52,7 @@ const RecentRounds = ({
     mutationFn: async (roundId: string) => {
       if (!userId) throw new Error("User not authenticated");
       
-      // Ensure we're deleting the correct round
+      // Delete the round
       const { error } = await supabase
         .from('rounds')
         .delete()
@@ -79,7 +78,6 @@ const RecentRounds = ({
         return old ? old.filter(round => round.id !== deletedId) : [];
       });
       
-      // Return a context object with the snapshotted value
       return { previousRounds };
     },
     onSuccess: () => {
@@ -88,11 +86,11 @@ const RecentRounds = ({
         description: "Your round has been removed from your history"
       });
       
-      // Invalidate and refetch - fixing the bug by ensuring we properly refetch
+      // Invalidate and refetch
       queryClient.invalidateQueries({ queryKey: ['rounds', userId] });
     },
     onError: (error, _, context) => {
-      // If there was an error, revert back to the previous rounds
+      // Revert back to the previous rounds on error
       if (context?.previousRounds) {
         queryClient.setQueryData(['rounds', userId], context.previousRounds);
       }
@@ -105,17 +103,23 @@ const RecentRounds = ({
       });
     },
     onSettled: () => {
-      // Clear the deleting state
       setDeletingRoundId(null);
     }
   });
 
-  // Handle round deletion
+  // Handle round deletion with confirmation
   const handleDeleteRound = (roundId: string) => {
+    // Set the deleting state immediately to prevent double-clicks
+    setDeletingRoundId(roundId);
+    
     // Show confirmation dialog
-    if (window.confirm('Are you sure you want to delete this round? This cannot be undone.')) {
-      setDeletingRoundId(roundId);
+    const confirmed = window.confirm('Are you sure you want to delete this round? This cannot be undone.');
+    
+    if (confirmed) {
       deleteRoundMutation.mutate(roundId);
+    } else {
+      // Reset deleting state if user cancels
+      setDeletingRoundId(null);
     }
   };
 
@@ -220,7 +224,7 @@ const RecentRounds = ({
                     <Button 
                       variant="ghost" 
                       size="sm" 
-                      className="mt-3 text-red-500 hover:bg-red-50 hover:text-red-600 transition-colors w-full" 
+                      className="mt-3 text-red-500 hover:bg-red-50 hover:text-red-600 transition-colors w-full cursor-pointer" 
                       onClick={() => handleDeleteRound(round.id)} 
                       disabled={isDeleting}
                     >
