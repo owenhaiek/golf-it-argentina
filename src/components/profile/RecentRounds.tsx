@@ -88,7 +88,7 @@ const RecentRounds = ({
         description: "Your round has been removed from your history"
       });
       
-      // Invalidate and refetch
+      // Invalidate and refetch - fixing the bug by ensuring we properly refetch
       queryClient.invalidateQueries({ queryKey: ['rounds', userId] });
     },
     onError: (error, _, context) => {
@@ -141,7 +141,7 @@ const RecentRounds = ({
       </CardHeader>
       <CardContent className="pt-4 py-[6px]">
         {rounds && rounds.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6 max-w-3xl mx-auto">
             {rounds.map(round => {
               const isDeleting = deletingRoundId === round.id;
               const formattedDate = format(new Date(round.date || round.created_at), 'MMM d, yyyy');

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -7,10 +8,12 @@ import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import FilterPanel from "@/components/FilterPanel";
+
 type FilterOptions = {
   holes: string;
   location: string;
 };
+
 const Home = () => {
   const [search, setSearch] = useState("");
   const [isSearchVisible, setIsSearchVisible] = useState(false);
@@ -19,6 +22,7 @@ const Home = () => {
     holes: "",
     location: ""
   });
+
   const {
     data: courses,
     isLoading
@@ -45,9 +49,11 @@ const Home = () => {
       return data;
     }
   });
+
   const handleApplyFilters = (newFilters: FilterOptions) => {
     setFilters(newFilters);
   };
+
   const handleResetFilters = () => {
     setFilters({
       holes: "",
@@ -55,7 +61,9 @@ const Home = () => {
     });
     setSearch("");
   };
+
   const hasActiveFilters = filters.holes || filters.location;
+
   return <div className="space-y-4 -mt-6 -mx-4">
       <div className="flex items-center justify-between px-4 pt-6">
         <h1 className="text-2xl font-bold">Golf Courses</h1>
@@ -135,8 +143,8 @@ const Home = () => {
           </div>}
       </div>
 
-      {/* Floating filter button */}
-      <Button onClick={() => setIsFilterPanelOpen(true)} size="icon" className="fixed right-4 bottom-20 h-12 w-12 rounded-full shadow-lg py-0 my-[5px]">
+      {/* Floating filter button - adjusted position to be higher */}
+      <Button onClick={() => setIsFilterPanelOpen(true)} size="icon" className="fixed right-4 bottom-24 h-12 w-12 rounded-full shadow-lg py-0 my-[5px]">
         <Filter size={20} />
       </Button>
 
@@ -144,4 +152,5 @@ const Home = () => {
       <FilterPanel isOpen={isFilterPanelOpen} onClose={() => setIsFilterPanelOpen(false)} onApplyFilters={handleApplyFilters} currentFilters={filters} />
     </div>;
 };
+
 export default Home;
