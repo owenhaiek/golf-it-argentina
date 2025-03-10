@@ -132,50 +132,6 @@ export type Database = {
           },
         ]
       }
-      shots: {
-        Row: {
-          accuracy: string | null
-          club: string
-          created_at: string | null
-          distance: number | null
-          hole_number: number
-          id: string
-          notes: string | null
-          round_id: string | null
-          shot_type: string | null
-        }
-        Insert: {
-          accuracy?: string | null
-          club: string
-          created_at?: string | null
-          distance?: number | null
-          hole_number: number
-          id?: string
-          notes?: string | null
-          round_id?: string | null
-          shot_type?: string | null
-        }
-        Update: {
-          accuracy?: string | null
-          club?: string
-          created_at?: string | null
-          distance?: number | null
-          hole_number?: number
-          id?: string
-          notes?: string | null
-          round_id?: string | null
-          shot_type?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "shots_round_id_fkey"
-            columns: ["round_id"]
-            isOneToOne: false
-            referencedRelation: "rounds"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
     }
     Views: {
       [_ in never]: never
