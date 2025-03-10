@@ -43,7 +43,11 @@ export const Layout = () => {
     document.body.style.overflow = 'hidden';
     
     // Force fullscreen mode for iOS Safari
-    if (navigator.standalone === false) {
+    const isInStandaloneMode = () => 
+      window.matchMedia('(display-mode: standalone)').matches || 
+      (window.navigator as any).standalone === true;
+      
+    if (!isInStandaloneMode()) {
       // Add a visual indicator for "Add to Home Screen"
       const appHeight = () => {
         document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
@@ -55,13 +59,13 @@ export const Layout = () => {
     return () => {
       // Cleanup if needed
       document.body.style.overflow = '';
-      window.removeEventListener('resize', () => {});
+      window.removeEventListener('resize', appHeight);
     };
   }, []);
 
   return (
     <div className="fixed inset-0 flex flex-col bg-muted">
-      <main className="flex-1 overflow-y-auto pb-16">
+      <main className="flex-1 overflow-y-auto pb-20">
         <div className="container max-w-lg mx-auto px-4 pt-4 animate-in">
           <Outlet />
         </div>
