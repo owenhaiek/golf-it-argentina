@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -8,6 +7,8 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import CourseSearch from "@/components/rounds/CourseSearch";
 import ScoreCard from "@/components/rounds/ScoreCard";
+import ShotTracker from "@/components/shots/ShotTracker";
+import { Target } from "lucide-react";
 
 const AddRound = () => {
   const { user } = useAuth();
@@ -16,6 +17,9 @@ const AddRound = () => {
   const [selectedCourse, setSelectedCourse] = useState<string>("");
   const [scores, setScores] = useState<number[]>(Array(18).fill(0));
   const [notes, setNotes] = useState("");
+  const [showShotTracker, setShowShotTracker] = useState(false);
+  const [currentHole, setCurrentHole] = useState(1);
+  const [roundId, setRoundId] = useState<string | null>(null);
 
   const { data: courses = [], isLoading: isLoadingCourses } = useQuery({
     queryKey: ['courses'],
@@ -35,6 +39,7 @@ const AddRound = () => {
     const newScores = [...scores];
     newScores[index] = value;
     setScores(newScores);
+    setCurrentHole(index + 1);
   };
 
   const handleSubmit = async () => {
@@ -49,22 +54,33 @@ const AddRound = () => {
     const totalScore = scores.slice(0, selectedCourseData?.holes || 18).reduce((a, b) => a + b, 0);
     
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('rounds')
         .insert({
           user_id: user?.id,
           course_id: selectedCourse,
           score: totalScore,
           notes,
-        });
+        })
+        .select('id')
+        .single();
 
       if (error) throw error;
+      
+      if (data) {
+        setRoundId(data.id);
+      }
 
       toast({
         title: "Round saved successfully!",
       });
       
-      navigate('/profile');
+      if (showShotTracker) {
+        // Keep on the page if shot tracker is active
+        setShowShotTracker(true);
+      } else {
+        navigate('/profile');
+      }
     } catch (error) {
       toast({
         title: "Error saving round",
@@ -83,6 +99,25 @@ const AddRound = () => {
       }
     }
   };
+
+  const toggleShotTracker = () => {
+    setShowShotTracker(!showShotTracker);
+  };
+
+  if (showShotTracker && roundId) {
+    return (
+      <ShotTracker 
+        roundId={roundId} 
+        currentHole={currentHole} 
+        onClose={() => {
+          setShowShotTracker(false);
+          navigate('/profile');
+        }}
+        onHoleChange={(hole) => setCurrentHole(hole)}
+        totalHoles={selectedCourseData?.holes || 18}
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -103,12 +138,23 @@ const AddRound = () => {
         />
       )}
 
-      <Button 
-        onClick={handleSubmit} 
-        className="w-full"
-      >
-        Save Round
-      </Button>
+      <div className="flex flex-col gap-3">
+        <Button 
+          onClick={handleSubmit} 
+          className="w-full"
+        >
+          Save Round
+        </Button>
+        
+        <Button
+          variant="outline"
+          className="w-full gap-2"
+          onClick={toggleShotTracker}
+        >
+          <Target size={18} />
+          Track Shots (New!)
+        </Button>
+      </div>
     </div>
   );
 };
