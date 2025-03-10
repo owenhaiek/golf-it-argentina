@@ -45,21 +45,21 @@ export const Layout = () => {
     // Force fullscreen mode for iOS Safari
     const isInStandaloneMode = () => 
       window.matchMedia('(display-mode: standalone)').matches || 
-      (window.navigator as any).standalone === true;
+      ('standalone' in window.navigator && (window.navigator as any).standalone === true);
       
     if (!isInStandaloneMode()) {
       // Add a visual indicator for "Add to Home Screen"
-      const appHeight = () => {
+      const setAppHeight = () => {
         document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
       };
-      window.addEventListener('resize', appHeight);
-      appHeight();
+      window.addEventListener('resize', setAppHeight);
+      setAppHeight();
     }
     
     return () => {
       // Cleanup if needed
       document.body.style.overflow = '';
-      window.removeEventListener('resize', appHeight);
+      window.removeEventListener('resize', setAppHeight);
     };
   }, []);
 
