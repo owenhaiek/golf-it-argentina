@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 export const Navigation = () => {
   return (
     <div className="fixed bottom-0 left-0 right-0 px-6 py-6 flex justify-center pointer-events-none">
-      <nav className="bg-primary rounded-2xl shadow-lg pointer-events-auto w-full max-w-xl">
+      <nav className="bg-primary rounded-3xl shadow-lg pointer-events-auto w-full max-w-xl">
         <ul className="flex items-center justify-between h-14 px-4">
           <NavItem to="/" icon={<Flag size={20} />} label="Home" />
           <NavItem 
@@ -14,7 +14,7 @@ export const Navigation = () => {
             icon={<Plus size={24} />} 
             label="Add"
             activeClassName="bg-white text-primary"
-            className="bg-accent text-primary rounded-full p-3 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-110 active:scale-95" 
+            className="bg-accent text-primary rounded-2xl p-3 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-110 active:scale-95" 
           />
           <NavItem to="/profile" icon={<User size={20} />} label="Profile" />
         </ul>
@@ -41,11 +41,11 @@ const NavItem = ({
       to={to}
       className={({ isActive }) =>
         cn(
-          "flex items-center justify-center transition-all duration-300 ease-in-out",
-          className || "px-8 py-3 rounded-xl min-w-[4rem] relative overflow-hidden",
+          "flex items-center justify-center transition-all duration-300 ease-in-out px-8 py-3",
+          className || "rounded-2xl min-w-[4rem] relative overflow-hidden",
           isActive 
-            ? (activeClassName || "text-white after:absolute after:inset-0 after:bg-white after:opacity-20 after:rounded-xl") 
-            : "text-white/70 hover:text-white hover:bg-primary-light hover:rounded-xl"
+            ? (activeClassName || "text-white after:absolute after:inset-0 after:bg-white after:opacity-20 after:rounded-2xl") 
+            : "text-white/70 hover:text-white hover:bg-primary-light hover:rounded-2xl"
         )
       }
       aria-label={label}

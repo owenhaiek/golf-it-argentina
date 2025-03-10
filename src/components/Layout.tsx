@@ -1,4 +1,3 @@
-
 import { Outlet } from "react-router-dom";
 import { Navigation } from "./Navigation";
 import { useEffect } from "react";
@@ -48,19 +47,16 @@ export const Layout = () => {
       ('standalone' in window.navigator && (window.navigator as any).standalone === true);
       
     if (!isInStandaloneMode()) {
-      // Add a visual indicator for "Add to Home Screen"
       const setAppHeight = () => {
         document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
       };
       window.addEventListener('resize', setAppHeight);
       setAppHeight();
+
+      return () => {
+        window.removeEventListener('resize', setAppHeight);
+      };
     }
-    
-    return () => {
-      // Cleanup if needed
-      document.body.style.overflow = '';
-      window.removeEventListener('resize', setAppHeight);
-    };
   }, []);
 
   return (
