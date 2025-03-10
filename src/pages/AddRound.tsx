@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -85,7 +84,7 @@ const AddRound = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-28">
       <h1 className="text-2xl font-bold">Add Round Score</h1>
 
       <CourseSearch 
