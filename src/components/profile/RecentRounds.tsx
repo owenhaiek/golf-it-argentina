@@ -41,8 +41,7 @@ const RecentRounds = ({
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const [deletingRoundId, setDeletingRoundId] = useState<string | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [deletingRoundIds, setDeletingRoundIds] = useState<Set<string>>(new Set());
 
   // Calculate total par for a course
   const calculateCoursePar = (holePars: number[] | undefined): number => {
@@ -55,32 +54,55 @@ const RecentRounds = ({
     mutationFn: async (roundId: string) => {
       if (!userId) throw new Error("User not authenticated");
       
+      // Mark this round as being deleted
+      setDeletingRoundIds(prev => {
+        const newSet = new Set(prev);
+        newSet.add(roundId);
+        return newSet;
+      });
+      
+      // Delete the round from Supabase
       const { error } = await supabase
         .from('rounds')
         .delete()
-        .eq('id', roundId)
-        .eq('user_id', userId);
+        .eq('id', roundId);
       
       if (error) throw error;
       return roundId;
     },
     onSuccess: (deletedRoundId) => {
-      // Update local cache
-      queryClient.setQueryData(['rounds', userId], (oldData: Round[] | undefined) => {
-        return oldData ? oldData.filter(round => round.id !== deletedRoundId) : [];
-      });
-
-      // Invalidate queries to refetch fresh data
+      // Update local rounds data to remove the deleted round
+      if (rounds) {
+        const updatedRounds = rounds.filter(round => round.id !== deletedRoundId);
+        queryClient.setQueryData(['rounds', userId], updatedRounds);
+      }
+      
+      // Invalidate queries to ensure data consistency
       queryClient.invalidateQueries({ queryKey: ['rounds', userId] });
       queryClient.invalidateQueries({ queryKey: ['profile', userId] });
-
+      
+      // Remove the round from being marked as deleting
+      setDeletingRoundIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(deletedRoundId);
+        return newSet;
+      });
+      
       toast({
         title: "Round deleted successfully",
         description: "Your round has been removed from your history"
       });
     },
-    onError: (error) => {
+    onError: (error, roundId) => {
       console.error('Round deletion error:', error);
+      
+      // Remove the round from being marked as deleting
+      setDeletingRoundIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(roundId);
+        return newSet;
+      });
+      
       toast({
         title: "Failed to delete round",
         description: error instanceof Error ? error.message : "An unknown error occurred",
@@ -119,7 +141,7 @@ const RecentRounds = ({
         {rounds && rounds.length > 0 ? (
           <div className="grid grid-cols-1 gap-6 max-w-3xl mx-auto">
             {rounds.map(round => {
-              const isDeleting = deletingRoundId === round.id;
+              const isDeleting = deletingRoundIds.has(round.id);
               const formattedDate = format(new Date(round.date || round.created_at), 'MMM d, yyyy');
               const coursePar = round.golf_courses.par || calculateCoursePar(round.golf_courses.hole_pars);
               const scoreDiff = round.score - coursePar;
@@ -198,9 +220,19 @@ const RecentRounds = ({
                           variant="ghost" 
                           size="sm" 
                           className="mt-3 text-red-500 hover:bg-red-50 hover:text-red-600 transition-colors w-full cursor-pointer"
+                          disabled={isDeleting}
                         >
-                          <Trash2 className="h-4 w-4 mr-1" />
-                          Delete Round
+                          {isDeleting ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                              Deleting...
+                            </>
+                          ) : (
+                            <>
+                              <Trash2 className="h-4 w-4 mr-1" />
+                              Delete Round
+                            </>
+                          )}
                         </Button>
                       </AlertDialogTrigger>
                       <AlertDialogContent>
