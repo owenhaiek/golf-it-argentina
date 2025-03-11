@@ -31,17 +31,20 @@ interface RecentRoundsProps {
   userId: string;
   rounds: Round[] | null;
   roundsLoading: boolean;
+  onRoundDeleted?: () => void;
 }
 
 const RecentRounds = ({
   userId,
   rounds,
-  roundsLoading
+  roundsLoading,
+  onRoundDeleted
 }: RecentRoundsProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [deletingRoundIds, setDeletingRoundIds] = useState<Set<string>>(new Set());
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Calculate total par for a course
   const calculateCoursePar = (holePars: number[] | undefined): number => {
@@ -53,6 +56,9 @@ const RecentRounds = ({
   const deleteRoundMutation = useMutation({
     mutationFn: async (roundId: string) => {
       if (!userId) throw new Error("User not authenticated");
+      
+      // Mark global deletion state
+      setIsDeleting(true);
       
       // Mark this round as being deleted
       setDeletingRoundIds(prev => {
@@ -90,6 +96,14 @@ const RecentRounds = ({
         return newSet;
       });
       
+      // Reset global deletion state
+      setIsDeleting(false);
+      
+      // Call the callback if provided
+      if (onRoundDeleted) {
+        onRoundDeleted();
+      }
+      
       toast({
         title: "Round deleted successfully",
         description: "Your round has been removed from your records"
@@ -104,6 +118,9 @@ const RecentRounds = ({
         newSet.delete(roundId);
         return newSet;
       });
+      
+      // Reset global deletion state
+      setIsDeleting(false);
       
       toast({
         title: "Failed to delete round",
@@ -220,7 +237,7 @@ const RecentRounds = ({
                           variant="ghost" 
                           size="sm" 
                           className="mt-3 text-red-500 hover:bg-red-50 hover:text-red-600 transition-colors w-full cursor-pointer"
-                          disabled={isDeleting}
+                          disabled={isDeleting || isDeleting}
                         >
                           {isDeleting ? (
                             <>

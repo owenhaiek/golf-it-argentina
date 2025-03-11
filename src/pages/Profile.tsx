@@ -36,7 +36,8 @@ const Profile = () => {
   // Rounds Query - Fetch user's recent rounds
   const {
     data: rounds,
-    isLoading: roundsLoading
+    isLoading: roundsLoading,
+    refetch: refetchRounds
   } = useQuery({
     queryKey: ['rounds', user?.id],
     queryFn: async () => {
@@ -67,8 +68,8 @@ const Profile = () => {
       return data || [];
     },
     enabled: !!user?.id,
-    staleTime: 0, // Force a refetch each time
-    refetchOnMount: true, // Make sure data is refetched on each mount
+    staleTime: 60000, // Set a reasonable staleTime (1 minute)
+    refetchOnMount: "always", // Always refetch when component mounts
     refetchOnWindowFocus: true // Refetch when window regains focus
   });
 
@@ -85,7 +86,12 @@ const Profile = () => {
         </div>
         
         <div className="w-full">
-          <RecentRounds userId={user?.id} rounds={rounds} roundsLoading={roundsLoading} />
+          <RecentRounds 
+            userId={user?.id} 
+            rounds={rounds} 
+            roundsLoading={roundsLoading} 
+            onRoundDeleted={() => refetchRounds()} 
+          />
         </div>
       </div>
     </div>
