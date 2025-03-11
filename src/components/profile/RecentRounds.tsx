@@ -52,7 +52,6 @@ const RecentRounds = ({
   // Round Deletion Mutation
   const deleteRoundMutation = useMutation({
     mutationFn: async (roundId: string) => {
-      setIsDeleting(true);
       if (!userId) throw new Error("User not authenticated");
       
       const { error } = await supabase
@@ -61,20 +60,16 @@ const RecentRounds = ({
         .eq('id', roundId)
         .eq('user_id', userId);
       
-      if (error) {
-        console.error("Round deletion failed:", error);
-        throw error;
-      }
-      
+      if (error) throw error;
       return roundId;
     },
-    onSuccess: (deletedId) => {
-      // Immediately update the local cache to remove the deleted round
+    onSuccess: (deletedRoundId) => {
+      // Update local cache
       queryClient.setQueryData(['rounds', userId], (oldData: Round[] | undefined) => {
-        return oldData ? oldData.filter(round => round.id !== deletedId) : [];
+        return oldData ? oldData.filter(round => round.id !== deletedRoundId) : [];
       });
 
-      // Invalidate and refetch both rounds and profile queries
+      // Invalidate queries to refetch fresh data
       queryClient.invalidateQueries({ queryKey: ['rounds', userId] });
       queryClient.invalidateQueries({ queryKey: ['profile', userId] });
 
@@ -90,17 +85,12 @@ const RecentRounds = ({
         description: error instanceof Error ? error.message : "An unknown error occurred",
         variant: "destructive"
       });
-    },
-    onSettled: () => {
-      setDeletingRoundId(null);
-      setIsDeleting(false);
     }
   });
 
   // Handle round deletion
-  const handleDeleteRound = async (roundId: string) => {
-    setDeletingRoundId(roundId);
-    await deleteRoundMutation.mutateAsync(roundId);
+  const handleDeleteRound = (roundId: string) => {
+    deleteRoundMutation.mutate(roundId);
   };
 
   if (roundsLoading) {
@@ -116,7 +106,8 @@ const RecentRounds = ({
       </Card>;
   }
 
-  return <Card className="border-0 shadow-md overflow-hidden h-full">
+  return (
+    <Card className="border-0 shadow-md overflow-hidden h-full">
       <CardHeader className="border-b border-muted/20 pb-4">
         <CardTitle className="text-xl font-semibold text-primary flex items-center gap-2">
           <Trophy className="h-5 w-5 text-accent" />
@@ -205,37 +196,29 @@ const RecentRounds = ({
                         <Button 
                           variant="ghost" 
                           size="sm" 
-                          className="mt-3 text-red-500 hover:bg-red-50 hover:text-red-600 transition-colors w-full cursor-pointer" 
-                          disabled={isDeleting}
+                          className="mt-3 text-red-500 hover:bg-red-50 hover:text-red-600 transition-colors w-full cursor-pointer"
+                      >
+                        <Trash2 className="h-4 w-4 mr-1" />
+                        Delete Round
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Round</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to delete this round? This action cannot be undone and will affect your handicap calculation.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction 
+                          onClick={() => handleDeleteRound(round.id)}
+                          className="bg-red-500 hover:bg-red-600"
                         >
-                          {isDeleting ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <>
-                              <Trash2 className="h-4 w-4 mr-1" />
-                              Delete Round
-                            </>
-                          )}
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            This action cannot be undone. This will permanently delete your round and may affect your handicap calculation.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction 
-                            onClick={() => handleDeleteRound(round.id)}
-                            className="bg-red-500 hover:bg-red-600"
-                          >
-                            Delete
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                          Delete Round
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
                   </div>
                 </div>
               );
@@ -251,7 +234,8 @@ const RecentRounds = ({
           </div>
         )}
       </CardContent>
-    </Card>;
+    </Card>
+  );
 };
 
 export default RecentRounds;
