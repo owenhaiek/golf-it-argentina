@@ -8,7 +8,7 @@ export const GolfLoader = () => {
       <div className="relative w-36 h-12">
         {/* Green/Course */}
         <motion.div 
-          className="absolute bottom-0 w-full h-3 bg-secondary/40 rounded-full"
+          className="absolute bottom-0 w-full h-3 bg-secondary/30 rounded-full"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
@@ -16,7 +16,7 @@ export const GolfLoader = () => {
         
         {/* Hole */}
         <motion.div 
-          className="absolute bottom-0 right-2 w-4 h-4 rounded-full bg-primary/80 flex items-center justify-center"
+          className="absolute bottom-0 right-2 w-4 h-4 rounded-full bg-primary/70 flex items-center justify-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3, delay: 0.3 }}
@@ -26,7 +26,7 @@ export const GolfLoader = () => {
         
         {/* Golf Ball */}
         <motion.div
-          className="absolute w-3 h-3 bg-white rounded-full shadow-md z-10"
+          className="absolute w-3 h-3 bg-white rounded-full shadow-sm z-10"
           initial={{ x: 0, y: -5, opacity: 0 }}
           animate={{ 
             x: [0, 15, 30, 45, 60, 75, 90, 105, 120], 
@@ -50,8 +50,8 @@ export const GolfLoader = () => {
           <motion.path
             d="M 0 30 Q 35 0 70 15 Q 105 30 140 30"
             stroke="#E8B87D"
-            strokeWidth="1.5"
-            strokeDasharray="3,3"
+            strokeWidth="1"
+            strokeDasharray="2,2"
             initial={{ pathLength: 0, opacity: 0 }}
             animate={{ pathLength: 1, opacity: [0, 0.2, 0.5, 0.8, 1, 0.8, 0.5, 0.2, 0] }}
             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}

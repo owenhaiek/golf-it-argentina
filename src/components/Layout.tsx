@@ -1,3 +1,4 @@
+
 import { Outlet } from "react-router-dom";
 import { Navigation } from "./Navigation";
 import { useEffect, useState } from "react";
@@ -38,15 +39,15 @@ export const Layout = () => {
     };
   }, [startY, isRefreshing]);
 
-  // Add meta viewport tag to make the app display as a mobile app
+  // Enhanced fullscreen and mobile app experience
   useEffect(() => {
-    // Set the viewport meta tag to prevent scaling
+    // Set the viewport meta tag for optimal mobile display
     const metaViewport = document.querySelector('meta[name="viewport"]');
     if (metaViewport) {
       metaViewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, minimal-ui, apple-mobile-web-app-capable=yes');
     }
     
-    // Add apple-mobile-web-app-capable meta tag
+    // Add apple-mobile-web-app-capable meta tag for iOS fullscreen
     let metaAppleCapable = document.querySelector('meta[name="apple-mobile-web-app-capable"]');
     if (!metaAppleCapable) {
       metaAppleCapable = document.createElement('meta');
@@ -55,7 +56,7 @@ export const Layout = () => {
       document.head.appendChild(metaAppleCapable);
     }
     
-    // Add apple-mobile-web-app-status-bar-style meta tag
+    // Add apple-mobile-web-app-status-bar-style for iOS status bar
     let metaStatusBar = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
     if (!metaStatusBar) {
       metaStatusBar = document.createElement('meta');
@@ -64,7 +65,7 @@ export const Layout = () => {
       document.head.appendChild(metaStatusBar);
     }
 
-    // Set theme-color meta tag to match our primary color
+    // Set theme-color for Android
     let metaThemeColor = document.querySelector('meta[name="theme-color"]');
     if (!metaThemeColor) {
       metaThemeColor = document.createElement('meta');
@@ -73,7 +74,7 @@ export const Layout = () => {
       document.head.appendChild(metaThemeColor);
     }
     
-    // Add fullscreen capabilities
+    // Add fullscreen capabilities for Android
     let metaFullscreen = document.querySelector('meta[name="mobile-web-app-capable"]');
     if (!metaFullscreen) {
       metaFullscreen = document.createElement('meta');
@@ -82,10 +83,12 @@ export const Layout = () => {
       document.head.appendChild(metaFullscreen);
     }
     
-    // Prevent scrolling the body
+    // Prevent document body scrolling for better fullscreen experience
     document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    document.documentElement.style.height = '100%';
     
-    // Force fullscreen mode for iOS Safari
+    // Force proper height calculation for iOS Safari
     const isInStandaloneMode = () => 
       window.matchMedia('(display-mode: standalone)').matches || 
       ('standalone' in window.navigator && (window.navigator as any).standalone === true);
@@ -110,8 +113,8 @@ export const Layout = () => {
           <GolfLoader />
         </div>
       )}
-      <main className="flex-1 overflow-y-auto pb-20">
-        <div className="container max-w-lg mx-auto px-4 pt-4 animate-in">
+      <main className="flex-1 overflow-y-auto pb-20 hide-scrollbar">
+        <div className="container max-w-md mx-auto px-4 pt-6 animate-in">
           <Outlet />
         </div>
       </main>
