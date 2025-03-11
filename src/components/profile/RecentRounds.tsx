@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -197,28 +198,29 @@ const RecentRounds = ({
                           variant="ghost" 
                           size="sm" 
                           className="mt-3 text-red-500 hover:bg-red-50 hover:text-red-600 transition-colors w-full cursor-pointer"
-                      >
-                        <Trash2 className="h-4 w-4 mr-1" />
-                        Delete Round
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Round</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Are you sure you want to delete this round? This action cannot be undone and will affect your handicap calculation.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction 
-                          onClick={() => handleDeleteRound(round.id)}
-                          className="bg-red-500 hover:bg-red-600"
                         >
+                          <Trash2 className="h-4 w-4 mr-1" />
                           Delete Round
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Round</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to delete this round? This action cannot be undone and will affect your handicap calculation.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction 
+                            onClick={() => handleDeleteRound(round.id)}
+                            className="bg-red-500 hover:bg-red-600"
+                          >
+                            Delete Round
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </div>
               );
