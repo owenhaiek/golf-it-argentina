@@ -5,10 +5,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import ProfileCard from "@/components/profile/ProfileCard";
 import RecentRounds from "@/components/profile/RecentRounds";
 import { User } from "lucide-react";
+import { useState } from "react";
 
 const Profile = () => {
   // Core state and hooks
   const { user } = useAuth();
+  const [deletingRoundId, setDeletingRoundId] = useState<string | null>(null);
 
   // Profile Query - Fetch user profile data
   const {
@@ -80,10 +82,37 @@ const Profile = () => {
     refetchOnReconnect: false // Don't refetch when reconnecting
   });
 
-  // Handler for when a round is deleted
-  const handleRoundDeleted = () => {
-    console.log("Round deleted, triggering refetch");
-    refetchRounds();
+  // Handle round deletion
+  const handleDeleteRound = async (roundId: string) => {
+    if (deletingRoundId) return; // Prevent multiple simultaneous deletions
+    
+    setDeletingRoundId(roundId);
+    console.log(`Starting to delete round: ${roundId}`);
+    
+    try {
+      const { error } = await supabase
+        .from('rounds')
+        .delete()
+        .eq('id', roundId)
+        .eq('user_id', user?.id);
+      
+      if (error) {
+        console.error("Error deleting round:", error);
+        throw error;
+      }
+      
+      console.log(`Successfully deleted round: ${roundId}`);
+      
+      // Manually update the local cache to remove the deleted round
+      if (rounds) {
+        const updatedRounds = rounds.filter(round => round.id !== roundId);
+        refetchRounds();
+      }
+    } catch (error) {
+      console.error("Failed to delete round:", error);
+    } finally {
+      setDeletingRoundId(null);
+    }
   };
 
   return (
@@ -103,7 +132,8 @@ const Profile = () => {
             userId={user?.id} 
             rounds={rounds} 
             roundsLoading={roundsLoading} 
-            onRoundDeleted={handleRoundDeleted}
+            onDeleteRound={handleDeleteRound}
+            deletingRoundId={deletingRoundId}
           />
         </div>
       </div>

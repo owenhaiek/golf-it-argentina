@@ -1,9 +1,6 @@
 
-import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { supabase } from "@/lib/supabase";
 import { useToast } from "@/components/ui/use-toast";
 import { Loader2, Trash2, Calendar, Trophy, MapPin, Flag, Plus, Minus, Check } from "lucide-react";
 import { format } from "date-fns";
@@ -31,19 +28,19 @@ interface RecentRoundsProps {
   userId: string;
   rounds: Round[] | null;
   roundsLoading: boolean;
-  onRoundDeleted?: () => void;
+  onDeleteRound: (roundId: string) => Promise<void>;
+  deletingRoundId: string | null;
 }
 
 const RecentRounds = ({
   userId,
   rounds,
   roundsLoading,
-  onRoundDeleted
+  onDeleteRound,
+  deletingRoundId
 }: RecentRoundsProps) => {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const [deletingRoundIds, setDeletingRoundIds] = useState<Set<string>>(new Set());
 
   // Calculate total par for a course
   const calculateCoursePar = (holePars: number[] | undefined): number => {
@@ -51,89 +48,22 @@ const RecentRounds = ({
     return holePars.reduce((sum, par) => sum + par, 0);
   };
 
-  // Round Deletion Mutation
-  const deleteRoundMutation = useMutation({
-    mutationFn: async (roundId: string) => {
-      if (!userId) throw new Error("User not authenticated");
-      
-      console.log(`Starting deletion of round: ${roundId}`);
-      
-      // Mark this round as being deleted
-      setDeletingRoundIds(prev => {
-        const newSet = new Set(prev);
-        newSet.add(roundId);
-        return newSet;
-      });
-      
-      // Delete the round from Supabase
-      const { error } = await supabase
-        .from('rounds')
-        .delete()
-        .eq('id', roundId)
-        .eq('user_id', userId); // Add user_id check for additional security
-      
-      if (error) {
-        console.error("Error deleting round:", error);
-        throw error;
-      }
-      
-      console.log(`Successfully deleted round: ${roundId} from database`);
-      return roundId;
-    },
-    onSuccess: (deletedRoundId) => {
-      console.log(`Handling successful deletion of round: ${deletedRoundId}`);
-      
-      // Immediately update the local cache to remove the deleted round
-      if (rounds) {
-        console.log("Updating local cache to remove deleted round");
-        const updatedRounds = rounds.filter(round => round.id !== deletedRoundId);
-        
-        // Set the new data directly to avoid any automatic refetching
-        queryClient.setQueryData(['rounds', userId], updatedRounds);
-      }
-      
-      // Remove the round from deletingRoundIds
-      setDeletingRoundIds(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(deletedRoundId);
-        return newSet;
-      });
-      
-      // Call the onRoundDeleted callback if provided
-      if (onRoundDeleted) {
-        console.log("Calling onRoundDeleted callback");
-        onRoundDeleted();
-      }
-      
-      // Show a toast notification
+  // Handle round deletion with confirmation already handled by the AlertDialog
+  const handleDeleteRound = async (roundId: string) => {
+    try {
+      await onDeleteRound(roundId);
       toast({
         title: "Round deleted successfully",
         description: "Your round has been removed from your records"
       });
-    },
-    onError: (error, roundId) => {
-      console.error('Round deletion error:', error);
-      
-      // Remove the round from being marked as deleting
-      setDeletingRoundIds(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(roundId);
-        return newSet;
-      });
-      
-      // Show error toast
+    } catch (error) {
+      console.error("Error in handleDeleteRound:", error);
       toast({
         title: "Failed to delete round",
         description: error instanceof Error ? error.message : "An unknown error occurred",
         variant: "destructive"
       });
     }
-  });
-
-  // Handle round deletion with confirmation already handled by the AlertDialog
-  const handleDeleteRound = (roundId: string) => {
-    console.log(`Initiating deletion for round: ${roundId}`);
-    deleteRoundMutation.mutate(roundId);
   };
 
   if (roundsLoading) {
@@ -161,7 +91,7 @@ const RecentRounds = ({
         {rounds && rounds.length > 0 ? (
           <div className="grid grid-cols-1 gap-6 max-w-3xl mx-auto">
             {rounds.map(round => {
-              const isRoundDeleting = deletingRoundIds.has(round.id);
+              const isRoundDeleting = deletingRoundId === round.id;
               const formattedDate = format(new Date(round.date || round.created_at), 'MMM d, yyyy');
               const coursePar = round.golf_courses.par || calculateCoursePar(round.golf_courses.hole_pars);
               const scoreDiff = round.score - coursePar;
@@ -238,7 +168,7 @@ const RecentRounds = ({
                           variant="ghost" 
                           size="sm" 
                           className="mt-3 text-red-500 hover:bg-red-50 hover:text-red-600 transition-colors w-full cursor-pointer"
-                          disabled={isRoundDeleting}
+                          disabled={!!deletingRoundId} // Disable all delete buttons when any round is being deleted
                         >
                           {isRoundDeleting ? (
                             <>
