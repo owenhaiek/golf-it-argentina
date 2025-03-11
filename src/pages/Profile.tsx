@@ -68,9 +68,11 @@ const Profile = () => {
       return data || [];
     },
     enabled: !!user?.id,
-    staleTime: 60000, // Set a reasonable staleTime (1 minute)
-    refetchOnMount: "always", // Always refetch when component mounts
-    refetchOnWindowFocus: true // Refetch when window regains focus
+    // Don't refetch automatically on stale data
+    staleTime: Infinity,
+    // Only manually refetch via refetchRounds
+    refetchOnMount: false,
+    refetchOnWindowFocus: false
   });
 
   return (

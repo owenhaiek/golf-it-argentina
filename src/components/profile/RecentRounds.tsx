@@ -85,7 +85,7 @@ const RecentRounds = ({
         queryClient.setQueryData(['rounds', userId], updatedRounds);
       }
       
-      // Force a refetch for both rounds and profile data to ensure consistent state
+      // Force invalidation to ensure data consistency
       queryClient.invalidateQueries({ queryKey: ['rounds', userId] });
       queryClient.invalidateQueries({ queryKey: ['profile', userId] });
       
@@ -160,7 +160,7 @@ const RecentRounds = ({
         {rounds && rounds.length > 0 ? (
           <div className="grid grid-cols-1 gap-6 max-w-3xl mx-auto">
             {rounds.map(round => {
-              const isDeleting = deletingRoundIds.has(round.id);
+              const isRoundDeleting = deletingRoundIds.has(round.id);
               const formattedDate = format(new Date(round.date || round.created_at), 'MMM d, yyyy');
               const coursePar = round.golf_courses.par || calculateCoursePar(round.golf_courses.hole_pars);
               const scoreDiff = round.score - coursePar;
@@ -237,9 +237,9 @@ const RecentRounds = ({
                           variant="ghost" 
                           size="sm" 
                           className="mt-3 text-red-500 hover:bg-red-50 hover:text-red-600 transition-colors w-full cursor-pointer"
-                          disabled={isDeleting || isDeleting}
+                          disabled={isDeleting || isRoundDeleting}
                         >
-                          {isDeleting ? (
+                          {isRoundDeleting ? (
                             <>
                               <Loader2 className="h-4 w-4 mr-1 animate-spin" />
                               Deleting...
