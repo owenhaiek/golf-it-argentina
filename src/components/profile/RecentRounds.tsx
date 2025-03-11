@@ -44,7 +44,6 @@ const RecentRounds = ({
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [deletingRoundIds, setDeletingRoundIds] = useState<Set<string>>(new Set());
-  const [isDeleting, setIsDeleting] = useState(false);
 
   // Calculate total par for a course
   const calculateCoursePar = (holePars: number[] | undefined): number => {
@@ -57,8 +56,7 @@ const RecentRounds = ({
     mutationFn: async (roundId: string) => {
       if (!userId) throw new Error("User not authenticated");
       
-      // Mark global deletion state
-      setIsDeleting(true);
+      console.log(`Starting deletion of round: ${roundId}`);
       
       // Mark this round as being deleted
       setDeletingRoundIds(prev => {
@@ -74,36 +72,40 @@ const RecentRounds = ({
         .eq('id', roundId)
         .eq('user_id', userId); // Add user_id check for additional security
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error deleting round:", error);
+        throw error;
+      }
+      
+      console.log(`Successfully deleted round: ${roundId} from database`);
       return roundId;
     },
     onSuccess: (deletedRoundId) => {
-      // Filter out the deleted round from the local cache
+      console.log(`Handling successful deletion of round: ${deletedRoundId}`);
+      
+      // Immediately update the local cache to remove the deleted round
       if (rounds) {
+        console.log("Updating local cache to remove deleted round");
         const updatedRounds = rounds.filter(round => round.id !== deletedRoundId);
-        // Update the cache directly to prevent UI flicker
+        
+        // Set the new data directly to avoid any automatic refetching
         queryClient.setQueryData(['rounds', userId], updatedRounds);
       }
       
-      // Force invalidation to ensure data consistency
-      queryClient.invalidateQueries({ queryKey: ['rounds', userId] });
-      queryClient.invalidateQueries({ queryKey: ['profile', userId] });
-      
-      // Remove the round from being marked as deleting
+      // Remove the round from deletingRoundIds
       setDeletingRoundIds(prev => {
         const newSet = new Set(prev);
         newSet.delete(deletedRoundId);
         return newSet;
       });
       
-      // Reset global deletion state
-      setIsDeleting(false);
-      
-      // Call the callback if provided
+      // Call the onRoundDeleted callback if provided
       if (onRoundDeleted) {
+        console.log("Calling onRoundDeleted callback");
         onRoundDeleted();
       }
       
+      // Show a toast notification
       toast({
         title: "Round deleted successfully",
         description: "Your round has been removed from your records"
@@ -119,9 +121,7 @@ const RecentRounds = ({
         return newSet;
       });
       
-      // Reset global deletion state
-      setIsDeleting(false);
-      
+      // Show error toast
       toast({
         title: "Failed to delete round",
         description: error instanceof Error ? error.message : "An unknown error occurred",
@@ -130,8 +130,9 @@ const RecentRounds = ({
     }
   });
 
-  // Handle round deletion
+  // Handle round deletion with confirmation already handled by the AlertDialog
   const handleDeleteRound = (roundId: string) => {
+    console.log(`Initiating deletion for round: ${roundId}`);
     deleteRoundMutation.mutate(roundId);
   };
 
@@ -237,7 +238,7 @@ const RecentRounds = ({
                           variant="ghost" 
                           size="sm" 
                           className="mt-3 text-red-500 hover:bg-red-50 hover:text-red-600 transition-colors w-full cursor-pointer"
-                          disabled={isDeleting || isRoundDeleting}
+                          disabled={isRoundDeleting}
                         >
                           {isRoundDeleting ? (
                             <>

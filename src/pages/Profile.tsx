@@ -42,6 +42,9 @@ const Profile = () => {
     queryKey: ['rounds', user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
+      
+      console.log("Fetching rounds for user:", user.id);
+      
       const { data, error } = await supabase
         .from('rounds')
         .select(`
@@ -65,15 +68,23 @@ const Profile = () => {
         console.error("Rounds fetch error:", error);
         throw error;
       }
+      
+      console.log("Rounds fetched successfully:", data?.length || 0);
       return data || [];
     },
     enabled: !!user?.id,
-    // Don't refetch automatically on stale data
-    staleTime: Infinity,
-    // Only manually refetch via refetchRounds
-    refetchOnMount: false,
-    refetchOnWindowFocus: false
+    staleTime: Infinity, // Never consider the data stale automatically
+    gcTime: Infinity, // Keep the data in cache indefinitely
+    refetchOnMount: false, // Don't refetch when component mounts
+    refetchOnWindowFocus: false, // Don't refetch when window regains focus
+    refetchOnReconnect: false // Don't refetch when reconnecting
   });
+
+  // Handler for when a round is deleted
+  const handleRoundDeleted = () => {
+    console.log("Round deleted, triggering refetch");
+    refetchRounds();
+  };
 
   return (
     <div className="max-w-7xl mx-auto animate-fadeIn">
@@ -92,7 +103,7 @@ const Profile = () => {
             userId={user?.id} 
             rounds={rounds} 
             roundsLoading={roundsLoading} 
-            onRoundDeleted={() => refetchRounds()} 
+            onRoundDeleted={handleRoundDeleted}
           />
         </div>
       </div>
