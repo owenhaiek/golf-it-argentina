@@ -1,5 +1,5 @@
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import ProfileCard from "@/components/profile/ProfileCard";
@@ -13,6 +13,7 @@ const Profile = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [deletingRoundId, setDeletingRoundId] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
   // Profile Query - Fetch user profile data
   const {
@@ -41,7 +42,6 @@ const Profile = () => {
   const {
     data: rounds,
     isLoading: roundsLoading,
-    refetch: refetchRounds
   } = useQuery({
     queryKey: ['rounds', user?.id],
     queryFn: async () => {
@@ -79,14 +79,11 @@ const Profile = () => {
     enabled: !!user?.id
   });
 
-  // Handle round deletion
-  const handleDeleteRound = async (roundId: string) => {
-    if (deletingRoundId) return; // Prevent multiple simultaneous deletions
-    
-    setDeletingRoundId(roundId);
-    console.log(`Starting to delete round: ${roundId}`);
-    
-    try {
+  // Delete round mutation
+  const deleteRoundMutation = useMutation({
+    mutationFn: async (roundId: string) => {
+      console.log(`Starting to delete round: ${roundId}`);
+      
       const { error } = await supabase
         .from('rounds')
         .delete()
@@ -95,27 +92,62 @@ const Profile = () => {
       
       if (error) {
         console.error("Error deleting round:", error);
-        toast({
-          title: "Error deleting round",
-          description: error.message,
-          variant: "destructive"
-        });
         throw error;
       }
       
       console.log(`Successfully deleted round: ${roundId}`);
+      return roundId;
+    },
+    onMutate: (roundId) => {
+      setDeletingRoundId(roundId);
+      
+      // Optimistic update - remove the round from the cache
+      const previousRounds = queryClient.getQueryData(['rounds', user?.id]);
+      
+      queryClient.setQueryData(['rounds', user?.id], (old: any) => {
+        if (!old) return old;
+        return old.filter((round: any) => round.id !== roundId);
+      });
+      
+      return { previousRounds };
+    },
+    onSuccess: (roundId) => {
       toast({
         title: "Success",
         description: "Round deleted successfully",
       });
       
-      // Explicitly refresh the rounds data after successful deletion
-      await refetchRounds();
-    } catch (error) {
-      console.error("Failed to delete round:", error);
-    } finally {
+      // Invalidate and refetch to ensure data consistency
+      queryClient.invalidateQueries({
+        queryKey: ['rounds', user?.id]
+      });
+
+      // Also invalidate profile to update handicap if needed
+      queryClient.invalidateQueries({
+        queryKey: ['profile', user?.id]
+      });
+    },
+    onError: (error, roundId, context) => {
+      // Revert to the previous data on error
+      if (context?.previousRounds) {
+        queryClient.setQueryData(['rounds', user?.id], context.previousRounds);
+      }
+      
+      toast({
+        title: "Error deleting round",
+        description: error.message || "Something went wrong",
+        variant: "destructive"
+      });
+    },
+    onSettled: () => {
       setDeletingRoundId(null);
     }
+  });
+
+  // Handle round deletion
+  const handleDeleteRound = (roundId: string) => {
+    if (deletingRoundId) return; // Prevent multiple simultaneous deletions
+    deleteRoundMutation.mutate(roundId);
   };
 
   return (

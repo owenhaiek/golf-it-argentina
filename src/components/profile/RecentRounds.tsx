@@ -27,7 +27,7 @@ interface RecentRoundsProps {
   userId?: string;
   rounds: Round[] | null;
   roundsLoading: boolean;
-  onDeleteRound: (roundId: string) => Promise<void>;
+  onDeleteRound: (roundId: string) => void;
   deletingRoundId: string | null;
 }
 
@@ -74,7 +74,6 @@ const RecentRounds = ({
           <div className="grid grid-cols-1 gap-6 max-w-3xl mx-auto">
             {rounds.map(round => {
               const isDeleting = deletingRoundId === round.id;
-              const anyDeleting = !!deletingRoundId;
               const formattedDate = format(new Date(round.date || round.created_at), 'MMM d, yyyy');
               const coursePar = round.golf_courses.par || calculateCoursePar(round.golf_courses.hole_pars);
               const scoreDiff = round.score - coursePar;
@@ -151,7 +150,7 @@ const RecentRounds = ({
                           variant="ghost" 
                           size="sm" 
                           className="mt-3 text-red-500 hover:bg-red-50 hover:text-red-600 transition-colors w-full cursor-pointer"
-                          disabled={anyDeleting} // Disable all delete buttons during any deletion
+                          disabled={!!deletingRoundId} // Disable all delete buttons during any deletion
                         >
                           {isDeleting ? (
                             <>
