@@ -1,8 +1,7 @@
-
 import { Outlet } from "react-router-dom";
 import { Navigation } from "./Navigation";
 import { useEffect, useState } from "react";
-import { Loader } from "lucide-react";
+import { GolfLoader } from "./ui/GolfLoader";
 
 export const Layout = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -26,7 +25,7 @@ export const Layout = () => {
         // Simulate refresh after animation
         setTimeout(() => {
           window.location.reload();
-        }, 800);
+        }, 1200);
       }
     };
 
@@ -108,9 +107,7 @@ export const Layout = () => {
     <div className="fixed inset-0 flex flex-col bg-muted">
       {isRefreshing && (
         <div className="absolute top-0 left-0 w-full flex justify-center py-4 z-50 bg-background/80 backdrop-blur-sm">
-          <div className="animate-spin">
-            <Loader className="h-6 w-6 text-primary" />
-          </div>
+          <GolfLoader />
         </div>
       )}
       <main className="flex-1 overflow-y-auto pb-20">

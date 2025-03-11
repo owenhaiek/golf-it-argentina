@@ -42,6 +42,7 @@ const Profile = () => {
   const {
     data: rounds,
     isLoading: roundsLoading,
+    refetch: refetchRounds
   } = useQuery({
     queryKey: ['rounds', user?.id],
     queryFn: async () => {
@@ -76,7 +77,8 @@ const Profile = () => {
       console.log("Rounds fetched successfully:", data?.length || 0);
       return data || [];
     },
-    enabled: !!user?.id
+    enabled: !!user?.id,
+    staleTime: 1000 // Short stale time to ensure frequent refetches
   });
 
   // Delete round mutation
@@ -117,15 +119,15 @@ const Profile = () => {
         description: "Round deleted successfully",
       });
       
-      // Invalidate and refetch to ensure data consistency
-      queryClient.invalidateQueries({
-        queryKey: ['rounds', user?.id]
-      });
-
-      // Also invalidate profile to update handicap if needed
-      queryClient.invalidateQueries({
-        queryKey: ['profile', user?.id]
-      });
+      // Force a refetch of the rounds data to ensure we have the latest data
+      setTimeout(() => {
+        refetchRounds();
+        
+        // Also invalidate profile to update handicap if needed
+        queryClient.invalidateQueries({
+          queryKey: ['profile', user?.id]
+        });
+      }, 300);
     },
     onError: (error, roundId, context) => {
       // Revert to the previous data on error
@@ -138,6 +140,9 @@ const Profile = () => {
         description: error.message || "Something went wrong",
         variant: "destructive"
       });
+      
+      // Force a refetch to ensure we're in sync with the server
+      refetchRounds();
     },
     onSettled: () => {
       setDeletingRoundId(null);
