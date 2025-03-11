@@ -40,7 +40,7 @@ export const GolfLoader = () => {
           }}
         />
         
-        {/* Ball Path */}
+        {/* Ball Path - Simplified */}
         <svg 
           className="absolute top-0 left-0 w-full h-full z-0" 
           viewBox="0 0 140 50" 
@@ -58,7 +58,7 @@ export const GolfLoader = () => {
           />
         </svg>
         
-        {/* Flag/Pin */}
+        {/* Flag/Pin - Minimalistic */}
         <motion.div
           className="absolute bottom-0 right-3 flex flex-col items-center"
           initial={{ height: 0, opacity: 0 }}

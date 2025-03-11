@@ -78,7 +78,9 @@ const Profile = () => {
       return data || [];
     },
     enabled: !!user?.id,
-    staleTime: 1000 // Short stale time to ensure frequent refetches
+    staleTime: 0, // No stale time to ensure fresh data on every fetch
+    refetchOnWindowFocus: true, // Refetch when window gains focus
+    refetchOnMount: true // Refetch when the component mounts
   });
 
   // Delete round mutation
@@ -103,7 +105,7 @@ const Profile = () => {
     onMutate: (roundId) => {
       setDeletingRoundId(roundId);
       
-      // Optimistic update - remove the round from the cache
+      // Optimistic update - remove the round from the cache immediately
       const previousRounds = queryClient.getQueryData(['rounds', user?.id]);
       
       queryClient.setQueryData(['rounds', user?.id], (old: any) => {
@@ -113,21 +115,19 @@ const Profile = () => {
       
       return { previousRounds };
     },
-    onSuccess: (roundId) => {
+    onSuccess: async (roundId) => {
       toast({
         title: "Success",
         description: "Round deleted successfully",
       });
       
-      // Force a refetch of the rounds data to ensure we have the latest data
-      setTimeout(() => {
-        refetchRounds();
-        
-        // Also invalidate profile to update handicap if needed
-        queryClient.invalidateQueries({
-          queryKey: ['profile', user?.id]
-        });
-      }, 300);
+      // Force a direct refetch of the rounds data to ensure we have the latest data
+      await refetchRounds();
+      
+      // Also invalidate profile to update handicap if needed
+      queryClient.invalidateQueries({
+        queryKey: ['profile', user?.id]
+      });
     },
     onError: (error, roundId, context) => {
       // Revert to the previous data on error

@@ -109,8 +109,10 @@ export const Layout = () => {
   return (
     <div className="fixed inset-0 flex flex-col bg-muted">
       {isRefreshing && (
-        <div className="absolute top-0 left-0 w-full flex justify-center py-4 z-50 bg-background/80 backdrop-blur-sm">
-          <GolfLoader />
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-background/70 backdrop-blur-sm">
+          <div className="p-6 rounded-xl shadow-lg bg-background/80">
+            <GolfLoader />
+          </div>
         </div>
       )}
       <main className="flex-1 overflow-y-auto pb-20 hide-scrollbar">
