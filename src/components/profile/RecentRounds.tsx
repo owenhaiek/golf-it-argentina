@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -91,7 +92,7 @@ const RecentRounds = ({
       
       toast({
         title: "Round deleted successfully",
-        description: "Your round has been removed from your history"
+        description: "Your round has been removed from your records"
       });
     },
     onError: (error, roundId) => {
