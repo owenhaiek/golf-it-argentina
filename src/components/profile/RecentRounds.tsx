@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -65,19 +64,21 @@ const RecentRounds = ({
       const { error } = await supabase
         .from('rounds')
         .delete()
-        .eq('id', roundId);
+        .eq('id', roundId)
+        .eq('user_id', userId); // Add user_id check for additional security
       
       if (error) throw error;
       return roundId;
     },
     onSuccess: (deletedRoundId) => {
-      // Update local rounds data to remove the deleted round
+      // Filter out the deleted round from the local cache
       if (rounds) {
         const updatedRounds = rounds.filter(round => round.id !== deletedRoundId);
+        // Update the cache directly to prevent UI flicker
         queryClient.setQueryData(['rounds', userId], updatedRounds);
       }
       
-      // Invalidate queries to ensure data consistency
+      // Force a refetch for both rounds and profile data to ensure consistent state
       queryClient.invalidateQueries({ queryKey: ['rounds', userId] });
       queryClient.invalidateQueries({ queryKey: ['profile', userId] });
       
@@ -166,7 +167,6 @@ const RecentRounds = ({
 
               return (
                 <div key={round.id} className="group relative rounded-xl overflow-hidden bg-white shadow-lg hover:shadow-xl transition-all duration-200 border border-muted/10 flex flex-col">
-                  {/* Image Section */}
                   <div className="relative">
                     {round.golf_courses.image_url ? (
                       <div className="w-full h-32 overflow-hidden">
@@ -183,7 +183,6 @@ const RecentRounds = ({
                     </div>
                   </div>
                   
-                  {/* Content Section */}
                   <div className="p-4 flex-grow flex flex-col">
                     <div>
                       <h3 className="font-semibold text-lg text-primary mb-1">{round.golf_courses.name}</h3>

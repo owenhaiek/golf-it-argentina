@@ -67,7 +67,9 @@ const Profile = () => {
       return data || [];
     },
     enabled: !!user?.id,
-    staleTime: 0 // Force a refetch each time
+    staleTime: 0, // Force a refetch each time
+    refetchOnMount: true, // Make sure data is refetched on each mount
+    refetchOnWindowFocus: true // Refetch when window regains focus
   });
 
   return (
