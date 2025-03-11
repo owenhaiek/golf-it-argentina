@@ -1,4 +1,3 @@
-
 import { Outlet } from "react-router-dom";
 import { Navigation } from "./Navigation";
 import { useEffect, useState } from "react";
@@ -110,7 +109,7 @@ export const Layout = () => {
     <div className="fixed inset-0 flex flex-col bg-muted">
       {isRefreshing && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-background/70 backdrop-blur-sm">
-          <div className="p-6 rounded-xl shadow-lg bg-background/80">
+          <div className="p-6 rounded-xl shadow-lg bg-background/80 border border-primary/10">
             <GolfLoader />
           </div>
         </div>
