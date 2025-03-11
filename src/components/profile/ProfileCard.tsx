@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -37,8 +38,7 @@ const ProfileCard = ({
   // Form state
   const [formData, setFormData] = useState({
     username: "",
-    fullName: "",
-    handicap: ""
+    fullName: ""
   });
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
@@ -48,8 +48,7 @@ const ProfileCard = ({
     if (profile) {
       setFormData({
         username: profile.username || "",
-        fullName: profile.full_name || "",
-        handicap: profile.handicap?.toString() || ""
+        fullName: profile.full_name || ""
       });
     }
   }, [profile]);
@@ -59,8 +58,7 @@ const ProfileCard = ({
     if (isEditing && profile) {
       setFormData({
         username: profile.username || "",
-        fullName: profile.full_name || "",
-        handicap: profile.handicap?.toString() || ""
+        fullName: profile.full_name || ""
       });
       setAvatarFile(null);
       setAvatarPreview(profile.avatar_url || null);
@@ -105,13 +103,12 @@ const ProfileCard = ({
         avatarUrl = publicUrl;
       }
 
-      // Step 2: Update profile data
+      // Step 2: Update profile data (removed handicap field since it's now automatic)
       const {
         error: updateError
       } = await supabase.from('profiles').update({
         username: formData.username.trim(),
         full_name: formData.fullName.trim(),
-        handicap: formData.handicap ? parseFloat(formData.handicap) : null,
         avatar_url: avatarUrl
       }).eq('id', user.id);
       if (updateError) {
@@ -272,13 +269,6 @@ const ProfileCard = ({
               </label>
               <Input id="username" name="username" placeholder="Username" value={formData.username} onChange={handleInputChange} className="border-primary/20 focus:border-primary" />
             </div>
-            
-            <div>
-              <label htmlFor="handicap" className="flex items-center gap-2 text-sm font-medium text-muted-foreground mb-1 text-left">
-                <User className="h-4 w-4" /> Handicap
-              </label>
-              <Input id="handicap" name="handicap" placeholder="Handicap (optional)" type="number" step="0.1" value={formData.handicap} onChange={handleInputChange} className="border-primary/20 focus:border-primary" />
-            </div>
           </form> : <div className="mt-4">
             <CardTitle className="text-2xl font-bold text-primary">
               {profile?.full_name || 'Anonymous'}
@@ -288,7 +278,7 @@ const ProfileCard = ({
               </p>}
             <div className="flex items-center justify-center mt-3">
               <span className="text-sm font-medium inline-flex items-center gap-1 bg-secondary/10 text-primary px-4 py-1.5 rounded-full">
-                {profile?.handicap !== null && profile?.handicap !== undefined ? `Handicap: ${profile.handicap}` : 'No handicap set'}
+                {profile?.handicap !== null && profile?.handicap !== undefined ? `Handicap: ${profile.handicap}` : 'No handicap yet'}
               </span>
             </div>
           </div>}

@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -55,6 +56,7 @@ const AddRound = () => {
           course_id: selectedCourse,
           score: totalScore,
           notes,
+          date: new Date().toISOString().split('T')[0] // Add today's date
         });
 
       if (error) throw error;

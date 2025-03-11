@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { Loader2, Trash2, Calendar, Trophy, MapPin, Flag, Plus, Minus, Check } from "lucide-react";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 interface Round {
   id: string;
@@ -88,6 +90,9 @@ const RecentRounds = ({
       
       // Invalidate and refetch
       queryClient.invalidateQueries({ queryKey: ['rounds', userId] });
+      
+      // Also invalidate profile data to update handicap
+      queryClient.invalidateQueries({ queryKey: ['profile', userId] });
     },
     onError: (error, _, context) => {
       // Revert back to the previous rounds on error
@@ -107,20 +112,10 @@ const RecentRounds = ({
     }
   });
 
-  // Handle round deletion with confirmation
+  // Handle round deletion
   const handleDeleteRound = (roundId: string) => {
-    // Set the deleting state immediately to prevent double-clicks
     setDeletingRoundId(roundId);
-    
-    // Show confirmation dialog
-    const confirmed = window.confirm('Are you sure you want to delete this round? This cannot be undone.');
-    
-    if (confirmed) {
-      deleteRoundMutation.mutate(roundId);
-    } else {
-      // Reset deleting state if user cancels
-      setDeletingRoundId(null);
-    }
+    deleteRoundMutation.mutate(roundId);
   };
 
   if (roundsLoading) {
@@ -221,22 +216,42 @@ const RecentRounds = ({
                       </div>
                     </div>
                     
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="mt-3 text-red-500 hover:bg-red-50 hover:text-red-600 transition-colors w-full cursor-pointer" 
-                      onClick={() => handleDeleteRound(round.id)} 
-                      disabled={isDeleting}
-                    >
-                      {isDeleting ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <>
-                          <Trash2 className="h-4 w-4 mr-1" />
-                          Delete Round
-                        </>
-                      )}
-                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="mt-3 text-red-500 hover:bg-red-50 hover:text-red-600 transition-colors w-full cursor-pointer" 
+                          disabled={isDeleting}
+                        >
+                          {isDeleting ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <>
+                              <Trash2 className="h-4 w-4 mr-1" />
+                              Delete Round
+                            </>
+                          )}
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete your round and may affect your handicap calculation.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction 
+                            onClick={() => handleDeleteRound(round.id)}
+                            className="bg-red-500 hover:bg-red-600"
+                          >
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </div>
               );
