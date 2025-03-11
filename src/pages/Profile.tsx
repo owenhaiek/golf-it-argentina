@@ -6,10 +6,12 @@ import ProfileCard from "@/components/profile/ProfileCard";
 import RecentRounds from "@/components/profile/RecentRounds";
 import { User } from "lucide-react";
 import { useState } from "react";
+import { useToast } from "@/components/ui/use-toast";
 
 const Profile = () => {
   // Core state and hooks
   const { user } = useAuth();
+  const { toast } = useToast();
   const [deletingRoundId, setDeletingRoundId] = useState<string | null>(null);
 
   // Profile Query - Fetch user profile data
@@ -74,12 +76,7 @@ const Profile = () => {
       console.log("Rounds fetched successfully:", data?.length || 0);
       return data || [];
     },
-    enabled: !!user?.id,
-    staleTime: Infinity, // Never consider the data stale automatically
-    gcTime: Infinity, // Keep the data in cache indefinitely
-    refetchOnMount: false, // Don't refetch when component mounts
-    refetchOnWindowFocus: false, // Don't refetch when window regains focus
-    refetchOnReconnect: false // Don't refetch when reconnecting
+    enabled: !!user?.id
   });
 
   // Handle round deletion
@@ -98,16 +95,22 @@ const Profile = () => {
       
       if (error) {
         console.error("Error deleting round:", error);
+        toast({
+          title: "Error deleting round",
+          description: error.message,
+          variant: "destructive"
+        });
         throw error;
       }
       
       console.log(`Successfully deleted round: ${roundId}`);
+      toast({
+        title: "Success",
+        description: "Round deleted successfully",
+      });
       
-      // Manually update the local cache to remove the deleted round
-      if (rounds) {
-        const updatedRounds = rounds.filter(round => round.id !== roundId);
-        refetchRounds();
-      }
+      // Explicitly refresh the rounds data after successful deletion
+      await refetchRounds();
     } catch (error) {
       console.error("Failed to delete round:", error);
     } finally {

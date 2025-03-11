@@ -1,7 +1,6 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/components/ui/use-toast";
 import { Loader2, Trash2, Calendar, Trophy, MapPin, Flag, Plus, Minus, Check } from "lucide-react";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
@@ -25,7 +24,7 @@ interface Round {
 }
 
 interface RecentRoundsProps {
-  userId: string;
+  userId?: string;
   rounds: Round[] | null;
   roundsLoading: boolean;
   onDeleteRound: (roundId: string) => Promise<void>;
@@ -39,7 +38,6 @@ const RecentRounds = ({
   onDeleteRound,
   deletingRoundId
 }: RecentRoundsProps) => {
-  const { toast } = useToast();
   const navigate = useNavigate();
 
   // Calculate total par for a course
@@ -48,26 +46,9 @@ const RecentRounds = ({
     return holePars.reduce((sum, par) => sum + par, 0);
   };
 
-  // Handle round deletion with confirmation already handled by the AlertDialog
-  const handleDeleteRound = async (roundId: string) => {
-    try {
-      await onDeleteRound(roundId);
-      toast({
-        title: "Round deleted successfully",
-        description: "Your round has been removed from your records"
-      });
-    } catch (error) {
-      console.error("Error in handleDeleteRound:", error);
-      toast({
-        title: "Failed to delete round",
-        description: error instanceof Error ? error.message : "An unknown error occurred",
-        variant: "destructive"
-      });
-    }
-  };
-
   if (roundsLoading) {
-    return <Card className="border-0 shadow-md h-full">
+    return (
+      <Card className="border-0 shadow-md h-full">
         <CardHeader>
           <CardTitle className="text-lg font-semibold text-primary">Your Recent Rounds</CardTitle>
         </CardHeader>
@@ -76,7 +57,8 @@ const RecentRounds = ({
             {[1, 2, 3].map(i => <div key={i} className="h-24 bg-secondary/10 rounded-lg animate-pulse" />)}
           </div>
         </CardContent>
-      </Card>;
+      </Card>
+    );
   }
 
   return (
@@ -91,7 +73,8 @@ const RecentRounds = ({
         {rounds && rounds.length > 0 ? (
           <div className="grid grid-cols-1 gap-6 max-w-3xl mx-auto">
             {rounds.map(round => {
-              const isRoundDeleting = deletingRoundId === round.id;
+              const isDeleting = deletingRoundId === round.id;
+              const anyDeleting = !!deletingRoundId;
               const formattedDate = format(new Date(round.date || round.created_at), 'MMM d, yyyy');
               const coursePar = round.golf_courses.par || calculateCoursePar(round.golf_courses.hole_pars);
               const scoreDiff = round.score - coursePar;
@@ -168,9 +151,9 @@ const RecentRounds = ({
                           variant="ghost" 
                           size="sm" 
                           className="mt-3 text-red-500 hover:bg-red-50 hover:text-red-600 transition-colors w-full cursor-pointer"
-                          disabled={!!deletingRoundId} // Disable all delete buttons when any round is being deleted
+                          disabled={anyDeleting} // Disable all delete buttons during any deletion
                         >
-                          {isRoundDeleting ? (
+                          {isDeleting ? (
                             <>
                               <Loader2 className="h-4 w-4 mr-1 animate-spin" />
                               Deleting...
@@ -193,7 +176,7 @@ const RecentRounds = ({
                         <AlertDialogFooter>
                           <AlertDialogCancel>Cancel</AlertDialogCancel>
                           <AlertDialogAction 
-                            onClick={() => handleDeleteRound(round.id)}
+                            onClick={() => onDeleteRound(round.id)}
                             className="bg-red-500 hover:bg-red-600"
                           >
                             Delete Round
