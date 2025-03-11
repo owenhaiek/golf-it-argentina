@@ -4,7 +4,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import ProfileCard from "@/components/profile/ProfileCard";
 import RecentRounds from "@/components/profile/RecentRounds";
-import { User } from "lucide-react";
+import { User, Loader } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -150,11 +150,18 @@ const Profile = () => {
     deleteRoundMutation.mutate(roundId);
   };
 
+  const isLoading = profileLoading || roundsLoading;
+
   return (
     <div className="max-w-7xl mx-auto animate-fadeIn">
       <div className="flex items-center mb-6 gap-2 px-4">
         <User className="text-primary h-6 w-6" />
         <h1 className="text-2xl font-bold text-primary">Your Profile</h1>
+        {isLoading && (
+          <div className="ml-auto">
+            <Loader className="h-5 w-5 text-primary animate-spin" />
+          </div>
+        )}
       </div>
       
       <div className="flex flex-col gap-6 pb-6 px-0">
