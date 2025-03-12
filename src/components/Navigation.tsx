@@ -38,7 +38,7 @@ const NavItem = ({
       to={to}
       className={({ isActive }) =>
         cn(
-          "flex flex-col items-center justify-center gap-1.5 py-4 px-4 transition-all duration-200",
+          "flex flex-col items-center justify-center gap-1 py-3 px-4 transition-all duration-200",
           isActive 
             ? "text-primary" 
             : "text-muted-foreground hover:text-primary/80",
