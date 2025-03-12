@@ -5,9 +5,11 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { Card, CardContent } from "@/components/ui/card";
 import { MapPin, Phone, Globe, Flag, Clock } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Course = () => {
   const { id } = useParams();
+  const { t } = useLanguage();
   const [currentTime, setCurrentTime] = useState<Date>(new Date());
 
   // Update current time every minute
@@ -62,7 +64,7 @@ const Course = () => {
   };
 
   const formatOpeningHours = (openHours: string | null): React.ReactNode => {
-    if (!openHours) return <span className="text-muted-foreground">Hours not available</span>;
+    if (!openHours) return <span className="text-muted-foreground">{t("course", "hoursNotAvailable")}</span>;
     
     try {
       const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -79,7 +81,7 @@ const Course = () => {
               return (
                 <div key={day} className={`flex justify-between text-xs ${isToday ? 'font-semibold' : ''}`}>
                   <span>{day}{isToday ? ' (Today)' : ''}</span>
-                  <span className="text-muted-foreground">Hours not available</span>
+                  <span className="text-muted-foreground">{t("course", "hoursNotAvailable")}</span>
                 </div>
               );
             }
@@ -88,7 +90,7 @@ const Course = () => {
               return (
                 <div key={day} className={`flex justify-between text-xs ${isToday ? 'font-semibold' : ''}`}>
                   <span>{day}{isToday ? ' (Today)' : ''}</span>
-                  <span className="text-muted-foreground">Closed</span>
+                  <span className="text-muted-foreground">{t("course", "closed")}</span>
                 </div>
               );
             }
@@ -104,7 +106,7 @@ const Course = () => {
       );
     } catch (error) {
       console.error("Error formatting opening hours:", error);
-      return <span className="text-muted-foreground">Hours not available</span>;
+      return <span className="text-muted-foreground">{t("course", "hoursNotAvailable")}</span>;
     }
   };
 
@@ -147,7 +149,7 @@ const Course = () => {
         <CardContent className="p-4 space-y-6">
           {course.description && (
             <div className="space-y-1">
-              <h3 className="font-semibold text-base">About</h3>
+              <h3 className="font-semibold text-base">{t("course", "about")}</h3>
               <p className="text-sm text-muted-foreground">{course.description}</p>
             </div>
           )}
@@ -156,9 +158,9 @@ const Course = () => {
             <li className="flex items-start gap-3">
               <Flag className="text-primary mt-1" size={18} />
               <div>
-                <h3 className="font-semibold text-sm">Course Details</h3>
+                <h3 className="font-semibold text-sm">{t("course", "courseDetails")}</h3>
                 <p className="text-xs text-muted-foreground">
-                  {course.holes} holes {course.par && `• Par ${course.par}`}
+                  {course.holes} {t("course", "holes")} {course.par && `• ${t("course", "par")} ${course.par}`}
                 </p>
               </div>
             </li>
@@ -167,9 +169,9 @@ const Course = () => {
               <Clock className={`mt-1 ${isOpen ? 'text-green-600' : 'text-amber-600'}`} size={18} />
               <div>
                 <h3 className="font-semibold text-sm flex items-center gap-1">
-                  Hours
+                  {t("course", "hours")}
                   <span className={`text-xs px-2 py-0.5 rounded-full ${isOpen ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
-                    {isOpen ? 'Open Now' : 'Closed'}
+                    {isOpen ? t("course", "open") : t("course", "closed")}
                   </span>
                 </h3>
                 {formatOpeningHours(course.opening_hours)}
@@ -180,7 +182,7 @@ const Course = () => {
               <li className="flex items-start gap-3">
                 <MapPin className="text-primary mt-1" size={18} />
                 <div>
-                  <h3 className="font-semibold text-sm">Location</h3>
+                  <h3 className="font-semibold text-sm">{t("course", "location")}</h3>
                   <p className="text-xs text-muted-foreground">
                     {[course.address, course.city, course.state].filter(Boolean).join(', ')}
                   </p>
@@ -192,7 +194,7 @@ const Course = () => {
               <li className="flex items-start gap-3">
                 <Phone className="text-primary mt-1" size={18} />
                 <div>
-                  <h3 className="font-semibold text-sm">Contact</h3>
+                  <h3 className="font-semibold text-sm">{t("course", "contact")}</h3>
                   <p className="text-xs text-muted-foreground">{course.phone}</p>
                 </div>
               </li>
@@ -202,14 +204,14 @@ const Course = () => {
               <li className="flex items-start gap-3">
                 <Globe className="text-primary mt-1" size={18} />
                 <div>
-                  <h3 className="font-semibold text-sm">Website</h3>
+                  <h3 className="font-semibold text-sm">{t("course", "website")}</h3>
                   <a 
                     href={course.website} 
                     target="_blank" 
                     rel="noopener noreferrer" 
                     className="text-xs text-primary hover:underline"
                   >
-                    Visit website
+                    {t("course", "visitWebsite")}
                   </a>
                 </div>
               </li>

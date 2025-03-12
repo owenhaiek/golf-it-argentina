@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
@@ -157,7 +156,7 @@ const Profile = () => {
       
       <div className="flex flex-col gap-6 pb-6 px-0">
         <div className="w-full">
-          <ProfileCard user={user} profile={profile} profileLoading={profileLoading} t={t} />
+          <ProfileCard user={user} profile={profile} profileLoading={profileLoading} />
         </div>
         
         <div className="w-full">
@@ -167,7 +166,6 @@ const Profile = () => {
             roundsLoading={roundsLoading} 
             onDeleteRound={handleDeleteRound}
             deletingRoundId={deletingRoundId}
-            t={t}
           />
         </div>
       </div>

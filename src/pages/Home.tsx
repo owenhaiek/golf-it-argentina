@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import FilterPanel from "@/components/FilterPanel";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 type FilterOptions = {
   holes: string;
@@ -15,6 +16,7 @@ type FilterOptions = {
 };
 
 const Home = () => {
+  const { t } = useLanguage();
   const [search, setSearch] = useState("");
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
@@ -118,7 +120,7 @@ const Home = () => {
 
   return <div className="space-y-4 -mt-6 -mx-4">
       <div className="flex items-center justify-between px-4 pt-6">
-        <h1 className="text-2xl font-bold">Golf Courses</h1>
+        <h1 className="text-2xl font-bold">{t("home", "golfCourses")}</h1>
         <div className="flex gap-2">
           <button onClick={() => setIsSearchVisible(!isSearchVisible)} className="p-2 hover:bg-secondary/20 rounded-full transition-colors">
             <Search size={20} />
@@ -127,21 +129,21 @@ const Home = () => {
       </div>
 
       {isSearchVisible && <div className="animate-in slide-in-from-top duration-300 px-4">
-          <Input type="text" placeholder="Search courses..." value={search} onChange={e => setSearch(e.target.value)} className="w-full" />
+          <Input type="text" placeholder={t("common", "search")} value={search} onChange={e => setSearch(e.target.value)} className="w-full" />
         </div>}
 
       {hasActiveFilters && <div className="px-4">
           <div className="flex justify-between items-center">
             <div className="flex flex-wrap gap-2">
               {filters.holes && <div className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">
-                  {filters.holes} Holes
+                  {filters.holes} {t("profile", "holes")}
                 </div>}
               {filters.location && <div className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">
-                  Location: {filters.location}
+                  {t("course", "location")}: {filters.location}
                 </div>}
               {filters.isOpen && <div className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm flex items-center gap-1">
                   <Clock size={14} />
-                  Currently Open
+                  {t("home", "openNow")}
                 </div>}
             </div>
             <Button variant="ghost" size="icon" onClick={handleResetFilters} className="rounded-full">
@@ -167,7 +169,7 @@ const Home = () => {
                 <CardContent className="p-0">
                   <div>
                     {course.image_url ? <img src={course.image_url} alt={course.name} className="w-full h-48 object-cover" /> : <div className="w-full h-48 bg-secondary/20 flex items-center justify-center text-muted-foreground">
-                        No image available
+                        {t("home", "noImageAvailable")}
                       </div>}
                     <div className="p-4 space-y-2">
                       <h2 className="text-xl font-semibold">{course.name}</h2>
@@ -182,18 +184,18 @@ const Home = () => {
                         
                         <div className="flex items-center gap-2 text-primary">
                           <Flag size={16} />
-                          <span>{course.holes} holes</span>
-                          {course.par && <span>• Par {course.par}</span>}
+                          <span>{course.holes} {t("profile", "holes")}</span>
+                          {course.par && <span>• {t("course", "par")} {course.par}</span>}
                         </div>
                         
                         <div className="flex items-center gap-2">
                           <Clock size={16} className={isGolfCourseOpen(course.opening_hours) ? "text-green-600" : "text-amber-600"} />
                           <div>
                             <span className={isGolfCourseOpen(course.opening_hours) ? "text-green-600 font-medium" : "text-amber-600"}>
-                              {isGolfCourseOpen(course.opening_hours) ? "Open now" : "Closed"}
+                              {isGolfCourseOpen(course.opening_hours) ? t("home", "openNow") : t("home", "closed")}
                             </span>
                             <span className="text-muted-foreground ml-1">
-                              • Today: {formatOpeningHours(course.opening_hours)}
+                              • {t("home", "today")} {formatOpeningHours(course.opening_hours)}
                             </span>
                           </div>
                         </div>
@@ -205,9 +207,9 @@ const Home = () => {
             </Link>)}
 
         {courses?.length === 0 && !isLoading && <div className="text-center py-8 text-muted-foreground">
-            <p>No courses found matching your criteria</p>
+            <p>{t("home", "noCoursesFound")}</p>
             <Button variant="outline" className="mt-2" onClick={handleResetFilters}>
-              Reset filters
+              {t("home", "resetFilters")}
             </Button>
           </div>}
       </div>

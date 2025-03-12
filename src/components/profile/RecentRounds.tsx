@@ -6,6 +6,7 @@ import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { motion, AnimatePresence } from "framer-motion";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Round {
   id: string;
@@ -40,6 +41,7 @@ const RecentRounds = ({
   deletingRoundId
 }: RecentRoundsProps) => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   // Calculate total par for a course
   const calculateCoursePar = (holePars: number[] | undefined): number => {
@@ -51,7 +53,7 @@ const RecentRounds = ({
     return (
       <Card className="border-0 shadow-md h-full">
         <CardHeader>
-          <CardTitle className="text-lg font-semibold text-primary">Your Recent Rounds</CardTitle>
+          <CardTitle className="text-lg font-semibold text-primary">{t("profile", "yourRecentRounds")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -67,7 +69,7 @@ const RecentRounds = ({
       <CardHeader className="border-b border-muted/20 pb-4">
         <CardTitle className="text-xl font-semibold text-primary flex items-center gap-2">
           <Trophy className="h-5 w-5 text-accent" />
-          Your Recent Rounds
+          {t("profile", "yourRecentRounds")}
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-4 py-[6px]">
@@ -85,15 +87,15 @@ const RecentRounds = ({
                 let ScoreIcon;
                 
                 if (scoreDiff < 0) {
-                  scoreStatus = `${Math.abs(scoreDiff)} under par`;
+                  scoreStatus = `${Math.abs(scoreDiff)} ${t("profile", "underPar")}`;
                   scoreColor = "text-green-600";
                   ScoreIcon = Minus;
                 } else if (scoreDiff > 0) {
-                  scoreStatus = `${scoreDiff} over par`;
+                  scoreStatus = `${scoreDiff} ${t("profile", "overPar")}`;
                   scoreColor = "text-red-600";
                   ScoreIcon = Plus;
                 } else {
-                  scoreStatus = "at par";
+                  scoreStatus = t("profile", "atPar");
                   scoreColor = "text-blue-600";
                   ScoreIcon = Check;
                 }
@@ -138,11 +140,11 @@ const RecentRounds = ({
                       <div className="mt-auto pt-3 flex justify-between items-center">
                         <div className="flex items-center gap-2">
                           <Flag className="h-4 w-4 text-primary" />
-                          <span className="text-sm font-medium">{round.golf_courses.holes} holes</span>
+                          <span className="text-sm font-medium">{round.golf_courses.holes} {t("profile", "holes")}</span>
                         </div>
                         
                         <div className="flex flex-col items-end">
-                          <div className="text-sm text-muted-foreground mb-1">Total Score</div>
+                          <div className="text-sm text-muted-foreground mb-1">{t("profile", "totalScore")}</div>
                           <div className="text-2xl font-bold text-primary">
                             {round.score}
                           </div>
@@ -165,30 +167,30 @@ const RecentRounds = ({
                             {isDeleting ? (
                               <>
                                 <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                                Deleting...
+                                {t("profile", "deleting")}
                               </>
                             ) : (
                               <>
                                 <Trash2 className="h-4 w-4 mr-1" />
-                                Delete Round
+                                {t("profile", "deleteRound")}
                               </>
                             )}
                           </Button>
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>
-                            <AlertDialogTitle>Delete Round</AlertDialogTitle>
+                            <AlertDialogTitle>{t("profile", "deleteRound")}</AlertDialogTitle>
                             <AlertDialogDescription>
-                              Are you sure you want to delete this round? This action cannot be undone and will affect your handicap calculation.
+                              {t("profile", "deleteRoundConfirm")}
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogCancel>{t("common", "cancel")}</AlertDialogCancel>
                             <AlertDialogAction 
                               onClick={() => onDeleteRound && onDeleteRound(round.id)}
                               className="bg-red-500 hover:bg-red-600"
                             >
-                              Delete Round
+                              {t("profile", "deleteRound")}
                             </AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
@@ -202,9 +204,9 @@ const RecentRounds = ({
         ) : (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <Trophy className="h-12 w-12 text-muted-foreground/50 mb-4" />
-            <p className="text-muted-foreground">No rounds recorded yet</p>
+            <p className="text-muted-foreground">{t("profile", "noRoundsRecorded")}</p>
             <Button className="mt-4" variant="outline" onClick={() => navigate('/add-round')}>
-              Add Your First Round
+              {t("profile", "addFirstRound")}
             </Button>
           </div>
         )}

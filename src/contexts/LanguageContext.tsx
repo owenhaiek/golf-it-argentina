@@ -2,9 +2,13 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 
 // Translation types
+interface TranslationEntry {
+  [language: string]: string;
+}
+
 interface Translations {
   [key: string]: {
-    [key: string]: string;
+    [key: string]: TranslationEntry;
   };
 }
 
@@ -82,6 +86,38 @@ const translations: Translations = {
     nearbyCoursesTitle: {
       en: "Nearby Golf Courses",
       es: "Campos de Golf Cercanos"
+    },
+    golfCourses: {
+      en: "Golf Courses",
+      es: "Campos de Golf"
+    },
+    noCoursesFound: {
+      en: "No courses found matching your criteria",
+      es: "No se encontraron campos que coincidan con tus criterios"
+    },
+    resetFilters: {
+      en: "Reset filters",
+      es: "Restablecer filtros"
+    },
+    noImageAvailable: {
+      en: "No image available",
+      es: "Imagen no disponible"
+    },
+    openNow: {
+      en: "Open now",
+      es: "Abierto ahora"
+    },
+    closed: {
+      en: "Closed",
+      es: "Cerrado"
+    },
+    today: {
+      en: "Today:",
+      es: "Hoy:"
+    },
+    hoursNotAvailable: {
+      en: "Hours not available",
+      es: "Horario no disponible"
     }
   },
   // Add Round page
@@ -157,6 +193,10 @@ const translations: Translations = {
       en: "Recent Rounds",
       es: "Rondas Recientes"
     },
+    yourRecentRounds: {
+      en: "Your Recent Rounds",
+      es: "Tus Rondas Recientes" 
+    },
     noRounds: {
       en: "No rounds played yet",
       es: "Aún no has jugado rondas"
@@ -172,6 +212,94 @@ const translations: Translations = {
     deleteRoundError: {
       en: "Error deleting round",
       es: "Error al eliminar ronda"
+    },
+    noRoundsRecorded: {
+      en: "No rounds recorded yet",
+      es: "Aún no hay rondas registradas"
+    },
+    addFirstRound: {
+      en: "Add Your First Round",
+      es: "Añade Tu Primera Ronda"
+    },
+    fullName: {
+      en: "Full Name",
+      es: "Nombre Completo"
+    },
+    username: {
+      en: "Username",
+      es: "Nombre de Usuario"
+    },
+    noHandicapYet: {
+      en: "No handicap yet",
+      es: "Aún sin hándicap"
+    },
+    anonymous: {
+      en: "Anonymous",
+      es: "Anónimo"
+    },
+    saveChanges: {
+      en: "Save Changes",
+      es: "Guardar Cambios"
+    },
+    saving: {
+      en: "Saving...",
+      es: "Guardando..."
+    },
+    logout: {
+      en: "Logout",
+      es: "Cerrar Sesión"
+    },
+    totalScore: {
+      en: "Total Score",
+      es: "Puntuación Total"
+    },
+    holes: {
+      en: "holes",
+      es: "hoyos"
+    },
+    underPar: {
+      en: "under par",
+      es: "bajo par"
+    },
+    overPar: {
+      en: "over par",
+      es: "sobre par"
+    },
+    atPar: {
+      en: "at par",
+      es: "en par"
+    },
+    deleteRound: {
+      en: "Delete Round",
+      es: "Eliminar Ronda"
+    },
+    deleteRoundConfirm: {
+      en: "Are you sure you want to delete this round? This action cannot be undone and will affect your handicap calculation.",
+      es: "¿Estás seguro de que quieres eliminar esta ronda? Esta acción no se puede deshacer y afectará al cálculo de tu hándicap."
+    },
+    deleting: {
+      en: "Deleting...",
+      es: "Eliminando..."
+    },
+    profileUpdateSuccess: {
+      en: "Profile updated successfully",
+      es: "Perfil actualizado con éxito"
+    },
+    profileUpdateError: {
+      en: "Failed to update profile",
+      es: "Error al actualizar el perfil"
+    },
+    logoutError: {
+      en: "Error logging out",
+      es: "Error al cerrar sesión"
+    },
+    logoutSuccess: {
+      en: "Logged out successfully",
+      es: "Sesión cerrada con éxito"
+    },
+    logoutConfirm: {
+      en: "Are you sure you want to log out? You will need to sign in again to access your account.",
+      es: "¿Estás seguro de que quieres cerrar sesión? Tendrás que volver a iniciar sesión para acceder a tu cuenta."
     }
   },
   // Auth page
@@ -225,7 +353,57 @@ const translations: Translations = {
       es: "Te hemos enviado un enlace de confirmación para completar tu registro."
     }
   },
-  // Settings translations are already in the Settings.tsx file
+  // Course Details page
+  course: {
+    about: {
+      en: "About",
+      es: "Acerca de"
+    },
+    courseDetails: {
+      en: "Course Details",
+      es: "Detalles del Campo"
+    },
+    hours: {
+      en: "Hours",
+      es: "Horario"
+    },
+    open: {
+      en: "Open Now",
+      es: "Abierto Ahora"
+    },
+    closed: {
+      en: "Closed",
+      es: "Cerrado"
+    },
+    location: {
+      en: "Location",
+      es: "Ubicación"
+    },
+    contact: {
+      en: "Contact",
+      es: "Contacto"
+    },
+    website: {
+      en: "Website",
+      es: "Sitio Web"
+    },
+    visitWebsite: {
+      en: "Visit website",
+      es: "Visitar sitio web"
+    },
+    holes: {
+      en: "holes",
+      es: "hoyos"
+    },
+    par: {
+      en: "Par",
+      es: "Par"
+    },
+    hoursNotAvailable: {
+      en: "Hours not available",
+      es: "Horario no disponible"
+    }
+  }
 };
 
 // Language context type

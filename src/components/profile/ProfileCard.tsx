@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -9,6 +10,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { Loader2, LogOut, Edit3, Check, X, Camera, User, Hash } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ProfileData {
   username?: string;
@@ -28,9 +30,8 @@ const ProfileCard = ({
   profileLoading
 }: ProfileCardProps) => {
   const navigate = useNavigate();
-  const {
-    toast
-  } = useToast();
+  const { toast } = useToast();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -114,13 +115,13 @@ const ProfileCard = ({
       });
       setIsEditing(false);
       toast({
-        title: "Profile updated successfully"
+        title: t("profile", "profileUpdateSuccess")
       });
     },
     onError: error => {
       console.error('Profile update error:', error);
       toast({
-        title: "Failed to update profile",
+        title: t("profile", "profileUpdateError"),
         description: error instanceof Error ? error.message : "An unknown error occurred",
         variant: "destructive"
       });
@@ -170,20 +171,20 @@ const ProfileCard = ({
       const { error } = await supabase.auth.signOut();
       if (error) {
         toast({
-          title: "Error logging out",
+          title: t("profile", "logoutError"),
           description: error.message,
           variant: "destructive"
         });
       } else {
         toast({
-          title: "Logged out successfully"
+          title: t("profile", "logoutSuccess")
         });
         navigate('/auth');
       }
     } catch (error) {
       console.error("Error during logout:", error);
       toast({
-        title: "Error logging out",
+        title: t("profile", "logoutError"),
         variant: "destructive"
       });
     }
@@ -230,27 +231,27 @@ const ProfileCard = ({
         {isEditing ? <form id="profile-form" onSubmit={handleSubmit} className="space-y-4 mt-6 px-4">
             <div>
               <label htmlFor="fullName" className="flex items-center gap-2 text-sm font-medium text-muted-foreground mb-1 text-left">
-                <User className="h-4 w-4" /> Full Name
+                <User className="h-4 w-4" /> {t("profile", "fullName")}
               </label>
-              <Input id="fullName" name="fullName" placeholder="Full Name" value={formData.fullName} onChange={handleInputChange} className="border-primary/20 focus:border-primary" />
+              <Input id="fullName" name="fullName" placeholder={t("profile", "fullName")} value={formData.fullName} onChange={handleInputChange} className="border-primary/20 focus:border-primary" />
             </div>
             
             <div>
               <label htmlFor="username" className="flex items-center gap-2 text-sm font-medium text-muted-foreground mb-1 text-left">
-                <Hash className="h-4 w-4" /> Username
+                <Hash className="h-4 w-4" /> {t("profile", "username")}
               </label>
-              <Input id="username" name="username" placeholder="Username" value={formData.username} onChange={handleInputChange} className="border-primary/20 focus:border-primary" />
+              <Input id="username" name="username" placeholder={t("profile", "username")} value={formData.username} onChange={handleInputChange} className="border-primary/20 focus:border-primary" />
             </div>
           </form> : <div className="mt-4">
             <CardTitle className="text-2xl font-bold text-primary">
-              {profile?.full_name || 'Anonymous'}
+              {profile?.full_name || t("profile", "anonymous")}
             </CardTitle>
             {profile?.username && <p className="text-sm text-muted-foreground mb-2">
                 @{profile.username}
               </p>}
             <div className="flex items-center justify-center mt-3">
               <span className="text-sm font-medium inline-flex items-center gap-1 bg-secondary/10 text-primary px-4 py-1.5 rounded-full">
-                {profile?.handicap !== null && profile?.handicap !== undefined ? `Handicap: ${profile.handicap}` : 'No handicap yet'}
+                {profile?.handicap !== null && profile?.handicap !== undefined ? `${t("profile", "handicap")}: ${profile.handicap}` : t("profile", "noHandicapYet")}
               </span>
             </div>
           </div>}
@@ -261,35 +262,35 @@ const ProfileCard = ({
             <Button type="submit" form="profile-form" disabled={updateProfileMutation.isPending} className="px-[16px]">
               {updateProfileMutation.isPending ? <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Saving...
+                  {t("profile", "saving")}
                 </> : <>
                   <Check className="mr-2 h-4 w-4" />
-                  Save Changes
+                  {t("profile", "saveChanges")}
                 </>}
             </Button>
             <Button type="button" variant="outline" onClick={handleCancelEdit} disabled={updateProfileMutation.isPending} className="px-6">
               <X className="mr-2 h-4 w-4" />
-              Cancel
+              {t("common", "cancel")}
             </Button>
           </div> : <div className="mt-6">
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="outline" className="text-red-500 hover:bg-red-50 hover:text-red-600 transition-colors border border-red-200">
                   <LogOut className="w-4 h-4 mr-2" />
-                  Logout
+                  {t("profile", "logout")}
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Log Out</AlertDialogTitle>
+                  <AlertDialogTitle>{t("profile", "logout")}</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Are you sure you want to log out? You will need to sign in again to access your account.
+                    {t("profile", "logoutConfirm")}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogCancel>{t("common", "cancel")}</AlertDialogCancel>
                   <AlertDialogAction onClick={handleLogout}>
-                    Log Out
+                    {t("profile", "logout")}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
