@@ -16,6 +16,13 @@ export const Layout = () => {
     const hideBrowserBar = () => {
       // Hide URL bar in mobile browsers
       if (typeof window !== 'undefined') {
+        // Force fullscreen mode
+        if (document.documentElement.requestFullscreen && !document.fullscreenElement) {
+          document.documentElement.requestFullscreen().catch(err => {
+            console.log('Error attempting to enable fullscreen:', err);
+          });
+        }
+        
         // Force screen redraw to hide browser UI
         window.scrollTo(0, 1);
         

@@ -49,11 +49,22 @@
         setTimeout(setVh, 100);
       });
       
-      // Hide URL bar
+      // Hide URL bar and enable fullscreen
       function hideUrlBar() {
         if (document.documentElement.scrollTop === 0) {
           window.scrollTo(0, 1);
         }
+        
+        // Try to go fullscreen on interaction
+        document.addEventListener('touchstart', function enableFullScreen() {
+          if (document.documentElement.requestFullscreen && !document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(e => {
+              // Silently fail if we can't enter fullscreen
+            });
+          }
+          // Remove the listener after first touch
+          document.removeEventListener('touchstart', enableFullScreen);
+        }, { once: true });
       }
       
       window.addEventListener('load', hideUrlBar);
@@ -61,6 +72,15 @@
       window.addEventListener('orientationchange', () => {
         setTimeout(hideUrlBar, 200);
       });
+      
+      // Add fullscreen attempt on user interaction
+      document.addEventListener('click', () => {
+        if (document.documentElement.requestFullscreen && !document.fullscreenElement) {
+          document.documentElement.requestFullscreen().catch(e => {
+            // Silently fail
+          });
+        }
+      }, { once: true });
     </script>
   </body>
 </html>
