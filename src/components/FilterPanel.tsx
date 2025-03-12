@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -50,7 +49,7 @@ const FilterPanel = ({
   };
 
   return (
-    <div className={`fixed inset-x-0 bottom-0 z-[150] transform transition-transform duration-300 ease-in-out ${isOpen ? "translate-y-0" : "translate-y-full"}`}>
+    <div className={`fixed inset-x-0 bottom-0 z-[200] transform transition-transform duration-300 ease-in-out ${isOpen ? "translate-y-0" : "translate-y-full"}`}>
       <div>
         <Card className="rounded-t-xl border-b-0 shadow-lg bg-white py-[15px] px-[30px]">
           <div className="flex items-center justify-between mb-4">

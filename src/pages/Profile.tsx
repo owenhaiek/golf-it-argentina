@@ -73,7 +73,7 @@ const Profile = () => {
     },
     enabled: !!user?.id,
     staleTime: 0,
-    cacheTime: 0 // Disable caching to ensure fresh data
+    refetchOnWindowFocus: true
   });
 
   // Delete round mutation with improved error handling and optimistic updates
