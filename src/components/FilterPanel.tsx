@@ -46,7 +46,7 @@ const FilterPanel = ({
 
   return (
     <div
-      className={`fixed inset-x-0 bottom-0 z-50 transform transition-transform duration-300 ease-in-out ${
+      className={`fixed inset-x-0 bottom-0 z-[100] transform transition-transform duration-300 ease-in-out ${
         isOpen ? "translate-y-0" : "translate-y-full"
       }`}
     >

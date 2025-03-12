@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 
 export const Navigation = () => {
   return (
-    <div className="fixed bottom-0 left-0 right-0 px-6 py-6 flex justify-center pointer-events-none">
+    <div className="fixed bottom-0 left-0 right-0 px-6 py-6 flex justify-center pointer-events-none z-50">
       <nav className="bg-primary rounded-[30px] shadow-lg pointer-events-auto w-full max-w-xl">
         <ul className="flex items-center justify-between h-14 px-4">
           <NavItem to="/" icon={<Flag size={20} />} label="Home" />
