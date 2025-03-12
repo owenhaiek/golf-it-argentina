@@ -67,7 +67,36 @@ export default {
         fadeIn: "fadeIn 0.5s ease-out",
         slideUp: "slideUp 0.5s ease-out",
       },
+      typography: (theme: any) => ({
+        DEFAULT: {
+          css: {
+            maxWidth: 'none',
+            color: theme('colors.foreground'),
+            a: {
+              color: theme('colors.primary'),
+              '&:hover': {
+                color: theme('colors.primary.hover'),
+              },
+            },
+            h1: {
+              color: theme('colors.foreground'),
+              marginTop: '1.5em',
+              marginBottom: '0.5em',
+            },
+            h2: {
+              color: theme('colors.foreground'),
+              marginTop: '1.5em',
+              marginBottom: '0.5em',
+            },
+            h3: {
+              color: theme('colors.foreground'),
+              marginTop: '1.5em',
+              marginBottom: '0.5em',
+            },
+          },
+        },
+      }),
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [require("tailwindcss-animate"), require('@tailwindcss/typography')],
 } satisfies Config;

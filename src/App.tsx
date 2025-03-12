@@ -9,6 +9,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import Home from "./pages/Home";
 import AddRound from "./pages/AddRound";
 import Profile from "./pages/Profile";
+import Settings from "./pages/Settings";
 import Course from "./pages/Course";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
@@ -50,6 +51,7 @@ const App = () => (
               <Route path="/course/:id" element={<Course />} />
               <Route path="/add-round" element={<AddRound />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/settings" element={<Settings />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

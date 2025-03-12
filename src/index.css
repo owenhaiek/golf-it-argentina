@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -13,6 +14,16 @@
     --ring: 164 24% 16%;
     --radius: 0.75rem;
     --app-height: 100%;
+  }
+
+  .dark {
+    --background: 164 24% 8%;
+    --foreground: 60 30% 96%;
+    --card: 164 24% 10%;
+    --card-foreground: 60 30% 96%;
+    --border: 164 12% 20%;
+    --input: 164 12% 18%;
+    --ring: 164 24% 60%;
   }
 
   * {
