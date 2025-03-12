@@ -6,9 +6,6 @@ import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { motion, AnimatePresence } from "framer-motion";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
-import { useToast } from "@/components/ui/use-toast";
 
 interface Round {
   id: string;
@@ -38,72 +35,16 @@ interface RecentRoundsProps {
 const RecentRounds = ({
   userId,
   rounds,
-  roundsLoading
+  roundsLoading,
+  onDeleteRound,
+  deletingRoundId
 }: RecentRoundsProps) => {
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
 
   // Calculate total par for a course
   const calculateCoursePar = (holePars: number[] | undefined): number => {
     if (!holePars || holePars.length === 0) return 0;
     return holePars.reduce((sum, par) => sum + par, 0);
-  };
-  
-  // Delete round mutation
-  const deleteRoundMutation = useMutation({
-    mutationFn: async (roundId: string) => {
-      const { error } = await supabase
-        .from('rounds')
-        .delete()
-        .eq('id', roundId);
-        
-      if (error) throw error;
-      return roundId;
-    },
-    onMutate: async (roundId) => {
-      // Cancel any outgoing refetches to avoid optimistic update being overwritten
-      await queryClient.cancelQueries({ queryKey: ['userRounds'] });
-      
-      // Snapshot the previous value
-      const previousRounds = queryClient.getQueryData<Round[]>(['userRounds']);
-      
-      // Optimistically update the rounds list by removing the deleted round
-      if (previousRounds) {
-        queryClient.setQueryData<Round[]>(
-          ['userRounds'], 
-          previousRounds.filter(round => round.id !== roundId)
-        );
-      }
-      
-      // Return the context with the previous rounds
-      return { previousRounds };
-    },
-    onSuccess: (_, roundId) => {
-      // Invalidate and refetch to ensure data consistency
-      queryClient.invalidateQueries({ queryKey: ['userRounds'] });
-      
-      toast({
-        title: "Round deleted successfully",
-      });
-    },
-    onError: (error, roundId, context) => {
-      // If mutation fails, use the context we saved to roll back
-      if (context?.previousRounds) {
-        queryClient.setQueryData(['userRounds'], context.previousRounds);
-      }
-      
-      console.error('Error deleting round:', error);
-      toast({
-        title: "Error deleting round",
-        description: error instanceof Error ? error.message : "An unknown error occurred",
-        variant: "destructive",
-      });
-    }
-  });
-
-  const handleDeleteRound = (roundId: string) => {
-    deleteRoundMutation.mutate(roundId);
   };
 
   if (roundsLoading) {
@@ -134,7 +75,7 @@ const RecentRounds = ({
           <div className="grid grid-cols-1 gap-6 max-w-3xl mx-auto">
             <AnimatePresence>
               {rounds.map(round => {
-                const isDeleting = deleteRoundMutation.isPending && deleteRoundMutation.variables === round.id;
+                const isDeleting = deletingRoundId === round.id;
                 const formattedDate = format(new Date(round.date || round.created_at), 'MMM d, yyyy');
                 const coursePar = round.golf_courses.par || calculateCoursePar(round.golf_courses.hole_pars);
                 const scoreDiff = round.score - coursePar;
@@ -244,7 +185,7 @@ const RecentRounds = ({
                           <AlertDialogFooter>
                             <AlertDialogCancel>Cancel</AlertDialogCancel>
                             <AlertDialogAction 
-                              onClick={() => handleDeleteRound(round.id)}
+                              onClick={() => onDeleteRound && onDeleteRound(round.id)}
                               className="bg-red-500 hover:bg-red-600"
                             >
                               Delete Round

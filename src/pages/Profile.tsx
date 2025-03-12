@@ -87,11 +87,16 @@ const Profile = () => {
     mutationFn: async (roundId: string) => {
       console.log(`Starting to delete round: ${roundId}`);
       
+      // Ensure we have userId for validation
+      if (!user?.id) {
+        throw new Error("User ID not available");
+      }
+      
       const { error } = await supabase
         .from('rounds')
         .delete()
         .eq('id', roundId)
-        .eq('user_id', user?.id);
+        .eq('user_id', user.id);
       
       if (error) {
         console.error("Error deleting round:", error);
@@ -104,12 +109,17 @@ const Profile = () => {
     onMutate: (roundId) => {
       setDeletingRoundId(roundId);
       
+      // Cancel any outgoing refetches
+      queryClient.cancelQueries({
+        queryKey: ['rounds', user?.id]
+      });
+      
       // Store the current rounds data
       const previousRounds = queryClient.getQueryData(['rounds', user?.id]);
       
       // Optimistically update UI by filtering out the deleted round
       queryClient.setQueryData(['rounds', user?.id], (old: any) => {
-        if (!old) return old;
+        if (!old || !Array.isArray(old)) return old;
         return old.filter((round: any) => round.id !== roundId);
       });
       

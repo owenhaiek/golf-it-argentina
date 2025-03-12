@@ -7,37 +7,66 @@ import { GolfLoader } from "./ui/GolfLoader";
 export const Layout = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [startY, setStartY] = useState(0);
+  const [pullDistance, setPullDistance] = useState(0);
+  const [isPulling, setIsPulling] = useState(false);
 
-  // Pull-to-refresh functionality
+  // Improved pull-to-refresh functionality
   useEffect(() => {
     const handleTouchStart = (e: TouchEvent) => {
-      setStartY(e.touches[0].clientY);
+      const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+      
+      // Only start pull tracking if we're at the top of the page
+      if (scrollTop <= 0) {
+        setStartY(e.touches[0].clientY);
+        setIsPulling(true);
+        setPullDistance(0);
+      }
     };
 
     const handleTouchMove = (e: TouchEvent) => {
+      if (!isPulling) return;
+      
       const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
       const currentY = e.touches[0].clientY;
       
-      // If we're at the top of the page and pulling down
-      if (scrollTop <= 0 && currentY - startY > 70 && !isRefreshing) {
-        setIsRefreshing(true);
-        e.preventDefault();
+      // Only activate pull if we're at the top of the page and pulling down
+      if (scrollTop <= 0 && currentY > startY) {
+        const newPullDistance = currentY - startY;
+        setPullDistance(newPullDistance);
         
-        // Simulate refresh after animation
-        setTimeout(() => {
-          window.location.reload();
-        }, 1200);
+        // If we've pulled down far enough, trigger refresh
+        if (newPullDistance > 120 && !isRefreshing) {
+          setIsRefreshing(true);
+          e.preventDefault();
+          
+          // Simulate refresh after animation
+          setTimeout(() => {
+            window.location.reload();
+          }, 1200);
+        }
+      }
+    };
+    
+    const handleTouchEnd = () => {
+      setIsPulling(false);
+      setPullDistance(0);
+      
+      // If we didn't pull far enough for a refresh, reset
+      if (pullDistance < 120) {
+        setIsRefreshing(false);
       }
     };
 
     document.addEventListener('touchstart', handleTouchStart);
     document.addEventListener('touchmove', handleTouchMove, { passive: false });
+    document.addEventListener('touchend', handleTouchEnd);
 
     return () => {
       document.removeEventListener('touchstart', handleTouchStart);
       document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
     };
-  }, [startY, isRefreshing]);
+  }, [startY, isPulling, pullDistance, isRefreshing]);
 
   // Enhanced fullscreen and mobile app experience
   useEffect(() => {
@@ -108,6 +137,18 @@ export const Layout = () => {
 
   return (
     <div className="fixed inset-0 flex flex-col bg-muted">
+      {pullDistance > 0 && !isRefreshing && (
+        <div 
+          className="absolute top-0 left-0 right-0 flex items-center justify-center z-40 pointer-events-none"
+          style={{ 
+            height: `${Math.min(pullDistance, 120)}px`,
+            opacity: pullDistance / 120
+          }}
+        >
+          <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+        </div>
+      )}
+      
       {isRefreshing && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-background/60 backdrop-blur-sm transition-all duration-300">
           <div className="p-10 rounded-2xl shadow-lg bg-background/95 border border-primary/5">
