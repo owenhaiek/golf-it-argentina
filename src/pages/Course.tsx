@@ -1,12 +1,24 @@
 
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { Card, CardContent } from "@/components/ui/card";
-import { MapPin, Phone, Globe, Flag } from "lucide-react";
+import { MapPin, Phone, Globe, Flag, Clock } from "lucide-react";
 
 const Course = () => {
   const { id } = useParams();
+  const [currentTime, setCurrentTime] = useState<Date>(new Date());
+
+  // Update current time every minute
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000);
+    
+    return () => clearInterval(timer);
+  }, []);
+
   const { data: course, isLoading } = useQuery({
     queryKey: ['course', id],
     queryFn: async () => {
@@ -20,20 +32,100 @@ const Course = () => {
     }
   });
 
+  const isGolfCourseOpen = (openHours: string | null): boolean => {
+    if (!openHours) return false;
+    
+    try {
+      const today = currentTime.getDay(); // 0 = Sunday, 1 = Monday, ...
+      const hours = JSON.parse(openHours);
+      
+      if (!hours[today] || !hours[today].isOpen) return false;
+      
+      const { open, close } = hours[today];
+      if (!open || !close) return false;
+      
+      const currentHour = currentTime.getHours();
+      const currentMinute = currentTime.getMinutes();
+      
+      const [openHour, openMinute] = open.split(':').map(Number);
+      const [closeHour, closeMinute] = close.split(':').map(Number);
+      
+      const currentTotalMinutes = currentHour * 60 + currentMinute;
+      const openTotalMinutes = openHour * 60 + openMinute;
+      const closeTotalMinutes = closeHour * 60 + closeMinute;
+      
+      return currentTotalMinutes >= openTotalMinutes && currentTotalMinutes < closeTotalMinutes;
+    } catch (error) {
+      console.error("Error parsing opening hours:", error);
+      return false;
+    }
+  };
+
+  const formatOpeningHours = (openHours: string | null): React.ReactNode => {
+    if (!openHours) return <span className="text-muted-foreground">Hours not available</span>;
+    
+    try {
+      const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const hours = JSON.parse(openHours);
+      const today = currentTime.getDay();
+      
+      return (
+        <div className="space-y-1 mt-1">
+          {days.map((day, index) => {
+            const dayInfo = hours[index];
+            const isToday = index === today;
+            
+            if (!dayInfo) {
+              return (
+                <div key={day} className={`flex justify-between text-xs ${isToday ? 'font-semibold' : ''}`}>
+                  <span>{day}{isToday ? ' (Today)' : ''}</span>
+                  <span className="text-muted-foreground">Hours not available</span>
+                </div>
+              );
+            }
+            
+            if (!dayInfo.isOpen) {
+              return (
+                <div key={day} className={`flex justify-between text-xs ${isToday ? 'font-semibold' : ''}`}>
+                  <span>{day}{isToday ? ' (Today)' : ''}</span>
+                  <span className="text-muted-foreground">Closed</span>
+                </div>
+              );
+            }
+            
+            return (
+              <div key={day} className={`flex justify-between text-xs ${isToday ? 'font-semibold' : ''}`}>
+                <span>{day}{isToday ? ' (Today)' : ''}</span>
+                <span>{dayInfo.open} - {dayInfo.close}</span>
+              </div>
+            );
+          })}
+        </div>
+      );
+    } catch (error) {
+      console.error("Error formatting opening hours:", error);
+      return <span className="text-muted-foreground">Hours not available</span>;
+    }
+  };
+
   if (isLoading) {
-    return <div className="animate-pulse space-y-4">
-      <div className="h-6 w-1/3 bg-secondary/20 rounded" />
-      <div className="h-64 bg-secondary/20 rounded-none" />
-      <div className="space-y-2">
-        <div className="h-4 w-2/3 bg-secondary/20 rounded" />
-        <div className="h-4 w-1/2 bg-secondary/20 rounded" />
+    return (
+      <div className="animate-pulse space-y-4">
+        <div className="h-6 w-1/3 bg-secondary/20 rounded" />
+        <div className="h-64 bg-secondary/20 rounded-none" />
+        <div className="space-y-2">
+          <div className="h-4 w-2/3 bg-secondary/20 rounded" />
+          <div className="h-4 w-1/2 bg-secondary/20 rounded" />
+        </div>
       </div>
-    </div>;
+    );
   }
 
   if (!course) {
     return <div className="text-center">Course not found</div>;
   }
+
+  const isOpen = isGolfCourseOpen(course.opening_hours);
 
   return (
     <div className="space-y-6 -mx-4">
@@ -68,6 +160,19 @@ const Course = () => {
                 <p className="text-xs text-muted-foreground">
                   {course.holes} holes {course.par && `• Par ${course.par}`}
                 </p>
+              </div>
+            </li>
+
+            <li className="flex items-start gap-3">
+              <Clock className={`mt-1 ${isOpen ? 'text-green-600' : 'text-amber-600'}`} size={18} />
+              <div>
+                <h3 className="font-semibold text-sm flex items-center gap-1">
+                  Hours
+                  <span className={`text-xs px-2 py-0.5 rounded-full ${isOpen ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
+                    {isOpen ? 'Open Now' : 'Closed'}
+                  </span>
+                </h3>
+                {formatOpeningHours(course.opening_hours)}
               </div>
             </li>
 

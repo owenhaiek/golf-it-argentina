@@ -104,15 +104,14 @@ const Profile = () => {
     onMutate: (roundId) => {
       setDeletingRoundId(roundId);
       
-      // Optimistic update - remove the round from the cache immediately
+      // Store the current rounds data
       const previousRounds = queryClient.getQueryData(['rounds', user?.id]);
       
-      if (previousRounds) {
-        queryClient.setQueryData(['rounds', user?.id], (old: any) => {
-          if (!old) return old;
-          return old.filter((round: any) => round.id !== roundId);
-        });
-      }
+      // Optimistically update UI by filtering out the deleted round
+      queryClient.setQueryData(['rounds', user?.id], (old: any) => {
+        if (!old) return old;
+        return old.filter((round: any) => round.id !== roundId);
+      });
       
       return { previousRounds };
     },
