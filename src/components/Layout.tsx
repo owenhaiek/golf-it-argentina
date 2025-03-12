@@ -150,15 +150,16 @@ export const Layout = () => {
       
       <main 
         ref={mainRef} 
-        className="flex-1 overflow-y-auto pb-20 hide-scrollbar"
+        className="flex-1 overflow-y-auto pb-20 hide-scrollbar pt-safe"
         style={{
           height: '100%',
           WebkitOverflowScrolling: 'touch',
           position: 'relative',
-          zIndex: 1
+          zIndex: 1,
+          paddingTop: 'env(safe-area-inset-top, 16px)' // Add fallback padding
         }}
       >
-        <div className="container max-w-md mx-auto px-4 pt-6 animate-in">
+        <div className="container max-w-md mx-auto px-4 pt-4 pb-4 animate-in">
           <Outlet />
         </div>
       </main>
