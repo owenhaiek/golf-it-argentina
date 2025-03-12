@@ -4,82 +4,125 @@ import { motion } from "framer-motion";
 
 export const GolfLoader = () => {
   return (
-    <div className="w-full h-20 flex items-center justify-center overflow-hidden">
-      <div className="relative w-36 h-12">
-        {/* Green/Course - Enhanced Line with Gradient */}
+    <div className="w-full h-24 flex items-center justify-center overflow-hidden">
+      <div className="relative w-40 h-16">
+        {/* Minimal Ground Line */}
         <motion.div 
-          className="absolute bottom-0 w-full h-0.5 rounded-full overflow-hidden"
+          className="absolute bottom-0 w-full h-[2px] rounded-full overflow-hidden"
           initial={{ scaleX: 0 }}
           animate={{ scaleX: 1 }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.7, ease: "easeOut" }}
         >
-          <div className="w-full h-full bg-gradient-to-r from-primary/60 via-primary to-primary/80" />
+          <div className="w-full h-full bg-gradient-to-r from-primary/20 via-primary to-primary/20" />
         </motion.div>
-        
-        {/* Flag Pole - Slightly thicker and more defined */}
-        <motion.div
-          className="absolute bottom-0 right-3 w-[1.5px] bg-primary origin-bottom"
-          initial={{ height: 0 }}
-          animate={{ height: 18 }}
-          transition={{ duration: 0.4, delay: 0.5 }}
-        >
-          {/* Flag - Enhanced with subtle shadow */}
-          <motion.div 
-            className="absolute top-0 left-0 w-6 h-4 bg-accent shadow-sm origin-left"
-            style={{ 
-              transformOrigin: '0% 50%',
-              clipPath: 'polygon(0 0, 100% 25%, 100% 75%, 0 100%)'
-            }}
-            initial={{ scaleX: 0 }}
-            animate={{ scaleX: 1 }}
-            transition={{ duration: 0.3, delay: 0.7 }}
-          />
-        </motion.div>
-        
-        {/* Hole - More defined with subtle shadow */}
-        <motion.div 
-          className="absolute bottom-0 right-3 w-4 h-2 rounded-t-full bg-background border border-primary/80 border-b-0 shadow-inner"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.2, delay: 0.6 }}
-        />
         
         {/* Golf Ball */}
         <motion.div
-          className="absolute w-2.5 h-2.5 rounded-full border border-primary/90 bg-white shadow-sm z-10"
-          initial={{ x: 0, y: 0, opacity: 0 }}
+          className="absolute w-3 h-3 rounded-full bg-white border border-primary/40 shadow-sm z-10"
+          initial={{ 
+            x: 0, 
+            y: 0, 
+            opacity: 0,
+            boxShadow: "0 0 0 0 rgba(42, 71, 70, 0.1)" 
+          }}
           animate={{ 
-            x: [0, 20, 40, 60, 80, 100, 110, 120], 
-            y: [0, -10, -14, -12, -8, -4, -2, 0],
-            opacity: [0, 1, 1, 1, 1, 1, 1, 1]
+            x: [0, 20, 40, 60, 80, 100, 120], 
+            y: [0, -14, -18, -16, -10, -4, 0],
+            opacity: [0, 1, 1, 1, 1, 1, 0.8],
+            boxShadow: ["0 0 0 0 rgba(42, 71, 70, 0.1)", "0 4px 6px -1px rgba(42, 71, 70, 0.1)"]
           }}
           transition={{ 
-            duration: 1.8, 
+            duration: 2.2, 
             repeat: Infinity,
-            repeatDelay: 0.5,
+            repeatDelay: 0.3,
             ease: "easeInOut"
           }}
         />
         
-        {/* Ball Path - Enhanced Dotted Line */}
+        {/* Flag and Hole Area */}
+        <div className="absolute bottom-0 right-4 flex flex-col items-center">
+          {/* Flag Pole */}
+          <motion.div
+            className="absolute bottom-0 w-[1px] bg-primary/90 origin-bottom"
+            initial={{ height: 0 }}
+            animate={{ height: 20 }}
+            transition={{ duration: 0.5, delay: 0.6 }}
+          >
+            {/* Flag */}
+            <motion.div 
+              className="absolute top-0 left-0 w-5 h-4 origin-left"
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: 1 }}
+              transition={{ duration: 0.3, delay: 0.9 }}
+            >
+              <svg width="20" height="16" viewBox="0 0 20 16" fill="none">
+                <path 
+                  d="M0,0 L12,3 L12,13 L0,16 Z" 
+                  fill="#E8B87D"
+                  stroke="#D6A66B"
+                  strokeWidth="0.5"
+                />
+              </svg>
+            </motion.div>
+          </motion.div>
+          
+          {/* Hole */}
+          <motion.div
+            initial={{ opacity: 0, width: 0 }}
+            animate={{ opacity: 1, width: 6 }}
+            transition={{ duration: 0.4, delay: 0.7 }}
+            className="absolute bottom-0 h-1.5 rounded-full bg-primary/20 overflow-hidden"
+          >
+            <motion.div 
+              className="absolute inset-0 bg-primary/30"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.2, delay: 0.9 }}
+            />
+          </motion.div>
+        </div>
+        
+        {/* Ball Path - Elegant Arc */}
         <svg 
           className="absolute top-0 left-0 w-full h-full z-0" 
-          viewBox="0 0 140 20" 
+          viewBox="0 0 160 40" 
           fill="none" 
           xmlns="http://www.w3.org/2000/svg"
         >
           <motion.path
-            d="M 5 12 Q 35 2 70 7 Q 105 12 128 12"
-            stroke="rgba(42, 71, 70, 0.4)"
+            d="M 5 22 Q 40 0 80 10 Q 120 20 140 22"
+            stroke="rgba(42, 71, 70, 0.15)"
             strokeWidth="0.8"
             strokeDasharray="1,3"
             strokeLinecap="round"
             fill="transparent"
             initial={{ pathLength: 0, opacity: 0 }}
-            animate={{ pathLength: 1, opacity: [0, 0.4, 0.7, 0.4, 0] }}
-            transition={{ duration: 1.8, repeat: Infinity, repeatDelay: 0.5, ease: "easeInOut" }}
+            animate={{ 
+              pathLength: 1, 
+              opacity: [0, 0.3, 0.5, 0.3, 0]
+            }}
+            transition={{ 
+              duration: 2.2, 
+              repeat: Infinity,
+              repeatDelay: 0.3,
+              ease: "easeInOut"
+            }}
           />
         </svg>
+        
+        {/* Loading Text */}
+        <motion.div
+          className="absolute bottom-[-24px] left-1/2 transform -translate-x-1/2 text-xs text-primary/70 font-light tracking-wider"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: [0, 0.7, 0] }}
+          transition={{
+            duration: 1.5,
+            repeat: Infinity,
+            repeatType: "loop"
+          }}
+        >
+          Loading
+        </motion.div>
       </div>
     </div>
   );
