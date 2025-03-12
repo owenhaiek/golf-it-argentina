@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 export const Navigation = () => {
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50">
-      <nav className="bg-background/95 backdrop-blur-sm border-t border-border/5" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0)' }}>
+      <nav className="bg-background/95 backdrop-blur-sm border-t border-border/5">
         <ul className="flex items-center justify-between max-w-xl mx-auto px-6">
           <NavItem to="/" icon={<Flag className="transition-colors" size={20} />} label="Home" />
           <NavItem 
@@ -38,7 +38,7 @@ const NavItem = ({
       to={to}
       className={({ isActive }) =>
         cn(
-          "flex flex-col items-center justify-center gap-0.5 py-2.5 px-4 transition-all duration-200",
+          "flex flex-col items-center justify-center gap-0.5 py-2 px-4 transition-all duration-200",
           isActive 
             ? "text-primary" 
             : "text-muted-foreground hover:text-primary/80",

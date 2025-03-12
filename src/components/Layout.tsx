@@ -157,13 +157,13 @@ export const Layout = () => {
       
       <main 
         ref={mainRef} 
-        className="flex-1 overflow-y-auto pb-20 hide-scrollbar pt-safe"
+        className="flex-1 overflow-y-auto pb-16 hide-scrollbar pt-safe"
         style={{
           height: '100%',
           WebkitOverflowScrolling: 'touch',
           position: 'relative',
           zIndex: 1,
-          paddingTop: 'env(safe-area-inset-top, 16px)' // Add fallback padding
+          paddingTop: 'env(safe-area-inset-top, 16px)'
         }}
       >
         <div className="container max-w-md mx-auto px-4 pt-4 pb-4 animate-in">
