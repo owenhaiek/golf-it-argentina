@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -6,20 +5,17 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { X, Clock } from "lucide-react";
-
 type FilterOptions = {
   holes: string;
   location: string;
   isOpen: boolean;
 };
-
 interface FilterPanelProps {
   isOpen: boolean;
   onClose: () => void;
   onApplyFilters: (filters: FilterOptions) => void;
   currentFilters: FilterOptions;
 }
-
 const FilterPanel = ({
   isOpen,
   onClose,
@@ -27,17 +23,14 @@ const FilterPanel = ({
   currentFilters
 }: FilterPanelProps) => {
   const [filters, setFilters] = useState<FilterOptions>(currentFilters);
-
   useEffect(() => {
     // Reset filters when panel opens/closes
     setFilters(currentFilters);
   }, [isOpen, currentFilters]);
-
   const handleApplyFilters = () => {
     onApplyFilters(filters);
     onClose();
   };
-
   const handleResetFilters = () => {
     const resetFilters = {
       holes: "",
@@ -48,17 +41,12 @@ const FilterPanel = ({
     onApplyFilters(resetFilters);
     onClose();
   };
-
-  return (
-    <div 
-      className={`fixed inset-x-0 bottom-0 z-[999] transform transition-transform duration-300 ease-in-out ${isOpen ? "translate-y-0" : "translate-y-full"}`}
-      style={{ 
-        willChange: "transform",
-        backfaceVisibility: "hidden"
-      }}
-    >
+  return <div className={`fixed inset-x-0 bottom-0 z-[999] transform transition-transform duration-300 ease-in-out ${isOpen ? "translate-y-0" : "translate-y-full"}`} style={{
+    willChange: "transform",
+    backfaceVisibility: "hidden"
+  }}>
       <div>
-        <Card className="rounded-t-xl border-b-0 shadow-lg bg-white py-[15px] px-[30px]">
+        <Card className="rounded-t-xl border-b-0 shadow-lg bg-white px-[30px] py-[55px]">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold">Filter Courses</h3>
             <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full">
@@ -69,14 +57,10 @@ const FilterPanel = ({
           <div className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="holes-filter">Number of Holes</Label>
-              <RadioGroup 
-                value={filters.holes} 
-                onValueChange={value => setFilters({
-                  ...filters,
-                  holes: value
-                })} 
-                className="flex flex-wrap gap-2"
-              >
+              <RadioGroup value={filters.holes} onValueChange={value => setFilters({
+              ...filters,
+              holes: value
+            })} className="flex flex-wrap gap-2">
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="" id="holes-all" />
                   <Label htmlFor="holes-all">All</Label>
@@ -94,30 +78,18 @@ const FilterPanel = ({
 
             <div className="space-y-2">
               <Label htmlFor="location-filter">Location</Label>
-              <Input 
-                id="location-filter" 
-                type="text" 
-                placeholder="City or state..." 
-                value={filters.location} 
-                onChange={e => setFilters({
-                  ...filters,
-                  location: e.target.value
-                })} 
-              />
+              <Input id="location-filter" type="text" placeholder="City or state..." value={filters.location} onChange={e => setFilters({
+              ...filters,
+              location: e.target.value
+            })} />
             </div>
 
             <div className="space-y-2">
               <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="is-open-filter"
-                  checked={filters.isOpen}
-                  onChange={e => setFilters({
-                    ...filters,
-                    isOpen: e.target.checked
-                  })}
-                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                />
+                <input type="checkbox" id="is-open-filter" checked={filters.isOpen} onChange={e => setFilters({
+                ...filters,
+                isOpen: e.target.checked
+              })} className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" />
                 <Label htmlFor="is-open-filter" className="flex items-center gap-1">
                   <Clock size={16} className="text-primary" />
                   Currently Open
@@ -136,8 +108,6 @@ const FilterPanel = ({
           </div>
         </Card>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default FilterPanel;
