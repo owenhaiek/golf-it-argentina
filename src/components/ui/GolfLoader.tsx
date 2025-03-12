@@ -41,14 +41,14 @@ export const GolfLoader = () => {
         
         {/* Flag and Hole Area */}
         <div className="absolute bottom-0 right-4 flex flex-col items-center">
-          {/* Flag Pole */}
+          {/* Flag Pole - Increased height from 20 to 28 */}
           <motion.div
             className="absolute bottom-0 w-[1px] bg-primary/90 origin-bottom"
             initial={{ height: 0 }}
-            animate={{ height: 20 }}
+            animate={{ height: 28 }}
             transition={{ duration: 0.5, delay: 0.6 }}
           >
-            {/* Flag */}
+            {/* Flag - Moved higher up on the pole */}
             <motion.div 
               className="absolute top-0 left-0 w-5 h-4 origin-left"
               initial={{ scaleX: 0 }}

@@ -42,7 +42,6 @@ const Profile = () => {
   const {
     data: rounds,
     isLoading: roundsLoading,
-    refetch: refetchRounds
   } = useQuery({
     queryKey: ['rounds', user?.id],
     queryFn: async () => {
@@ -108,21 +107,25 @@ const Profile = () => {
       // Optimistic update - remove the round from the cache immediately
       const previousRounds = queryClient.getQueryData(['rounds', user?.id]);
       
-      queryClient.setQueryData(['rounds', user?.id], (old: any) => {
-        if (!old) return old;
-        return old.filter((round: any) => round.id !== roundId);
-      });
+      if (previousRounds) {
+        queryClient.setQueryData(['rounds', user?.id], (old: any) => {
+          if (!old) return old;
+          return old.filter((round: any) => round.id !== roundId);
+        });
+      }
       
       return { previousRounds };
     },
-    onSuccess: async (roundId) => {
+    onSuccess: (roundId) => {
       toast({
         title: "Success",
         description: "Round deleted successfully",
       });
       
-      // Force a direct refetch of the rounds data to ensure we have the latest data
-      await refetchRounds();
+      // Invalidate rounds query to refetch the latest data
+      queryClient.invalidateQueries({
+        queryKey: ['rounds', user?.id]
+      });
       
       // Also invalidate profile to update handicap if needed
       queryClient.invalidateQueries({
@@ -142,7 +145,9 @@ const Profile = () => {
       });
       
       // Force a refetch to ensure we're in sync with the server
-      refetchRounds();
+      queryClient.invalidateQueries({
+        queryKey: ['rounds', user?.id]
+      });
     },
     onSettled: () => {
       setDeletingRoundId(null);
