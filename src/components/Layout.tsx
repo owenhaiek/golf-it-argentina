@@ -1,4 +1,3 @@
-
 import { Outlet } from "react-router-dom";
 import { Navigation } from "./Navigation";
 import { useEffect, useState, useRef } from "react";
@@ -46,7 +45,7 @@ export const Layout = () => {
             // Simulate refresh after animation
             setTimeout(() => {
               window.location.reload();
-            }, 1200);
+            }, 800); // Reduced from 1200ms to 800ms for faster feedback
           }
         }
       } else {
@@ -153,22 +152,20 @@ export const Layout = () => {
         <div 
           className="absolute top-0 left-0 right-0 flex items-center justify-center z-40 pointer-events-none"
           style={{ 
-            height: `${Math.min(pullDistance, 120)}px`,
-            opacity: pullDistance / 120
+            height: `${Math.min(pullDistance * 0.6, 80)}px`,
+            opacity: Math.min(pullDistance / 120, 0.7)
           }}
         >
-          <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+          <div className="w-6 h-6 rounded-full border-2 border-primary/60 border-t-transparent animate-spin" />
         </div>
       )}
       
       {isRefreshing && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-background/60 backdrop-blur-sm transition-all duration-300">
-          <div className="p-10 rounded-2xl shadow-lg bg-background/95 border border-primary/5">
-            <GolfLoader />
-          </div>
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-background/40 backdrop-blur-sm transition-all duration-200">
+          <GolfLoader />
         </div>
       )}
-      <main ref={mainRef} className="flex-1 overflow-y-auto pb-24 hide-scrollbar">
+      <main ref={mainRef} className="flex-1 overflow-y-auto pb-16 hide-scrollbar">
         <div className="container max-w-md mx-auto px-4 pt-6 animate-in">
           <Outlet />
         </div>
