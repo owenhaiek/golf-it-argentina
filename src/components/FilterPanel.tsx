@@ -40,7 +40,7 @@ const FilterPanel = ({
     onClose();
   };
   return <div className={`fixed inset-x-0 bottom-0 z-[100] transform transition-transform duration-300 ease-in-out ${isOpen ? "translate-y-0" : "translate-y-full"}`}>
-      <div className="pb-20">
+      <div className="pb-0">
         <Card className="rounded-t-xl border-b-0 pb-8 pt-4 shadow-lg bg-white py-[15px] px-[30px]">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold">Filter Courses</h3>
