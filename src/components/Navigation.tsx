@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 
 export const Navigation = () => {
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50">
+    <div className="fixed bottom-0 left-0 right-0 z-40">
       <nav className="bg-background/95 backdrop-blur-sm border-t border-border/5">
         <ul className="flex items-center justify-between h-16 max-w-xl mx-auto px-6">
           <NavItem to="/" icon={<Flag className="transition-colors" size={20} />} label="Home" />

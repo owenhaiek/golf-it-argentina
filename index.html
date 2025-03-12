@@ -3,12 +3,19 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, minimal-ui" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="theme-color" content="#2A4746" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="GolfGem" />
+    <meta name="screen-orientation" content="portrait" />
+    <meta name="full-screen" content="yes" />
+    <meta name="browsermode" content="application" />
+    <meta name="nightmode" content="enable" />
+    <meta name="layoutmode" content="fitscreen" />
+    <meta name="imagemode" content="force" />
+    <meta name="apple-touch-fullscreen" content="yes" />
     <title>GolfGem</title>
     <meta name="description" content="Track your golf scores and handicap" />
     <meta name="author" content="Lovable" />
@@ -22,5 +29,38 @@
     <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->
     <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // Set the vh variable for iOS Safari
+      function setVh() {
+        let vh = window.innerHeight * 0.01;
+        document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
+      }
+      
+      // Initial set
+      setVh();
+      
+      // Reset on resize
+      window.addEventListener('resize', () => {
+        setVh();
+      });
+      
+      // Reset on orientation change
+      window.addEventListener('orientationchange', () => {
+        setTimeout(setVh, 100);
+      });
+      
+      // Hide URL bar
+      function hideUrlBar() {
+        if (document.documentElement.scrollTop === 0) {
+          window.scrollTo(0, 1);
+        }
+      }
+      
+      window.addEventListener('load', hideUrlBar);
+      window.addEventListener('resize', hideUrlBar);
+      window.addEventListener('orientationchange', () => {
+        setTimeout(hideUrlBar, 200);
+      });
+    </script>
   </body>
 </html>

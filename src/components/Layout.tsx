@@ -12,30 +12,60 @@ export const Layout = () => {
   const mainRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
-    // Hide browser navigation bar on iOS
+    // Function to hide browser navigation bar on mobile
     const hideBrowserBar = () => {
-      if ('scrollTo' in window) {
+      // Hide URL bar in mobile browsers
+      if (typeof window !== 'undefined') {
+        // Force screen redraw to hide browser UI
         window.scrollTo(0, 1);
+        
+        // Add a second attempt with slight delay for better compatibility
+        setTimeout(() => {
+          window.scrollTo(0, 1);
+        }, 150);
+        
+        // Final attempt
+        setTimeout(() => {
+          window.scrollTo(0, window.innerHeight > window.outerHeight ? 1 : 0);
+        }, 300);
       }
     };
 
-    // Add a small delay to ensure proper hiding
-    let timeoutId: NodeJS.Timeout;
-    const handleResize = () => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(hideBrowserBar, 100);
+    // Set the correct height for mobile browsers
+    const setAppHeight = () => {
+      const doc = document.documentElement;
+      doc.style.setProperty('--app-height', `${window.innerHeight}px`);
     };
 
-    window.addEventListener('resize', handleResize);
+    // Call on load, resize and orientation change
     window.addEventListener('load', hideBrowserBar);
+    window.addEventListener('resize', hideBrowserBar);
+    window.addEventListener('orientationchange', hideBrowserBar);
+    window.addEventListener('touchmove', hideBrowserBar);
+    window.addEventListener('scroll', hideBrowserBar);
     
-    // Initial hide attempt
+    // Add visual viewport events for iOS 15+
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', setAppHeight);
+    }
+    
+    // Run height calculations
+    setAppHeight();
+    window.addEventListener('resize', setAppHeight);
+    
+    // Initial hide
     hideBrowserBar();
     
     return () => {
-      window.removeEventListener('resize', handleResize);
       window.removeEventListener('load', hideBrowserBar);
-      clearTimeout(timeoutId);
+      window.removeEventListener('resize', hideBrowserBar);
+      window.removeEventListener('orientationchange', hideBrowserBar);
+      window.removeEventListener('touchmove', hideBrowserBar);
+      window.removeEventListener('scroll', hideBrowserBar);
+      window.removeEventListener('resize', setAppHeight);
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', setAppHeight);
+      }
     };
   }, []);
 
@@ -99,7 +129,7 @@ export const Layout = () => {
   }, [startY, isPulling, pullDistance, isRefreshing]);
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-background">
+    <div className="fixed inset-0 flex flex-col bg-background" style={{ height: 'var(--app-height)' }}>
       {pullDistance > 0 && !isRefreshing && (
         <div 
           className="absolute top-0 left-0 right-0 flex items-center justify-center z-40 pointer-events-none"
@@ -120,7 +150,7 @@ export const Layout = () => {
       
       <main 
         ref={mainRef} 
-        className="flex-1 overflow-y-auto pb-16 hide-scrollbar"
+        className="flex-1 overflow-y-auto pb-20 hide-scrollbar"
         style={{
           height: '100%',
           WebkitOverflowScrolling: 'touch',
