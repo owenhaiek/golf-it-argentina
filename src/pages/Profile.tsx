@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
@@ -9,7 +8,6 @@ import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 
 const Profile = () => {
-  // Core state and hooks
   const { user } = useAuth();
   const { toast } = useToast();
   const [deletingRoundId, setDeletingRoundId] = useState<string | null>(null);
@@ -38,16 +36,14 @@ const Profile = () => {
     enabled: !!user?.id
   });
 
-  // Rounds Query - Fetch user's recent rounds
+  // Rounds Query - Fetch user's recent rounds with improved caching
   const {
     data: rounds,
     isLoading: roundsLoading,
   } = useQuery({
     queryKey: ['rounds', user?.id],
     queryFn: async () => {
-      if (!user?.id) return null;
-      
-      console.log("Fetching rounds for user:", user.id);
+      if (!user?.id) return [];
       
       const { data, error } = await supabase
         .from('rounds')
@@ -73,75 +69,55 @@ const Profile = () => {
         throw error;
       }
       
-      console.log("Rounds fetched successfully:", data?.length || 0);
       return data || [];
     },
     enabled: !!user?.id,
-    staleTime: 0, // No stale time to ensure fresh data on every fetch
-    refetchOnWindowFocus: true, // Refetch when window gains focus
-    refetchOnMount: true // Refetch when the component mounts
+    staleTime: 0,
+    cacheTime: 0 // Disable caching to ensure fresh data
   });
 
-  // Delete round mutation
+  // Delete round mutation with improved error handling and optimistic updates
   const deleteRoundMutation = useMutation({
     mutationFn: async (roundId: string) => {
-      console.log(`Starting to delete round: ${roundId}`);
-      
-      // Ensure we have userId for validation
-      if (!user?.id) {
-        throw new Error("User ID not available");
-      }
+      if (!user?.id) throw new Error("User not authenticated");
       
       const { error } = await supabase
         .from('rounds')
         .delete()
         .eq('id', roundId)
-        .eq('user_id', user.id);
+        .eq('user_id', user.id); // Ensure user can only delete their own rounds
       
-      if (error) {
-        console.error("Error deleting round:", error);
-        throw error;
-      }
-      
-      console.log(`Successfully deleted round: ${roundId}`);
+      if (error) throw error;
       return roundId;
     },
-    onMutate: (roundId) => {
+    onMutate: async (roundId) => {
       setDeletingRoundId(roundId);
       
       // Cancel any outgoing refetches
-      queryClient.cancelQueries({
-        queryKey: ['rounds', user?.id]
-      });
+      await queryClient.cancelQueries({ queryKey: ['rounds', user?.id] });
       
-      // Store the current rounds data
+      // Snapshot the previous value
       const previousRounds = queryClient.getQueryData(['rounds', user?.id]);
       
-      // Optimistically update UI by filtering out the deleted round
-      queryClient.setQueryData(['rounds', user?.id], (old: any) => {
-        if (!old || !Array.isArray(old)) return old;
-        return old.filter((round: any) => round.id !== roundId);
-      });
+      // Optimistically update the cache
+      queryClient.setQueryData(['rounds', user?.id], (old: any[]) => 
+        old?.filter(round => round.id !== roundId) || []
+      );
       
       return { previousRounds };
     },
     onSuccess: (roundId) => {
       toast({
-        title: "Success",
-        description: "Round deleted successfully",
+        title: "Round deleted successfully",
+        description: "The round has been removed from your history",
       });
       
-      // Invalidate both rounds and profile queries to ensure fresh data
-      queryClient.invalidateQueries({
-        queryKey: ['rounds', user?.id]
-      });
-      
-      queryClient.invalidateQueries({
-        queryKey: ['profile', user?.id]
-      });
+      // Force a refresh of both queries
+      queryClient.invalidateQueries({ queryKey: ['rounds', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['profile', user?.id] });
     },
-    onError: (error, roundId, context) => {
-      // Revert to the previous data on error
+    onError: (error, roundId, context: any) => {
+      // Revert to the previous state if there's an error
       if (context?.previousRounds) {
         queryClient.setQueryData(['rounds', user?.id], context.previousRounds);
       }
@@ -157,7 +133,6 @@ const Profile = () => {
     }
   });
 
-  // Handle round deletion
   const handleDeleteRound = (roundId: string) => {
     if (deletingRoundId) return; // Prevent multiple simultaneous deletions
     deleteRoundMutation.mutate(roundId);
