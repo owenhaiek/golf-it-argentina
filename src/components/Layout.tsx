@@ -1,7 +1,7 @@
 
 import { Outlet } from "react-router-dom";
 import { Navigation } from "./Navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { GolfLoader } from "./ui/GolfLoader";
 
 export const Layout = () => {
@@ -9,14 +9,13 @@ export const Layout = () => {
   const [startY, setStartY] = useState(0);
   const [pullDistance, setPullDistance] = useState(0);
   const [isPulling, setIsPulling] = useState(false);
+  const mainRef = useRef<HTMLElement>(null);
 
   // Improved pull-to-refresh functionality
   useEffect(() => {
     const handleTouchStart = (e: TouchEvent) => {
-      const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-      
       // Only start pull tracking if we're at the top of the page
-      if (scrollTop <= 0) {
+      if (mainRef.current && mainRef.current.scrollTop <= 5) {
         setStartY(e.touches[0].clientY);
         setIsPulling(true);
         setPullDistance(0);
@@ -26,24 +25,34 @@ export const Layout = () => {
     const handleTouchMove = (e: TouchEvent) => {
       if (!isPulling) return;
       
-      const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-      const currentY = e.touches[0].clientY;
-      
-      // Only activate pull if we're at the top of the page and pulling down
-      if (scrollTop <= 0 && currentY > startY) {
-        const newPullDistance = currentY - startY;
-        setPullDistance(newPullDistance);
+      // Only activate pull if we're at the top of the page
+      if (mainRef.current && mainRef.current.scrollTop <= 5) {
+        const currentY = e.touches[0].clientY;
         
-        // If we've pulled down far enough, trigger refresh
-        if (newPullDistance > 120 && !isRefreshing) {
-          setIsRefreshing(true);
-          e.preventDefault();
+        // Only count pulling down (not up)
+        if (currentY > startY) {
+          const newPullDistance = currentY - startY;
+          setPullDistance(newPullDistance);
           
-          // Simulate refresh after animation
-          setTimeout(() => {
-            window.location.reload();
-          }, 1200);
+          // Prevent default scrolling behavior when pulling down
+          if (newPullDistance > 10) {
+            e.preventDefault();
+          }
+          
+          // If we've pulled down far enough, trigger refresh
+          if (newPullDistance > 120 && !isRefreshing) {
+            setIsRefreshing(true);
+            
+            // Simulate refresh after animation
+            setTimeout(() => {
+              window.location.reload();
+            }, 1200);
+          }
         }
+      } else {
+        // If we've scrolled away from the top, cancel pulling
+        setIsPulling(false);
+        setPullDistance(0);
       }
     };
     
@@ -57,15 +66,18 @@ export const Layout = () => {
       }
     };
 
-    document.addEventListener('touchstart', handleTouchStart);
-    document.addEventListener('touchmove', handleTouchMove, { passive: false });
-    document.addEventListener('touchend', handleTouchEnd);
+    const mainElement = mainRef.current;
+    if (mainElement) {
+      mainElement.addEventListener('touchstart', handleTouchStart, { passive: true });
+      mainElement.addEventListener('touchmove', handleTouchMove, { passive: false });
+      mainElement.addEventListener('touchend', handleTouchEnd);
 
-    return () => {
-      document.removeEventListener('touchstart', handleTouchStart);
-      document.removeEventListener('touchmove', handleTouchMove);
-      document.removeEventListener('touchend', handleTouchEnd);
-    };
+      return () => {
+        mainElement.removeEventListener('touchstart', handleTouchStart);
+        mainElement.removeEventListener('touchmove', handleTouchMove);
+        mainElement.removeEventListener('touchend', handleTouchEnd);
+      };
+    }
   }, [startY, isPulling, pullDistance, isRefreshing]);
 
   // Enhanced fullscreen and mobile app experience
@@ -156,7 +168,7 @@ export const Layout = () => {
           </div>
         </div>
       )}
-      <main className="flex-1 overflow-y-auto pb-20 hide-scrollbar">
+      <main ref={mainRef} className="flex-1 overflow-y-auto pb-24 hide-scrollbar">
         <div className="container max-w-md mx-auto px-4 pt-6 animate-in">
           <Outlet />
         </div>

@@ -5,16 +5,16 @@ import { cn } from "@/lib/utils";
 
 export const Navigation = () => {
   return (
-    <div className="fixed bottom-0 left-0 right-0 px-6 py-6 flex justify-center pointer-events-none z-50">
-      <nav className="bg-primary rounded-[30px] shadow-lg pointer-events-auto w-full max-w-xl">
+    <div className="fixed bottom-0 left-0 right-0 z-50 px-4 py-3 pb-safe">
+      <nav className="bg-white/90 backdrop-blur-md rounded-2xl shadow-lg border border-muted/10 mx-auto max-w-xl">
         <ul className="flex items-center justify-between h-14 px-4">
           <NavItem to="/" icon={<Flag size={20} />} label="Home" />
           <NavItem 
             to="/add-round" 
             icon={<Plus size={24} />} 
             label="Add"
-            activeClassName="bg-white text-primary"
-            className="bg-accent text-primary rounded-full p-3 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-110 active:scale-95" 
+            activeClassName="bg-primary text-white"
+            className="bg-accent text-primary rounded-full p-3 shadow-md hover:shadow-lg transition-all duration-300 -mt-6 hover:scale-105 active:scale-95" 
           />
           <NavItem to="/profile" icon={<User size={20} />} label="Profile" />
         </ul>
@@ -41,11 +41,11 @@ const NavItem = ({
       to={to}
       className={({ isActive }) =>
         cn(
-          "flex items-center justify-center transition-all duration-300 ease-in-out px-8 py-3",
-          className || "rounded-full min-w-[4rem] relative overflow-hidden",
+          "flex items-center justify-center transition-all duration-300 ease-in-out p-2",
+          className || "rounded-xl min-w-[2.5rem] relative overflow-hidden",
           isActive 
-            ? (activeClassName || "text-white after:absolute after:inset-0 after:bg-white after:opacity-20 after:rounded-full") 
-            : "text-white/70 hover:text-white hover:bg-primary-light hover:rounded-full"
+            ? (activeClassName || "text-primary after:absolute after:inset-0 after:bg-primary/10 after:rounded-xl") 
+            : "text-muted-foreground hover:text-primary"
         )
       }
       aria-label={label}

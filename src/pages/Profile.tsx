@@ -131,12 +131,11 @@ const Profile = () => {
         description: "Round deleted successfully",
       });
       
-      // Invalidate rounds query to refetch the latest data
+      // Invalidate both rounds and profile queries to ensure fresh data
       queryClient.invalidateQueries({
         queryKey: ['rounds', user?.id]
       });
       
-      // Also invalidate profile to update handicap if needed
       queryClient.invalidateQueries({
         queryKey: ['profile', user?.id]
       });
@@ -151,11 +150,6 @@ const Profile = () => {
         title: "Error deleting round",
         description: error.message || "Something went wrong",
         variant: "destructive"
-      });
-      
-      // Force a refetch to ensure we're in sync with the server
-      queryClient.invalidateQueries({
-        queryKey: ['rounds', user?.id]
       });
     },
     onSettled: () => {
