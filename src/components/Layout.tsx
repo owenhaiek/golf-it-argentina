@@ -150,21 +150,22 @@ export const Layout = () => {
     <div className="fixed inset-0 flex flex-col bg-muted">
       {pullDistance > 0 && !isRefreshing && (
         <div 
-          className="absolute top-0 left-0 right-0 flex items-center justify-center z-40 pointer-events-none"
+          className="absolute top-0 left-0 right-0 flex items-center justify-center z-40 pointer-events-none transition-opacity duration-200"
           style={{ 
-            height: `${Math.min(pullDistance * 0.6, 80)}px`,
-            opacity: Math.min(pullDistance / 120, 0.7)
+            height: `${Math.min(pullDistance * 0.5, 60)}px`,
+            opacity: Math.min(pullDistance / 120, 0.5)
           }}
         >
-          <div className="w-6 h-6 rounded-full border-2 border-primary/60 border-t-transparent animate-spin" />
+          <div className="w-5 h-5 rounded-full border border-primary/40 border-t-transparent animate-spin" />
         </div>
       )}
       
       {isRefreshing && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-background/40 backdrop-blur-sm transition-all duration-200">
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-background/30 backdrop-blur-[2px] transition-all duration-200">
           <GolfLoader />
         </div>
       )}
+      
       <main ref={mainRef} className="flex-1 overflow-y-auto pb-16 hide-scrollbar">
         <div className="container max-w-md mx-auto px-4 pt-6 animate-in">
           <Outlet />
