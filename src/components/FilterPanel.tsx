@@ -52,7 +52,7 @@ const FilterPanel = ({
   return (
     <div className={`fixed inset-x-0 bottom-0 z-[150] transform transition-transform duration-300 ease-in-out ${isOpen ? "translate-y-0" : "translate-y-full"}`}>
       <div>
-        <Card className="rounded-t-xl border-b-0 pb-8 pt-4 shadow-lg bg-white py-[15px] px-[30px]">
+        <Card className="rounded-t-xl border-b-0 shadow-lg bg-white py-[15px] px-[30px]">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold">Filter Courses</h3>
             <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full">

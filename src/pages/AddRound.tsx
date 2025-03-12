@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
@@ -13,6 +13,7 @@ const AddRound = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [selectedCourse, setSelectedCourse] = useState<string>("");
   const [scores, setScores] = useState<number[]>(Array(18).fill(0));
   const [notes, setNotes] = useState("");
@@ -22,7 +23,7 @@ const AddRound = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('golf_courses')
-        .select('id, name, holes, hole_pars')
+        .select('id, name, holes, hole_pars, opening_hours')
         .order('name');
       if (error) throw error;
       return data || [];
@@ -37,6 +38,43 @@ const AddRound = () => {
     setScores(newScores);
   };
 
+  const addRoundMutation = useMutation({
+    mutationFn: async (data: {
+      user_id: string;
+      course_id: string;
+      score: number;
+      notes: string;
+      date: string;
+    }) => {
+      const { data: newRound, error } = await supabase
+        .from('rounds')
+        .insert(data)
+        .select('*')
+        .single();
+      
+      if (error) throw error;
+      return newRound;
+    },
+    onSuccess: () => {
+      // Invalidate the rounds query to refresh the rounds list
+      queryClient.invalidateQueries({ queryKey: ['userRounds'] });
+      
+      toast({
+        title: "Round saved successfully!",
+      });
+      
+      navigate('/profile');
+    },
+    onError: (error) => {
+      console.error('Error adding round:', error);
+      toast({
+        title: "Error saving round",
+        description: error instanceof Error ? error.message : "An unknown error occurred",
+        variant: "destructive",
+      });
+    }
+  });
+
   const handleSubmit = async () => {
     if (!selectedCourse) {
       toast({
@@ -46,31 +84,26 @@ const AddRound = () => {
       return;
     }
 
+    if (!user?.id) {
+      toast({
+        title: "You must be logged in to save a round",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const totalScore = scores.slice(0, selectedCourseData?.holes || 18).reduce((a, b) => a + b, 0);
     
     try {
-      const { error } = await supabase
-        .from('rounds')
-        .insert({
-          user_id: user?.id,
-          course_id: selectedCourse,
-          score: totalScore,
-          notes,
-          date: new Date().toISOString().split('T')[0] // Add today's date
-        });
-
-      if (error) throw error;
-
-      toast({
-        title: "Round saved successfully!",
+      addRoundMutation.mutate({
+        user_id: user.id,
+        course_id: selectedCourse,
+        score: totalScore,
+        notes,
+        date: new Date().toISOString().split('T')[0] // Add today's date
       });
-      
-      navigate('/profile');
     } catch (error) {
-      toast({
-        title: "Error saving round",
-        variant: "destructive",
-      });
+      // Error handling is done in the mutation callbacks
     }
   };
 
@@ -108,8 +141,9 @@ const AddRound = () => {
         <Button 
           onClick={handleSubmit} 
           className="w-full"
+          disabled={addRoundMutation.isPending}
         >
-          Save Round
+          {addRoundMutation.isPending ? 'Saving...' : 'Save Round'}
         </Button>
       </div>
     </div>

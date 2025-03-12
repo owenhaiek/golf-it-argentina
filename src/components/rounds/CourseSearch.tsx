@@ -3,13 +3,15 @@ import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Search } from "lucide-react";
+import { Search, Clock } from "lucide-react";
+import { isCurrentlyOpen, formatOpeningHours } from "@/utils/openingHours";
 
 interface Course {
   id: string;
   name: string;
   holes: number;
   hole_pars: number[];
+  opening_hours?: any;
 }
 
 interface CourseSearchProps {
@@ -74,21 +76,33 @@ const CourseSearch = ({
               const coursePar = course.hole_pars
                 ?.slice(0, course.holes)
                 .reduce((a, b) => a + (b || 0), 0) || 0;
+              
+              const open = isCurrentlyOpen(course.opening_hours);
+              
               return (
                 <Button
                   key={course.id}
                   variant={selectedCourse === course.id ? "default" : "outline"}
-                  className="w-full justify-between"
+                  className="w-full justify-between flex-col items-start p-3 h-auto"
                   onClick={() => {
                     onSelectCourse(course.id);
                     setSearchQuery("");
                     setShowCourses(false);
                   }}
                 >
-                  <span>{course.name}</span>
-                  <span className="text-sm text-muted-foreground">
-                    Par {coursePar}
-                  </span>
+                  <div className="flex justify-between w-full">
+                    <span className="font-semibold">{course.name}</span>
+                    <span className="text-sm text-muted-foreground">
+                      Par {coursePar}
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center gap-1 mt-1 text-xs">
+                    <Clock className="h-3 w-3" />
+                    <span className={open ? "text-green-500" : "text-muted-foreground"}>
+                      {open ? "Open now" : formatOpeningHours(course.opening_hours)}
+                    </span>
+                  </div>
                 </Button>
               );
             })}
