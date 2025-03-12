@@ -7,11 +7,13 @@ import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import FilterPanel from "@/components/FilterPanel";
+
 type FilterOptions = {
   holes: string;
   location: string;
   isOpen: boolean;
 };
+
 const Home = () => {
   const [search, setSearch] = useState("");
   const [isSearchVisible, setIsSearchVisible] = useState(false);
@@ -23,17 +25,17 @@ const Home = () => {
   });
   const [currentTime, setCurrentTime] = useState<Date>(new Date());
 
-  // Update current time every minute
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
     }, 60000);
     return () => clearInterval(timer);
   }, []);
+
   const isGolfCourseOpen = (openHours: string | null): boolean => {
     if (!openHours) return false;
     try {
-      const today = currentTime.getDay(); // 0 = Sunday, 1 = Monday, ...
+      const today = currentTime.getDay();
       const hours = JSON.parse(openHours);
       if (!hours[today] || !hours[today].isOpen) return false;
       const {
@@ -54,6 +56,7 @@ const Home = () => {
       return false;
     }
   };
+
   const formatOpeningHours = (openHours: string | null): string => {
     if (!openHours) return "Hours not available";
     try {
@@ -67,6 +70,7 @@ const Home = () => {
       return "Hours not available";
     }
   };
+
   const {
     data: courses,
     isLoading
@@ -78,7 +82,6 @@ const Home = () => {
         query = query.ilike('name', `%${search}%`);
       }
 
-      // Apply filters
       if (filters.holes) {
         query = query.eq('holes', parseInt(filters.holes));
       }
@@ -91,16 +94,17 @@ const Home = () => {
       } = await query;
       if (error) throw error;
 
-      // Filter by open status if needed (client-side filtering)
       if (filters.isOpen) {
         return data.filter(course => isGolfCourseOpen(course.opening_hours));
       }
       return data;
     }
   });
+
   const handleApplyFilters = (newFilters: FilterOptions) => {
     setFilters(newFilters);
   };
+
   const handleResetFilters = () => {
     setFilters({
       holes: "",
@@ -109,7 +113,9 @@ const Home = () => {
     });
     setSearch("");
   };
+
   const hasActiveFilters = filters.holes || filters.location || filters.isOpen;
+
   return <div className="space-y-4 -mt-6 -mx-4">
       <div className="flex items-center justify-between px-4 pt-6">
         <h1 className="text-2xl font-bold">Golf Courses</h1>
@@ -124,7 +130,6 @@ const Home = () => {
           <Input type="text" placeholder="Search courses..." value={search} onChange={e => setSearch(e.target.value)} className="w-full" />
         </div>}
 
-      {/* Active filters indicator with reset button */}
       {hasActiveFilters && <div className="px-4">
           <div className="flex justify-between items-center">
             <div className="flex flex-wrap gap-2">
@@ -145,10 +150,9 @@ const Home = () => {
           </div>
         </div>}
 
-      <div className="space-y-6">
+      <div className="space-y-6 pb-20">
         {isLoading ?
-      // Loading skeleton
-      [1, 2, 3].map(i => <Card key={i} className="overflow-hidden rounded-none border-x-0">
+          [1, 2, 3].map(i => <Card key={i} className="overflow-hidden rounded-none border-x-0">
               <CardContent className="p-0">
                 <div className="animate-pulse space-y-3">
                   <div className="h-48 bg-secondary/20" />
@@ -208,13 +212,21 @@ const Home = () => {
           </div>}
       </div>
 
-      {/* Floating filter button - adjusted position to be higher */}
-      <Button onClick={() => setIsFilterPanelOpen(true)} size="icon" className="fixed right-4 bottom-24 h-12 w-12 rounded-full shadow-lg py-0 my-0">
+      <Button 
+        onClick={() => setIsFilterPanelOpen(true)} 
+        size="icon" 
+        className="fixed right-4 bottom-24 h-12 w-12 rounded-full shadow-lg py-0 my-0 z-[60]"
+      >
         <Filter size={20} />
       </Button>
 
-      {/* Filter Panel */}
-      <FilterPanel isOpen={isFilterPanelOpen} onClose={() => setIsFilterPanelOpen(false)} onApplyFilters={handleApplyFilters} currentFilters={filters} />
+      <FilterPanel 
+        isOpen={isFilterPanelOpen} 
+        onClose={() => setIsFilterPanelOpen(false)} 
+        onApplyFilters={handleApplyFilters} 
+        currentFilters={filters} 
+      />
     </div>;
 };
+
 export default Home;

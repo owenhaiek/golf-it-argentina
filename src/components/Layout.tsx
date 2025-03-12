@@ -123,7 +123,9 @@ export const Layout = () => {
         className="flex-1 overflow-y-auto pb-16 hide-scrollbar"
         style={{
           height: '100%',
-          WebkitOverflowScrolling: 'touch'
+          WebkitOverflowScrolling: 'touch',
+          position: 'relative',
+          zIndex: 1
         }}
       >
         <div className="container max-w-md mx-auto px-4 pt-6 animate-in">
