@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import CourseSearch from "@/components/rounds/CourseSearch";
 import ScoreCard from "@/components/rounds/ScoreCard";
 
@@ -13,6 +14,7 @@ const AddRound = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
   const [selectedCourse, setSelectedCourse] = useState<string>("");
   const [scores, setScores] = useState<number[]>(Array(18).fill(0));
@@ -60,7 +62,7 @@ const AddRound = () => {
       queryClient.invalidateQueries({ queryKey: ['userRounds'] });
       
       toast({
-        title: "Round saved successfully!",
+        title: t("addRound", "saveSuccess"),
       });
       
       navigate('/profile');
@@ -68,7 +70,7 @@ const AddRound = () => {
     onError: (error) => {
       console.error('Error adding round:', error);
       toast({
-        title: "Error saving round",
+        title: t("common", "error"),
         description: error instanceof Error ? error.message : "An unknown error occurred",
         variant: "destructive",
       });
@@ -78,7 +80,7 @@ const AddRound = () => {
   const handleSubmit = async () => {
     if (!selectedCourse) {
       toast({
-        title: "Please select a course",
+        title: t("addRound", "selectCourseError"),
         variant: "destructive",
       });
       return;
@@ -86,7 +88,7 @@ const AddRound = () => {
 
     if (!user?.id) {
       toast({
-        title: "You must be logged in to save a round",
+        title: t("addRound", "loginError"),
         variant: "destructive",
       });
       return;
@@ -120,7 +122,7 @@ const AddRound = () => {
 
   return (
     <div className="space-y-6 pb-28">
-      <h1 className="text-2xl font-bold">Add Round Score</h1>
+      <h1 className="text-2xl font-bold">{t("addRound", "title")}</h1>
 
       <CourseSearch 
         courses={courses}
@@ -143,7 +145,7 @@ const AddRound = () => {
           className="w-full"
           disabled={addRoundMutation.isPending}
         >
-          {addRoundMutation.isPending ? 'Saving...' : 'Save Round'}
+          {addRoundMutation.isPending ? t("addRound", "saving") : t("addRound", "saveRound")}
         </Button>
       </div>
     </div>

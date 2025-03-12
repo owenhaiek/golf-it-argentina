@@ -13,18 +13,16 @@ import {
   SheetTitle, 
   SheetTrigger 
 } from "@/components/ui/sheet";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Settings = () => {
   const { toast } = useToast();
-  const [language, setLanguage] = useState("en");
+  const { language, setLanguage, t } = useLanguage();
   const [darkMode, setDarkMode] = useState(false);
 
-  // Initialize settings from localStorage on component mount
+  // Initialize dark mode from localStorage on component mount
   useEffect(() => {
-    const savedLanguage = localStorage.getItem("language") || "en";
     const savedDarkMode = localStorage.getItem("darkMode") === "true";
-    
-    setLanguage(savedLanguage);
     setDarkMode(savedDarkMode);
     
     // Apply dark mode if saved
@@ -38,7 +36,6 @@ const Settings = () => {
   // Handle language change
   const handleLanguageChange = (lang: string) => {
     setLanguage(lang);
-    localStorage.setItem("language", lang);
     
     toast({
       title: lang === "en" ? "Language changed to English" : "Idioma cambiado a Español",
@@ -68,32 +65,7 @@ const Settings = () => {
     });
   };
 
-  // Content texts based on language
-  const texts = {
-    settings: language === "en" ? "Settings" : "Ajustes",
-    language: language === "en" ? "Language" : "Idioma",
-    english: language === "en" ? "English" : "Inglés",
-    spanish: language === "en" ? "Spanish" : "Español",
-    darkMode: language === "en" ? "Dark Mode" : "Modo Oscuro",
-    privacy: language === "en" ? "Privacy Policy" : "Política de Privacidad",
-    terms: language === "en" ? "Terms & Conditions" : "Términos y Condiciones",
-    help: language === "en" ? "Help & Support" : "Ayuda y Soporte",
-    view: language === "en" ? "View" : "Ver",
-    privacyContent: language === "en" 
-      ? "Our Privacy Policy explains how we collect, use, and protect your information." 
-      : "Nuestra Política de Privacidad explica cómo recopilamos, usamos y protegemos su información.",
-    termsContent: language === "en" 
-      ? "By using our app, you agree to our Terms and Conditions of use." 
-      : "Al usar nuestra aplicación, acepta nuestros Términos y Condiciones de uso.",
-    helpContent: language === "en" 
-      ? "Need help? Check our FAQ or contact our support team." 
-      : "¿Necesita ayuda? Consulte nuestras preguntas frecuentes o contacte a nuestro equipo de soporte.",
-    privacyTitle: language === "en" ? "Privacy Policy" : "Política de Privacidad",
-    termsTitle: language === "en" ? "Terms & Conditions" : "Términos y Condiciones",
-    helpTitle: language === "en" ? "Help & Support" : "Ayuda y Soporte",
-    close: language === "en" ? "Close" : "Cerrar"
-  };
-
+  // Content texts for specific screens
   const privacyPolicyContent = language === "en" 
     ? `# Privacy Policy
     
@@ -204,7 +176,9 @@ Si necesita más ayuda, comuníquese con nuestro equipo de soporte en:
     <div className="max-w-7xl mx-auto animate-fadeIn">
       <div className="flex items-center mb-6 gap-2 px-4">
         <SettingsIcon className="text-primary h-6 w-6" />
-        <h1 className="text-2xl font-bold text-primary">{texts.settings}</h1>
+        <h1 className="text-2xl font-bold text-primary">
+          {language === "en" ? "Settings" : "Ajustes"}
+        </h1>
       </div>
       
       <div className="flex flex-col gap-4">
@@ -213,7 +187,7 @@ Si necesita más ayuda, comuníquese con nuestro equipo de soporte en:
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-lg">
               <Languages size={18} className="text-primary" />
-              {texts.language}
+              {language === "en" ? "Language" : "Idioma"}
             </CardTitle>
           </CardHeader>
           <CardContent className="flex gap-2">
@@ -223,7 +197,7 @@ Si necesita más ayuda, comuníquese con nuestro equipo de soporte en:
               onClick={() => handleLanguageChange("en")}
               className="flex-1"
             >
-              {texts.english}
+              {language === "en" ? "English" : "Inglés"}
             </Button>
             <Button 
               variant={language === "es" ? "default" : "outline"} 
@@ -231,7 +205,7 @@ Si necesita más ayuda, comuníquese con nuestro equipo de soporte en:
               onClick={() => handleLanguageChange("es")}
               className="flex-1"
             >
-              {texts.spanish}
+              {language === "en" ? "Spanish" : "Español"}
             </Button>
           </CardContent>
         </Card>
@@ -246,7 +220,7 @@ Si necesita más ayuda, comuníquese con nuestro equipo de soporte en:
                 ) : (
                   <Sun size={18} className="text-primary" />
                 )}
-                <span>{texts.darkMode}</span>
+                <span>{language === "en" ? "Dark Mode" : "Modo Oscuro"}</span>
               </div>
               <Switch 
                 checked={darkMode} 
@@ -264,15 +238,19 @@ Si necesita más ayuda, comuníquese con nuestro equipo de soporte en:
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Shield size={18} className="text-primary" />
-                <span>{texts.privacy}</span>
+                <span>{language === "en" ? "Privacy Policy" : "Política de Privacidad"}</span>
               </div>
               <Sheet>
                 <SheetTrigger asChild>
-                  <Button variant="outline" size="sm">{texts.view}</Button>
+                  <Button variant="outline" size="sm">
+                    {language === "en" ? "View" : "Ver"}
+                  </Button>
                 </SheetTrigger>
                 <SheetContent className="overflow-auto max-w-full w-full sm:max-w-xl">
                   <SheetHeader>
-                    <SheetTitle>{texts.privacyTitle}</SheetTitle>
+                    <SheetTitle>
+                      {language === "en" ? "Privacy Policy" : "Política de Privacidad"}
+                    </SheetTitle>
                   </SheetHeader>
                   <div className="mt-4 prose prose-sm max-w-none">
                     <pre className="whitespace-pre-wrap text-sm">{privacyPolicyContent}</pre>
@@ -285,13 +263,17 @@ Si necesita más ayuda, comuníquese con nuestro equipo de soporte en:
                         new MouseEvent('click', { bubbles: true })
                       )}
                     >
-                      {texts.close}
+                      {language === "en" ? "Close" : "Cerrar"}
                     </Button>
                   </div>
                 </SheetContent>
               </Sheet>
             </div>
-            <p className="text-sm text-muted-foreground mt-2">{texts.privacyContent}</p>
+            <p className="text-sm text-muted-foreground mt-2">
+              {language === "en" 
+                ? "Our Privacy Policy explains how we collect, use, and protect your information." 
+                : "Nuestra Política de Privacidad explica cómo recopilamos, usamos y protegemos su información."}
+            </p>
           </CardContent>
         </Card>
         
@@ -301,15 +283,19 @@ Si necesita más ayuda, comuníquese con nuestro equipo de soporte en:
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <FileText size={18} className="text-primary" />
-                <span>{texts.terms}</span>
+                <span>{language === "en" ? "Terms & Conditions" : "Términos y Condiciones"}</span>
               </div>
               <Sheet>
                 <SheetTrigger asChild>
-                  <Button variant="outline" size="sm">{texts.view}</Button>
+                  <Button variant="outline" size="sm">
+                    {language === "en" ? "View" : "Ver"}
+                  </Button>
                 </SheetTrigger>
                 <SheetContent className="overflow-auto max-w-full w-full sm:max-w-xl">
                   <SheetHeader>
-                    <SheetTitle>{texts.termsTitle}</SheetTitle>
+                    <SheetTitle>
+                      {language === "en" ? "Terms & Conditions" : "Términos y Condiciones"}
+                    </SheetTitle>
                   </SheetHeader>
                   <div className="mt-4 prose prose-sm max-w-none">
                     <pre className="whitespace-pre-wrap text-sm">{termsContent}</pre>
@@ -322,13 +308,17 @@ Si necesita más ayuda, comuníquese con nuestro equipo de soporte en:
                         new MouseEvent('click', { bubbles: true })
                       )}
                     >
-                      {texts.close}
+                      {language === "en" ? "Close" : "Cerrar"}
                     </Button>
                   </div>
                 </SheetContent>
               </Sheet>
             </div>
-            <p className="text-sm text-muted-foreground mt-2">{texts.termsContent}</p>
+            <p className="text-sm text-muted-foreground mt-2">
+              {language === "en" 
+                ? "By using our app, you agree to our Terms and Conditions of use." 
+                : "Al usar nuestra aplicación, acepta nuestros Términos y Condiciones de uso."}
+            </p>
           </CardContent>
         </Card>
         
@@ -338,15 +328,19 @@ Si necesita más ayuda, comuníquese con nuestro equipo de soporte en:
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <HelpCircle size={18} className="text-primary" />
-                <span>{texts.help}</span>
+                <span>{language === "en" ? "Help & Support" : "Ayuda y Soporte"}</span>
               </div>
               <Sheet>
                 <SheetTrigger asChild>
-                  <Button variant="outline" size="sm">{texts.view}</Button>
+                  <Button variant="outline" size="sm">
+                    {language === "en" ? "View" : "Ver"}
+                  </Button>
                 </SheetTrigger>
                 <SheetContent className="overflow-auto max-w-full w-full sm:max-w-xl">
                   <SheetHeader>
-                    <SheetTitle>{texts.helpTitle}</SheetTitle>
+                    <SheetTitle>
+                      {language === "en" ? "Help & Support" : "Ayuda y Soporte"}
+                    </SheetTitle>
                   </SheetHeader>
                   <div className="mt-4 prose prose-sm max-w-none">
                     <pre className="whitespace-pre-wrap text-sm">{helpContent}</pre>
@@ -359,13 +353,17 @@ Si necesita más ayuda, comuníquese con nuestro equipo de soporte en:
                         new MouseEvent('click', { bubbles: true })
                       )}
                     >
-                      {texts.close}
+                      {language === "en" ? "Close" : "Cerrar"}
                     </Button>
                   </div>
                 </SheetContent>
               </Sheet>
             </div>
-            <p className="text-sm text-muted-foreground mt-2">{texts.helpContent}</p>
+            <p className="text-sm text-muted-foreground mt-2">
+              {language === "en" 
+                ? "Need help? Check our FAQ or contact our support team." 
+                : "¿Necesita ayuda? Consulte nuestras preguntas frecuentes o contacte a nuestro equipo de soporte."}
+            </p>
           </CardContent>
         </Card>
         

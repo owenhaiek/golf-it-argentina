@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Search, Clock } from "lucide-react";
 import { isCurrentlyOpen, formatOpeningHours } from "@/utils/openingHours";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Course {
   id: string;
@@ -29,6 +30,7 @@ const CourseSearch = ({
 }: CourseSearchProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [showCourses, setShowCourses] = useState(false);
+  const { t } = useLanguage();
 
   const selectedCourseData = courses?.find(course => course.id === selectedCourse);
 
@@ -45,14 +47,14 @@ const CourseSearch = ({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Select Course</CardTitle>
+        <CardTitle>{t("addRound", "selectCourse")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="relative">
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             type="text"
-            placeholder="Search for a course..."
+            placeholder={t("addRound", "searchPlaceholder")}
             value={selectedCourseData ? selectedCourseData.name : searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);
@@ -93,14 +95,14 @@ const CourseSearch = ({
                   <div className="flex justify-between w-full">
                     <span className="font-semibold">{course.name}</span>
                     <span className="text-sm text-muted-foreground">
-                      Par {coursePar}
+                      {t("addRound", "par")} {coursePar}
                     </span>
                   </div>
                   
                   <div className="flex items-center gap-1 mt-1 text-xs">
                     <Clock className="h-3 w-3" />
                     <span className={open ? "text-green-500" : "text-muted-foreground"}>
-                      {open ? "Open now" : formatOpeningHours(course.opening_hours)}
+                      {open ? t("addRound", "openNow") : formatOpeningHours(course.opening_hours)}
                     </span>
                   </div>
                 </Button>
@@ -110,7 +112,7 @@ const CourseSearch = ({
         )}
         {showCourses && filteredCourses.length === 0 && (
           <div className="text-center text-muted-foreground py-4">
-            No courses found
+            {t("addRound", "noCoursesFound")}
           </div>
         )}
       </CardContent>
