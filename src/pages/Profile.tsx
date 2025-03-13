@@ -6,7 +6,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import ProfileCard from "@/components/profile/ProfileCard";
 import RecentRounds from "@/components/profile/RecentRounds";
 import { User, Loader } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 
 const Profile = () => {
@@ -14,7 +14,17 @@ const Profile = () => {
   const { t } = useLanguage();
   const { toast } = useToast();
   const [deletingRoundId, setDeletingRoundId] = useState<string | null>(null);
+  const [deletedRoundIds, setDeletedRoundIds] = useState<string[]>(() => {
+    // Initialize from localStorage to persist between page refreshes
+    const saved = localStorage.getItem('deletedRoundIds');
+    return saved ? JSON.parse(saved) : [];
+  });
   const queryClient = useQueryClient();
+
+  // Save deletedRoundIds to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('deletedRoundIds', JSON.stringify(deletedRoundIds));
+  }, [deletedRoundIds]);
 
   // Profile Query - Fetch user profile data
   const {
@@ -72,7 +82,8 @@ const Profile = () => {
         throw error;
       }
       
-      return data || [];
+      // Filter out any rounds that are in our deletedRoundIds list
+      return (data || []).filter(round => !deletedRoundIds.includes(round.id));
     },
     enabled: !!user?.id,
     // Don't automatically refresh data on window focus to prevent flashing of deleted items
@@ -114,6 +125,9 @@ const Profile = () => {
         title: t("profile", "deleteRoundSuccess"),
         description: t("profile", "deleteRoundDescription"),
       });
+      
+      // Add the deleted round ID to our tracking array to persist between refreshes
+      setDeletedRoundIds(prev => [...prev, roundId]);
       
       // After successful deletion, invalidate and refetch both query caches
       // This ensures profile data (like handicap) is also updated
