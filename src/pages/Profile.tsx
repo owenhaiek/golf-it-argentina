@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
@@ -74,8 +75,8 @@ const Profile = () => {
       return data || [];
     },
     enabled: !!user?.id,
-    staleTime: 0,
-    refetchOnWindowFocus: true
+    // Don't automatically refresh data on window focus to prevent flashing of deleted items
+    refetchOnWindowFocus: false
   });
 
   // Delete round mutation with improved error handling and optimistic updates
@@ -95,15 +96,15 @@ const Profile = () => {
     onMutate: async (roundId) => {
       setDeletingRoundId(roundId);
       
-      // Cancel any outgoing refetches
+      // Cancel any outgoing refetches to prevent them from overwriting our optimistic update
       await queryClient.cancelQueries({ queryKey: ['rounds', user?.id] });
       
       // Snapshot the previous value
       const previousRounds = queryClient.getQueryData(['rounds', user?.id]);
       
-      // Optimistically update the cache
-      queryClient.setQueryData(['rounds', user?.id], (old: any[]) => 
-        old?.filter(round => round.id !== roundId) || []
+      // Optimistically update the cache by removing the deleted round
+      queryClient.setQueryData(['rounds', user?.id], (old: any[] = []) => 
+        old.filter(round => round.id !== roundId) || []
       );
       
       return { previousRounds };
@@ -114,9 +115,15 @@ const Profile = () => {
         description: t("profile", "deleteRoundDescription"),
       });
       
-      // Force a refresh of both queries
-      queryClient.invalidateQueries({ queryKey: ['rounds', user?.id] });
+      // After successful deletion, invalidate and refetch both query caches
+      // This ensures profile data (like handicap) is also updated
       queryClient.invalidateQueries({ queryKey: ['profile', user?.id] });
+      
+      // Important: Make sure our cache data stays consistent with server
+      // Set refetchInterval to false to prevent automatic refetching
+      queryClient.setQueryDefaults(['rounds', user?.id], {
+        refetchInterval: false
+      });
     },
     onError: (error, roundId, context: any) => {
       // Revert to the previous state if there's an error
