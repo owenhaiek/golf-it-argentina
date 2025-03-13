@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Settings as SettingsIcon, Moon, Sun, Languages, Shield, FileText, HelpCircle } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
@@ -11,7 +10,8 @@ import {
   SheetContent, 
   SheetHeader, 
   SheetTitle, 
-  SheetTrigger 
+  SheetTrigger,
+  SheetClose
 } from "@/components/ui/sheet";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -20,12 +20,10 @@ const Settings = () => {
   const { language, setLanguage, t } = useLanguage();
   const [darkMode, setDarkMode] = useState(false);
 
-  // Initialize dark mode from localStorage on component mount
   useEffect(() => {
     const savedDarkMode = localStorage.getItem("darkMode") === "true";
     setDarkMode(savedDarkMode);
     
-    // Apply dark mode if saved
     if (savedDarkMode) {
       document.documentElement.classList.add("dark");
     } else {
@@ -33,7 +31,6 @@ const Settings = () => {
     }
   }, []);
 
-  // Handle language change
   const handleLanguageChange = (lang: string) => {
     setLanguage(lang);
     
@@ -43,7 +40,6 @@ const Settings = () => {
     });
   };
 
-  // Handle dark mode toggle
   const handleDarkModeToggle = () => {
     const newDarkMode = !darkMode;
     setDarkMode(newDarkMode);
@@ -65,7 +61,6 @@ const Settings = () => {
     });
   };
 
-  // Content texts for specific screens
   const privacyPolicyContent = language === "en" 
     ? `# Privacy Policy
     
@@ -246,8 +241,8 @@ Si necesita más ayuda, comuníquese con nuestro equipo de soporte en:
                     {language === "en" ? "View" : "Ver"}
                   </Button>
                 </SheetTrigger>
-                <SheetContent className="overflow-auto max-w-full w-full sm:max-w-xl">
-                  <SheetHeader>
+                <SheetContent className="overflow-auto max-w-full w-full sm:max-w-xl pt-safe">
+                  <SheetHeader className="pt-12 sm:pt-6">
                     <SheetTitle>
                       {language === "en" ? "Privacy Policy" : "Política de Privacidad"}
                     </SheetTitle>
@@ -255,16 +250,15 @@ Si necesita más ayuda, comuníquese con nuestro equipo de soporte en:
                   <div className="mt-4 prose prose-sm max-w-none">
                     <pre className="whitespace-pre-wrap text-sm">{privacyPolicyContent}</pre>
                   </div>
-                  <div className="mt-6">
-                    <Button 
-                      variant="secondary" 
-                      className="w-full"
-                      onClick={() => document.querySelector('[data-radix-collection-item]')?.dispatchEvent(
-                        new MouseEvent('click', { bubbles: true })
-                      )}
-                    >
-                      {language === "en" ? "Close" : "Cerrar"}
-                    </Button>
+                  <div className="mt-6 pb-6">
+                    <SheetClose asChild>
+                      <Button 
+                        variant="secondary" 
+                        className="w-full"
+                      >
+                        {language === "en" ? "Close" : "Cerrar"}
+                      </Button>
+                    </SheetClose>
                   </div>
                 </SheetContent>
               </Sheet>
@@ -291,8 +285,8 @@ Si necesita más ayuda, comuníquese con nuestro equipo de soporte en:
                     {language === "en" ? "View" : "Ver"}
                   </Button>
                 </SheetTrigger>
-                <SheetContent className="overflow-auto max-w-full w-full sm:max-w-xl">
-                  <SheetHeader>
+                <SheetContent className="overflow-auto max-w-full w-full sm:max-w-xl pt-safe">
+                  <SheetHeader className="pt-12 sm:pt-6">
                     <SheetTitle>
                       {language === "en" ? "Terms & Conditions" : "Términos y Condiciones"}
                     </SheetTitle>
@@ -300,16 +294,15 @@ Si necesita más ayuda, comuníquese con nuestro equipo de soporte en:
                   <div className="mt-4 prose prose-sm max-w-none">
                     <pre className="whitespace-pre-wrap text-sm">{termsContent}</pre>
                   </div>
-                  <div className="mt-6">
-                    <Button 
-                      variant="secondary" 
-                      className="w-full"
-                      onClick={() => document.querySelector('[data-radix-collection-item]')?.dispatchEvent(
-                        new MouseEvent('click', { bubbles: true })
-                      )}
-                    >
-                      {language === "en" ? "Close" : "Cerrar"}
-                    </Button>
+                  <div className="mt-6 pb-6">
+                    <SheetClose asChild>
+                      <Button 
+                        variant="secondary" 
+                        className="w-full"
+                      >
+                        {language === "en" ? "Close" : "Cerrar"}
+                      </Button>
+                    </SheetClose>
                   </div>
                 </SheetContent>
               </Sheet>
@@ -336,8 +329,8 @@ Si necesita más ayuda, comuníquese con nuestro equipo de soporte en:
                     {language === "en" ? "View" : "Ver"}
                   </Button>
                 </SheetTrigger>
-                <SheetContent className="overflow-auto max-w-full w-full sm:max-w-xl">
-                  <SheetHeader>
+                <SheetContent className="overflow-auto max-w-full w-full sm:max-w-xl pt-safe">
+                  <SheetHeader className="pt-12 sm:pt-6">
                     <SheetTitle>
                       {language === "en" ? "Help & Support" : "Ayuda y Soporte"}
                     </SheetTitle>
@@ -345,16 +338,15 @@ Si necesita más ayuda, comuníquese con nuestro equipo de soporte en:
                   <div className="mt-4 prose prose-sm max-w-none">
                     <pre className="whitespace-pre-wrap text-sm">{helpContent}</pre>
                   </div>
-                  <div className="mt-6">
-                    <Button 
-                      variant="secondary" 
-                      className="w-full"
-                      onClick={() => document.querySelector('[data-radix-collection-item]')?.dispatchEvent(
-                        new MouseEvent('click', { bubbles: true })
-                      )}
-                    >
-                      {language === "en" ? "Close" : "Cerrar"}
-                    </Button>
+                  <div className="mt-6 pb-6">
+                    <SheetClose asChild>
+                      <Button 
+                        variant="secondary" 
+                        className="w-full"
+                      >
+                        {language === "en" ? "Close" : "Cerrar"}
+                      </Button>
+                    </SheetClose>
                   </div>
                 </SheetContent>
               </Sheet>

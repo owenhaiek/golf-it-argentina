@@ -54,10 +54,26 @@ const MetaTagsForMobile = () => {
     metaStatusBar.content = 'black-translucent';
     document.head.appendChild(metaStatusBar);
     
+    // Additional meta tag for Android
+    const metaThemeColor = document.createElement('meta');
+    metaThemeColor.name = 'theme-color';
+    metaThemeColor.content = '#000000';
+    document.head.appendChild(metaThemeColor);
+    
+    // Fix for iOS height calculation
+    const setAppHeight = () => {
+      document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
+    };
+    
+    window.addEventListener('resize', setAppHeight);
+    setAppHeight();
+    
     return () => {
       document.head.removeChild(metaViewport);
       document.head.removeChild(metaApple);
       document.head.removeChild(metaStatusBar);
+      document.head.removeChild(metaThemeColor);
+      window.removeEventListener('resize', setAppHeight);
     };
   }, []);
   
