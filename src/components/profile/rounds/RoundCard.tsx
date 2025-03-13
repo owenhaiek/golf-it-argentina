@@ -5,23 +5,7 @@ import { Loader2, Trash2, Calendar, Trophy, MapPin, Flag, Plus, Minus, Check } f
 import { motion } from "framer-motion";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useLanguage } from "@/contexts/LanguageContext";
-
-interface Round {
-  id: string;
-  score: number;
-  created_at: string;
-  date: string;
-  golf_courses: {
-    name: string;
-    hole_pars: number[];
-    holes: number;
-    image_url?: string;
-    address?: string;
-    city?: string;
-    state?: string;
-    par?: number;
-  };
-}
+import { Round } from "./types";
 
 interface RoundCardProps {
   round: Round;

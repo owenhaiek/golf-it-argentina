@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
@@ -42,6 +43,7 @@ const Profile = () => {
   const {
     data: rounds,
     isLoading: roundsLoading,
+    refetch: refetchRounds
   } = useQuery({
     queryKey: ['rounds', user?.id],
     queryFn: async () => {
@@ -78,9 +80,7 @@ const Profile = () => {
     },
     enabled: !!user?.id,
     staleTime: 0,
-    refetchOnMount: true,
-    refetchOnReconnect: true,
-    refetchOnWindowFocus: true
+    gcTime: 0 // Don't cache the data at all
   });
 
   // Delete round mutation
@@ -105,21 +105,11 @@ const Profile = () => {
       return roundId;
     },
     onMutate: (roundId) => {
-      console.log(`Optimistically updating UI for round ${roundId}`);
+      console.log(`Setting UI state for round ${roundId} deletion`);
       setDeletingRoundId(roundId);
-      
-      // Snapshot the current rounds
-      const previousRounds = queryClient.getQueryData(['rounds', user?.id]);
-      
-      // Optimistically update to remove the round from UI
-      queryClient.setQueryData(['rounds', user?.id], (old: any[] = []) => 
-        old.filter(round => round.id !== roundId)
-      );
-      
-      return { previousRounds };
     },
     onSuccess: async (roundId) => {
-      console.log(`Round ${roundId} successfully deleted, updating queries`);
+      console.log(`Round ${roundId} successfully deleted, updating UI`);
       
       // Show success toast
       toast({
@@ -127,28 +117,18 @@ const Profile = () => {
         description: t("profile", "deleteRoundDescription"),
       });
       
-      // First invalidate and update profile data (includes handicap)
-      await queryClient.invalidateQueries({ queryKey: ['profile', user?.id] });
+      // Immediately clear all query cache related to rounds
+      queryClient.removeQueries({ queryKey: ['rounds', user?.id] });
       
-      // The key step: completely remove the rounds query and refetch
-      // This forces a complete refetch from the server
-      queryClient.resetQueries({ queryKey: ['rounds', user?.id] });
+      // Invalidate profile data (includes handicap)
+      queryClient.invalidateQueries({ queryKey: ['profile', user?.id] });
       
-      // After a short delay, force a new fetch to ensure we get latest data
-      setTimeout(() => {
-        console.log("Forcing refetch of all rounds data");
-        queryClient.invalidateQueries({ 
-          queryKey: ['rounds'],
-          refetchType: 'all'
-        });
-      }, 300);
+      // Force a new fetch of rounds data
+      console.log("Forcing refetch of rounds data");
+      refetchRounds();
     },
-    onError: (error, roundId, context: any) => {
-      console.error(`Error deleting round ${roundId}:`, error);
-      // Revert to previous state on error
-      if (context?.previousRounds) {
-        queryClient.setQueryData(['rounds', user?.id], context.previousRounds);
-      }
+    onError: (error) => {
+      console.error(`Error deleting round:`, error);
       
       toast({
         title: t("profile", "deleteRoundError"),
