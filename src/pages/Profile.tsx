@@ -6,7 +6,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import ProfileCard from "@/components/profile/ProfileCard";
 import RecentRounds from "@/components/profile/RecentRounds";
 import { User, Loader } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 
 const Profile = () => {
@@ -14,17 +14,7 @@ const Profile = () => {
   const { t } = useLanguage();
   const { toast } = useToast();
   const [deletingRoundId, setDeletingRoundId] = useState<string | null>(null);
-  const [deletedRoundIds, setDeletedRoundIds] = useState<string[]>(() => {
-    // Initialize from localStorage to persist between page refreshes
-    const saved = localStorage.getItem('deletedRoundIds');
-    return saved ? JSON.parse(saved) : [];
-  });
   const queryClient = useQueryClient();
-
-  // Save deletedRoundIds to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem('deletedRoundIds', JSON.stringify(deletedRoundIds));
-  }, [deletedRoundIds]);
 
   // Profile Query - Fetch user profile data
   const {
@@ -82,15 +72,14 @@ const Profile = () => {
         throw error;
       }
       
-      // Filter out any rounds that are in our deletedRoundIds list
-      return (data || []).filter(round => !deletedRoundIds.includes(round.id));
+      return data || [];
     },
     enabled: !!user?.id,
-    // Don't automatically refresh data on window focus to prevent flashing of deleted items
-    refetchOnWindowFocus: false
+    staleTime: 0, // Consider data always stale to force refetch
+    refetchOnWindowFocus: true // Refetch on window focus to ensure data is up-to-date
   });
 
-  // Delete round mutation with improved error handling and optimistic updates
+  // Delete round mutation with improved error handling and database deletion
   const deleteRoundMutation = useMutation({
     mutationFn: async (roundId: string) => {
       if (!user?.id) throw new Error("User not authenticated");
@@ -126,18 +115,13 @@ const Profile = () => {
         description: t("profile", "deleteRoundDescription"),
       });
       
-      // Add the deleted round ID to our tracking array to persist between refreshes
-      setDeletedRoundIds(prev => [...prev, roundId]);
-      
-      // After successful deletion, invalidate and refetch both query caches
-      // This ensures profile data (like handicap) is also updated
+      // After successful deletion, invalidate and refetch all related queries
+      // This ensures both profile data (like handicap) and rounds are up-to-date
       queryClient.invalidateQueries({ queryKey: ['profile', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['rounds', user?.id] });
       
-      // Important: Make sure our cache data stays consistent with server
-      // Set refetchInterval to false to prevent automatic refetching
-      queryClient.setQueryDefaults(['rounds', user?.id], {
-        refetchInterval: false
-      });
+      // Make sure our cache stays in sync with the server
+      queryClient.refetchQueries({ queryKey: ['rounds', user?.id] });
     },
     onError: (error, roundId, context: any) => {
       // Revert to the previous state if there's an error
