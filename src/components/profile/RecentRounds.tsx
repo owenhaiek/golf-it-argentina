@@ -1,67 +1,23 @@
 
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Trash2, Calendar, Trophy, MapPin, Flag, Plus, Minus, Check } from "lucide-react";
-import { format } from "date-fns";
-import { useNavigate } from "react-router-dom";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { motion, AnimatePresence } from "framer-motion";
+import { Trophy } from "lucide-react";
+import { AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
-
-interface Round {
-  id: string;
-  score: number;
-  created_at: string;
-  date: string;
-  golf_courses: {
-    name: string;
-    hole_pars: number[];
-    holes: number;
-    image_url?: string;
-    address?: string;
-    city?: string;
-    state?: string;
-    par?: number;
-  };
-}
-
-interface RecentRoundsProps {
-  userId?: string;
-  rounds: Round[] | null;
-  roundsLoading: boolean;
-  onDeleteRound?: (roundId: string) => void;
-  deletingRoundId?: string | null;
-}
+import RoundCard from "./rounds/RoundCard";
+import EmptyRoundsList from "./rounds/EmptyRoundsList";
+import LoadingRoundsList from "./rounds/LoadingRoundsList";
+import { RecentRoundsProps } from "./rounds/types";
 
 const RecentRounds = ({
-  userId,
   rounds,
   roundsLoading,
   onDeleteRound,
   deletingRoundId
 }: RecentRoundsProps) => {
-  const navigate = useNavigate();
   const { t } = useLanguage();
 
-  // Calculate total par for a course
-  const calculateCoursePar = (holePars: number[] | undefined): number => {
-    if (!holePars || holePars.length === 0) return 0;
-    return holePars.reduce((sum, par) => sum + par, 0);
-  };
-
   if (roundsLoading) {
-    return (
-      <Card className="border-0 shadow-md h-full">
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold text-primary">{t("profile", "yourRecentRounds")}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {[1, 2, 3].map(i => <div key={i} className="h-24 bg-secondary/10 rounded-lg animate-pulse" />)}
-          </div>
-        </CardContent>
-      </Card>
-    );
+    return <LoadingRoundsList />;
   }
 
   return (
@@ -76,139 +32,18 @@ const RecentRounds = ({
         {rounds && rounds.length > 0 ? (
           <div className="grid grid-cols-1 gap-6 max-w-3xl mx-auto">
             <AnimatePresence>
-              {rounds.map(round => {
-                const isDeleting = deletingRoundId === round.id;
-                const formattedDate = format(new Date(round.date || round.created_at), 'MMM d, yyyy');
-                const coursePar = round.golf_courses.par || calculateCoursePar(round.golf_courses.hole_pars);
-                const scoreDiff = round.score - coursePar;
-                
-                let scoreStatus;
-                let scoreColor;
-                let ScoreIcon;
-                
-                if (scoreDiff < 0) {
-                  scoreStatus = `${Math.abs(scoreDiff)} ${t("profile", "underPar")}`;
-                  scoreColor = "text-green-600";
-                  ScoreIcon = Minus;
-                } else if (scoreDiff > 0) {
-                  scoreStatus = `${scoreDiff} ${t("profile", "overPar")}`;
-                  scoreColor = "text-red-600";
-                  ScoreIcon = Plus;
-                } else {
-                  scoreStatus = t("profile", "atPar");
-                  scoreColor = "text-blue-600";
-                  ScoreIcon = Check;
-                }
-
-                return (
-                  <motion.div
-                    key={round.id}
-                    layout
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.3 }}
-                    className="group relative rounded-xl overflow-hidden bg-white shadow-lg hover:shadow-xl transition-all duration-200 border border-muted/10 flex flex-col"
-                  >
-                    <div className="relative">
-                      {round.golf_courses.image_url ? (
-                        <div className="w-full h-32 overflow-hidden">
-                          <img src={round.golf_courses.image_url} alt={round.golf_courses.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
-                        </div>
-                      ) : (
-                        <div className="w-full h-32 bg-gradient-to-r from-secondary/30 to-primary/20 flex items-center justify-center">
-                          <Trophy className="h-10 w-10 text-primary/40" />
-                        </div>
-                      )}
-                      
-                      <div className="absolute top-2 left-2 bg-black/60 text-white px-2 py-1 rounded-md text-xs flex items-center gap-1">
-                        <Calendar className="h-3 w-3" /> {formattedDate}
-                      </div>
-                    </div>
-                    
-                    <div className="p-4 flex-grow flex flex-col">
-                      <div>
-                        <h3 className="font-semibold text-lg text-primary mb-1">{round.golf_courses.name}</h3>
-                        {round.golf_courses.city && (
-                          <p className="text-sm text-muted-foreground flex items-center gap-1 mb-2">
-                            <MapPin className="h-3 w-3" /> 
-                            {[round.golf_courses.address, round.golf_courses.city, round.golf_courses.state].filter(Boolean).join(', ')}
-                          </p>
-                        )}
-                      </div>
-                      
-                      <div className="mt-auto pt-3 flex justify-between items-center">
-                        <div className="flex items-center gap-2">
-                          <Flag className="h-4 w-4 text-primary" />
-                          <span className="text-sm font-medium">{round.golf_courses.holes} {t("profile", "holes")}</span>
-                        </div>
-                        
-                        <div className="flex flex-col items-end">
-                          <div className="text-sm text-muted-foreground mb-1">{t("profile", "totalScore")}</div>
-                          <div className="text-2xl font-bold text-primary">
-                            {round.score}
-                          </div>
-                          
-                          <div className={`flex items-center gap-1 text-sm font-medium ${scoreColor}`}>
-                            <ScoreIcon className="h-3 w-3" />
-                            <span>{scoreStatus}</span>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="mt-3 text-red-500 hover:bg-red-50 hover:text-red-600 transition-colors w-full cursor-pointer"
-                            disabled={isDeleting}
-                          >
-                            {isDeleting ? (
-                              <>
-                                <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                                {t("profile", "deleting")}
-                              </>
-                            ) : (
-                              <>
-                                <Trash2 className="h-4 w-4 mr-1" />
-                                {t("profile", "deleteRound")}
-                              </>
-                            )}
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>{t("profile", "deleteRound")}</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              {t("profile", "deleteRoundConfirm")}
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>{t("common", "cancel")}</AlertDialogCancel>
-                            <AlertDialogAction 
-                              onClick={() => onDeleteRound && onDeleteRound(round.id)}
-                              className="bg-red-500 hover:bg-red-600"
-                            >
-                              {t("profile", "deleteRound")}
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
-                  </motion.div>
-                );
-              })}
+              {rounds.map(round => (
+                <RoundCard 
+                  key={round.id} 
+                  round={round}
+                  onDeleteRound={onDeleteRound || (() => {})}
+                  isDeleting={deletingRoundId === round.id}
+                />
+              ))}
             </AnimatePresence>
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <Trophy className="h-12 w-12 text-muted-foreground/50 mb-4" />
-            <p className="text-muted-foreground">{t("profile", "noRoundsRecorded")}</p>
-            <Button className="mt-4" variant="outline" onClick={() => navigate('/add-round')}>
-              {t("profile", "addFirstRound")}
-            </Button>
-          </div>
+          <EmptyRoundsList />
         )}
       </CardContent>
     </Card>

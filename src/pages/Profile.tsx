@@ -80,8 +80,7 @@ const Profile = () => {
     staleTime: 0,
     refetchOnMount: true,
     refetchOnReconnect: true,
-    refetchOnWindowFocus: true,
-    keepPreviousData: false
+    refetchOnWindowFocus: true
   });
 
   // Delete round mutation
