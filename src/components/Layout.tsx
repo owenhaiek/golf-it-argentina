@@ -150,7 +150,7 @@ export const Layout = () => {
       )}
       
       {isRefreshing && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-background/20 backdrop-blur-[1px]">
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-background/60 backdrop-blur-sm">
           <GolfLoader />
         </div>
       )}
