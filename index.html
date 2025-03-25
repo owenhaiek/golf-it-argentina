@@ -30,57 +30,44 @@
     <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
     <script type="module" src="/src/main.tsx"></script>
     <script>
-      // Set the vh variable for iOS Safari
-      function setVh() {
+      // Function to set correct viewport height for mobile
+      function setAppHeight() {
         let vh = window.innerHeight * 0.01;
         document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
       }
       
-      // Initial set
-      setVh();
+      // Initial set and reset on resize
+      setAppHeight();
+      window.addEventListener('resize', setAppHeight);
+      window.addEventListener('orientationchange', () => setTimeout(setAppHeight, 100));
       
-      // Reset on resize
-      window.addEventListener('resize', () => {
-        setVh();
-      });
-      
-      // Reset on orientation change
-      window.addEventListener('orientationchange', () => {
-        setTimeout(setVh, 100);
-      });
-      
-      // Hide URL bar and enable fullscreen
-      function hideUrlBar() {
+      // Function to hide browser UI and enter fullscreen
+      function hideBrowserUI() {
         if (document.documentElement.scrollTop === 0) {
           window.scrollTo(0, 1);
         }
         
-        // Try to go fullscreen on interaction
-        document.addEventListener('touchstart', function enableFullScreen() {
+        // Attempt to enter fullscreen on interaction
+        document.addEventListener('touchstart', function() {
           if (document.documentElement.requestFullscreen && !document.fullscreenElement) {
-            document.documentElement.requestFullscreen().catch(e => {
+            document.documentElement.requestFullscreen().catch(() => {
               // Silently fail if we can't enter fullscreen
             });
           }
-          // Remove the listener after first touch
-          document.removeEventListener('touchstart', enableFullScreen);
         }, { once: true });
       }
       
-      window.addEventListener('load', hideUrlBar);
-      window.addEventListener('resize', hideUrlBar);
-      window.addEventListener('orientationchange', () => {
-        setTimeout(hideUrlBar, 200);
-      });
+      // Apply UI hiding techniques
+      window.addEventListener('load', hideBrowserUI);
+      window.addEventListener('resize', hideBrowserUI);
+      window.addEventListener('orientationchange', () => setTimeout(hideBrowserUI, 200));
       
-      // Add fullscreen attempt on user interaction
-      document.addEventListener('click', () => {
-        if (document.documentElement.requestFullscreen && !document.fullscreenElement) {
-          document.documentElement.requestFullscreen().catch(e => {
-            // Silently fail
-          });
-        }
-      }, { once: true });
+      // For iOS Safari fixing the 100vh issue
+      if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
+        window.addEventListener('DOMContentLoaded', () => {
+          document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
+        });
+      }
     </script>
   </body>
 </html>
