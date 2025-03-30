@@ -79,8 +79,9 @@ const Profile = () => {
       return data || [];
     },
     enabled: !!user?.id,
-    staleTime: 0,
-    gcTime: 0 // Don't cache the data at all
+    staleTime: 0, // Consider data always stale
+    gcTime: 0,    // Don't cache the data at all
+    refetchOnWindowFocus: true // Refetch when window gains focus
   });
 
   // Delete round mutation
@@ -118,14 +119,20 @@ const Profile = () => {
       });
       
       // Immediately clear all query cache related to rounds
-      queryClient.removeQueries({ queryKey: ['rounds', user?.id] });
+      console.log("Clearing query cache for rounds");
+      queryClient.removeQueries({ queryKey: ['rounds'] });
       
       // Invalidate profile data (includes handicap)
+      console.log("Invalidating profile data");
       queryClient.invalidateQueries({ queryKey: ['profile', user?.id] });
       
-      // Force a new fetch of rounds data
-      console.log("Forcing refetch of rounds data");
-      refetchRounds();
+      // Force a new fetch of rounds data after a short delay
+      // This ensures the deletion has propagated through the database
+      console.log("Scheduling refetch of rounds data");
+      setTimeout(() => {
+        console.log("Executing scheduled refetch");
+        refetchRounds();
+      }, 300);
     },
     onError: (error) => {
       console.error(`Error deleting round:`, error);

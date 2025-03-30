@@ -9,12 +9,6 @@
     <meta name="theme-color" content="#2A4746" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="GolfGem" />
-    <meta name="screen-orientation" content="portrait" />
-    <meta name="full-screen" content="yes" />
-    <meta name="browsermode" content="application" />
-    <meta name="nightmode" content="enable" />
-    <meta name="layoutmode" content="fitscreen" />
-    <meta name="imagemode" content="force" />
     <meta name="apple-touch-fullscreen" content="yes" />
     <title>GolfGem</title>
     <meta name="description" content="Track your golf scores and handicap" />
@@ -32,7 +26,6 @@
     <script>
       // Function to set correct viewport height for mobile
       function setAppHeight() {
-        let vh = window.innerHeight * 0.01;
         document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
       }
       
@@ -41,33 +34,17 @@
       window.addEventListener('resize', setAppHeight);
       window.addEventListener('orientationchange', () => setTimeout(setAppHeight, 100));
       
-      // Function to hide browser UI and enter fullscreen
+      // Function to hide browser UI on iOS
       function hideBrowserUI() {
         if (document.documentElement.scrollTop === 0) {
           window.scrollTo(0, 1);
         }
-        
-        // Attempt to enter fullscreen on interaction
-        document.addEventListener('touchstart', function() {
-          if (document.documentElement.requestFullscreen && !document.fullscreenElement) {
-            document.documentElement.requestFullscreen().catch(() => {
-              // Silently fail if we can't enter fullscreen
-            });
-          }
-        }, { once: true });
       }
       
       // Apply UI hiding techniques
       window.addEventListener('load', hideBrowserUI);
       window.addEventListener('resize', hideBrowserUI);
       window.addEventListener('orientationchange', () => setTimeout(hideBrowserUI, 200));
-      
-      // For iOS Safari fixing the 100vh issue
-      if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
-        window.addEventListener('DOMContentLoaded', () => {
-          document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
-        });
-      }
     </script>
   </body>
 </html>
