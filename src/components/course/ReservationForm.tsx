@@ -83,14 +83,14 @@ const ReservationForm = ({ courseId, courseName }: ReservationFormProps) => {
     <>
       <Button 
         onClick={() => setOpen(true)} 
-        className="w-full md:w-auto bg-secondary flex gap-2 items-center"
+        className="w-full bg-secondary flex gap-2 items-center justify-center"
       >
         <CalendarIcon size={16} />
         {t("course", "bookTeeTime")}
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[425px] bg-white">
           <DialogHeader>
             <DialogTitle>Book a Tee Time</DialogTitle>
             <DialogDescription>
@@ -170,7 +170,7 @@ const ReservationForm = ({ courseId, courseName }: ReservationFormProps) => {
                         </FormControl>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0" align="start">
-                        <div className="h-64 overflow-auto p-2">
+                        <div className="h-64 overflow-auto p-2 bg-white">
                           <div className="grid grid-cols-3 gap-2">
                             {timeSlots.map((time) => (
                               <Button

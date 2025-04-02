@@ -1,3 +1,4 @@
+
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
@@ -133,9 +134,6 @@ const Course = () => {
     <div className="space-y-6 -mx-4">
       <div className="flex items-center justify-between px-4">
         <h1 className="text-2xl font-bold text-left">{course.name}</h1>
-        <div>
-          <ReservationForm courseId={course.id} courseName={course.name} />
-        </div>
       </div>
       
       {course.image_url ? (
@@ -222,6 +220,11 @@ const Course = () => {
               </li>
             )}
           </ul>
+
+          {/* Reservation button moved to bottom */}
+          <div className="pt-4">
+            <ReservationForm courseId={course.id} courseName={course.name} />
+          </div>
         </CardContent>
       </Card>
     </div>
