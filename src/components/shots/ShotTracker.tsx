@@ -1,367 +1,184 @@
-
-import { useState, useEffect } from "react";
-import { useToast } from "@/components/ui/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ChevronLeft, ChevronRight, Target, Save, X, Flag } from "lucide-react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import ShotList from "./ShotList";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/components/ui/use-toast";
 
-interface ShotTrackerProps {
-  roundId: string;
-  currentHole: number;
-  totalHoles: number;
-  onClose: () => void;
-  onHoleChange: (hole: number) => void;
+// Let's create a proper type definition for the shots functionality
+export interface Shot {
+  id: string;
+  user_id: string;
+  round_id?: string;
+  shot_type: string;
+  club: string;
+  accuracy: number;
+  created_at?: string;
 }
 
-type ShotData = {
-  round_id: string;
-  hole_number: number;
-  club: string;
-  distance?: number;
-  accuracy: string;
+export interface ShotData {
   shot_type: string;
-  notes?: string;
-};
+  club: string;
+  accuracy: number;
+  user_id: string;
+  round_id?: string;
+}
 
-const clubOptions = [
-  "Driver", "3 Wood", "5 Wood", "3 Hybrid", "4 Hybrid",
-  "3 Iron", "4 Iron", "5 Iron", "6 Iron", "7 Iron", "8 Iron", "9 Iron",
-  "PW", "GW", "SW", "LW", "Putter"
-];
-
-const shotTypeOptions = ["Drive", "Approach", "Chip", "Putt", "Bunker", "Recovery"];
-const accuracyOptions = ["On Target", "Left", "Right"];
-
-const ShotTracker: React.FC<ShotTrackerProps> = ({ 
-  roundId, 
-  currentHole, 
-  totalHoles,
-  onClose, 
-  onHoleChange 
-}) => {
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<string>("add");
-  
-  const [shotData, setShotData] = useState<ShotData>({
-    round_id: roundId,
-    hole_number: currentHole,
-    club: "Driver",
-    distance: undefined,
-    accuracy: "On Target",
-    shot_type: "Drive",
-    notes: "",
+const ShotTracker = () => {
+  const [shots, setShots] = useState<Shot[]>([]);
+  const [newShot, setNewShot] = useState<ShotData>({
+    shot_type: '',
+    club: '',
+    accuracy: 0,
+    user_id: '',
   });
+  const { user } = useAuth();
+  const { toast } = useToast();
 
   useEffect(() => {
-    setShotData(prev => ({
-      ...prev,
-      hole_number: currentHole
-    }));
-  }, [currentHole]);
+    if (user) {
+      setNewShot(prev => ({ ...prev, user_id: user.id }));
+      fetchShots();
+    }
+  }, [user]);
 
-  const { data: shots = [], isLoading } = useQuery({
-    queryKey: ['shots', roundId, currentHole],
-    queryFn: async () => {
+  const fetchShots = async () => {
+    if (!user) return;
+
+    try {
       const { data, error } = await supabase
         .from('shots')
         .select('*')
-        .eq('round_id', roundId)
-        .eq('hole_number', currentHole)
-        .order('created_at', { ascending: true });
-      
-      if (error) throw error;
-      return data || [];
-    },
-  });
+        .eq('user_id', user.id);
 
-  const addShotMutation = useMutation({
-    mutationFn: async (newShot: ShotData) => {
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: error.message,
+        });
+      }
+
+      if (data) {
+        setShots(data as Shot[]);
+      }
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message,
+      });
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setNewShot(prev => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const addShot = async () => {
+    try {
       const { data, error } = await supabase
         .from('shots')
-        .insert(newShot)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['shots', roundId, currentHole] });
+        .insert([newShot]);
+
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: error.message,
+        });
+      }
+
+      if (data) {
+        setShots([...shots, ...(data as Shot[])]);
+        setNewShot({
+          shot_type: '',
+          club: '',
+          accuracy: 0,
+          user_id: user?.id || '',
+        });
+        toast({
+          title: "Success",
+          description: "Shot added successfully!",
+        });
+      }
+    } catch (error: any) {
       toast({
-        title: "Shot saved successfully",
-      });
-      resetShotForm();
-      setActiveTab("view");
-    },
-    onError: (error) => {
-      toast({
-        title: "Error saving shot",
         variant: "destructive",
+        title: "Error",
+        description: error.message,
       });
-      console.error("Error saving shot:", error);
-    },
-  });
-
-  const deleteShotMutation = useMutation({
-    mutationFn: async (shotId: string) => {
-      const { error } = await supabase
-        .from('shots')
-        .delete()
-        .eq('id', shotId);
-      
-      if (error) throw error;
-      return shotId;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['shots', roundId, currentHole] });
-      toast({
-        title: "Shot deleted successfully",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error deleting shot",
-        variant: "destructive",
-      });
-      console.error("Error deleting shot:", error);
-    },
-  });
-
-  const handlePrevHole = () => {
-    if (currentHole > 1) {
-      onHoleChange(currentHole - 1);
     }
-  };
-
-  const handleNextHole = () => {
-    if (currentHole < totalHoles) {
-      onHoleChange(currentHole + 1);
-    }
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setShotData({
-      ...shotData,
-      [name]: value
-    });
-  };
-
-  const handleSelectChange = (name: string, value: string) => {
-    setShotData({
-      ...shotData,
-      [name]: value
-    });
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Parse distance to number if provided
-    const finalShotData = {
-      ...shotData,
-      distance: shotData.distance ? parseInt(String(shotData.distance)) : undefined
-    };
-    
-    addShotMutation.mutate(finalShotData);
-  };
-
-  const resetShotForm = () => {
-    setShotData({
-      round_id: roundId,
-      hole_number: currentHole,
-      club: "Driver",
-      distance: undefined,
-      accuracy: "On Target",
-      shot_type: "Drive",
-      notes: "",
-    });
   };
 
   return (
-    <div className="space-y-4 pb-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Target className="h-6 w-6 text-primary" />
-          <h1 className="text-2xl font-bold">Shot Tracker</h1>
-        </div>
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          onClick={onClose}
-          aria-label="Close"
-        >
-          <X className="h-5 w-5" />
-        </Button>
-      </div>
-
-      <Card>
-        <CardHeader className="pb-2">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-xl">Hole {currentHole}</CardTitle>
-            <div className="flex gap-1">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handlePrevHole}
-                disabled={currentHole === 1}
-                aria-label="Previous hole"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleNextHole}
-                disabled={currentHole === totalHoles}
-                aria-label="Next hole"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>Shot Tracker</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          <div>
+            <label htmlFor="shot_type" className="block text-sm font-medium text-gray-700">
+              Shot Type
+            </label>
+            <select
+              id="shot_type"
+              name="shot_type"
+              value={newShot.shot_type}
+              onChange={handleInputChange}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            >
+              <option value="">Select Shot Type</option>
+              <option value="Drive">Drive</option>
+              <option value="Approach">Approach</option>
+              <option value="Chip">Chip</option>
+              <option value="Putt">Putt</option>
+            </select>
           </div>
-        </CardHeader>
-        
-        <CardContent>
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="add">Add Shot</TabsTrigger>
-              <TabsTrigger value="view">View Shots ({shots.length})</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="add" className="mt-4">
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="shot_type">Shot Type</Label>
-                    <Select 
-                      value={shotData.shot_type} 
-                      onValueChange={(value) => handleSelectChange('shot_type', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select shot type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {shotTypeOptions.map((type) => (
-                          <SelectItem key={type} value={type}>{type}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="club">Club</Label>
-                    <Select 
-                      value={shotData.club} 
-                      onValueChange={(value) => handleSelectChange('club', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select club" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {clubOptions.map((club) => (
-                          <SelectItem key={club} value={club}>{club}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="distance">Distance (yards)</Label>
-                    <Input
-                      id="distance"
-                      name="distance"
-                      type="number"
-                      placeholder="Enter distance"
-                      value={shotData.distance || ''}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="accuracy">Accuracy</Label>
-                    <Select 
-                      value={shotData.accuracy} 
-                      onValueChange={(value) => handleSelectChange('accuracy', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select accuracy" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {accuracyOptions.map((accuracy) => (
-                          <SelectItem key={accuracy} value={accuracy}>{accuracy}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="notes">Notes</Label>
-                  <Input
-                    id="notes"
-                    name="notes"
-                    placeholder="Any notes about this shot"
-                    value={shotData.notes || ''}
-                    onChange={handleInputChange}
-                  />
-                </div>
-
-                <Button 
-                  type="submit" 
-                  className="w-full"
-                  disabled={addShotMutation.isPending}
-                >
-                  <Save className="h-4 w-4 mr-2" />
-                  Save Shot
-                </Button>
-              </form>
-            </TabsContent>
-
-            <TabsContent value="view" className="mt-4">
-              <ShotList 
-                shots={shots} 
-                isLoading={isLoading} 
-                onDelete={(id) => deleteShotMutation.mutate(id)}
-              />
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-
-        <CardFooter className="flex flex-col gap-2">
-          <Button 
-            variant="secondary" 
-            className="w-full"
-            onClick={() => {
-              if (currentHole < totalHoles) {
-                handleNextHole();
-              } else {
-                onClose();
-              }
-            }}
-          >
-            {currentHole < totalHoles ? (
-              <>
-                <Flag className="h-4 w-4 mr-2" />
-                Next Hole
-              </>
-            ) : (
-              'Finish Round'
-            )}
-          </Button>
-        </CardFooter>
-      </Card>
-    </div>
+          <div>
+            <label htmlFor="club" className="block text-sm font-medium text-gray-700">
+              Club
+            </label>
+            <input
+              type="text"
+              name="club"
+              id="club"
+              value={newShot.club}
+              onChange={handleInputChange}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            />
+          </div>
+          <div>
+            <label htmlFor="accuracy" className="block text-sm font-medium text-gray-700">
+              Accuracy
+            </label>
+            <input
+              type="number"
+              name="accuracy"
+              id="accuracy"
+              value={newShot.accuracy}
+              onChange={handleInputChange}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            />
+          </div>
+          <Button onClick={addShot}>Add Shot</Button>
+          <div>
+            <ul>
+              {shots.map(shot => (
+                <li key={shot.id}>
+                  {shot.shot_type} - {shot.club} - {shot.accuracy}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
