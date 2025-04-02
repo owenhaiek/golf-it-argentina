@@ -403,6 +403,69 @@ const translations: Translations = {
       en: "Hours not available",
       es: "Horario no disponible"
     }
+  },
+  // Reservations
+  reservations: {
+    bookTeeTime: {
+      en: "Book Tee Time",
+      es: "Reservar Horario"
+    },
+    bookTeetime: {
+      en: "Book a Tee Time",
+      es: "Reservar un Horario"
+    },
+    reserveDescription: {
+      en: "Reserve your tee time at {0}. Fill in the details below.",
+      es: "Reserva tu horario en {0}. Completa los detalles a continuación."
+    },
+    date: {
+      en: "Date",
+      es: "Fecha"
+    },
+    selectDate: {
+      en: "Select date",
+      es: "Seleccionar fecha"
+    },
+    time: {
+      en: "Time",
+      es: "Hora"
+    },
+    selectTime: {
+      en: "Select time",
+      es: "Seleccionar hora"
+    },
+    numberOfPlayers: {
+      en: "Number of players",
+      es: "Número de jugadores"
+    },
+    reservationSubmitted: {
+      en: "Reservation Submitted",
+      es: "Reserva Enviada"
+    },
+    reservationSubmittedDesc: {
+      en: "Reservation submitted for {0} on {1} at {2} for {3} player(s)",
+      es: "Reserva enviada para {0} el {1} a las {2} para {3} jugador(es)"
+    },
+    myReservations: {
+      en: "My Reservations",
+      es: "Mis Reservas"
+    },
+    upcoming: {
+      en: "Upcoming",
+      es: "Próximas"
+    },
+    past: {
+      en: "Past",
+      es: "Pasadas"
+    },
+    noReservations: {
+      en: "No reservations found",
+      es: "No se encontraron reservas"
+    },
+    cancelReservation: {
+      en: "Cancel Reservation",
+      es: "Cancelar Reserva"
+    }
   }
 };
 

@@ -49,7 +49,7 @@ type FormValues = z.infer<typeof formSchema>;
 
 const ReservationForm = ({ courseId, courseName }: ReservationFormProps) => {
   const [open, setOpen] = useState(false);
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { toast } = useToast();
 
   const form = useForm<FormValues>({
@@ -67,8 +67,8 @@ const ReservationForm = ({ courseId, courseName }: ReservationFormProps) => {
     
     // Show success message
     toast({
-      title: "Reservation Submitted",
-      description: message,
+      title: language === "en" ? "Reservation Submitted" : "Reserva Enviada",
+      description: language === "en" ? message : `Reserva enviada para ${courseName} el ${formattedDate} a las ${data.time} para ${data.players} jugador${data.players > 1 ? 'es' : ''}`,
     });
     
     // Close dialog
@@ -87,15 +87,17 @@ const ReservationForm = ({ courseId, courseName }: ReservationFormProps) => {
         className="w-full bg-secondary flex gap-2 items-center justify-center"
       >
         <CalendarIcon size={16} />
-        Book Tee Time
+        {language === "en" ? "Book Tee Time" : "Reservar Horario"}
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-[425px] bg-white">
           <DialogHeader>
-            <DialogTitle>Book a Tee Time</DialogTitle>
+            <DialogTitle>{language === "en" ? "Book a Tee Time" : "Reservar un Horario"}</DialogTitle>
             <DialogDescription>
-              Reserve your tee time at {courseName}. Fill in the details below.
+              {language === "en" 
+                ? `Reserve your tee time at ${courseName}. Fill in the details below.` 
+                : `Reserva tu horario en ${courseName}. Completa los detalles a continuación.`}
             </DialogDescription>
           </DialogHeader>
           
@@ -106,7 +108,7 @@ const ReservationForm = ({ courseId, courseName }: ReservationFormProps) => {
                 name="date"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>Date</FormLabel>
+                    <FormLabel>{language === "en" ? "Date" : "Fecha"}</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
@@ -120,7 +122,7 @@ const ReservationForm = ({ courseId, courseName }: ReservationFormProps) => {
                             {field.value ? (
                               format(field.value, "PPP")
                             ) : (
-                              <span>Select date</span>
+                              <span>{language === "en" ? "Select date" : "Seleccionar fecha"}</span>
                             )}
                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                           </Button>
@@ -154,7 +156,7 @@ const ReservationForm = ({ courseId, courseName }: ReservationFormProps) => {
                 name="time"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Time</FormLabel>
+                    <FormLabel>{language === "en" ? "Time" : "Hora"}</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
@@ -165,7 +167,7 @@ const ReservationForm = ({ courseId, courseName }: ReservationFormProps) => {
                               !field.value && "text-muted-foreground"
                             )}
                           >
-                            {field.value || <span>Select time</span>}
+                            {field.value || <span>{language === "en" ? "Select time" : "Seleccionar hora"}</span>}
                             <Clock className="ml-auto h-4 w-4 opacity-50" />
                           </Button>
                         </FormControl>
@@ -200,7 +202,7 @@ const ReservationForm = ({ courseId, courseName }: ReservationFormProps) => {
                 name="players"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Number of players</FormLabel>
+                    <FormLabel>{language === "en" ? "Number of players" : "Número de jugadores"}</FormLabel>
                     <div className="flex gap-2">
                       {[1, 2, 3, 4].map((num) => (
                         <Button
@@ -225,9 +227,9 @@ const ReservationForm = ({ courseId, courseName }: ReservationFormProps) => {
                   variant="outline"
                   onClick={() => setOpen(false)}
                 >
-                  Cancel
+                  {language === "en" ? "Cancel" : "Cancelar"}
                 </Button>
-                <Button type="submit">Book Tee Time</Button>
+                <Button type="submit">{language === "en" ? "Book Tee Time" : "Reservar Horario"}</Button>
               </DialogFooter>
             </form>
           </Form>

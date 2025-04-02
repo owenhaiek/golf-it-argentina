@@ -1,5 +1,6 @@
+
 import { useState, useEffect } from "react";
-import { Settings as SettingsIcon, Moon, Sun, Languages, Shield, FileText, HelpCircle } from "lucide-react";
+import { Settings as SettingsIcon, Moon, Sun, Languages, Shield, FileText, HelpCircle, Calendar } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,12 +14,15 @@ import {
   SheetTrigger,
   SheetClose
 } from "@/components/ui/sheet";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLanguage } from "@/contexts/LanguageContext";
+import ReservationsList from "@/components/reservations/ReservationsList";
 
 const Settings = () => {
   const { toast } = useToast();
   const { language, setLanguage, t } = useLanguage();
   const [darkMode, setDarkMode] = useState(false);
+  const [activeTab, setActiveTab] = useState("preferences");
 
   useEffect(() => {
     const savedDarkMode = localStorage.getItem("darkMode") === "true";
@@ -176,191 +180,212 @@ Si necesita más ayuda, comuníquese con nuestro equipo de soporte en:
         </h1>
       </div>
       
-      <div className="flex flex-col gap-4">
-        {/* Language Settings */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Languages size={18} className="text-primary" />
-              {language === "en" ? "Language" : "Idioma"}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex gap-2">
-            <Button 
-              variant={language === "en" ? "default" : "outline"} 
-              size="sm"
-              onClick={() => handleLanguageChange("en")}
-              className="flex-1"
-            >
-              {language === "en" ? "English" : "Inglés"}
-            </Button>
-            <Button 
-              variant={language === "es" ? "default" : "outline"} 
-              size="sm"
-              onClick={() => handleLanguageChange("es")}
-              className="flex-1"
-            >
-              {language === "en" ? "Spanish" : "Español"}
-            </Button>
-          </CardContent>
-        </Card>
-        
-        {/* Dark Mode Toggle */}
-        <Card>
-          <CardContent className="py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                {darkMode ? (
-                  <Moon size={18} className="text-primary" />
-                ) : (
-                  <Sun size={18} className="text-primary" />
-                )}
-                <span>{language === "en" ? "Dark Mode" : "Modo Oscuro"}</span>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full px-4">
+        <TabsList className="grid w-full grid-cols-2 mb-4">
+          <TabsTrigger value="preferences">{language === "en" ? "Preferences" : "Preferencias"}</TabsTrigger>
+          <TabsTrigger value="reservations">{t("reservations", "myReservations")}</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="preferences" className="space-y-4">
+          {/* Language Settings */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Languages size={18} className="text-primary" />
+                {language === "en" ? "Language" : "Idioma"}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex gap-2">
+              <Button 
+                variant={language === "en" ? "default" : "outline"} 
+                size="sm"
+                onClick={() => handleLanguageChange("en")}
+                className="flex-1"
+              >
+                {language === "en" ? "English" : "Inglés"}
+              </Button>
+              <Button 
+                variant={language === "es" ? "default" : "outline"} 
+                size="sm"
+                onClick={() => handleLanguageChange("es")}
+                className="flex-1"
+              >
+                {language === "en" ? "Spanish" : "Español"}
+              </Button>
+            </CardContent>
+          </Card>
+          
+          {/* Dark Mode Toggle */}
+          <Card>
+            <CardContent className="py-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  {darkMode ? (
+                    <Moon size={18} className="text-primary" />
+                  ) : (
+                    <Sun size={18} className="text-primary" />
+                  )}
+                  <span>{language === "en" ? "Dark Mode" : "Modo Oscuro"}</span>
+                </div>
+                <Switch 
+                  checked={darkMode} 
+                  onCheckedChange={handleDarkModeToggle}
+                />
               </div>
-              <Switch 
-                checked={darkMode} 
-                onCheckedChange={handleDarkModeToggle}
-              />
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Separator className="my-1" />
-        
-        {/* Privacy Policy */}
-        <Card>
-          <CardContent className="py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Shield size={18} className="text-primary" />
-                <span>{language === "en" ? "Privacy Policy" : "Política de Privacidad"}</span>
+            </CardContent>
+          </Card>
+          
+          <Separator className="my-1" />
+          
+          {/* Privacy Policy */}
+          <Card>
+            <CardContent className="py-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Shield size={18} className="text-primary" />
+                  <span>{language === "en" ? "Privacy Policy" : "Política de Privacidad"}</span>
+                </div>
+                <Sheet>
+                  <SheetTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      {language === "en" ? "View" : "Ver"}
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent className="overflow-auto max-w-full w-full sm:max-w-xl pt-safe">
+                    <SheetHeader className="pt-12 sm:pt-6">
+                      <SheetTitle>
+                        {language === "en" ? "Privacy Policy" : "Política de Privacidad"}
+                      </SheetTitle>
+                    </SheetHeader>
+                    <div className="mt-4 prose prose-sm max-w-none">
+                      <pre className="whitespace-pre-wrap text-sm">{privacyPolicyContent}</pre>
+                    </div>
+                    <div className="mt-6 pb-6">
+                      <SheetClose asChild>
+                        <Button 
+                          variant="secondary" 
+                          className="w-full"
+                        >
+                          {language === "en" ? "Close" : "Cerrar"}
+                        </Button>
+                      </SheetClose>
+                    </div>
+                  </SheetContent>
+                </Sheet>
               </div>
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    {language === "en" ? "View" : "Ver"}
-                  </Button>
-                </SheetTrigger>
-                <SheetContent className="overflow-auto max-w-full w-full sm:max-w-xl pt-safe">
-                  <SheetHeader className="pt-12 sm:pt-6">
-                    <SheetTitle>
-                      {language === "en" ? "Privacy Policy" : "Política de Privacidad"}
-                    </SheetTitle>
-                  </SheetHeader>
-                  <div className="mt-4 prose prose-sm max-w-none">
-                    <pre className="whitespace-pre-wrap text-sm">{privacyPolicyContent}</pre>
-                  </div>
-                  <div className="mt-6 pb-6">
-                    <SheetClose asChild>
-                      <Button 
-                        variant="secondary" 
-                        className="w-full"
-                      >
-                        {language === "en" ? "Close" : "Cerrar"}
-                      </Button>
-                    </SheetClose>
-                  </div>
-                </SheetContent>
-              </Sheet>
-            </div>
-            <p className="text-sm text-muted-foreground mt-2">
-              {language === "en" 
-                ? "Our Privacy Policy explains how we collect, use, and protect your information." 
-                : "Nuestra Política de Privacidad explica cómo recopilamos, usamos y protegemos su información."}
-            </p>
-          </CardContent>
-        </Card>
-        
-        {/* Terms & Conditions */}
-        <Card>
-          <CardContent className="py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <FileText size={18} className="text-primary" />
-                <span>{language === "en" ? "Terms & Conditions" : "Términos y Condiciones"}</span>
+              <p className="text-sm text-muted-foreground mt-2">
+                {language === "en" 
+                  ? "Our Privacy Policy explains how we collect, use, and protect your information." 
+                  : "Nuestra Política de Privacidad explica cómo recopilamos, usamos y protegemos su información."}
+              </p>
+            </CardContent>
+          </Card>
+          
+          {/* Terms & Conditions */}
+          <Card>
+            <CardContent className="py-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <FileText size={18} className="text-primary" />
+                  <span>{language === "en" ? "Terms & Conditions" : "Términos y Condiciones"}</span>
+                </div>
+                <Sheet>
+                  <SheetTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      {language === "en" ? "View" : "Ver"}
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent className="overflow-auto max-w-full w-full sm:max-w-xl pt-safe">
+                    <SheetHeader className="pt-12 sm:pt-6">
+                      <SheetTitle>
+                        {language === "en" ? "Terms & Conditions" : "Términos y Condiciones"}
+                      </SheetTitle>
+                    </SheetHeader>
+                    <div className="mt-4 prose prose-sm max-w-none">
+                      <pre className="whitespace-pre-wrap text-sm">{termsContent}</pre>
+                    </div>
+                    <div className="mt-6 pb-6">
+                      <SheetClose asChild>
+                        <Button 
+                          variant="secondary" 
+                          className="w-full"
+                        >
+                          {language === "en" ? "Close" : "Cerrar"}
+                        </Button>
+                      </SheetClose>
+                    </div>
+                  </SheetContent>
+                </Sheet>
               </div>
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    {language === "en" ? "View" : "Ver"}
-                  </Button>
-                </SheetTrigger>
-                <SheetContent className="overflow-auto max-w-full w-full sm:max-w-xl pt-safe">
-                  <SheetHeader className="pt-12 sm:pt-6">
-                    <SheetTitle>
-                      {language === "en" ? "Terms & Conditions" : "Términos y Condiciones"}
-                    </SheetTitle>
-                  </SheetHeader>
-                  <div className="mt-4 prose prose-sm max-w-none">
-                    <pre className="whitespace-pre-wrap text-sm">{termsContent}</pre>
-                  </div>
-                  <div className="mt-6 pb-6">
-                    <SheetClose asChild>
-                      <Button 
-                        variant="secondary" 
-                        className="w-full"
-                      >
-                        {language === "en" ? "Close" : "Cerrar"}
-                      </Button>
-                    </SheetClose>
-                  </div>
-                </SheetContent>
-              </Sheet>
-            </div>
-            <p className="text-sm text-muted-foreground mt-2">
-              {language === "en" 
-                ? "By using our app, you agree to our Terms and Conditions of use." 
-                : "Al usar nuestra aplicación, acepta nuestros Términos y Condiciones de uso."}
-            </p>
-          </CardContent>
-        </Card>
-        
-        {/* Help & Support */}
-        <Card>
-          <CardContent className="py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <HelpCircle size={18} className="text-primary" />
-                <span>{language === "en" ? "Help & Support" : "Ayuda y Soporte"}</span>
+              <p className="text-sm text-muted-foreground mt-2">
+                {language === "en" 
+                  ? "By using our app, you agree to our Terms and Conditions of use." 
+                  : "Al usar nuestra aplicación, acepta nuestros Términos y Condiciones de uso."}
+              </p>
+            </CardContent>
+          </Card>
+          
+          {/* Help & Support */}
+          <Card>
+            <CardContent className="py-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <HelpCircle size={18} className="text-primary" />
+                  <span>{language === "en" ? "Help & Support" : "Ayuda y Soporte"}</span>
+                </div>
+                <Sheet>
+                  <SheetTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      {language === "en" ? "View" : "Ver"}
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent className="overflow-auto max-w-full w-full sm:max-w-xl pt-safe">
+                    <SheetHeader className="pt-12 sm:pt-6">
+                      <SheetTitle>
+                        {language === "en" ? "Help & Support" : "Ayuda y Soporte"}
+                      </SheetTitle>
+                    </SheetHeader>
+                    <div className="mt-4 prose prose-sm max-w-none">
+                      <pre className="whitespace-pre-wrap text-sm">{helpContent}</pre>
+                    </div>
+                    <div className="mt-6 pb-6">
+                      <SheetClose asChild>
+                        <Button 
+                          variant="secondary" 
+                          className="w-full"
+                        >
+                          {language === "en" ? "Close" : "Cerrar"}
+                        </Button>
+                      </SheetClose>
+                    </div>
+                  </SheetContent>
+                </Sheet>
               </div>
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    {language === "en" ? "View" : "Ver"}
-                  </Button>
-                </SheetTrigger>
-                <SheetContent className="overflow-auto max-w-full w-full sm:max-w-xl pt-safe">
-                  <SheetHeader className="pt-12 sm:pt-6">
-                    <SheetTitle>
-                      {language === "en" ? "Help & Support" : "Ayuda y Soporte"}
-                    </SheetTitle>
-                  </SheetHeader>
-                  <div className="mt-4 prose prose-sm max-w-none">
-                    <pre className="whitespace-pre-wrap text-sm">{helpContent}</pre>
-                  </div>
-                  <div className="mt-6 pb-6">
-                    <SheetClose asChild>
-                      <Button 
-                        variant="secondary" 
-                        className="w-full"
-                      >
-                        {language === "en" ? "Close" : "Cerrar"}
-                      </Button>
-                    </SheetClose>
-                  </div>
-                </SheetContent>
-              </Sheet>
-            </div>
-            <p className="text-sm text-muted-foreground mt-2">
-              {language === "en" 
-                ? "Need help? Check our FAQ or contact our support team." 
-                : "¿Necesita ayuda? Consulte nuestras preguntas frecuentes o contacte a nuestro equipo de soporte."}
-            </p>
-          </CardContent>
-        </Card>
-        
+              <p className="text-sm text-muted-foreground mt-2">
+                {language === "en" 
+                  ? "Need help? Check our FAQ or contact our support team." 
+                  : "¿Necesita ayuda? Consulte nuestras preguntas frecuentes o contacte a nuestro equipo de soporte."}
+              </p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="reservations" className="space-y-4">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Calendar size={18} className="text-primary" />
+                {t("reservations", "myReservations")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ReservationsList />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         <div className="h-20"></div> {/* Space for bottom navigation */}
-      </div>
+      </Tabs>
     </div>
   );
 };
