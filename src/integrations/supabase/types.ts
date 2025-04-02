@@ -90,6 +90,45 @@ export type Database = {
         }
         Relationships: []
       }
+      reservations: {
+        Row: {
+          course_id: string
+          course_location: string | null
+          course_name: string
+          created_at: string | null
+          date: string
+          id: string
+          players: number
+          time: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          course_id: string
+          course_location?: string | null
+          course_name: string
+          created_at?: string | null
+          date: string
+          id?: string
+          players?: number
+          time: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          course_id?: string
+          course_location?: string | null
+          course_name?: string
+          created_at?: string | null
+          date?: string
+          id?: string
+          players?: number
+          time?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       rounds: {
         Row: {
           course_id: string

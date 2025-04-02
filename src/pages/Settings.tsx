@@ -35,7 +35,7 @@ const Settings = () => {
     }
   }, []);
 
-  const handleLanguageChange = (lang: string) => {
+  const handleLanguageChange = (lang: "en" | "es") => {
     setLanguage(lang);
     
     toast({
