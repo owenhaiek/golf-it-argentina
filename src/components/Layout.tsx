@@ -11,6 +11,28 @@ export const Layout = () => {
   const [isPulling, setIsPulling] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
 
+  // Add meta viewport update for fullscreen
+  useEffect(() => {
+    const meta = document.querySelector('meta[name="viewport"]');
+    if (meta) {
+      meta.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, minimal-ui, standalone');
+    }
+    
+    // Add iOS specific meta tags for fullscreen
+    const appleMetaTag = document.createElement('meta');
+    appleMetaTag.setAttribute('name', 'apple-mobile-web-app-capable');
+    appleMetaTag.setAttribute('content', 'yes');
+    document.head.appendChild(appleMetaTag);
+    
+    // Clean up on component unmount
+    return () => {
+      if (meta) {
+        meta.setAttribute('content', 'width=device-width, initial-scale=1');
+      }
+      document.head.removeChild(appleMetaTag);
+    };
+  }, []);
+
   // Improved pull-to-refresh functionality
   useEffect(() => {
     const handleTouchStart = (e: TouchEvent) => {

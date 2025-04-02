@@ -20,6 +20,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ReservationFormProps {
   courseId: string;
@@ -86,7 +87,7 @@ const ReservationForm = ({ courseId, courseName }: ReservationFormProps) => {
         className="w-full bg-secondary flex gap-2 items-center justify-center"
       >
         <CalendarIcon size={16} />
-        {t("course", "bookTeeTime")}
+        Book Tee Time
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
@@ -125,7 +126,7 @@ const ReservationForm = ({ courseId, courseName }: ReservationFormProps) => {
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
+                      <PopoverContent className="w-auto p-0 bg-white" align="start">
                         <Calendar
                           mode="single"
                           selected={field.value}
@@ -139,7 +140,7 @@ const ReservationForm = ({ courseId, courseName }: ReservationFormProps) => {
                             return date < today || date > thirtyDaysFromNow;
                           }}
                           initialFocus
-                          className={cn("p-3 pointer-events-auto")}
+                          className="bg-white"
                         />
                       </PopoverContent>
                     </Popover>
@@ -169,24 +170,24 @@ const ReservationForm = ({ courseId, courseName }: ReservationFormProps) => {
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <div className="h-64 overflow-auto p-2 bg-white">
+                      <PopoverContent className="w-auto p-0 bg-white" align="start">
+                        <ScrollArea className="h-64 bg-white p-2">
                           <div className="grid grid-cols-3 gap-2">
                             {timeSlots.map((time) => (
                               <Button
                                 key={time}
+                                type="button"
                                 variant={field.value === time ? "default" : "outline"}
                                 className="text-sm"
                                 onClick={() => {
                                   field.onChange(time);
-                                  form.setValue("time", time);
                                 }}
                               >
                                 {time}
                               </Button>
                             ))}
                           </div>
-                        </div>
+                        </ScrollArea>
                       </PopoverContent>
                     </Popover>
                     <FormMessage />
