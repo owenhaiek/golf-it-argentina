@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Calendar as CalendarIcon, Clock } from "lucide-react";
+import { Calendar as CalendarIcon, Clock, Loader2 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -21,10 +21,14 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface ReservationFormProps {
   courseId: string;
   courseName: string;
+  courseLocation: string;
 }
 
 const timeSlots = [
@@ -47,10 +51,12 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-const ReservationForm = ({ courseId, courseName }: ReservationFormProps) => {
+const ReservationForm = ({ courseId, courseName, courseLocation }: ReservationFormProps) => {
   const [open, setOpen] = useState(false);
   const { t, language } = useLanguage();
   const { toast } = useToast();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -59,25 +65,60 @@ const ReservationForm = ({ courseId, courseName }: ReservationFormProps) => {
     },
   });
 
+  // Create reservation mutation
+  const reservation = useMutation({
+    mutationFn: async (data: FormValues) => {
+      if (!user) throw new Error("User not authenticated");
+      
+      const { error } = await supabase.from("reservations").insert({
+        course_id: courseId,
+        course_name: courseName,
+        course_location: courseLocation,
+        date: data.date.toISOString().split('T')[0],
+        time: data.time,
+        players: data.players,
+        user_id: user.id,
+      });
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      // Invalidate and refetch
+      queryClient.invalidateQueries({ queryKey: ["reservations", user?.id] });
+      
+      const formattedDate = format(data.date, "PPPP");
+      
+      // Show success message
+      toast({
+        title: language === "en" ? "Reservation Submitted" : "Reserva Enviada",
+        description: language === "en" 
+          ? `Reservation submitted for ${courseName} on ${formattedDate} at ${data.time} for ${data.players} player${data.players > 1 ? 's' : ''}`
+          : `Reserva enviada para ${courseName} el ${formattedDate} a las ${data.time} para ${data.players} jugador${data.players > 1 ? 'es' : ''}`,
+      });
+      
+      // Close dialog
+      setOpen(false);
+      
+      // Reset form
+      form.reset({
+        players: 1,
+      });
+    },
+    onError: (error) => {
+      console.error("Error creating reservation:", error);
+      toast({
+        title: language === "en" ? "Error" : "Error",
+        description: language === "en" 
+          ? "There was an error submitting your reservation. Please try again." 
+          : "Hubo un error al enviar tu reserva. Por favor intenta de nuevo.",
+        variant: "destructive"
+      });
+    }
+  });
+  
   const onSubmit = (data: FormValues) => {
-    const formattedDate = format(data.date, "PPPP");
-    const message = `Reservation submitted for ${courseName} on ${formattedDate} at ${data.time} for ${data.players} player${data.players > 1 ? 's' : ''}`;
-    
-    console.log("Reservation details:", { courseId, ...data });
-    
-    // Show success message
-    toast({
-      title: language === "en" ? "Reservation Submitted" : "Reserva Enviada",
-      description: language === "en" ? message : `Reserva enviada para ${courseName} el ${formattedDate} a las ${data.time} para ${data.players} jugador${data.players > 1 ? 'es' : ''}`,
-    });
-    
-    // Close dialog
-    setOpen(false);
-    
-    // Reset form
-    form.reset({
-      players: 1,
-    });
+    reservation.mutate(data);
   };
 
   return (
@@ -87,7 +128,7 @@ const ReservationForm = ({ courseId, courseName }: ReservationFormProps) => {
         className="w-full bg-secondary flex gap-2 items-center justify-center"
       >
         <CalendarIcon size={16} />
-        {language === "en" ? "Book Tee Time" : "Reservar Horario"}
+        {t("reservations", "bookTeeTime")}
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
@@ -128,7 +169,7 @@ const ReservationForm = ({ courseId, courseName }: ReservationFormProps) => {
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0 bg-white" align="start">
+                      <PopoverContent className="w-auto p-0 bg-white pointer-events-auto" align="start">
                         <Calendar
                           mode="single"
                           selected={field.value}
@@ -172,7 +213,7 @@ const ReservationForm = ({ courseId, courseName }: ReservationFormProps) => {
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0 bg-white" align="start">
+                      <PopoverContent className="w-auto p-0 bg-white pointer-events-auto" align="start">
                         <ScrollArea className="h-64 bg-white p-2">
                           <div className="grid grid-cols-3 gap-2">
                             {timeSlots.map((time) => (
@@ -226,10 +267,23 @@ const ReservationForm = ({ courseId, courseName }: ReservationFormProps) => {
                   type="button"
                   variant="outline"
                   onClick={() => setOpen(false)}
+                  disabled={reservation.isPending}
                 >
                   {language === "en" ? "Cancel" : "Cancelar"}
                 </Button>
-                <Button type="submit">{language === "en" ? "Book Tee Time" : "Reservar Horario"}</Button>
+                <Button 
+                  type="submit"
+                  disabled={reservation.isPending}
+                >
+                  {reservation.isPending ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      {language === "en" ? "Submitting..." : "Enviando..."}
+                    </>
+                  ) : (
+                    t("reservations", "bookTeeTime")
+                  )}
+                </Button>
               </DialogFooter>
             </form>
           </Form>

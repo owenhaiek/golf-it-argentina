@@ -1,521 +1,267 @@
 
-import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode } from "react";
 
-// Translation types
-interface TranslationEntry {
-  [language: string]: string;
-}
+// Define language types
+type LanguageType = "en" | "es";
 
-interface Translations {
+// Dictionary type for translations
+interface TranslationDictionary {
   [key: string]: {
-    [key: string]: TranslationEntry;
+    [key: string]: string;
   };
 }
 
-// Create the translations object with all app text
-const translations: Translations = {
-  // Common UI elements
-  common: {
-    home: {
-      en: "Home",
-      es: "Inicio"
+// Translations for English and Spanish
+const translations: Record<LanguageType, TranslationDictionary> = {
+  en: {
+    common: {
+      search: "Search",
+      filter: "Filter",
+      home: "Home",
+      profile: "Profile",
+      settings: "Settings",
+      cancel: "Cancel",
+      submit: "Submit",
+      create: "Create",
+      edit: "Edit",
+      delete: "Delete",
+      save: "Save",
+      back: "Back",
+      next: "Next",
+      done: "Done",
+      welcome: "Welcome",
+      loading: "Loading...",
+      players: "Players"
     },
-    add: {
-      en: "Add",
-      es: "Añadir"
+    auth: {
+      signIn: "Sign In",
+      signUp: "Sign Up",
+      email: "Email",
+      password: "Password",
+      forgotPassword: "Forgot Password?",
+      alreadyHaveAccount: "Already have an account?",
+      dontHaveAccount: "Don't have an account?",
+      or: "OR",
+      continueWithGoogle: "Continue with Google",
+      continueWithApple: "Continue with Apple",
+    },
+    home: {
+      featuredCourses: "Featured Courses",
+      exploreAll: "Explore All",
+      nearbyGolfCourses: "Nearby Golf Courses",
+      viewAll: "View All",
+      upcomingReservations: "Upcoming Reservations",
+      noReservations: "You don't have any reservations yet.",
+      searchCourses: "Search Courses",
+    },
+    course: {
+      holes: "Holes",
+      par: "Par",
+      openNow: "Open Now",
+      closed: "Closed",
+      hours: "Hours",
+      address: "Address",
+      contact: "Contact",
+      website: "Website",
+      directions: "Get Directions",
+      description: "Description",
+      reviews: "Reviews",
+      photos: "Photos",
     },
     profile: {
-      en: "Profile",
-      es: "Perfil"
+      yourProfile: "Your Profile",
+      handicap: "Handicap",
+      viewStats: "View Stats",
+      roundsPlayed: "Rounds Played",
+      avgScore: "Average Score",
+      bestScore: "Best Score",
+      yourRecentRounds: "Your Recent Rounds",
+      noRounds: "You haven't recorded any rounds yet.",
+      addRound: "Add Round",
     },
-    settings: {
-      en: "Settings",
-      es: "Ajustes"
+    rounds: {
+      addRound: "Add Round",
+      selectCourse: "Select Course",
+      date: "Date",
+      score: "Score",
+      notes: "Notes",
+      searchCourses: "Search courses...",
+      noCoursesFound: "No courses found",
+      courseSearchPlaceholder: "Type to search for a course...",
+      roundAdded: "Round added successfully",
+      roundAddedDesc: "Your golf round has been saved.",
+      courseRequired: "Please select a course",
+      scoreRequired: "Please enter your score",
+      dateRequired: "Please select a date",
+      hole: "Hole",
+      par: "Par",
+      strokes: "Strokes",
+      addShots: "Add Shots",
     },
-    save: {
-      en: "Save",
-      es: "Guardar"
-    },
-    cancel: {
-      en: "Cancel",
-      es: "Cancelar"
-    },
-    delete: {
-      en: "Delete",
-      es: "Eliminar"
-    },
-    edit: {
-      en: "Edit",
-      es: "Editar"
-    },
-    view: {
-      en: "View",
-      es: "Ver"
-    },
-    close: {
-      en: "Close",
-      es: "Cerrar"
-    },
-    search: {
-      en: "Search",
-      es: "Buscar"
-    },
-    loading: {
-      en: "Loading...",
-      es: "Cargando..."
-    },
-    error: {
-      en: "Error",
-      es: "Error"
-    },
-    success: {
-      en: "Success",
-      es: "Éxito"
+    reservations: {
+      bookTeeTime: "Book Tee Time",
+      date: "Date",
+      time: "Time",
+      players: "Players",
+      bookingDetails: "Booking Details",
+      confirmBooking: "Confirm Booking",
+      bookingConfirmed: "Booking Confirmed",
+      bookingFailed: "Booking Failed",
+      upcoming: "Upcoming",
+      past: "Past",
+      cancelReservation: "Cancel Reservation",
+      myReservations: "My Reservations",
+      noReservations: "No reservations found"
     }
   },
-  // Home page
-  home: {
-    title: {
-      en: "Welcome to GolfTracker",
-      es: "Bienvenido a GolfTracker"
-    },
-    recentRounds: {
-      en: "Recent Rounds",
-      es: "Rondas Recientes"
-    },
-    nearbyCoursesTitle: {
-      en: "Nearby Golf Courses",
-      es: "Campos de Golf Cercanos"
-    },
-    golfCourses: {
-      en: "Golf Courses",
-      es: "Campos de Golf"
-    },
-    noCoursesFound: {
-      en: "No courses found matching your criteria",
-      es: "No se encontraron campos que coincidan con tus criterios"
-    },
-    resetFilters: {
-      en: "Reset filters",
-      es: "Restablecer filtros"
-    },
-    noImageAvailable: {
-      en: "No image available",
-      es: "Imagen no disponible"
-    },
-    openNow: {
-      en: "Open now",
-      es: "Abierto ahora"
-    },
-    closed: {
-      en: "Closed",
-      es: "Cerrado"
-    },
-    today: {
-      en: "Today:",
-      es: "Hoy:"
-    },
-    hoursNotAvailable: {
-      en: "Hours not available",
-      es: "Horario no disponible"
-    }
-  },
-  // Add Round page
-  addRound: {
-    title: {
-      en: "Add Round Score",
-      es: "Añadir Puntuación de Ronda"
-    },
-    selectCourse: {
-      en: "Select Course",
-      es: "Seleccionar Campo"
-    },
-    searchPlaceholder: {
-      en: "Search for a course...",
-      es: "Buscar un campo..."
-    },
-    par: {
-      en: "Par",
-      es: "Par"
-    },
-    openNow: {
-      en: "Open now",
-      es: "Abierto ahora"
-    },
-    noCoursesFound: {
-      en: "No courses found",
-      es: "No se encontraron campos"
-    },
-    saveRound: {
-      en: "Save Round",
-      es: "Guardar Ronda"
-    },
-    saving: {
-      en: "Saving...",
-      es: "Guardando..."
-    },
-    selectCourseError: {
-      en: "Please select a course",
-      es: "Por favor selecciona un campo"
-    },
-    loginError: {
-      en: "You must be logged in to save a round",
-      es: "Debes iniciar sesión para guardar una ronda"
-    },
-    saveSuccess: {
-      en: "Round saved successfully!",
-      es: "¡Ronda guardada con éxito!"
-    }
-  },
-  // Profile page
-  profile: {
-    title: {
-      en: "Your Profile",
-      es: "Tu Perfil"
-    },
-    handicap: {
-      en: "Handicap",
-      es: "Hándicap"
-    },
-    roundsPlayed: {
-      en: "Rounds Played",
-      es: "Rondas Jugadas"
-    },
-    avgScore: {
-      en: "Avg. Score",
-      es: "Punt. Media"
-    },
-    bestRound: {
-      en: "Best Round",
-      es: "Mejor Ronda"
-    },
-    recentRounds: {
-      en: "Recent Rounds",
-      es: "Rondas Recientes"
-    },
-    yourRecentRounds: {
-      en: "Your Recent Rounds",
-      es: "Tus Rondas Recientes" 
-    },
-    noRounds: {
-      en: "No rounds played yet",
-      es: "Aún no has jugado rondas"
-    },
-    deleteRoundSuccess: {
-      en: "Round deleted successfully",
-      es: "Ronda eliminada con éxito"
-    },
-    deleteRoundDescription: {
-      en: "The round has been removed from your history",
-      es: "La ronda ha sido eliminada de tu historial"
-    },
-    deleteRoundError: {
-      en: "Error deleting round",
-      es: "Error al eliminar ronda"
-    },
-    noRoundsRecorded: {
-      en: "No rounds recorded yet",
-      es: "Aún no hay rondas registradas"
-    },
-    addFirstRound: {
-      en: "Add Your First Round",
-      es: "Añade Tu Primera Ronda"
-    },
-    fullName: {
-      en: "Full Name",
-      es: "Nombre Completo"
-    },
-    username: {
-      en: "Username",
-      es: "Nombre de Usuario"
-    },
-    noHandicapYet: {
-      en: "No handicap yet",
-      es: "Aún sin hándicap"
-    },
-    anonymous: {
-      en: "Anonymous",
-      es: "Anónimo"
-    },
-    saveChanges: {
-      en: "Save Changes",
-      es: "Guardar Cambios"
-    },
-    saving: {
-      en: "Saving...",
-      es: "Guardando..."
-    },
-    logout: {
-      en: "Logout",
-      es: "Cerrar Sesión"
-    },
-    totalScore: {
-      en: "Total Score",
-      es: "Puntuación Total"
-    },
-    holes: {
-      en: "holes",
-      es: "hoyos"
-    },
-    underPar: {
-      en: "under par",
-      es: "bajo par"
-    },
-    overPar: {
-      en: "over par",
-      es: "sobre par"
-    },
-    atPar: {
-      en: "at par",
-      es: "en par"
-    },
-    deleteRound: {
-      en: "Delete Round",
-      es: "Eliminar Ronda"
-    },
-    deleteRoundConfirm: {
-      en: "Are you sure you want to delete this round? This action cannot be undone and will affect your handicap calculation.",
-      es: "¿Estás seguro de que quieres eliminar esta ronda? Esta acción no se puede deshacer y afectará al cálculo de tu hándicap."
-    },
-    deleting: {
-      en: "Deleting...",
-      es: "Eliminando..."
-    },
-    profileUpdateSuccess: {
-      en: "Profile updated successfully",
-      es: "Perfil actualizado con éxito"
-    },
-    profileUpdateError: {
-      en: "Failed to update profile",
-      es: "Error al actualizar el perfil"
-    },
-    logoutError: {
-      en: "Error logging out",
-      es: "Error al cerrar sesión"
-    },
-    logoutSuccess: {
-      en: "Logged out successfully",
-      es: "Sesión cerrada con éxito"
-    },
-    logoutConfirm: {
-      en: "Are you sure you want to log out? You will need to sign in again to access your account.",
-      es: "¿Estás seguro de que quieres cerrar sesión? Tendrás que volver a iniciar sesión para acceder a tu cuenta."
-    }
-  },
-  // Auth page
-  auth: {
-    welcomeBack: {
-      en: "Welcome back",
-      es: "Bienvenido de nuevo"
-    },
-    createAccount: {
-      en: "Create an account",
-      es: "Crear una cuenta"
-    },
-    emailSignInDescription: {
-      en: "Enter your email to sign in to your account",
-      es: "Introduce tu email para iniciar sesión en tu cuenta"
-    },
-    emailSignUpDescription: {
-      en: "Enter your email below to create your account",
-      es: "Introduce tu email a continuación para crear tu cuenta"
-    },
-    email: {
-      en: "Email",
-      es: "Email"
-    },
-    password: {
-      en: "Password",
-      es: "Contraseña"
-    },
-    signIn: {
-      en: "Sign in",
-      es: "Iniciar sesión"
-    },
-    signUp: {
-      en: "Sign up",
-      es: "Registrarse"
-    },
-    needAccount: {
-      en: "Need an account? Sign up",
-      es: "¿Necesitas una cuenta? Regístrate"
-    },
-    haveAccount: {
-      en: "Already have an account? Sign in",
-      es: "¿Ya tienes una cuenta? Inicia sesión"
-    },
-    checkEmail: {
-      en: "Check your email",
-      es: "Revisa tu email"
-    },
-    confirmationEmailSent: {
-      en: "We sent you a confirmation link to complete your registration.",
-      es: "Te hemos enviado un enlace de confirmación para completar tu registro."
-    }
-  },
-  // Course Details page
-  course: {
-    about: {
-      en: "About",
-      es: "Acerca de"
-    },
-    courseDetails: {
-      en: "Course Details",
-      es: "Detalles del Campo"
-    },
-    hours: {
-      en: "Hours",
-      es: "Horario"
-    },
-    open: {
-      en: "Open Now",
-      es: "Abierto Ahora"
-    },
-    closed: {
-      en: "Closed",
-      es: "Cerrado"
-    },
-    location: {
-      en: "Location",
-      es: "Ubicación"
-    },
-    contact: {
-      en: "Contact",
-      es: "Contacto"
-    },
-    website: {
-      en: "Website",
-      es: "Sitio Web"
-    },
-    visitWebsite: {
-      en: "Visit website",
-      es: "Visitar sitio web"
-    },
-    holes: {
-      en: "holes",
-      es: "hoyos"
-    },
-    par: {
-      en: "Par",
-      es: "Par"
-    },
-    hoursNotAvailable: {
-      en: "Hours not available",
-      es: "Horario no disponible"
-    }
-  },
-  // Reservations
-  reservations: {
-    bookTeeTime: {
-      en: "Book Tee Time",
-      es: "Reservar Horario"
-    },
-    bookTeetime: {
-      en: "Book a Tee Time",
-      es: "Reservar un Horario"
-    },
-    reserveDescription: {
-      en: "Reserve your tee time at {0}. Fill in the details below.",
-      es: "Reserva tu horario en {0}. Completa los detalles a continuación."
-    },
-    date: {
-      en: "Date",
-      es: "Fecha"
-    },
-    selectDate: {
-      en: "Select date",
-      es: "Seleccionar fecha"
-    },
-    time: {
-      en: "Time",
-      es: "Hora"
-    },
-    selectTime: {
-      en: "Select time",
-      es: "Seleccionar hora"
-    },
-    numberOfPlayers: {
-      en: "Number of players",
-      es: "Número de jugadores"
-    },
-    reservationSubmitted: {
-      en: "Reservation Submitted",
-      es: "Reserva Enviada"
-    },
-    reservationSubmittedDesc: {
-      en: "Reservation submitted for {0} on {1} at {2} for {3} player(s)",
-      es: "Reserva enviada para {0} el {1} a las {2} para {3} jugador(es)"
-    },
-    myReservations: {
-      en: "My Reservations",
-      es: "Mis Reservas"
-    },
-    upcoming: {
-      en: "Upcoming",
-      es: "Próximas"
-    },
-    past: {
-      en: "Past",
-      es: "Pasadas"
-    },
-    noReservations: {
-      en: "No reservations found",
-      es: "No se encontraron reservas"
-    },
-    cancelReservation: {
-      en: "Cancel Reservation",
-      es: "Cancelar Reserva"
+  es: {
+    common: {
+      search: "Buscar",
+      filter: "Filtrar",
+      home: "Inicio",
+      profile: "Perfil",
+      settings: "Ajustes",
+      cancel: "Cancelar",
+      submit: "Enviar",
+      create: "Crear",
+      edit: "Editar",
+      delete: "Eliminar",
+      save: "Guardar",
+      back: "Atrás",
+      next: "Siguiente",
+      done: "Hecho",
+      welcome: "Bienvenido",
+      loading: "Cargando...",
+      players: "Jugadores"
+    },
+    auth: {
+      signIn: "Iniciar Sesión",
+      signUp: "Registrarse",
+      email: "Correo electrónico",
+      password: "Contraseña",
+      forgotPassword: "¿Olvidaste tu contraseña?",
+      alreadyHaveAccount: "¿Ya tienes una cuenta?",
+      dontHaveAccount: "¿No tienes una cuenta?",
+      or: "O",
+      continueWithGoogle: "Continuar con Google",
+      continueWithApple: "Continuar con Apple",
+    },
+    home: {
+      featuredCourses: "Campos Destacados",
+      exploreAll: "Explorar Todo",
+      nearbyGolfCourses: "Campos de Golf Cercanos",
+      viewAll: "Ver Todo",
+      upcomingReservations: "Reservas Próximas",
+      noReservations: "Aún no tienes reservaciones.",
+      searchCourses: "Buscar Campos",
+    },
+    course: {
+      holes: "Hoyos",
+      par: "Par",
+      openNow: "Abierto Ahora",
+      closed: "Cerrado",
+      hours: "Horario",
+      address: "Dirección",
+      contact: "Contacto",
+      website: "Sitio Web",
+      directions: "Cómo Llegar",
+      description: "Descripción",
+      reviews: "Reseñas",
+      photos: "Fotos",
+    },
+    profile: {
+      yourProfile: "Tu Perfil",
+      handicap: "Hándicap",
+      viewStats: "Ver Estadísticas",
+      roundsPlayed: "Rondas Jugadas",
+      avgScore: "Puntuación Media",
+      bestScore: "Mejor Puntuación",
+      yourRecentRounds: "Tus Rondas Recientes",
+      noRounds: "Aún no has registrado ninguna ronda.",
+      addRound: "Añadir Ronda",
+    },
+    rounds: {
+      addRound: "Añadir Ronda",
+      selectCourse: "Seleccionar Campo",
+      date: "Fecha",
+      score: "Puntuación",
+      notes: "Notas",
+      searchCourses: "Buscar campos...",
+      noCoursesFound: "No se encontraron campos",
+      courseSearchPlaceholder: "Escribe para buscar un campo...",
+      roundAdded: "Ronda añadida con éxito",
+      roundAddedDesc: "Tu ronda de golf ha sido guardada.",
+      courseRequired: "Por favor selecciona un campo",
+      scoreRequired: "Por favor ingresa tu puntuación",
+      dateRequired: "Por favor selecciona una fecha",
+      hole: "Hoyo",
+      par: "Par",
+      strokes: "Golpes",
+      addShots: "Añadir Tiros",
+    },
+    reservations: {
+      bookTeeTime: "Reservar Horario",
+      date: "Fecha",
+      time: "Hora",
+      players: "Jugadores",
+      bookingDetails: "Detalles de la Reserva",
+      confirmBooking: "Confirmar Reserva",
+      bookingConfirmed: "Reserva Confirmada",
+      bookingFailed: "Error en la Reserva",
+      upcoming: "Próximas",
+      past: "Pasadas",
+      cancelReservation: "Cancelar Reserva",
+      myReservations: "Mis Reservas",
+      noReservations: "No se encontraron reservas"
     }
   }
 };
 
-// Language context type
-type LanguageContextType = {
-  language: string;
-  setLanguage: (lang: string) => void;
+// Create context for language
+interface LanguageContextType {
+  language: LanguageType;
+  setLanguage: (lang: LanguageType) => void;
   t: (section: string, key: string) => string;
-};
+}
 
-// Create the context with default values
 const LanguageContext = createContext<LanguageContextType>({
-  language: 'en',
+  language: "en",
   setLanguage: () => {},
-  t: () => '',
+  t: () => "",
 });
 
-// Hook to use the language context
+// Hook for accessing the language context
 export const useLanguage = () => useContext(LanguageContext);
 
-// Provider component
-export const LanguageProvider = ({ children }: { children: ReactNode }) => {
-  // Initialize language from localStorage or default to 'en'
-  const [language, setLanguageState] = useState(() => {
-    return localStorage.getItem('language') || 'en';
+// Language provider component
+interface LanguageProviderProps {
+  children: ReactNode;
+}
+
+export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
+  const [language, setLanguage] = useState<LanguageType>(() => {
+    const savedLanguage = localStorage.getItem("language");
+    return (savedLanguage as LanguageType) || "en";
   });
 
-  // Update language in localStorage when it changes
-  useEffect(() => {
-    localStorage.setItem('language', language);
-  }, [language]);
-
-  // Function to set the language
-  const setLanguage = (lang: string) => {
-    setLanguageState(lang);
-    localStorage.setItem('language', lang);
+  // Save language preference to localStorage when it changes
+  const handleSetLanguage = (lang: LanguageType) => {
+    setLanguage(lang);
+    localStorage.setItem("language", lang);
   };
 
   // Translation function
   const t = (section: string, key: string): string => {
     try {
-      return translations[section][key][language] || `${section}.${key}`;
+      return translations[language][section][key] || key;
     } catch (error) {
-      console.warn(`Translation missing: ${section}.${key} for language ${language}`);
-      return `${section}.${key}`;
+      console.warn(`Translation missing: ${section}.${key}`);
+      return key;
     }
   };
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+    <LanguageContext.Provider value={{ language, setLanguage: handleSetLanguage, t }}>
       {children}
     </LanguageContext.Provider>
   );

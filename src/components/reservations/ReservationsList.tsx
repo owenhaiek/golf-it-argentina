@@ -4,7 +4,7 @@ import { format } from "date-fns";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, Users, MapPin } from "lucide-react";
+import { Calendar, Clock, Users, MapPin, Loader2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { 
   AlertDialog,
@@ -17,64 +17,119 @@ import {
   AlertDialogCancel,
   AlertDialogAction
 } from "@/components/ui/alert-dialog";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/contexts/AuthContext";
 
-// Example reservation type
+// Reservation type that matches our Supabase schema
 interface Reservation {
   id: string;
-  courseId: string;
-  courseName: string;
-  courseLocation: string;
-  date: Date;
+  course_id: string;
+  course_name: string;
+  course_location: string;
+  date: string;
   time: string;
   players: number;
+  user_id: string;
+  created_at: string;
 }
-
-// Sample data - in a real app this would come from a database
-const sampleUpcomingReservations: Reservation[] = [
-  {
-    id: "res1",
-    courseId: "course1",
-    courseName: "Pine Valley Golf Club",
-    courseLocation: "Pine Valley, NJ",
-    date: new Date(Date.now() + 86400000 * 2), // 2 days from now
-    time: "08:30",
-    players: 2
-  },
-  {
-    id: "res2",
-    courseId: "course2",
-    courseName: "Augusta National Golf Club",
-    courseLocation: "Augusta, GA",
-    date: new Date(Date.now() + 86400000 * 7), // 7 days from now
-    time: "10:00",
-    players: 4
-  }
-];
-
-const samplePastReservations: Reservation[] = [
-  {
-    id: "res3",
-    courseId: "course3",
-    courseName: "Pebble Beach Golf Links",
-    courseLocation: "Pebble Beach, CA",
-    date: new Date(Date.now() - 86400000 * 7), // 7 days ago
-    time: "09:15",
-    players: 3
-  }
-];
 
 const ReservationsList = () => {
   const { language, t } = useLanguage();
-  const [upcomingReservations, setUpcomingReservations] = useState<Reservation[]>(sampleUpcomingReservations);
-  const [pastReservations, setPastReservations] = useState<Reservation[]>(samplePastReservations);
-
-  // Function to handle reservation cancellation
-  const cancelReservation = (reservationId: string) => {
-    // In a real app, this would make an API call to cancel the reservation
-    setUpcomingReservations(current => 
-      current.filter(reservation => reservation.id !== reservationId)
-    );
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
+  // Fetch reservations from Supabase
+  const { data: reservations, isLoading } = useQuery({
+    queryKey: ["reservations", user?.id],
+    queryFn: async () => {
+      if (!user) return { upcoming: [], past: [] };
+      
+      const { data: allReservations, error } = await supabase
+        .from("reservations")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("date", { ascending: true });
+        
+      if (error) {
+        console.error("Error fetching reservations:", error);
+        throw error;
+      }
+      
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      // Split into upcoming and past
+      const upcoming: Reservation[] = [];
+      const past: Reservation[] = [];
+      
+      allReservations?.forEach(res => {
+        const resDate = new Date(res.date);
+        resDate.setHours(0, 0, 0, 0);
+        
+        if (resDate >= today) {
+          upcoming.push(res as Reservation);
+        } else {
+          past.push(res as Reservation);
+        }
+      });
+      
+      return { upcoming, past };
+    },
+    enabled: !!user,
+  });
+  
+  // Cancel reservation mutation
+  const cancelMutation = useMutation({
+    mutationFn: async (reservationId: string) => {
+      const { error } = await supabase
+        .from("reservations")
+        .delete()
+        .eq("id", reservationId);
+        
+      if (error) throw error;
+      return reservationId;
+    },
+    onSuccess: () => {
+      // Invalidate and refetch
+      queryClient.invalidateQueries({ queryKey: ["reservations", user?.id] });
+      
+      toast({
+        title: language === "en" ? "Reservation Cancelled" : "Reserva Cancelada",
+        description: language === "en" 
+          ? "Your reservation has been successfully cancelled." 
+          : "Tu reserva ha sido cancelada con éxito.",
+      });
+    },
+    onError: (error) => {
+      console.error("Error cancelling reservation:", error);
+      toast({
+        title: language === "en" ? "Error" : "Error",
+        description: language === "en" 
+          ? "There was an error cancelling your reservation. Please try again." 
+          : "Hubo un error al cancelar tu reserva. Por favor intenta de nuevo.",
+        variant: "destructive"
+      });
+    }
+  });
+  
+  // Handle reservation cancellation
+  const handleCancelReservation = (reservationId: string) => {
+    cancelMutation.mutate(reservationId);
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  const upcomingReservations = reservations?.upcoming || [];
+  const pastReservations = reservations?.past || [];
 
   return (
     <Tabs defaultValue="upcoming" className="w-full">
@@ -94,7 +149,8 @@ const ReservationsList = () => {
               key={reservation.id}
               reservation={reservation}
               isPast={false}
-              onCancel={cancelReservation}
+              onCancel={handleCancelReservation}
+              isCancelling={cancelMutation.isPending && cancelMutation.variables === reservation.id}
             />
           ))
         )}
@@ -112,6 +168,7 @@ const ReservationsList = () => {
               reservation={reservation}
               isPast={true}
               onCancel={undefined}
+              isCancelling={false}
             />
           ))
         )}
@@ -124,18 +181,19 @@ interface ReservationCardProps {
   reservation: Reservation;
   isPast: boolean;
   onCancel?: (id: string) => void;
+  isCancelling: boolean;
 }
 
-const ReservationCard = ({ reservation, isPast, onCancel }: ReservationCardProps) => {
+const ReservationCard = ({ reservation, isPast, onCancel, isCancelling }: ReservationCardProps) => {
   const { language, t } = useLanguage();
   
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg">{reservation.courseName}</CardTitle>
+        <CardTitle className="text-lg">{reservation.course_name}</CardTitle>
         <CardDescription className="flex items-center gap-1">
           <MapPin size={14} />
-          {reservation.courseLocation}
+          {reservation.course_location}
         </CardDescription>
       </CardHeader>
       <CardContent className="pb-2">
@@ -144,7 +202,7 @@ const ReservationCard = ({ reservation, isPast, onCancel }: ReservationCardProps
             <span className="text-xs text-muted-foreground">{t("reservations", "date")}</span>
             <div className="flex items-center gap-1">
               <Calendar className="h-3.5 w-3.5" />
-              <span className="text-sm">{format(reservation.date, "MMM d, yyyy")}</span>
+              <span className="text-sm">{format(new Date(reservation.date), "MMM d, yyyy")}</span>
             </div>
           </div>
           <div className="flex flex-col">
@@ -167,15 +225,28 @@ const ReservationCard = ({ reservation, isPast, onCancel }: ReservationCardProps
         <CardFooter className="pt-2">
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="outline" className="w-full text-sm">{t("reservations", "cancelReservation")}</Button>
+              <Button 
+                variant="outline" 
+                className="w-full text-sm"
+                disabled={isCancelling}
+              >
+                {isCancelling ? (
+                  <>
+                    <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                    {language === "en" ? "Cancelling..." : "Cancelando..."}
+                  </>
+                ) : (
+                  t("reservations", "cancelReservation")
+                )}
+              </Button>
             </AlertDialogTrigger>
             <AlertDialogContent className="bg-white">
               <AlertDialogHeader>
                 <AlertDialogTitle>{t("reservations", "cancelReservation")}</AlertDialogTitle>
                 <AlertDialogDescription>
                   {language === "en" 
-                    ? `Are you sure you want to cancel your reservation at ${reservation.courseName} on ${format(reservation.date, "MMM d, yyyy")} at ${reservation.time}?` 
-                    : `¿Estás seguro de que quieres cancelar tu reserva en ${reservation.courseName} el ${format(reservation.date, "MMM d, yyyy")} a las ${reservation.time}?`}
+                    ? `Are you sure you want to cancel your reservation at ${reservation.course_name} on ${format(new Date(reservation.date), "MMM d, yyyy")} at ${reservation.time}?` 
+                    : `¿Estás seguro de que quieres cancelar tu reserva en ${reservation.course_name} el ${format(new Date(reservation.date), "MMM d, yyyy")} a las ${reservation.time}?`}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
