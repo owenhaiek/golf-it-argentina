@@ -1,3 +1,4 @@
+
 type DayOpeningHours = {
   isOpen: boolean;
   open: string | null;
@@ -9,7 +10,7 @@ export type OpeningHours = DayOpeningHours[];
 /**
  * Checks if a golf course is currently open based on its opening hours
  */
-export const isCurrentlyOpen = (openingHours: OpeningHours | null): boolean => {
+export const isOpenNow = (openingHours: OpeningHours | null): boolean => {
   if (!openingHours || !Array.isArray(openingHours)) return false;
   
   // Get current day (0 = Sunday, 1 = Monday, etc.)
@@ -76,3 +77,6 @@ export const getDayName = (dayIndex: number): string => {
 export const getCurrentDayIndex = (): number => {
   return new Date().getDay();
 };
+
+// Alias for backward compatibility
+export const isCurrentlyOpen = isOpenNow;

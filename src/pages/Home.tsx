@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { MapPin, Phone, Globe, Flag, Search, Filter, X, Clock } from "lucide-react";
 import { Input } from "@/components/ui/input";

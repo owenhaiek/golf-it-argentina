@@ -1,7 +1,6 @@
-
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
@@ -58,7 +57,6 @@ const AddRound = () => {
       return newRound;
     },
     onSuccess: () => {
-      // Invalidate the rounds query to refresh the rounds list
       queryClient.invalidateQueries({ queryKey: ['userRounds'] });
       
       toast({
@@ -102,7 +100,7 @@ const AddRound = () => {
         course_id: selectedCourse,
         score: totalScore,
         notes,
-        date: new Date().toISOString().split('T')[0] // Add today's date
+        date: new Date().toISOString().split('T')[0]
       });
     } catch (error) {
       // Error handling is done in the mutation callbacks
@@ -111,7 +109,6 @@ const AddRound = () => {
 
   const handleSelectCourse = (courseId: string) => {
     setSelectedCourse(courseId);
-    // Reset scores when changing course
     if (courseId) {
       const course = courses.find(c => c.id === courseId);
       if (course) {

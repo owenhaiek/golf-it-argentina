@@ -38,17 +38,41 @@ const useHideBrowserUI = () => {
         window.scrollTo(0, 1);
       }
       
-      if (document.documentElement.requestFullscreen && !document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(() => {
-          // Silently fail if we can't enter fullscreen
-        });
-      }
+      // Note: We no longer force fullscreen as this often fails
+      // due to browser security restrictions requiring user gestures
     };
 
     // Set correct viewport height for mobile
     const setAppHeight = () => {
       document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
     };
+
+    // Add meta viewport tag to prevent user zooming and set proper scale
+    const meta = document.createElement('meta');
+    meta.name = 'viewport';
+    meta.content = 'width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no';
+    document.getElementsByTagName('head')[0].appendChild(meta);
+    
+    // Add CSS to hide browser chrome on iOS/Safari
+    const style = document.createElement('style');
+    style.textContent = `
+      html {
+        height: -webkit-fill-available;
+        overflow: hidden;
+      }
+      body {
+        height: 100vh;
+        height: -webkit-fill-available;
+        overflow: auto;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        -webkit-overflow-scrolling: touch;
+      }
+    `;
+    document.head.appendChild(style);
 
     // Initial settings
     setAppHeight();
