@@ -1,4 +1,3 @@
-
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
@@ -6,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { Card, CardContent } from "@/components/ui/card";
 import { MapPin, Phone, Globe, Flag, Clock } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import ReservationForm from "@/components/course/ReservationForm";
 
 const Course = () => {
   const { id } = useParams();
@@ -131,7 +131,12 @@ const Course = () => {
 
   return (
     <div className="space-y-6 -mx-4">
-      <h1 className="text-2xl font-bold text-left px-4">{course.name}</h1>
+      <div className="flex items-center justify-between px-4">
+        <h1 className="text-2xl font-bold text-left">{course.name}</h1>
+        <div>
+          <ReservationForm courseId={course.id} courseName={course.name} />
+        </div>
+      </div>
       
       {course.image_url ? (
         <img 

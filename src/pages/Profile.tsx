@@ -108,6 +108,18 @@ const Profile = () => {
     onMutate: (roundId) => {
       console.log(`Setting UI state for round ${roundId} deletion`);
       setDeletingRoundId(roundId);
+      
+      // Optimistically remove the round from the UI
+      const previousRounds = queryClient.getQueryData(['rounds', user?.id]);
+      
+      // Update the cache by filtering out the deleted round
+      if (previousRounds) {
+        queryClient.setQueryData(['rounds', user?.id], (old: any[]) => 
+          old.filter(round => round.id !== roundId)
+        );
+      }
+      
+      return { previousRounds };
     },
     onSuccess: async (roundId) => {
       console.log(`Round ${roundId} successfully deleted, updating UI`);
@@ -118,8 +130,7 @@ const Profile = () => {
         description: t("profile", "deleteRoundDescription"),
       });
       
-      // Immediately clear all query cache related to rounds
-      console.log("Clearing query cache for rounds");
+      // Completely remove round data from cache
       queryClient.removeQueries({ queryKey: ['rounds'] });
       
       // Invalidate profile data (includes handicap)
@@ -132,10 +143,15 @@ const Profile = () => {
       setTimeout(() => {
         console.log("Executing scheduled refetch");
         refetchRounds();
-      }, 300);
+      }, 500);
     },
-    onError: (error) => {
+    onError: (error, roundId, context: any) => {
       console.error(`Error deleting round:`, error);
+      
+      // Revert to the previous state if there was an error
+      if (context?.previousRounds) {
+        queryClient.setQueryData(['rounds', user?.id], context.previousRounds);
+      }
       
       toast({
         title: t("profile", "deleteRoundError"),
