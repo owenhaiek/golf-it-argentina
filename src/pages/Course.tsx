@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -8,17 +9,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { ArrowLeft, MapPin, Clock, Calendar, Info, Users, Star } from "lucide-react";
-import { ReservationForm } from "@/components/course/ReservationForm";
-import { CourseMap } from "@/components/course/CourseMap";
-import { CourseReviews } from "@/components/course/CourseReviews";
-import { CoursePhotos } from "@/components/course/CoursePhotos";
-import { CourseHoleDetails } from "@/components/course/CourseHoleDetails";
-import { CourseWeather } from "@/components/course/CourseWeather";
-import { CourseLeaderboard } from "@/components/course/CourseLeaderboard";
-import { CourseStats } from "@/components/course/CourseStats";
-import { formatOpeningHours } from "@/lib/utils";
-import { OpeningHours } from "@/lib/supabase";
+import { ArrowLeft, MapPin, Clock, Calendar, Info, Users, Star, Phone } from "lucide-react";
+import CourseMap from "@/components/course/CourseMap";
+import CourseReviews from "@/components/course/CourseReviews";
+import CoursePhotos from "@/components/course/CoursePhotos";
+import CourseHoleDetails from "@/components/course/CourseHoleDetails";
+import CourseWeather from "@/components/course/CourseWeather";
+import CourseLeaderboard from "@/components/course/CourseLeaderboard";
+import CourseStats from "@/components/course/CourseStats";
+import formatOpeningHours from "@/utils/formatOpeningHours";
 import { format } from "date-fns";
 
 const Course = () => {
@@ -133,7 +132,7 @@ const Course = () => {
 
   // Format opening hours
   const formattedHours = courseData?.opening_hours 
-    ? formatOpeningHours(courseData.opening_hours as OpeningHours) 
+    ? formatOpeningHours(courseData.opening_hours) 
     : [];
 
   // Calculate average rating
@@ -144,6 +143,23 @@ const Course = () => {
   // Handle back button
   const handleBack = () => {
     navigate(-1);
+  };
+
+  // Handle contact button
+  const handleContact = () => {
+    if (courseData?.phone) {
+      window.location.href = `tel:${courseData.phone}`;
+      toast({
+        title: t("course", "calling"),
+        description: courseData.name,
+      });
+    } else {
+      toast({
+        title: t("course", "phoneNotAvailable"),
+        description: t("course", "tryWebsite"),
+        variant: "destructive"
+      });
+    }
   };
 
   // Set page title
@@ -209,15 +225,24 @@ const Course = () => {
 
       {/* Course tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-4 mb-4">
+        <TabsList className="grid grid-cols-3 mb-4">
           <TabsTrigger value="info">Info</TabsTrigger>
           <TabsTrigger value="map">Map</TabsTrigger>
           <TabsTrigger value="stats">Stats</TabsTrigger>
-          <TabsTrigger value="book">Book</TabsTrigger>
         </TabsList>
 
         {/* Info tab */}
         <TabsContent value="info" className="space-y-4">
+          {/* Contact Button */}
+          <Button 
+            onClick={handleContact} 
+            className="w-full bg-primary mb-4"
+            size="lg"
+          >
+            <Phone className="mr-2 h-5 w-5" />
+            {t("course", "getInTouch")}
+          </Button>
+
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Course Details</CardTitle>
@@ -274,6 +299,30 @@ const Course = () => {
                 <div className="mt-4">
                   <h3 className="font-medium mb-2">About</h3>
                   <p className="text-sm">{courseData.description}</p>
+                </div>
+              )}
+
+              {/* Phone */}
+              {courseData?.phone && (
+                <div className="mt-4">
+                  <h3 className="font-medium mb-2">Contact</h3>
+                  <p className="text-sm flex items-center gap-2">
+                    <Phone className="h-4 w-4 text-primary" />
+                    <a href={`tel:${courseData.phone}`} className="text-primary underline">
+                      {courseData.phone}
+                    </a>
+                  </p>
+                </div>
+              )}
+
+              {/* Website */}
+              {courseData?.website && (
+                <div className="mt-2">
+                  <p className="text-sm">
+                    <a href={courseData.website} target="_blank" rel="noopener noreferrer" className="text-primary underline">
+                      Visit website
+                    </a>
+                  </p>
                 </div>
               )}
             </CardContent>
@@ -333,15 +382,6 @@ const Course = () => {
               coursePar={courseData?.par}
             />
           )}
-        </TabsContent>
-
-        {/* Book tab */}
-        <TabsContent value="book">
-          <ReservationForm 
-            courseId={courseData?.id} 
-            courseName={courseData?.name}
-            courseLocation={`${courseData?.city || ''}, ${courseData?.state || ''}`} 
-          />
         </TabsContent>
       </Tabs>
     </div>

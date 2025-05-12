@@ -43,6 +43,7 @@ const Profile = () => {
   const {
     data: rounds,
     isLoading: roundsLoading,
+    refetch: refetchRounds
   } = useQuery({
     queryKey: ['rounds', user?.id],
     queryFn: async () => {
@@ -107,6 +108,18 @@ const Profile = () => {
     onMutate: (roundId) => {
       console.log(`Setting UI state for round ${roundId} deletion`);
       setDeletingRoundId(roundId);
+      
+      // Optimistically update the UI
+      // Store the previous rounds value
+      const previousRounds = queryClient.getQueryData(['rounds', user?.id]);
+      
+      // Optimistically remove the round from the cache
+      queryClient.setQueryData(['rounds', user?.id], (oldData: any) => {
+        if (!oldData) return [];
+        return oldData.filter((round: any) => round.id !== roundId);
+      });
+      
+      return { previousRounds };
     },
     onSuccess: async (roundId) => {
       console.log(`Round ${roundId} successfully deleted, updating UI`);
@@ -117,15 +130,19 @@ const Profile = () => {
         description: t("profile", "deleteRoundDescription"),
       });
       
-      // Properly invalidate queries to force refetch
-      queryClient.invalidateQueries({ queryKey: ['rounds'] });
-      queryClient.invalidateQueries({ queryKey: ['profile'] });
+      // Force refetch to ensure UI is in sync with server
+      await refetchRounds();
       
-      // Force cache reset for rounds query
-      queryClient.resetQueries({ queryKey: ['rounds', user?.id], exact: true });
+      // Also invalidate profile to update any stats that might depend on rounds
+      queryClient.invalidateQueries({ queryKey: ['profile', user?.id] });
     },
-    onError: (error) => {
+    onError: (error, roundId, context: any) => {
       console.error(`Error deleting round:`, error);
+      
+      // Revert to the previous state if available
+      if (context?.previousRounds) {
+        queryClient.setQueryData(['rounds', user?.id], context.previousRounds);
+      }
       
       toast({
         title: t("profile", "deleteRoundError"),

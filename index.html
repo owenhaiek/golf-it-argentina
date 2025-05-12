@@ -1,50 +1,16 @@
 
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, minimal-ui" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="theme-color" content="#2A4746" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-title" content="GolfGem" />
-    <meta name="apple-touch-fullscreen" content="yes" />
-    <title>GolfGem</title>
-    <meta name="description" content="Track your golf scores and handicap" />
-    <meta name="author" content="Lovable" />
-    <meta property="og:image" content="/og-image.png" />
-    <link rel="apple-touch-icon" href="/icon-192.png" />
-    <link rel="manifest" href="/manifest.json" />
-  </head>
-
-  <body>
-    <div id="root"></div>
-    <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->
-    <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
-    <script type="module" src="/src/main.tsx"></script>
-    <script>
-      // Function to set correct viewport height for mobile
-      function setAppHeight() {
-        document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
-      }
-      
-      // Initial set and reset on resize
-      setAppHeight();
-      window.addEventListener('resize', setAppHeight);
-      window.addEventListener('orientationchange', () => setTimeout(setAppHeight, 100));
-      
-      // Function to hide browser UI on iOS
-      function hideBrowserUI() {
-        if (document.documentElement.scrollTop === 0) {
-          window.scrollTo(0, 1);
-        }
-      }
-      
-      // Apply UI hiding techniques
-      window.addEventListener('load', hideBrowserUI);
-      window.addEventListener('resize', hideBrowserUI);
-      window.addEventListener('orientationchange', () => setTimeout(hideBrowserUI, 200));
-    </script>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, minimal-ui" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
+  <title>Golf App</title>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
 </html>
