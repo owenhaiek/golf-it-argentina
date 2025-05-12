@@ -30,7 +30,7 @@ export function GolfCourseDetails({ course }: GolfCourseDetailsProps) {
       <CardContent className="p-6 space-y-4">
         <div className="flex items-start justify-between">
           <h3 className="text-xl font-semibold">{course.name}</h3>
-          <Badge variant={isOpenNow(course.opening_hours) ? "success" : "destructive"}>
+          <Badge variant={isOpenNow(course.opening_hours) ? "secondary" : "destructive"}>
             {isOpenNow(course.opening_hours) ? "Open" : "Closed"}
           </Badge>
         </div>
