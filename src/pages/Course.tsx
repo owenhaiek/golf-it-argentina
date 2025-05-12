@@ -5,7 +5,6 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -26,7 +25,6 @@ const Course = () => {
   const { toast } = useToast();
   const { t } = useLanguage();
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState("info");
 
   // Fetch course data
   const { data: courseData, isLoading: courseLoading } = useQuery({
@@ -187,10 +185,10 @@ const Course = () => {
         {t("common", "back")}
       </Button>
 
-      {/* Course header */}
+      {/* Course header - now full width and taller */}
       <div className="relative rounded-lg overflow-hidden mb-6">
         {courseData?.image_url ? (
-          <div className="h-48 w-full">
+          <div className="h-64 w-full"> {/* Increased height from h-48 to h-64 */}
             <img 
               src={courseData.image_url} 
               alt={courseData.name} 
@@ -199,7 +197,7 @@ const Course = () => {
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
           </div>
         ) : (
-          <div className="h-48 w-full bg-gradient-to-r from-primary/20 to-secondary/20" />
+          <div className="h-64 w-full bg-gradient-to-r from-primary/20 to-secondary/20" /> {/* Increased height */}
         )}
         
         <div className="absolute bottom-0 left-0 p-4 text-white">
@@ -223,167 +221,156 @@ const Course = () => {
         </div>
       </div>
 
-      {/* Course tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-3 mb-4">
-          <TabsTrigger value="info">Info</TabsTrigger>
-          <TabsTrigger value="map">Map</TabsTrigger>
-          <TabsTrigger value="stats">Stats</TabsTrigger>
-        </TabsList>
-
-        {/* Info tab */}
-        <TabsContent value="info" className="space-y-4">
-          {/* Contact Button */}
-          <Button 
-            onClick={handleContact} 
-            className="w-full bg-primary mb-4"
-            size="lg"
-          >
-            <Phone className="mr-2 h-5 w-5" />
-            {t("course", "getInTouch")}
-          </Button>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Course Details</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex items-center">
-                  <Info className="h-5 w-5 mr-2 text-primary" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Type</p>
-                    <p className="font-medium">{courseData?.type || "Standard"}</p>
-                  </div>
-                </div>
-                <div className="flex items-center">
-                  <Users className="h-5 w-5 mr-2 text-primary" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Holes</p>
-                    <p className="font-medium">{courseData?.holes || 18}</p>
-                  </div>
-                </div>
-                <div className="flex items-center">
-                  <Calendar className="h-5 w-5 mr-2 text-primary" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Established</p>
-                    <p className="font-medium">{courseData?.established_year || "N/A"}</p>
-                  </div>
-                </div>
-                <div className="flex items-center">
-                  <Clock className="h-5 w-5 mr-2 text-primary" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Par</p>
-                    <p className="font-medium">{courseData?.par || "72"}</p>
-                  </div>
+      {/* Main content - removed tabs, showing all content in a single view */}
+      <div className="space-y-6">
+        {/* Course details card */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Course Details</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex items-center">
+                <Info className="h-5 w-5 mr-2 text-primary" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Type</p>
+                  <p className="font-medium">{courseData?.type || "Standard"}</p>
                 </div>
               </div>
-
-              {/* Opening hours */}
-              {formattedHours.length > 0 && (
-                <div className="mt-4">
-                  <h3 className="font-medium mb-2">Opening Hours</h3>
-                  <div className="grid grid-cols-1 gap-1">
-                    {formattedHours.map((day, index) => (
-                      <div key={index} className="flex justify-between text-sm">
-                        <span className="font-medium">{day.day}</span>
-                        <span>{day.hours}</span>
-                      </div>
-                    ))}
-                  </div>
+              <div className="flex items-center">
+                <Users className="h-5 w-5 mr-2 text-primary" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Holes</p>
+                  <p className="font-medium">{courseData?.holes || 18}</p>
                 </div>
-              )}
-
-              {/* Description */}
-              {courseData?.description && (
-                <div className="mt-4">
-                  <h3 className="font-medium mb-2">About</h3>
-                  <p className="text-sm">{courseData.description}</p>
+              </div>
+              <div className="flex items-center">
+                <Calendar className="h-5 w-5 mr-2 text-primary" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Established</p>
+                  <p className="font-medium">{courseData?.established_year || "N/A"}</p>
                 </div>
-              )}
-
-              {/* Phone */}
-              {courseData?.phone && (
-                <div className="mt-4">
-                  <h3 className="font-medium mb-2">Contact</h3>
-                  <p className="text-sm flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-primary" />
-                    <a href={`tel:${courseData.phone}`} className="text-primary underline">
-                      {courseData.phone}
-                    </a>
-                  </p>
+              </div>
+              <div className="flex items-center">
+                <Clock className="h-5 w-5 mr-2 text-primary" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Par</p>
+                  <p className="font-medium">{courseData?.par || "72"}</p>
                 </div>
-              )}
+              </div>
+            </div>
 
-              {/* Website */}
-              {courseData?.website && (
-                <div className="mt-2">
-                  <p className="text-sm">
-                    <a href={courseData.website} target="_blank" rel="noopener noreferrer" className="text-primary underline">
-                      Visit website
-                    </a>
-                  </p>
+            {/* Opening hours */}
+            {formattedHours.length > 0 && (
+              <div className="mt-4">
+                <h3 className="font-medium mb-2">Opening Hours</h3>
+                <div className="grid grid-cols-1 gap-1">
+                  {formattedHours.map((day, index) => (
+                    <div key={index} className="flex justify-between text-sm">
+                      <span className="font-medium">{day.day}</span>
+                      <span>{day.hours}</span>
+                    </div>
+                  ))}
                 </div>
-              )}
-            </CardContent>
-          </Card>
+              </div>
+            )}
 
-          {/* Hole details */}
-          {courseData?.hole_pars && (
-            <CourseHoleDetails 
-              holePars={courseData.hole_pars} 
-              holeDistances={courseData.hole_distances}
-              holeHandicaps={courseData.hole_handicaps}
-            />
-          )}
+            {/* Description */}
+            {courseData?.description && (
+              <div className="mt-4">
+                <h3 className="font-medium mb-2">About</h3>
+                <p className="text-sm">{courseData.description}</p>
+              </div>
+            )}
 
-          {/* Weather */}
-          {courseData?.latitude && courseData?.longitude && (
-            <CourseWeather 
-              latitude={courseData.latitude} 
-              longitude={courseData.longitude}
-            />
-          )}
+            {/* Phone */}
+            {courseData?.phone && (
+              <div className="mt-4">
+                <h3 className="font-medium mb-2">Contact</h3>
+                <p className="text-sm flex items-center gap-2">
+                  <Phone className="h-4 w-4 text-primary" />
+                  <a href={`tel:${courseData.phone}`} className="text-primary underline">
+                    {courseData.phone}
+                  </a>
+                </p>
+              </div>
+            )}
 
-          {/* Photos */}
-          <CoursePhotos courseId={id} />
+            {/* Website */}
+            {courseData?.website && (
+              <div className="mt-2">
+                <p className="text-sm">
+                  <a href={courseData.website} target="_blank" rel="noopener noreferrer" className="text-primary underline">
+                    Visit website
+                  </a>
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-          {/* Reviews */}
-          <CourseReviews 
-            courseId={id} 
-            reviews={reviews || []} 
-            isLoading={reviewsLoading}
-          />
-        </TabsContent>
-
-        {/* Map tab */}
-        <TabsContent value="map">
+        {/* Map */}
+        {courseData?.latitude && courseData?.longitude && (
           <CourseMap 
-            latitude={courseData?.latitude} 
-            longitude={courseData?.longitude}
-            name={courseData?.name}
+            latitude={courseData.latitude} 
+            longitude={courseData.longitude}
+            name={courseData.name}
           />
-        </TabsContent>
+        )}
 
-        {/* Stats tab */}
-        <TabsContent value="stats" className="space-y-4">
-          {/* Leaderboard */}
-          <CourseLeaderboard 
-            rounds={allRounds || []} 
-            isLoading={allRoundsLoading}
+        {/* Hole details */}
+        {courseData?.hole_pars && (
+          <CourseHoleDetails 
+            holePars={courseData.hole_pars} 
+            holeDistances={courseData.hole_distances}
+            holeHandicaps={courseData.hole_handicaps}
+          />
+        )}
+
+        {/* Leaderboard */}
+        <CourseLeaderboard 
+          rounds={allRounds || []} 
+          isLoading={allRoundsLoading}
+          coursePar={courseData?.par}
+        />
+
+        {/* User stats */}
+        {user && (
+          <CourseStats 
+            rounds={userRounds || []} 
+            isLoading={roundsLoading}
             coursePar={courseData?.par}
           />
-          
-          {/* User stats */}
-          {user && (
-            <CourseStats 
-              rounds={userRounds || []} 
-              isLoading={roundsLoading}
-              coursePar={courseData?.par}
-            />
-          )}
-        </TabsContent>
-      </Tabs>
+        )}
+
+        {/* Weather */}
+        {courseData?.latitude && courseData?.longitude && (
+          <CourseWeather 
+            latitude={courseData.latitude} 
+            longitude={courseData.longitude}
+          />
+        )}
+
+        {/* Photos */}
+        <CoursePhotos courseId={id} />
+
+        {/* Reviews */}
+        <CourseReviews 
+          courseId={id} 
+          reviews={reviews || []} 
+          isLoading={reviewsLoading}
+        />
+        
+        {/* Contact Button - moved to bottom */}
+        <Button 
+          onClick={handleContact} 
+          className="w-full bg-primary mt-6 fixed bottom-20 left-0 right-0 mx-auto max-w-md z-10 shadow-lg"
+          size="lg"
+        >
+          <Phone className="mr-2 h-5 w-5" />
+          {t("course", "getInTouch")}
+        </Button>
+      </div>
     </div>
   );
 };
