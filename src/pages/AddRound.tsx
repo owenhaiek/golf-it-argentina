@@ -1,37 +1,49 @@
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+
+import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
+import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
-import { useLanguage } from "@/contexts/LanguageContext";
-import CourseSearch from "@/components/rounds/CourseSearch";
-import ScoreCard from "@/components/rounds/ScoreCard";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { Search } from "lucide-react";
 
 const AddRound = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { t } = useLanguage();
-  const queryClient = useQueryClient();
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedCourse, setSelectedCourse] = useState<string>("");
   const [scores, setScores] = useState<number[]>(Array(18).fill(0));
   const [notes, setNotes] = useState("");
+  const [showCourses, setShowCourses] = useState(false);
 
   const { data: courses = [], isLoading: isLoadingCourses } = useQuery({
     queryKey: ['courses'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('golf_courses')
-        .select('id, name, holes, hole_pars, opening_hours')
+        .select('id, name, holes, hole_pars')
         .order('name');
       if (error) throw error;
       return data || [];
     },
   });
 
+  const filteredCourses = courses.filter(course =>
+    course.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   const selectedCourseData = courses?.find(course => course.id === selectedCourse);
+
+  // Show courses only when searching
+  useEffect(() => {
+    if (searchQuery === "" && !showCourses) return;
+    setShowCourses(searchQuery.length > 0);
+  }, [searchQuery]);
 
   const handleScoreChange = (index: number, value: number) => {
     const newScores = [...scores];
@@ -39,54 +51,26 @@ const AddRound = () => {
     setScores(newScores);
   };
 
-  const addRoundMutation = useMutation({
-    mutationFn: async (data: {
-      user_id: string;
-      course_id: string;
-      score: number;
-      notes: string;
-      date: string;
-    }) => {
-      const { data: newRound, error } = await supabase
-        .from('rounds')
-        .insert(data)
-        .select('*')
-        .single();
-      
-      if (error) throw error;
-      return newRound;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['userRounds'] });
-      
-      toast({
-        title: t("addRound", "saveSuccess"),
-      });
-      
-      navigate('/profile');
-    },
-    onError: (error) => {
-      console.error('Error adding round:', error);
-      toast({
-        title: t("common", "error"),
-        description: error instanceof Error ? error.message : "An unknown error occurred",
-        variant: "destructive",
-      });
+  const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>, currentIndex: number) => {
+    const numberOfHoles = selectedCourseData?.holes || 18;
+    
+    if (event.key === 'Enter' || event.key === 'ArrowRight') {
+      if (currentIndex < numberOfHoles - 1) {
+        const nextInput = document.querySelector(`input[data-index="${currentIndex + 1}"]`) as HTMLInputElement;
+        if (nextInput) nextInput.focus();
+      }
+    } else if (event.key === 'ArrowLeft') {
+      if (currentIndex > 0) {
+        const prevInput = document.querySelector(`input[data-index="${currentIndex - 1}"]`) as HTMLInputElement;
+        if (prevInput) prevInput.focus();
+      }
     }
-  });
+  };
 
   const handleSubmit = async () => {
     if (!selectedCourse) {
       toast({
-        title: t("addRound", "selectCourseError"),
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!user?.id) {
-      toast({
-        title: t("addRound", "loginError"),
+        title: "Please select a course",
         variant: "destructive",
       });
       return;
@@ -95,56 +79,193 @@ const AddRound = () => {
     const totalScore = scores.slice(0, selectedCourseData?.holes || 18).reduce((a, b) => a + b, 0);
     
     try {
-      addRoundMutation.mutate({
-        user_id: user.id,
-        course_id: selectedCourse,
-        score: totalScore,
-        notes,
-        date: new Date().toISOString().split('T')[0]
+      const { error } = await supabase
+        .from('rounds')
+        .insert({
+          user_id: user?.id,
+          course_id: selectedCourse,
+          score: totalScore,
+          notes,
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Round saved successfully!",
       });
+      
+      navigate('/profile');
     } catch (error) {
-      // Error handling is done in the mutation callbacks
+      toast({
+        title: "Error saving round",
+        variant: "destructive",
+      });
     }
   };
 
-  const handleSelectCourse = (courseId: string) => {
-    setSelectedCourse(courseId);
-    if (courseId) {
-      const course = courses.find(c => c.id === courseId);
-      if (course) {
-        setScores(Array(course.holes).fill(0));
-      }
-    }
-  };
+  const chartData = selectedCourseData?.hole_pars
+    ?.slice(0, selectedCourseData.holes)
+    .map((par, index) => ({
+      hole: index + 1,
+      score: scores[index] || null,
+      par: par || 0,
+    })) || [];
+
+  const numberOfHoles = selectedCourseData?.holes || 18;
+  const totalPar = selectedCourseData?.hole_pars
+    ?.slice(0, numberOfHoles)
+    .reduce((a, b) => a + (b || 0), 0) || 0;
+  const currentTotal = scores.slice(0, numberOfHoles).reduce((a, b) => a + b, 0);
 
   return (
-    <div className="space-y-6 pb-28">
-      <h1 className="text-2xl font-bold">{t("addRound", "title")}</h1>
+    <div className="space-y-6">
+      <h1 className="text-2xl font-bold">Add Round Score</h1>
 
-      <CourseSearch 
-        courses={courses}
-        isLoading={isLoadingCourses}
-        selectedCourse={selectedCourse}
-        onSelectCourse={handleSelectCourse}
-      />
+      <Card>
+        <CardHeader>
+          <CardTitle>Select Course</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Search for a course..."
+              value={selectedCourseData ? selectedCourseData.name : searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                if (selectedCourse && e.target.value !== selectedCourseData?.name) {
+                  setSelectedCourse("");
+                }
+              }}
+              onFocus={() => {
+                if (selectedCourse) {
+                  setSearchQuery("");
+                  setSelectedCourse("");
+                }
+                setShowCourses(true);
+              }}
+              className="pl-9"
+            />
+          </div>
+          {showCourses && filteredCourses.length > 0 && (
+            <div className="max-h-[200px] overflow-y-auto space-y-2">
+              {filteredCourses.map((course) => {
+                const coursePar = course.hole_pars
+                  ?.slice(0, course.holes)
+                  .reduce((a, b) => a + (b || 0), 0) || 0;
+                return (
+                  <Button
+                    key={course.id}
+                    variant={selectedCourse === course.id ? "default" : "outline"}
+                    className="w-full justify-between"
+                    onClick={() => {
+                      setSelectedCourse(course.id);
+                      setSearchQuery("");
+                      setShowCourses(false);
+                      // Reset scores when changing course
+                      setScores(Array(course.holes).fill(0));
+                    }}
+                  >
+                    <span>{course.name}</span>
+                    <span className="text-sm text-muted-foreground">
+                      Par {coursePar}
+                    </span>
+                  </Button>
+                );
+              })}
+            </div>
+          )}
+          {showCourses && filteredCourses.length === 0 && (
+            <div className="text-center text-muted-foreground py-4">
+              No courses found
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {selectedCourseData && (
-        <ScoreCard
-          selectedCourseData={selectedCourseData}
-          scores={scores}
-          onScoreChange={handleScoreChange}
-        />
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex justify-between items-center">
+              <span>Score Card - {selectedCourseData.name}</span>
+              <div className="text-sm font-normal space-y-1 text-right">
+                <div>Your Score: {currentTotal}</div>
+                <div>Course Par: {totalPar}</div>
+                <div>vs Par: {currentTotal - totalPar}</div>
+              </div>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="h-[300px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={chartData}>
+                  <XAxis 
+                    dataKey="hole"
+                    type="number"
+                    domain={[1, numberOfHoles]}
+                    allowDecimals={false}
+                  />
+                  <YAxis 
+                    domain={['auto', 'auto']}
+                  />
+                  <Tooltip />
+                  <Legend />
+                  <Line 
+                    type="monotone" 
+                    dataKey="score" 
+                    stroke="#2A4746" 
+                    strokeWidth={2}
+                    dot={{ fill: "#2A4746" }}
+                    name="Your Score"
+                    animationDuration={300}
+                    connectNulls
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="par" 
+                    stroke="#888888" 
+                    strokeWidth={2}
+                    dot={{ fill: "#888888" }}
+                    name="Par"
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div className="grid grid-cols-6 gap-2">
+              {Array.from({ length: numberOfHoles }).map((_, index) => (
+                <div key={index} className="text-center">
+                  <div className="text-xs text-muted-foreground mb-1">
+                    Hole {index + 1}
+                    {selectedCourseData?.hole_pars && (
+                      <div className="text-xs text-muted-foreground">
+                        Par {selectedCourseData.hole_pars[index] || '-'}
+                      </div>
+                    )}
+                  </div>
+                  <input
+                    type="number"
+                    min="0"
+                    data-index={index}
+                    value={scores[index] || ''}
+                    onChange={(e) => handleScoreChange(index, parseInt(e.target.value) || 0)}
+                    onKeyDown={(e) => handleKeyPress(e, index)}
+                    className="w-full p-2 text-center border rounded-md"
+                  />
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       )}
 
-      <div className="flex flex-col gap-3">
-        <Button 
-          onClick={handleSubmit} 
-          className="w-full"
-          disabled={addRoundMutation.isPending}
-        >
-          {addRoundMutation.isPending ? t("addRound", "saving") : t("addRound", "saveRound")}
-        </Button>
-      </div>
+      <Button 
+        onClick={handleSubmit} 
+        className="w-full"
+      >
+        Save Round
+      </Button>
     </div>
   );
 };
