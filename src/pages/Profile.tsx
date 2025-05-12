@@ -43,7 +43,6 @@ const Profile = () => {
   const {
     data: rounds,
     isLoading: roundsLoading,
-    refetch: refetchRounds
   } = useQuery({
     queryKey: ['rounds', user?.id],
     queryFn: async () => {
@@ -84,7 +83,7 @@ const Profile = () => {
     refetchOnWindowFocus: true // Refetch when window gains focus
   });
 
-  // Delete round mutation
+  // Delete round mutation - Fixed to properly update the cache
   const deleteRoundMutation = useMutation({
     mutationFn: async (roundId: string) => {
       console.log(`Starting deletion of round ${roundId}`);
@@ -108,18 +107,6 @@ const Profile = () => {
     onMutate: (roundId) => {
       console.log(`Setting UI state for round ${roundId} deletion`);
       setDeletingRoundId(roundId);
-      
-      // Optimistically remove the round from the UI
-      const previousRounds = queryClient.getQueryData(['rounds', user?.id]);
-      
-      // Update the cache by filtering out the deleted round
-      if (previousRounds) {
-        queryClient.setQueryData(['rounds', user?.id], (old: any[]) => 
-          old.filter(round => round.id !== roundId)
-        );
-      }
-      
-      return { previousRounds };
     },
     onSuccess: async (roundId) => {
       console.log(`Round ${roundId} successfully deleted, updating UI`);
@@ -130,32 +117,19 @@ const Profile = () => {
         description: t("profile", "deleteRoundDescription"),
       });
       
-      // Completely remove round data from cache
-      queryClient.removeQueries({ queryKey: ['rounds'] });
+      // Properly invalidate queries to force refetch
+      queryClient.invalidateQueries({ queryKey: ['rounds'] });
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
       
-      // Invalidate profile data (includes handicap)
-      console.log("Invalidating profile data");
-      queryClient.invalidateQueries({ queryKey: ['profile', user?.id] });
-      
-      // Force a new fetch of rounds data after a short delay
-      // This ensures the deletion has propagated through the database
-      console.log("Scheduling refetch of rounds data");
-      setTimeout(() => {
-        console.log("Executing scheduled refetch");
-        refetchRounds();
-      }, 500);
+      // Force cache reset for rounds query
+      queryClient.resetQueries({ queryKey: ['rounds', user?.id], exact: true });
     },
-    onError: (error, roundId, context: any) => {
+    onError: (error) => {
       console.error(`Error deleting round:`, error);
-      
-      // Revert to the previous state if there was an error
-      if (context?.previousRounds) {
-        queryClient.setQueryData(['rounds', user?.id], context.previousRounds);
-      }
       
       toast({
         title: t("profile", "deleteRoundError"),
-        description: error.message || t("profile", "generalError"),
+        description: error instanceof Error ? error.message : t("profile", "generalError"),
         variant: "destructive"
       });
     },
@@ -195,7 +169,6 @@ const Profile = () => {
         
         <div className="w-full">
           <RecentRounds 
-            userId={user?.id} 
             rounds={rounds} 
             roundsLoading={roundsLoading} 
             onDeleteRound={handleDeleteRound}

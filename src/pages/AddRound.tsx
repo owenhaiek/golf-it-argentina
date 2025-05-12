@@ -59,7 +59,8 @@ const AddRound = () => {
     },
     onSuccess: () => {
       // Invalidate the rounds query to refresh the rounds list
-      queryClient.invalidateQueries({ queryKey: ['userRounds'] });
+      queryClient.invalidateQueries({ queryKey: ['rounds'] });
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
       
       toast({
         title: t("addRound", "saveSuccess"),
@@ -89,6 +90,16 @@ const AddRound = () => {
     if (!user?.id) {
       toast({
         title: t("addRound", "loginError"),
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check if user has added any scores
+    const hasScores = scores.some(score => score > 0);
+    if (!hasScores) {
+      toast({
+        title: "Please enter at least one score",
         variant: "destructive",
       });
       return;

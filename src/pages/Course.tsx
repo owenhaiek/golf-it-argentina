@@ -1,232 +1,349 @@
-
-import { useParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
-import { Card, CardContent } from "@/components/ui/card";
-import { MapPin, Phone, Globe, Flag, Clock } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/components/ui/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
-import ReservationForm from "@/components/course/ReservationForm";
+import { useAuth } from "@/contexts/AuthContext";
+import { ArrowLeft, MapPin, Clock, Calendar, Info, Users, Star } from "lucide-react";
+import { ReservationForm } from "@/components/course/ReservationForm";
+import { CourseMap } from "@/components/course/CourseMap";
+import { CourseReviews } from "@/components/course/CourseReviews";
+import { CoursePhotos } from "@/components/course/CoursePhotos";
+import { CourseHoleDetails } from "@/components/course/CourseHoleDetails";
+import { CourseWeather } from "@/components/course/CourseWeather";
+import { CourseLeaderboard } from "@/components/course/CourseLeaderboard";
+import { CourseStats } from "@/components/course/CourseStats";
+import { formatOpeningHours } from "@/lib/utils";
+import { OpeningHours } from "@/lib/supabase";
+import { format } from "date-fns";
 
 const Course = () => {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const { t } = useLanguage();
-  const [currentTime, setCurrentTime] = useState<Date>(new Date());
+  const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState("info");
 
-  // Update current time every minute
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 60000);
-    
-    return () => clearInterval(timer);
-  }, []);
-
-  const { data: course, isLoading } = useQuery({
+  // Fetch course data
+  const { data: courseData, isLoading: courseLoading } = useQuery({
     queryKey: ['course', id],
     queryFn: async () => {
+      if (!id) return null;
+      
       const { data, error } = await supabase
         .from('golf_courses')
         .select('*')
         .eq('id', id)
         .single();
-      if (error) throw error;
+        
+      if (error) {
+        console.error("Course fetch error:", error);
+        throw error;
+      }
+      
       return data;
-    }
+    },
+    enabled: !!id,
   });
 
-  const isGolfCourseOpen = (openHours: string | null): boolean => {
-    if (!openHours) return false;
-    
-    try {
-      const today = currentTime.getDay(); // 0 = Sunday, 1 = Monday, ...
-      const hours = JSON.parse(openHours);
+  // Fetch user's rounds at this course
+  const { data: userRounds, isLoading: roundsLoading } = useQuery({
+    queryKey: ['userRounds', id, user?.id],
+    queryFn: async () => {
+      if (!id || !user?.id) return [];
       
-      if (!hours[today] || !hours[today].isOpen) return false;
+      const { data, error } = await supabase
+        .from('rounds')
+        .select('*')
+        .eq('course_id', id)
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+        
+      if (error) {
+        console.error("User rounds fetch error:", error);
+        throw error;
+      }
       
-      const { open, close } = hours[today];
-      if (!open || !close) return false;
+      return data || [];
+    },
+    enabled: !!id && !!user?.id,
+  });
+
+  // Fetch all rounds at this course for leaderboard
+  const { data: allRounds, isLoading: allRoundsLoading } = useQuery({
+    queryKey: ['courseRounds', id],
+    queryFn: async () => {
+      if (!id) return [];
       
-      const currentHour = currentTime.getHours();
-      const currentMinute = currentTime.getMinutes();
+      const { data, error } = await supabase
+        .from('rounds')
+        .select(`
+          *,
+          profiles (
+            username,
+            avatar_url
+          )
+        `)
+        .eq('course_id', id)
+        .order('score', { ascending: true })
+        .limit(10);
+        
+      if (error) {
+        console.error("All rounds fetch error:", error);
+        throw error;
+      }
       
-      const [openHour, openMinute] = open.split(':').map(Number);
-      const [closeHour, closeMinute] = close.split(':').map(Number);
+      return data || [];
+    },
+    enabled: !!id,
+  });
+
+  // Fetch course reviews
+  const { data: reviews, isLoading: reviewsLoading } = useQuery({
+    queryKey: ['courseReviews', id],
+    queryFn: async () => {
+      if (!id) return [];
       
-      const currentTotalMinutes = currentHour * 60 + currentMinute;
-      const openTotalMinutes = openHour * 60 + openMinute;
-      const closeTotalMinutes = closeHour * 60 + closeMinute;
+      const { data, error } = await supabase
+        .from('course_reviews')
+        .select(`
+          *,
+          profiles (
+            username,
+            avatar_url
+          )
+        `)
+        .eq('course_id', id)
+        .order('created_at', { ascending: false });
+        
+      if (error) {
+        console.error("Reviews fetch error:", error);
+        throw error;
+      }
       
-      return currentTotalMinutes >= openTotalMinutes && currentTotalMinutes < closeTotalMinutes;
-    } catch (error) {
-      console.error("Error parsing opening hours:", error);
-      return false;
-    }
+      return data || [];
+    },
+    enabled: !!id,
+  });
+
+  // Format opening hours
+  const formattedHours = courseData?.opening_hours 
+    ? formatOpeningHours(courseData.opening_hours as OpeningHours) 
+    : [];
+
+  // Calculate average rating
+  const averageRating = reviews?.length 
+    ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length 
+    : 0;
+
+  // Handle back button
+  const handleBack = () => {
+    navigate(-1);
   };
 
-  const formatOpeningHours = (openHours: string | null): React.ReactNode => {
-    if (!openHours) return <span className="text-muted-foreground">{t("course", "hoursNotAvailable")}</span>;
-    
-    try {
-      const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-      const hours = JSON.parse(openHours);
-      const today = currentTime.getDay();
-      
-      return (
-        <div className="space-y-1 mt-1">
-          {days.map((day, index) => {
-            const dayInfo = hours[index];
-            const isToday = index === today;
-            
-            if (!dayInfo) {
-              return (
-                <div key={day} className={`flex justify-between text-xs ${isToday ? 'font-semibold' : ''}`}>
-                  <span>{day}{isToday ? ' (Today)' : ''}</span>
-                  <span className="text-muted-foreground">{t("course", "hoursNotAvailable")}</span>
-                </div>
-              );
-            }
-            
-            if (!dayInfo.isOpen) {
-              return (
-                <div key={day} className={`flex justify-between text-xs ${isToday ? 'font-semibold' : ''}`}>
-                  <span>{day}{isToday ? ' (Today)' : ''}</span>
-                  <span className="text-muted-foreground">{t("course", "closed")}</span>
-                </div>
-              );
-            }
-            
-            return (
-              <div key={day} className={`flex justify-between text-xs ${isToday ? 'font-semibold' : ''}`}>
-                <span>{day}{isToday ? ' (Today)' : ''}</span>
-                <span>{dayInfo.open} - {dayInfo.close}</span>
-              </div>
-            );
-          })}
-        </div>
-      );
-    } catch (error) {
-      console.error("Error formatting opening hours:", error);
-      return <span className="text-muted-foreground">{t("course", "hoursNotAvailable")}</span>;
+  // Set page title
+  useEffect(() => {
+    if (courseData?.name) {
+      document.title = `${courseData.name} | Golf App`;
     }
-  };
+    return () => {
+      document.title = 'Golf App';
+    };
+  }, [courseData?.name]);
 
-  if (isLoading) {
-    return (
-      <div className="animate-pulse space-y-4">
-        <div className="h-6 w-1/3 bg-secondary/20 rounded" />
-        <div className="h-64 bg-secondary/20 rounded-none" />
-        <div className="space-y-2">
-          <div className="h-4 w-2/3 bg-secondary/20 rounded" />
-          <div className="h-4 w-1/2 bg-secondary/20 rounded" />
-        </div>
-      </div>
-    );
-  }
-
-  if (!course) {
-    return <div className="text-center">Course not found</div>;
-  }
-
-  const isOpen = isGolfCourseOpen(course.opening_hours);
+  const isLoading = courseLoading || roundsLoading || allRoundsLoading || reviewsLoading;
 
   return (
-    <div className="space-y-6 -mx-4">
-      <div className="flex items-center justify-between px-4">
-        <h1 className="text-2xl font-bold text-left">{course.name}</h1>
-      </div>
-      
-      {course.image_url ? (
-        <img 
-          src={course.image_url} 
-          alt={course.name} 
-          className="w-full h-64 object-cover" 
-        />
-      ) : (
-        <div className="w-full h-64 bg-secondary/20 flex items-center justify-center text-muted-foreground">
-          No image available
-        </div>
-      )}
+    <div className="pb-20">
+      {/* Back button */}
+      <Button 
+        variant="ghost" 
+        size="sm" 
+        onClick={handleBack} 
+        className="mb-4"
+      >
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        {t("common", "back")}
+      </Button>
 
-      <Card className="border-0 shadow-none mx-4">
-        <CardContent className="p-4 space-y-6">
-          {course.description && (
-            <div className="space-y-1">
-              <h3 className="font-semibold text-base">{t("course", "about")}</h3>
-              <p className="text-sm text-muted-foreground">{course.description}</p>
+      {/* Course header */}
+      <div className="relative rounded-lg overflow-hidden mb-6">
+        {courseData?.image_url ? (
+          <div className="h-48 w-full">
+            <img 
+              src={courseData.image_url} 
+              alt={courseData.name} 
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+          </div>
+        ) : (
+          <div className="h-48 w-full bg-gradient-to-r from-primary/20 to-secondary/20" />
+        )}
+        
+        <div className="absolute bottom-0 left-0 p-4 text-white">
+          <h1 className="text-2xl font-bold">{courseData?.name}</h1>
+          {courseData?.city && (
+            <div className="flex items-center mt-1">
+              <MapPin className="h-4 w-4 mr-1" />
+              <span className="text-sm">
+                {[courseData.address, courseData.city, courseData.state]
+                  .filter(Boolean)
+                  .join(', ')}
+              </span>
             </div>
           )}
+          {averageRating > 0 && (
+            <div className="flex items-center mt-1">
+              <Star className="h-4 w-4 mr-1 text-yellow-400 fill-yellow-400" />
+              <span className="text-sm">{averageRating.toFixed(1)} ({reviews?.length} reviews)</span>
+            </div>
+          )}
+        </div>
+      </div>
 
-          <ul className="space-y-4">
-            <li className="flex items-start gap-3">
-              <Flag className="text-primary mt-1" size={18} />
-              <div>
-                <h3 className="font-semibold text-sm">{t("course", "courseDetails")}</h3>
-                <p className="text-xs text-muted-foreground">
-                  {course.holes} {t("course", "holes")} {course.par && `• ${t("course", "par")} ${course.par}`}
-                </p>
+      {/* Course tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid grid-cols-4 mb-4">
+          <TabsTrigger value="info">Info</TabsTrigger>
+          <TabsTrigger value="map">Map</TabsTrigger>
+          <TabsTrigger value="stats">Stats</TabsTrigger>
+          <TabsTrigger value="book">Book</TabsTrigger>
+        </TabsList>
+
+        {/* Info tab */}
+        <TabsContent value="info" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Course Details</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex items-center">
+                  <Info className="h-5 w-5 mr-2 text-primary" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Type</p>
+                    <p className="font-medium">{courseData?.type || "Standard"}</p>
+                  </div>
+                </div>
+                <div className="flex items-center">
+                  <Users className="h-5 w-5 mr-2 text-primary" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Holes</p>
+                    <p className="font-medium">{courseData?.holes || 18}</p>
+                  </div>
+                </div>
+                <div className="flex items-center">
+                  <Calendar className="h-5 w-5 mr-2 text-primary" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Established</p>
+                    <p className="font-medium">{courseData?.established_year || "N/A"}</p>
+                  </div>
+                </div>
+                <div className="flex items-center">
+                  <Clock className="h-5 w-5 mr-2 text-primary" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Par</p>
+                    <p className="font-medium">{courseData?.par || "72"}</p>
+                  </div>
+                </div>
               </div>
-            </li>
 
-            <li className="flex items-start gap-3">
-              <Clock className={`mt-1 ${isOpen ? 'text-green-600' : 'text-amber-600'}`} size={18} />
-              <div>
-                <h3 className="font-semibold text-sm flex items-center gap-1">
-                  {t("course", "hours")}
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${isOpen ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
-                    {isOpen ? t("course", "open") : t("course", "closed")}
-                  </span>
-                </h3>
-                {formatOpeningHours(course.opening_hours)}
-              </div>
-            </li>
-
-            {course.address && (
-              <li className="flex items-start gap-3">
-                <MapPin className="text-primary mt-1" size={18} />
-                <div>
-                  <h3 className="font-semibold text-sm">{t("course", "location")}</h3>
-                  <p className="text-xs text-muted-foreground">
-                    {[course.address, course.city, course.state].filter(Boolean).join(', ')}
-                  </p>
+              {/* Opening hours */}
+              {formattedHours.length > 0 && (
+                <div className="mt-4">
+                  <h3 className="font-medium mb-2">Opening Hours</h3>
+                  <div className="grid grid-cols-1 gap-1">
+                    {formattedHours.map((day, index) => (
+                      <div key={index} className="flex justify-between text-sm">
+                        <span className="font-medium">{day.day}</span>
+                        <span>{day.hours}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </li>
-            )}
+              )}
 
-            {course.phone && (
-              <li className="flex items-start gap-3">
-                <Phone className="text-primary mt-1" size={18} />
-                <div>
-                  <h3 className="font-semibold text-sm">{t("course", "contact")}</h3>
-                  <p className="text-xs text-muted-foreground">{course.phone}</p>
+              {/* Description */}
+              {courseData?.description && (
+                <div className="mt-4">
+                  <h3 className="font-medium mb-2">About</h3>
+                  <p className="text-sm">{courseData.description}</p>
                 </div>
-              </li>
-            )}
+              )}
+            </CardContent>
+          </Card>
 
-            {course.website && (
-              <li className="flex items-start gap-3">
-                <Globe className="text-primary mt-1" size={18} />
-                <div>
-                  <h3 className="font-semibold text-sm">{t("course", "website")}</h3>
-                  <a 
-                    href={course.website} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="text-xs text-primary hover:underline"
-                  >
-                    {t("course", "visitWebsite")}
-                  </a>
-                </div>
-              </li>
-            )}
-          </ul>
+          {/* Hole details */}
+          {courseData?.hole_pars && (
+            <CourseHoleDetails 
+              holePars={courseData.hole_pars} 
+              holeDistances={courseData.hole_distances}
+              holeHandicaps={courseData.hole_handicaps}
+            />
+          )}
 
-          {/* Reservation button moved to bottom */}
-          <div className="pt-4">
-            <ReservationForm courseId={course.id} courseName={course.name} />
-          </div>
-        </CardContent>
-      </Card>
+          {/* Weather */}
+          {courseData?.latitude && courseData?.longitude && (
+            <CourseWeather 
+              latitude={courseData.latitude} 
+              longitude={courseData.longitude}
+            />
+          )}
+
+          {/* Photos */}
+          <CoursePhotos courseId={id} />
+
+          {/* Reviews */}
+          <CourseReviews 
+            courseId={id} 
+            reviews={reviews || []} 
+            isLoading={reviewsLoading}
+          />
+        </TabsContent>
+
+        {/* Map tab */}
+        <TabsContent value="map">
+          <CourseMap 
+            latitude={courseData?.latitude} 
+            longitude={courseData?.longitude}
+            name={courseData?.name}
+          />
+        </TabsContent>
+
+        {/* Stats tab */}
+        <TabsContent value="stats" className="space-y-4">
+          {/* Leaderboard */}
+          <CourseLeaderboard 
+            rounds={allRounds || []} 
+            isLoading={allRoundsLoading}
+            coursePar={courseData?.par}
+          />
+          
+          {/* User stats */}
+          {user && (
+            <CourseStats 
+              rounds={userRounds || []} 
+              isLoading={roundsLoading}
+              coursePar={courseData?.par}
+            />
+          )}
+        </TabsContent>
+
+        {/* Book tab */}
+        <TabsContent value="book">
+          <ReservationForm 
+            courseId={courseData?.id} 
+            courseName={courseData?.name}
+            courseLocation={`${courseData?.city || ''}, ${courseData?.state || ''}`} 
+          />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

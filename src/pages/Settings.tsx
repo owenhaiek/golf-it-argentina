@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Settings as SettingsIcon, Moon, Sun, Languages, Shield, FileText, HelpCircle, Calendar } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
@@ -15,7 +14,7 @@ import {
   SheetClose
 } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useLanguage } from "@/contexts/LanguageContext";
+import { useLanguage, LanguageType } from "@/contexts/LanguageContext";
 import ReservationsList from "@/components/reservations/ReservationsList";
 
 const Settings = () => {
@@ -36,7 +35,7 @@ const Settings = () => {
   }, []);
 
   const handleLanguageChange = (lang: string) => {
-    setLanguage(lang);
+    setLanguage(lang as LanguageType);
     
     toast({
       title: lang === "en" ? "Language changed to English" : "Idioma cambiado a Español",
