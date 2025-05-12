@@ -188,7 +188,7 @@ const Course = () => {
       {/* Course header - now full width and taller */}
       <div className="relative rounded-lg overflow-hidden mb-6">
         {courseData?.image_url ? (
-          <div className="h-64 w-full"> {/* Increased height from h-48 to h-64 */}
+          <div className="h-64 w-full">
             <img 
               src={courseData.image_url} 
               alt={courseData.name} 
@@ -197,7 +197,7 @@ const Course = () => {
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
           </div>
         ) : (
-          <div className="h-64 w-full bg-gradient-to-r from-primary/20 to-secondary/20" /> {/* Increased height */}
+          <div className="h-64 w-full bg-gradient-to-r from-primary/20 to-secondary/20" />
         )}
         
         <div className="absolute bottom-0 left-0 p-4 text-white">
