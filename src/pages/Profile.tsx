@@ -1,40 +1,56 @@
-import { useState } from "react";
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/lib/supabase";
-import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { Loader2, Trash2 } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
+import ProfileCard from "@/components/profile/ProfileCard";
+import RecentRounds from "@/components/profile/RecentRounds";
+import { User, Loader } from "lucide-react";
+import { useState } from "react";
+import { useToast } from "@/components/ui/use-toast";
 
 const Profile = () => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const { toast } = useToast();
+  const [deletingRoundId, setDeletingRoundId] = useState<string | null>(null);
   const queryClient = useQueryClient();
-  const [isEditing, setIsEditing] = useState(false);
-  const [newUsername, setNewUsername] = useState("");
-  const [newFullName, setNewFullName] = useState("");
-  const [newHandicap, setNewHandicap] = useState<string>("");
 
-  const { data: profile } = useQuery({
+  // Profile Query - Fetch user profile data
+  const {
+    data: profile,
+    isLoading: profileLoading
+  } = useQuery({
     queryKey: ['profile', user?.id],
     queryFn: async () => {
+      if (!user?.id) return null;
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', user?.id)
-        .single();
-      
-      if (error) throw error;
+        .eq('id', user.id)
+        .maybeSingle();
+        
+      if (error) {
+        console.error("Profile fetch error:", error);
+        throw error;
+      }
       return data;
     },
+    enabled: !!user?.id
   });
 
-  const { data: rounds } = useQuery({
+  // Rounds Query - Fetch user's recent rounds
+  const {
+    data: rounds,
+    isLoading: roundsLoading,
+    refetch: refetchRounds
+  } = useQuery({
     queryKey: ['rounds', user?.id],
     queryFn: async () => {
+      if (!user?.id) return [];
+      
+      console.log("Fetching rounds from the database");
+      
       const { data, error } = await supabase
         .from('rounds')
         .select(`
@@ -42,246 +58,151 @@ const Profile = () => {
           golf_courses (
             name,
             hole_pars,
-            holes
+            holes,
+            image_url,
+            address,
+            city,
+            state,
+            par
           )
         `)
-        .eq('user_id', user?.id)
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(5);
+        
+      if (error) {
+        console.error("Rounds fetch error:", error);
+        throw error;
+      }
       
-      if (error) throw error;
-      return data;
+      console.log("Rounds fetched:", data?.length || 0);
+      return data || [];
     },
+    enabled: !!user?.id,
+    staleTime: 0, // Consider data always stale
+    gcTime: 0,    // Don't cache the data at all
+    refetchOnWindowFocus: true // Refetch when window gains focus
   });
 
-  const deleteRound = useMutation({
+  // Delete round mutation
+  const deleteRoundMutation = useMutation({
     mutationFn: async (roundId: string) => {
+      console.log(`Starting deletion of round ${roundId}`);
+      if (!user?.id) throw new Error("User not authenticated");
+      
+      // Delete the round from the database
       const { error } = await supabase
         .from('rounds')
         .delete()
-        .eq('id', roundId);
+        .eq('id', roundId)
+        .eq('user_id', user.id); // Security: ensure user can only delete their own rounds
       
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['rounds', user?.id] });
-      toast({
-        title: "Round deleted successfully",
-      });
-    },
-    onError: (error) => {
-      console.error('Delete round error:', error);
-      toast({
-        title: "Error deleting round",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const updateProfile = useMutation({
-    mutationFn: async (formData: FormData) => {
-      let avatarUrl = profile?.avatar_url;
-
-      if (formData.has('avatar')) {
-        const avatarFile = formData.get('avatar') as File;
-        if (avatarFile.size > 0) {
-          const fileExt = avatarFile.name.split('.').pop();
-          const filePath = `${user?.id}/${Math.random()}.${fileExt}`;
-
-          const { error: uploadError } = await supabase.storage
-            .from('avatars')
-            .upload(filePath, avatarFile);
-
-          if (uploadError) throw uploadError;
-
-          const { data: { publicUrl } } = supabase.storage
-            .from('avatars')
-            .getPublicUrl(filePath);
-
-          avatarUrl = publicUrl;
-        }
+      if (error) {
+        console.error("Delete round error:", error);
+        throw error;
       }
-
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          username: newUsername || profile?.username,
-          full_name: newFullName || profile?.full_name,
-          handicap: newHandicap ? parseFloat(newHandicap) : profile?.handicap,
-          avatar_url: avatarUrl,
-        })
-        .eq('id', user?.id);
-
-      if (error) throw error;
+      
+      console.log(`Successfully deleted round ${roundId} from database`);
+      return roundId;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['profile'] });
-      setIsEditing(false);
+    onMutate: (roundId) => {
+      console.log(`Setting UI state for round ${roundId} deletion`);
+      setDeletingRoundId(roundId);
+      
+      // Optimistically remove the round from the UI
+      const previousRounds = queryClient.getQueryData(['rounds', user?.id]);
+      
+      // Update the cache by filtering out the deleted round
+      if (previousRounds) {
+        queryClient.setQueryData(['rounds', user?.id], (old: any[]) => 
+          old.filter(round => round.id !== roundId)
+        );
+      }
+      
+      return { previousRounds };
+    },
+    onSuccess: async (roundId) => {
+      console.log(`Round ${roundId} successfully deleted, updating UI`);
+      
+      // Show success toast
       toast({
-        title: "Profile updated successfully",
+        title: t("profile", "deleteRoundSuccess"),
+        description: t("profile", "deleteRoundDescription"),
+      });
+      
+      // Completely remove round data from cache
+      queryClient.removeQueries({ queryKey: ['rounds'] });
+      
+      // Invalidate profile data (includes handicap)
+      console.log("Invalidating profile data");
+      queryClient.invalidateQueries({ queryKey: ['profile', user?.id] });
+      
+      // Force a new fetch of rounds data after a short delay
+      // This ensures the deletion has propagated through the database
+      console.log("Scheduling refetch of rounds data");
+      setTimeout(() => {
+        console.log("Executing scheduled refetch");
+        refetchRounds();
+      }, 500);
+    },
+    onError: (error, roundId, context: any) => {
+      console.error(`Error deleting round:`, error);
+      
+      // Revert to the previous state if there was an error
+      if (context?.previousRounds) {
+        queryClient.setQueryData(['rounds', user?.id], context.previousRounds);
+      }
+      
+      toast({
+        title: t("profile", "deleteRoundError"),
+        description: error.message || t("profile", "generalError"),
+        variant: "destructive"
       });
     },
-    onError: () => {
-      toast({
-        title: "Error updating profile",
-        variant: "destructive",
-      });
-    },
+    onSettled: () => {
+      console.log("Delete operation settled, resetting UI state");
+      setDeletingRoundId(null);
+    }
   });
 
-  const handleAvatarClick = () => {
-    if (!isEditing) return;
-    document.getElementById('avatar-upload')?.click();
-  };
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    updateProfile.mutate(formData);
-  };
-
-  const handleDeleteRound = async (roundId: string) => {
-    if (window.confirm('Are you sure you want to delete this round?')) {
-      await deleteRound.mutateAsync(roundId);
+  const handleDeleteRound = (roundId: string) => {
+    if (deletingRoundId) {
+      console.log("Deletion already in progress, ignoring request");
+      return; // Prevent multiple deletions at once
     }
+    console.log(`User initiated deletion of round ${roundId}`);
+    deleteRoundMutation.mutate(roundId);
   };
+
+  const isLoading = profileLoading || roundsLoading;
 
   return (
-    <div className="space-y-6">
-      <form onSubmit={handleSubmit}>
-        <Card>
-          <CardHeader className="text-center pb-2">
-            <div className="relative w-20 h-20 mx-auto">
-              <Avatar 
-                className="w-20 h-20 cursor-pointer hover:opacity-80 transition-opacity"
-                onClick={handleAvatarClick}
-              >
-                <AvatarImage src={profile?.avatar_url} />
-                <AvatarFallback>{profile?.full_name?.[0] || 'U'}</AvatarFallback>
-              </Avatar>
-              {isEditing && (
-                <input
-                  id="avatar-upload"
-                  type="file"
-                  name="avatar"
-                  accept="image/*"
-                  className="hidden"
-                />
-              )}
-            </div>
-            
-            {isEditing ? (
-              <div className="space-y-4 mt-4">
-                <Input
-                  placeholder="Username"
-                  defaultValue={profile?.username}
-                  onChange={(e) => setNewUsername(e.target.value)}
-                />
-                <Input
-                  placeholder="Full Name"
-                  defaultValue={profile?.full_name}
-                  onChange={(e) => setNewFullName(e.target.value)}
-                />
-                <Input
-                  placeholder="Handicap"
-                  type="number"
-                  step="0.1"
-                  defaultValue={profile?.handicap}
-                  onChange={(e) => setNewHandicap(e.target.value)}
-                />
-              </div>
-            ) : (
-              <>
-                <CardTitle className="mt-4">{profile?.full_name || 'Anonymous'}</CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  {profile?.handicap ? `Handicap: ${profile.handicap}` : 'No handicap set'}
-                </p>
-              </>
-            )}
-          </CardHeader>
-          <CardContent className="text-center">
-            {isEditing ? (
-              <div className="space-x-2">
-                <Button type="submit">Save</Button>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => setIsEditing(false)}
-                >
-                  Cancel
-                </Button>
-              </div>
-            ) : (
-              <Button variant="outline" onClick={() => setIsEditing(true)}>
-                Edit Profile
-              </Button>
-            )}
-          </CardContent>
-        </Card>
-      </form>
+    <div className="max-w-7xl mx-auto animate-fadeIn">
+      <div className="flex items-center mb-6 gap-2 px-4">
+        <User className="text-primary h-6 w-6" />
+        <h1 className="text-2xl font-bold text-primary">{t("profile", "title")}</h1>
+        {isLoading && (
+          <div className="ml-auto">
+            <Loader className="h-5 w-5 text-primary animate-spin" />
+          </div>
+        )}
+      </div>
       
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Recent Rounds</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {rounds && rounds.length > 0 ? (
-            <div className="space-y-4">
-              {rounds.map((round) => {
-                const totalPar = round.golf_courses.hole_pars
-                  ?.slice(0, round.golf_courses.holes)
-                  .reduce((a, b) => a + b, 0) || 0;
-                
-                const vsParScore = round.score - totalPar;
-                
-                return (
-                  <div 
-                    key={round.id} 
-                    className="flex justify-between items-start p-3 bg-secondary/10 rounded-lg"
-                  >
-                    <div>
-                      <h3 className="font-medium">{round.golf_courses.name}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {new Date(round.created_at).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <div className="flex items-start gap-4">
-                      <div className="text-right space-y-1">
-                        <div className="text-lg font-bold">
-                          Score: {round.score}
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                          Course Par: {totalPar}
-                        </p>
-                        <p className={`text-sm ${vsParScore <= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          {vsParScore <= 0 ? '' : '+' }{vsParScore} vs Par
-                        </p>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-red-600 hover:bg-red-600/10 transition-colors"
-                        onClick={() => handleDeleteRound(round.id)}
-                        disabled={deleteRound.isPending}
-                      >
-                        {deleteRound.isPending ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Trash2 className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="text-center text-muted-foreground">
-              No rounds recorded yet
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <div className="flex flex-col gap-6 pb-6 px-0">
+        <div className="w-full">
+          <ProfileCard user={user} profile={profile} profileLoading={profileLoading} />
+        </div>
+        
+        <div className="w-full">
+          <RecentRounds 
+            userId={user?.id} 
+            rounds={rounds} 
+            roundsLoading={roundsLoading} 
+            onDeleteRound={handleDeleteRound}
+            deletingRoundId={deletingRoundId}
+          />
+        </div>
+      </div>
     </div>
   );
 };

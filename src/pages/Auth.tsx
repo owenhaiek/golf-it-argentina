@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/components/ui/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -14,6 +15,7 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,14 +39,14 @@ const Auth = () => {
         });
         if (error) throw error;
         toast({
-          title: "Check your email",
-          description: "We sent you a confirmation link to complete your registration.",
+          title: t("auth", "checkEmail"),
+          description: t("auth", "confirmationEmailSent"),
         });
       }
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Error",
+        title: t("common", "error"),
         description: error.message,
       });
     } finally {
@@ -57,12 +59,12 @@ const Auth = () => {
       <Card className="w-full max-w-md animate-in">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">
-            {isLogin ? "Welcome back" : "Create an account"}
+            {isLogin ? t("auth", "welcomeBack") : t("auth", "createAccount")}
           </CardTitle>
           <CardDescription className="text-center">
             {isLogin
-              ? "Enter your email to sign in to your account"
-              : "Enter your email below to create your account"}
+              ? t("auth", "emailSignInDescription")
+              : t("auth", "emailSignUpDescription")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -70,14 +72,14 @@ const Auth = () => {
             <div className="space-y-2">
               <Input
                 type="email"
-                placeholder="Email"
+                placeholder={t("auth", "email")}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
               <Input
                 type="password"
-                placeholder="Password"
+                placeholder={t("auth", "password")}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -88,7 +90,11 @@ const Auth = () => {
               className="w-full bg-primary hover:bg-primary-hover"
               disabled={isLoading}
             >
-              {isLoading ? "Loading..." : isLogin ? "Sign in" : "Sign up"}
+              {isLoading 
+                ? t("common", "loading") 
+                : isLogin 
+                  ? t("auth", "signIn") 
+                  : t("auth", "signUp")}
             </Button>
           </form>
           <div className="text-center text-sm">
@@ -97,7 +103,9 @@ const Auth = () => {
               onClick={() => setIsLogin(!isLogin)}
               className="text-primary hover:text-primary-hover underline"
             >
-              {isLogin ? "Need an account? Sign up" : "Already have an account? Sign in"}
+              {isLogin 
+                ? t("auth", "needAccount") 
+                : t("auth", "haveAccount")}
             </button>
           </div>
         </CardContent>

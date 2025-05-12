@@ -20,6 +20,7 @@ export type Database = {
           id: string
           image_url: string | null
           name: string
+          opening_hours: Json | null
           par: number | null
           phone: string | null
           state: string | null
@@ -36,6 +37,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           name: string
+          opening_hours?: Json | null
           par?: number | null
           phone?: string | null
           state?: string | null
@@ -52,6 +54,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           name?: string
+          opening_hours?: Json | null
           par?: number | null
           phone?: string | null
           state?: string | null
@@ -137,7 +140,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      calculate_user_handicap: {
+        Args: {
+          user_uuid: string
+        }
+        Returns: number
+      }
     }
     Enums: {
       [_ in never]: never
