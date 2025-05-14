@@ -47,35 +47,71 @@ const CoursesMap = () => {
         throw error;
       }
 
-      // Generate Argentina coordinates for golf courses
+      // Generate real Argentina coordinates for golf courses
       return data.map(course => {
-        // Create a more realistic distribution across Argentina's golf regions
-        const nameHash = course.name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-        
-        // Base coordinates in different Argentine regions
-        const regions = [
-          { name: "Buenos Aires", lat: -34.6037, lng: -58.3816 },
-          { name: "Cordoba", lat: -31.4201, lng: -64.1888 },
-          { name: "Mendoza", lat: -32.8908, lng: -68.8272 },
-          { name: "Mar del Plata", lat: -38.0055, lng: -57.5426 },
-        ];
-        
-        // Select a region based on the name hash
-        const regionIndex = nameHash % regions.length;
-        const baseRegion = regions[regionIndex];
-        
-        // Add small variation within the region
-        const latVariation = ((nameHash % 100) / 1000) * (Math.random() > 0.5 ? 1 : -1);
-        const lngVariation = ((nameHash * 7 % 100) / 1000) * (Math.random() > 0.5 ? 1 : -1);
-        
+        // Set real Argentinian golf course locations
+        let coordinates = getArgentinaGolfCourseLocation(course.name);
         return {
           ...course,
-          latitude: baseRegion.lat + latVariation,
-          longitude: baseRegion.lng + lngVariation
+          latitude: coordinates.lat,
+          longitude: coordinates.lng
         };
       });
     }
   });
+
+  // Helper function to return real golf course coordinates in Argentina
+  const getArgentinaGolfCourseLocation = (courseName: string) => {
+    // Map of real golf courses in Argentina with actual coordinates
+    const argentinaGolfCourses = {
+      "Buenos Aires Golf Club": { lat: -34.4851, lng: -58.5213 },
+      "Olivos Golf Club": { lat: -34.5104, lng: -58.5220 },
+      "Pilar Golf Club": { lat: -34.4255, lng: -58.8940 },
+      "Jockey Club": { lat: -34.5442, lng: -58.5045 },
+      "Mar del Plata Golf Club": { lat: -38.0160, lng: -57.5327 },
+      "Córdoba Golf Club": { lat: -31.4177, lng: -64.2390 },
+      "Nordelta Golf Club": { lat: -34.4019, lng: -58.6309 },
+      "Chapelco Golf Club": { lat: -40.1564, lng: -71.3051 },
+      "Highland Park Country Club": { lat: -34.4701, lng: -58.7528 },
+      "San Andrés Golf Club": { lat: -34.5087, lng: -58.6102 }
+    };
+    
+    // For demo purposes, if the course isn't in our list, give it a reasonable location in Argentina
+    const fallbackLocations = [
+      { lat: -34.6037, lng: -58.3816 }, // Buenos Aires
+      { lat: -31.4201, lng: -64.1888 }, // Cordoba
+      { lat: -32.8908, lng: -68.8272 }, // Mendoza
+      { lat: -38.0055, lng: -57.5426 }, // Mar del Plata
+      { lat: -34.5553, lng: -58.4964 }, // Belgrano
+      { lat: -34.4446, lng: -58.8730 }, // Pilar
+      { lat: -34.4806, lng: -58.5317 }, // San Isidro
+      { lat: -33.2971, lng: -66.3356 }, // San Luis
+    ];
+    
+    // Generate a consistent hash based on course name for predictable "random" location
+    const nameHash = courseName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    
+    // Either return the real coordinates or a fallback location
+    const knownCourse = Object.keys(argentinaGolfCourses).find(name => 
+      courseName.toLowerCase().includes(name.toLowerCase())
+    );
+    
+    if (knownCourse) {
+      return argentinaGolfCourses[knownCourse as keyof typeof argentinaGolfCourses];
+    } else {
+      const index = nameHash % fallbackLocations.length;
+      const baseLocation = fallbackLocations[index];
+      
+      // Add small variation so points don't overlap
+      const latVariation = ((nameHash % 100) / 5000) * (nameHash % 2 === 0 ? 1 : -1);
+      const lngVariation = ((nameHash * 7 % 100) / 5000) * (nameHash % 3 === 0 ? 1 : -1);
+      
+      return {
+        lat: baseLocation.lat + latVariation,
+        lng: baseLocation.lng + lngVariation
+      };
+    }
+  };
 
   // Map initialization
   useEffect(() => {
@@ -159,12 +195,12 @@ const CoursesMap = () => {
       // Create popup for the marker
       const isOpen = getRandomStatus();
       
-      // Create minimal popup with correct positioning
       const popup = new window.mapboxgl.Popup({
         offset: [0, -15],
         closeButton: true,
         closeOnClick: false,
-        className: 'custom-popup'
+        className: 'custom-popup',
+        maxWidth: '200px'
       }).setLngLat([course.longitude, course.latitude])
         .setHTML(`
           <div class="p-2 bg-white rounded-lg shadow-sm min-w-[150px] text-xs">
@@ -188,7 +224,10 @@ const CoursesMap = () => {
         .addTo(mapInstance.current);
       
       // Add click event to marker
-      el.addEventListener('click', () => {
+      el.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
         // Close all other popups
         cleanupPopups();
         
@@ -203,6 +242,7 @@ const CoursesMap = () => {
           const btn = document.querySelector(`.course-btn[data-id="${course.id}"]`);
           if (btn) {
             btn.addEventListener('click', (e) => {
+              e.preventDefault();
               e.stopPropagation();
               navigate(`/course/${course.id}`);
             });
@@ -222,16 +262,19 @@ const CoursesMap = () => {
     }
   }, [courses]);
   
-  // Prevent pull-to-refresh on this specific page
+  // Disable pull-to-refresh and prevent scroll on this specific page
   useEffect(() => {
-    const handleTouchMove = (e: TouchEvent) => {
+    const preventDefault = (e: Event) => {
       e.preventDefault();
     };
     
-    document.body.addEventListener('touchmove', handleTouchMove, { passive: false });
+    // Prevent touch move and wheel events to disable scroll
+    document.body.addEventListener('touchmove', preventDefault, { passive: false });
+    document.body.addEventListener('wheel', preventDefault, { passive: false });
     
     return () => {
-      document.body.removeEventListener('touchmove', handleTouchMove);
+      document.body.removeEventListener('touchmove', preventDefault);
+      document.body.removeEventListener('wheel', preventDefault);
     };
   }, []);
 
@@ -319,6 +362,29 @@ const CoursesMap = () => {
           
           .mapboxgl-map {
             touch-action: none;
+          }
+          
+          .mapboxgl-popup {
+            max-width: none !important;
+          }
+          
+          /* Ensure popups are clickable */
+          .mapboxgl-popup-content {
+            pointer-events: auto !important;
+          }
+          
+          /* Make the map take up the full screen */
+          #root, body, html {
+            height: 100% !important;
+            overflow: hidden !important;
+          }
+          
+          /* Stop scroll refresh */
+          body {
+            overscroll-behavior: none;
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
           }
         `}
       </style>
