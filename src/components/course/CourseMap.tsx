@@ -45,9 +45,11 @@ export const CourseMap = ({ latitude, longitude, name }: CourseMapProps) => {
           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5" />
           
           {isLoading ? (
-            <div className="flex flex-col items-center gap-2">
-              <div className="animate-spin">
-                <Map className="h-8 w-8 text-primary/40" />
+            <div className="flex flex-col items-center gap-3">
+              <div className="relative w-10 h-10">
+                <div className="absolute inset-0 rounded-full border-3 border-primary/20"></div>
+                <div className="absolute inset-0 rounded-full border-3 border-primary border-t-transparent animate-spin"></div>
+                <Map className="absolute inset-0 w-5 h-5 m-auto text-primary/70" />
               </div>
               <p className="text-sm text-muted-foreground">Loading map...</p>
             </div>

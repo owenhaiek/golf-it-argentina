@@ -1,13 +1,16 @@
+
 import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Flag, Map, Loader, X, Clock } from "lucide-react";
+import { Flag, Map, Loader, X, Clock, Search } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { toast } from "@/components/ui/use-toast";
 
 interface GolfCourse {
   id: string;
@@ -32,6 +35,39 @@ const CoursesMap = () => {
   
   const [mapLoaded, setMapLoaded] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<GolfCourse | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [mapInitialized, setMapInitialized] = useState(false);
+
+  // Prevent the pull-to-refresh behavior as soon as component mounts
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    document.body.style.overscrollBehavior = 'none';
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
+    document.body.style.height = '100%';
+    document.body.style.top = '0';
+    document.body.style.left = '0';
+    
+    // Set meta viewport to prevent zooming
+    const meta = document.querySelector('meta[name="viewport"]');
+    if (meta) {
+      meta.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover');
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.overscrollBehavior = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+      document.body.style.height = '';
+      document.body.style.top = '';
+      document.body.style.left = '';
+      
+      if (meta) {
+        meta.setAttribute('content', 'width=device-width, initial-scale=1');
+      }
+    };
+  }, []);
 
   const { data: courses, isLoading } = useQuery<GolfCourse[]>({
     queryKey: ["all-courses"],
@@ -58,6 +94,11 @@ const CoursesMap = () => {
       });
     }
   });
+
+  // Filter courses based on search query
+  const filteredCourses = courses?.filter(course => 
+    course.name.toLowerCase().includes(searchQuery.toLowerCase())
+  ) || [];
 
   // Helper function to return real golf course coordinates in Argentina
   const getArgentinaGolfCourseLocation = (courseName: string) => {
@@ -127,55 +168,94 @@ const CoursesMap = () => {
     };
   };
 
-  // Map initialization
+  // Map initialization with optimized setup
   useEffect(() => {
-    // Check if map script is already loaded
-    if (!window.mapboxgl) {
-      const script = document.createElement("script");
-      script.src = "https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js";
-      script.async = true;
-      document.head.appendChild(script);
-
-      const link = document.createElement("link");
-      link.href = "https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css";
-      link.rel = "stylesheet";
-      document.head.appendChild(link);
-
-      script.onload = initializeMap;
+    const initMap = async () => {
+      // Check if map already initialized
+      if (mapInitialized || !mapRef.current || mapInstance.current) return;
       
-      return () => {
-        document.head.removeChild(script);
-        document.head.removeChild(link);
+      try {
+        // Check if mapboxgl is already loaded
+        if (!window.mapboxgl) {
+          // Create promise to load Mapbox JS and CSS
+          const loadMapboxScript = new Promise<void>((resolve) => {
+            const script = document.createElement("script");
+            script.src = "https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js";
+            script.async = true;
+            script.onload = () => resolve();
+            document.head.appendChild(script);
+          });
+          
+          const loadMapboxCSS = new Promise<void>((resolve) => {
+            const link = document.createElement("link");
+            link.href = "https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css";
+            link.rel = "stylesheet";
+            link.onload = () => resolve();
+            document.head.appendChild(link);
+          });
+          
+          // Wait for both to load
+          await Promise.all([loadMapboxScript, loadMapboxCSS]);
+        }
+        
+        // Initialize map after ensuring mapboxgl is available
+        if (!window.mapboxgl) {
+          console.error("Mapbox GL JS failed to load");
+          return;
+        }
+        
+        // Set access token
+        window.mapboxgl.accessToken = 'pk.eyJ1Ijoib3dlbmhhaWVrIiwiYSI6ImNtYW8zbWZpajAyeGsyaXB3Z2NrOG9yeWsifQ.EutakvlH6R5Hala3cVTEYw';
+        
+        // Initialize map centered better on Buenos Aires area golf courses
+        mapInstance.current = new window.mapboxgl.Map({
+          container: mapRef.current,
+          style: 'mapbox://styles/mapbox/light-v11',
+          center: [-58.56, -34.52], // Optimized center for all three specific golf courses
+          zoom: 10.5, // Better zoom level for viewing
+          attributionControl: false,
+          dragRotate: false, // Disable rotation for better mobile experience
+          touchZoomRotate: {
+            around: 'center',
+            pinchRotate: false
+          }
+        });
+        
+        // Add minimal controls
+        mapInstance.current.addControl(
+          new window.mapboxgl.NavigationControl({
+            showCompass: false,
+            visualizePitch: false
+          }),
+          'bottom-right'
+        );
+        
+        // Add markers when map is loaded
+        mapInstance.current.on('load', () => {
+          setMapLoaded(true);
+          addMarkersToMap();
+        });
+        
+        setMapInitialized(true);
+      } catch (error) {
+        console.error('Error initializing map:', error);
+        toast({
+          title: "Map error",
+          description: "There was a problem loading the map. Please try again.",
+          variant: "destructive"
+        });
       }
-    } else {
-      initializeMap();
-    }
+    };
     
-    function initializeMap() {
-      if (!mapRef.current || !window.mapboxgl || mapInstance.current) return;
-      
-      // Use the provided Mapbox token
-      window.mapboxgl.accessToken = 'pk.eyJ1Ijoib3dlbmhhaWVrIiwiYSI6ImNtYW8zbWZpajAyeGsyaXB3Z2NrOG9yeWsifQ.EutakvlH6R5Hala3cVTEYw';
-      
-      // Initialize map centered on Buenos Aires area, Argentina
-      mapInstance.current = new window.mapboxgl.Map({
-        container: mapRef.current,
-        style: 'mapbox://styles/mapbox/light-v11',
-        center: [-58.5, -34.5], // Center better on Buenos Aires area
-        zoom: 10, // Increased zoom to see the courses better
-        attributionControl: false
-      });
-      
-      // Add controls
-      mapInstance.current.addControl(new window.mapboxgl.NavigationControl(), 'bottom-right');
-      
-      // Add markers when map is loaded
-      mapInstance.current.on('load', () => {
-        addMarkersToMap();
-        setMapLoaded(true);
-      });
-    }
-  }, []);
+    initMap();
+    
+    return () => {
+      if (mapInstance.current) {
+        mapInstance.current.remove();
+        mapInstance.current = null;
+      }
+    };
+  }, [mapRef.current]);
 
   // Clean up any previously created popups
   const cleanupPopups = () => {
@@ -185,7 +265,7 @@ const CoursesMap = () => {
 
   // Add markers when courses data is available
   const addMarkersToMap = () => {
-    if (!mapInstance.current || !courses || !window.mapboxgl) return;
+    if (!mapInstance.current || !courses || !courses.length || !window.mapboxgl) return;
     
     // Clear existing markers and popups
     markers.current.forEach(marker => marker.remove());
@@ -193,7 +273,11 @@ const CoursesMap = () => {
     cleanupPopups();
     
     // Determine whether a course is "open" or "closed" (randomly for demo)
-    const getRandomStatus = () => Math.random() > 0.5 ? 'Open' : 'Closed';
+    const getRandomStatus = (courseId: string) => {
+      // Use course ID to generate consistent status
+      const hash = courseId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+      return hash % 3 !== 0 ? 'Open' : 'Closed'; // 2/3 chance of being open
+    };
     
     // Add markers for each course
     courses.forEach(course => {
@@ -207,24 +291,24 @@ const CoursesMap = () => {
       </div>`;
       
       // Create popup for the marker
-      const isOpen = getRandomStatus();
+      const isOpen = getRandomStatus(course.id);
       
       const popup = new window.mapboxgl.Popup({
         offset: [0, -15],
         closeButton: true,
         closeOnClick: false,
         className: 'custom-popup',
-        maxWidth: '200px'
+        maxWidth: '250px'
       }).setLngLat([course.longitude, course.latitude])
         .setHTML(`
-          <div class="p-2 bg-white rounded-lg shadow-sm min-w-[150px] text-xs">
-            <div class="font-medium mb-1">${course.name}</div>
-            <div class="flex items-center mb-1 ${isOpen === 'Open' ? 'text-green-600' : 'text-red-600'}">
+          <div class="p-3 bg-white rounded-lg shadow-sm min-w-[200px] text-sm">
+            <div class="font-medium text-lg mb-2">${course.name}</div>
+            <div class="flex items-center mb-3 ${isOpen === 'Open' ? 'text-green-600' : 'text-red-600'}">
               <span class="mr-1">●</span>
               ${isOpen}
             </div>
             <button 
-              class="course-btn w-full bg-primary text-white py-1 px-2 rounded hover:bg-primary/90 transition-colors text-xs"
+              class="course-btn w-full bg-primary text-white py-2 px-3 rounded hover:bg-primary/90 transition-colors text-sm font-medium"
               data-id="${course.id}"
             >
               Go to course
@@ -269,65 +353,117 @@ const CoursesMap = () => {
     });
   };
   
-  // Update markers when courses data changes
+  // Update markers when courses data changes or search filtering
   useEffect(() => {
-    if (courses && courses.length > 0 && mapInstance.current) {
+    if (mapLoaded && courses && courses.length > 0 && mapInstance.current) {
       addMarkersToMap();
     }
-  }, [courses]);
+  }, [courses, mapLoaded, searchQuery]);
   
-  // Disable pull-to-refresh and prevent scroll on this specific page
+  // Handle search input changes
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
+  
+  // Apply search filter to markers
   useEffect(() => {
-    const preventDefault = (e: Event) => {
-      e.preventDefault();
-    };
+    if (!mapInstance.current || !markers.current.length || !courses) return;
     
-    // More aggressive prevention of scroll events and refresh
-    document.documentElement.style.overflow = 'hidden';
-    document.body.style.overflow = 'hidden';
-    document.body.style.position = 'fixed';
-    document.body.style.width = '100%';
-    document.body.style.height = '100%';
-    document.body.style.touchAction = 'none';
+    // Filter courses based on search query
+    const filteredIds = filteredCourses.map(course => course.id);
     
-    // Prevent all possible scroll events
-    const options = { passive: false };
-    document.addEventListener('touchmove', preventDefault, options);
-    document.addEventListener('wheel', preventDefault, options);
-    document.addEventListener('mousewheel', preventDefault, options);
-    document.addEventListener('touchstart', (e) => {
-      if (e.touches.length > 1) {
-        e.preventDefault();
-      }
-    }, { passive: false });
-    
-    // Override browser refresh behavior
-    window.addEventListener('beforeunload', (e) => {
-      if (window.location.pathname === '/map') {
-        e.preventDefault();
-        return (e.returnValue = '');
+    // Update markers visibility based on filter
+    markers.current.forEach((marker, index) => {
+      if (index < courses.length) {
+        const course = courses[index];
+        if (filteredIds.includes(course.id) || searchQuery === '') {
+          marker.getElement().style.display = 'block';
+        } else {
+          marker.getElement().style.display = 'none';
+        }
       }
     });
     
+  }, [filteredCourses, searchQuery]);
+
+  // Super aggressive prevention of scroll events
+  useEffect(() => {
+    const preventDefault = (e: TouchEvent | WheelEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    };
+    
+    // Specific events to completely disable pull-to-refresh
+    const touchEvents = ['touchmove', 'touchstart', 'touchend'];
+    const wheelEvents = ['wheel', 'mousewheel'];
+    
+    // Attach all event listeners with the correct options
+    touchEvents.forEach(eventName => {
+      document.addEventListener(eventName, preventDefault as EventListener, { passive: false });
+    });
+    
+    wheelEvents.forEach(eventName => {
+      document.addEventListener(eventName, preventDefault as EventListener, { passive: false });
+    });
+    
+    // Disable scroll on window and document
+    document.ontouchmove = preventDefault as any;
+    window.ontouchmove = preventDefault as any;
+    
+    // Additional iOS-specific prevention
+    document.documentElement.style.height = '100%';
+    document.documentElement.style.overflow = 'hidden';
+    document.documentElement.style.position = 'fixed';
+    document.documentElement.style.width = '100%';
+    
+    // Clean up all event listeners
     return () => {
-      document.documentElement.style.overflow = '';
-      document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.width = '';
-      document.body.style.height = '';
-      document.body.style.touchAction = '';
+      touchEvents.forEach(eventName => {
+        document.removeEventListener(eventName, preventDefault as EventListener);
+      });
       
-      document.removeEventListener('touchmove', preventDefault);
-      document.removeEventListener('wheel', preventDefault);
-      document.removeEventListener('mousewheel', preventDefault);
+      wheelEvents.forEach(eventName => {
+        document.removeEventListener(eventName, preventDefault as EventListener);
+      });
+      
+      document.ontouchmove = null;
+      window.ontouchmove = null;
+      
+      document.documentElement.style.height = '';
+      document.documentElement.style.overflow = '';
+      document.documentElement.style.position = '';
+      document.documentElement.style.width = '';
     };
   }, []);
 
   return (
     <div className="fixed inset-0 animate-fadeIn flex flex-col">
-      <div className="absolute top-0 left-0 right-0 z-10 bg-background/80 backdrop-blur-sm flex items-center p-4 pt-safe">
-        <Map className="text-primary h-6 w-6" />
-        <h1 className="text-2xl font-bold text-primary ml-2">{t("map", "golfCoursesMap")}</h1>
+      <div className="absolute top-0 left-0 right-0 z-10 bg-background/80 backdrop-blur-sm flex items-center justify-between p-4 pt-safe">
+        <div className="flex items-center">
+          <Map className="text-primary h-6 w-6" />
+          <h1 className="text-2xl font-bold text-primary ml-2">{t("map", "golfCoursesMap")}</h1>
+        </div>
+        
+        {/* Search input */}
+        <div className="relative w-1/2 max-w-[200px]">
+          <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder="Search courses"
+            value={searchQuery}
+            onChange={handleSearchChange}
+            className="pl-8 h-9 text-sm"
+          />
+          {searchQuery && (
+            <button 
+              className="absolute right-2 top-1/2 transform -translate-y-1/2" 
+              onClick={() => setSearchQuery('')}
+            >
+              <X className="h-3 w-3 text-muted-foreground" />
+            </button>
+          )}
+        </div>
       </div>
       
       <div className="absolute inset-0 pt-16">
@@ -340,9 +476,11 @@ const CoursesMap = () => {
         {/* Loading Overlay */}
         {(!mapLoaded || isLoading) && (
           <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-sm">
-            <div className="flex flex-col items-center gap-2">
-              <div className="animate-spin">
-                <Map className="h-8 w-8 text-primary" />
+            <div className="flex flex-col items-center gap-3">
+              <div className="relative w-12 h-12">
+                <div className="absolute inset-0 rounded-full border-4 border-primary/20"></div>
+                <div className="absolute inset-0 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
+                <Map className="absolute inset-0 w-6 h-6 m-auto text-primary/70" />
               </div>
               <p className="text-sm font-medium">{t("common", "loading")}...</p>
             </div>
@@ -363,18 +501,29 @@ const CoursesMap = () => {
           
           .mapboxgl-popup-content {
             padding: 0;
-            border-radius: 0.5rem;
+            border-radius: 0.75rem;
             overflow: hidden;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
             border: 1px solid rgba(229, 231, 235, 0.5);
           }
           
           .mapboxgl-popup-close-button {
-            font-size: 14px;
-            padding: 0 4px;
+            font-size: 16px;
+            padding: 0 6px;
             color: #666;
-            top: 2px;
-            right: 2px;
+            top: 8px;
+            right: 8px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.8);
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+          
+          .mapboxgl-popup-close-button:hover {
+            background: rgba(229, 231, 235, 1);
           }
           
           .mapboxgl-popup-tip {
@@ -387,26 +536,21 @@ const CoursesMap = () => {
 
           /* Hide browser navigation tab bar on mobile */
           @media screen and (max-width: 768px) {
-            html {
+            html, body, #root {
               height: 100vh; 
-              overflow: hidden;
-              position: fixed;
-              width: 100%;
-            }
-            body {
-              height: 100vh;
-              overflow: hidden;
-              position: fixed;
-              width: 100%;
-              -webkit-overflow-scrolling: touch;
-            }
-            #root {
-              height: 100%;
+              overflow: hidden !important;
+              position: fixed !important;
+              width: 100% !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              -webkit-overflow-scrolling: touch !important;
+              touch-action: none !important;
+              overscroll-behavior: none !important;
             }
           }
           
           .mapboxgl-map {
-            touch-action: none;
+            touch-action: none !important;
           }
           
           .mapboxgl-popup {
@@ -416,20 +560,6 @@ const CoursesMap = () => {
           /* Ensure popups are clickable */
           .mapboxgl-popup-content {
             pointer-events: auto !important;
-          }
-          
-          /* Make the map take up the full screen */
-          #root, body, html {
-            height: 100% !important;
-            overflow: hidden !important;
-          }
-          
-          /* Stop scroll refresh */
-          body {
-            overscroll-behavior: none;
-            overflow: hidden;
-            position: fixed;
-            width: 100%;
           }
         `}
       </style>
