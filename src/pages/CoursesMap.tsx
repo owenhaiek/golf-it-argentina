@@ -5,10 +5,9 @@ import { supabase } from "@/lib/supabase";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Flag, Map, Loader, X } from "lucide-react";
+import { Flag, Map, Loader, X, Clock } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetClose } from "@/components/ui/sheet";
 import { useNavigate } from "react-router-dom";
 
 interface GolfCourse {
@@ -28,9 +27,9 @@ const CoursesMap = () => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<any>(null);
   const markers = useRef<any[]>([]);
+  const popups = useRef<any[]>([]);
   
   const [selectedCourse, setSelectedCourse] = useState<GolfCourse | null>(null);
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   const { data: courses, isLoading } = useQuery<GolfCourse[]>({
     queryKey: ["all-courses"],
@@ -76,8 +75,8 @@ const CoursesMap = () => {
     function initializeMap() {
       if (!mapRef.current || !window.mapboxgl || mapInstance.current) return;
       
-      // Replace with your actual Mapbox token (NOTE: Ideally this should be in env vars)
-      window.mapboxgl.accessToken = 'pk.eyJ1IjoibG92YWJsZWRlbW8iLCJhIjoiY2xzN3U3YnFhMDJrMTJrcGlhZnp4bGJtcCJ9.LgTkDG2CQlgLrGWDLrV7vQ';
+      // Use the provided Mapbox token
+      window.mapboxgl.accessToken = 'pk.eyJ1Ijoib3dlbmhhaWVrIiwiYSI6ImNtYW8zbWZpajAyeGsyaXB3Z2NrOG9yeWsifQ.EutakvlH6R5Hala3cVTEYw';
       
       // Initialize map
       mapInstance.current = new window.mapboxgl.Map({
@@ -98,13 +97,23 @@ const CoursesMap = () => {
     }
   }, []);
 
+  // Clean up any previously created popups
+  const cleanupPopups = () => {
+    popups.current.forEach(popup => popup.remove());
+    popups.current = [];
+  };
+
   // Add markers when courses data is available
   const addMarkersToMap = () => {
     if (!mapInstance.current || !courses || !window.mapboxgl) return;
     
-    // Clear existing markers
+    // Clear existing markers and popups
     markers.current.forEach(marker => marker.remove());
     markers.current = [];
+    cleanupPopups();
+    
+    // Determine whether a course is "open" or "closed" (randomly for demo)
+    const getRandomStatus = () => Math.random() > 0.5 ? 'Open' : 'Closed';
     
     // Add markers for each course
     courses.forEach(course => {
@@ -120,15 +129,65 @@ const CoursesMap = () => {
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flag"><path d="M4 15s1-1 4-1 5 1 8 0 4-1 4-1V3s-1 1-4 1-5-1-8 0-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></svg>
       </div>`;
       
-      // Add marker to map
+      // Create minimal popup for the marker
+      const popupHTML = document.createElement('div');
+      popupHTML.className = 'map-popup';
+      const isOpen = getRandomStatus();
+      
+      popupHTML.innerHTML = `
+        <div class="px-3 py-2 bg-white rounded-lg shadow-lg min-w-48 max-w-56">
+          <div class="font-medium text-sm mb-1">${course.name}</div>
+          <div class="flex items-center text-xs mb-2 ${isOpen === 'Open' ? 'text-green-600' : 'text-red-600'}">
+            <span class="mr-1">${isOpen === 'Open' ? '●' : '●'}</span>
+            ${isOpen}
+          </div>
+          <button class="view-course-btn w-full text-xs bg-primary text-white py-1 px-2 rounded hover:bg-primary/90 transition-colors" data-id="${course.id}">
+            Go to course
+          </button>
+        </div>
+      `;
+      
+      // Add popup to marker
+      const popup = new window.mapboxgl.Popup({
+        offset: 25,
+        closeButton: false,
+        closeOnClick: false,
+        maxWidth: 'none',
+        className: 'custom-popup'
+      }).setDOMContent(popupHTML);
+      
+      // Save popup reference
+      popups.current.push(popup);
+      
+      // Add marker with popup to map
       const marker = new window.mapboxgl.Marker(el)
         .setLngLat([lng, lat])
+        .setPopup(popup)
         .addTo(mapInstance.current);
-        
-      // Add click event to marker
+      
+      // Add click event to marker to show popup
       el.addEventListener('click', () => {
-        setSelectedCourse(course);
-        setIsSheetOpen(true);
+        // Close all other popups
+        popups.current.forEach(p => {
+          if (p !== popup && p.isOpen()) {
+            p.remove();
+          }
+        });
+        
+        // Open this popup
+        marker.togglePopup();
+        
+        // Add click event to the "Go to course" button
+        const btn = popupHTML.querySelector('.view-course-btn');
+        if (btn) {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const courseId = btn.getAttribute('data-id');
+            if (courseId) {
+              navigate(`/course/${courseId}`);
+            }
+          });
+        }
       });
       
       // Save marker reference for later cleanup
@@ -142,10 +201,6 @@ const CoursesMap = () => {
       addMarkersToMap();
     }
   }, [courses]);
-  
-  const handleCourseSelect = (course: GolfCourse) => {
-    navigate(`/course/${course.id}`);
-  };
 
   return (
     <div className="max-w-7xl mx-auto animate-fadeIn relative min-h-screen">
@@ -183,68 +238,19 @@ const CoursesMap = () => {
         </div>
       </div>
       
-      {/* Course Details Sheet */}
-      <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        <SheetContent className="w-full rounded-t-xl sm:max-w-md pt-safe">
-          <SheetHeader className="pt-6">
-            <SheetTitle className="text-lg font-medium">{selectedCourse?.name}</SheetTitle>
-            <SheetDescription>
-              {selectedCourse?.city ? `${selectedCourse?.city}, ${selectedCourse?.state}` : null}
-            </SheetDescription>
-          </SheetHeader>
-          
-          <div className="mt-4">
-            {selectedCourse && (
-              <div className="space-y-4">
-                <div className="w-full h-32 rounded-lg overflow-hidden bg-muted">
-                  {selectedCourse.image_url ? (
-                    <img 
-                      src={selectedCourse.image_url} 
-                      alt={selectedCourse.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-primary/10">
-                      <Flag className="h-10 w-10 text-primary/30" />
-                    </div>
-                  )}
-                </div>
-                
-                <div className="flex justify-between items-center">
-                  <div>
-                    <p className="text-sm text-muted-foreground">{t("map", "holes")}</p>
-                    <p className="font-medium">{selectedCourse.holes}</p>
-                  </div>
-                  {selectedCourse.par && (
-                    <div>
-                      <p className="text-sm text-muted-foreground">{t("map", "par")}</p>
-                      <p className="font-medium">{selectedCourse.par}</p>
-                    </div>
-                  )}
-                  <div>
-                    <Button 
-                      onClick={() => handleCourseSelect(selectedCourse)}
-                      className="bg-primary text-white hover:bg-primary/90"
-                    >
-                      {t("map", "viewCourse")}
-                    </Button>
-                  </div>
-                </div>
-                
-                {selectedCourse.address && (
-                  <div className="text-sm text-muted-foreground mt-2">
-                    <p>{selectedCourse.address}</p>
-                    <p>{selectedCourse.city}, {selectedCourse.state}</p>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </SheetContent>
-      </Sheet>
-      
       <style>{`
         .mapboxgl-ctrl-attrib-inner {
+          display: none;
+        }
+        
+        .mapboxgl-popup-content {
+          padding: 0;
+          border-radius: 0.5rem;
+          overflow: hidden;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        
+        .mapboxgl-popup-tip {
           display: none;
         }
       `}</style>
