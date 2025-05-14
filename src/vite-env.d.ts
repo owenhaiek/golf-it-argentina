@@ -6,6 +6,7 @@ interface MapboxGl {
   Map: any;
   NavigationControl: any;
   Marker: any;
+  Popup: any;
   accessToken: string;
 }
 

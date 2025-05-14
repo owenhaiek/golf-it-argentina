@@ -19,6 +19,8 @@ interface GolfCourse {
   image_url: string | null;
   par: number | null;
   holes: number;
+  latitude?: number;
+  longitude?: number;
 }
 
 const CoursesMap = () => {
@@ -44,7 +46,27 @@ const CoursesMap = () => {
         throw error;
       }
 
-      return data || [];
+      // Add geocoding for each course based on its address
+      // In a production app, you'd store lat/lng in the database
+      return data.map(course => {
+        // For demonstration purposes, let's create deterministic but realistic coordinates
+        // based on the course name (in a real app, you'd use the actual coordinates)
+        const nameHash = course.name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+        
+        // Generate coordinates within continental US
+        const baseLat = 37.0902; // Base latitude (center of US)
+        const baseLng = -95.7129; // Base longitude (center of US)
+        
+        // Vary by +/- 10 degrees based on course name hash
+        const latOffset = (nameHash % 20) - 10;
+        const lngOffset = ((nameHash * 13) % 30) - 15;
+        
+        return {
+          ...course,
+          latitude: baseLat + latOffset * 0.3,
+          longitude: baseLng + lngOffset * 0.7
+        };
+      });
     }
   });
 
@@ -117,10 +139,7 @@ const CoursesMap = () => {
     
     // Add markers for each course
     courses.forEach(course => {
-      // In a real app, you'd have lat/lng coordinates for each course
-      // Here we're using random coordinates across the US for demo purposes
-      const lat = 35 + (Math.random() * 10) - 5;
-      const lng = -100 + (Math.random() * 40) - 20;
+      if (!course.latitude || !course.longitude) return;
       
       // Create custom marker element
       const el = document.createElement('div');
@@ -129,68 +148,67 @@ const CoursesMap = () => {
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flag"><path d="M4 15s1-1 4-1 5 1 8 0 4-1 4-1V3s-1 1-4 1-5-1-8 0-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></svg>
       </div>`;
       
-      // Create minimal popup for the marker
-      const popupHTML = document.createElement('div');
-      popupHTML.className = 'map-popup';
+      // Create popup for the marker
       const isOpen = getRandomStatus();
-      
-      popupHTML.innerHTML = `
-        <div class="px-3 py-2 bg-white rounded-lg shadow-lg min-w-48 max-w-56">
-          <div class="font-medium text-sm mb-1">${course.name}</div>
-          <div class="flex items-center text-xs mb-2 ${isOpen === 'Open' ? 'text-green-600' : 'text-red-600'}">
-            <span class="mr-1">${isOpen === 'Open' ? '●' : '●'}</span>
-            ${isOpen}
-          </div>
-          <button class="view-course-btn w-full text-xs bg-primary text-white py-1 px-2 rounded hover:bg-primary/90 transition-colors" data-id="${course.id}">
-            Go to course
-          </button>
-        </div>
-      `;
-      
-      // Add popup to marker
       const popup = new window.mapboxgl.Popup({
         offset: 25,
         closeButton: false,
         closeOnClick: false,
-        maxWidth: 'none',
+        maxWidth: '240px',
         className: 'custom-popup'
-      }).setDOMContent(popupHTML);
+      });
+      
+      popup.setHTML(`
+        <div class="p-3 bg-white rounded-lg shadow-lg min-w-40">
+          <div class="font-medium text-sm mb-1">${course.name}</div>
+          <div class="flex items-center text-xs mb-2 ${isOpen === 'Open' ? 'text-green-600' : 'text-red-600'}">
+            <span class="mr-1">●</span>
+            ${isOpen}
+          </div>
+          <button 
+            class="course-btn w-full text-xs bg-primary text-white py-1 px-2 rounded hover:bg-primary/90 transition-colors"
+            data-id="${course.id}"
+          >
+            Go to course
+          </button>
+        </div>
+      `);
       
       // Save popup reference
       popups.current.push(popup);
       
-      // Add marker with popup to map
+      // Add marker to map
       const marker = new window.mapboxgl.Marker(el)
-        .setLngLat([lng, lat])
-        .setPopup(popup)
+        .setLngLat([course.longitude, course.latitude])
         .addTo(mapInstance.current);
       
-      // Add click event to marker to show popup
+      // Add click event to marker
       el.addEventListener('click', () => {
         // Close all other popups
         popups.current.forEach(p => {
-          if (p !== popup && p.isOpen()) {
+          if (p !== popup) {
             p.remove();
           }
         });
         
-        // Open this popup
+        // Toggle this popup
+        marker.setPopup(popup);
         marker.togglePopup();
         
-        // Add click event to the "Go to course" button
-        const btn = popupHTML.querySelector('.view-course-btn');
-        if (btn) {
-          btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const courseId = btn.getAttribute('data-id');
-            if (courseId) {
-              navigate(`/course/${courseId}`);
-            }
-          });
-        }
+        // Add navigation to the course page when clicking the button
+        // We need to do this after the popup is in the DOM
+        setTimeout(() => {
+          const btn = document.querySelector(`.course-btn[data-id="${course.id}"]`);
+          if (btn) {
+            btn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              navigate(`/course/${course.id}`);
+            });
+          }
+        }, 10);
       });
       
-      // Save marker reference for later cleanup
+      // Save marker reference
       markers.current.push(marker);
     });
   };
@@ -219,7 +237,6 @@ const CoursesMap = () => {
         <div 
           ref={mapRef} 
           className="w-full h-full"
-          style={{ width: '100%', height: '100%' }}
         />
         
         {/* Loading Overlay */}
@@ -238,7 +255,7 @@ const CoursesMap = () => {
         </div>
       </div>
       
-      <style>{`
+      <style jsx>{`
         .mapboxgl-ctrl-attrib-inner {
           display: none;
         }
@@ -252,6 +269,19 @@ const CoursesMap = () => {
         
         .mapboxgl-popup-tip {
           display: none;
+        }
+
+        /* Hide browser navigation tab bar on mobile */
+        @media screen and (max-width: 768px) {
+          html {
+            height: 100%;
+            overflow: hidden;
+          }
+          body {
+            height: 100%;
+            overflow: auto;
+            -webkit-overflow-scrolling: touch;
+          }
         }
       `}</style>
     </div>
