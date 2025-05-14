@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -64,7 +63,11 @@ const CoursesMap = () => {
   const getArgentinaGolfCourseLocation = (courseName: string) => {
     // Map of real golf courses in Argentina with actual coordinates
     const argentinaGolfCourses = {
-      "Buenos Aires Golf Club": { lat: -34.4851, lng: -58.5213 },
+      "Boulogne Golf Club": { lat: -34.4844, lng: -58.5563 }, // Ruta Panamericana y Camino Real Moron, Boulogne
+      "Buenos Aires Golf Club": { lat: -34.5446, lng: -58.6741 }, // Mayor Irusta 3777, Bella Vista
+      "Pacheco Golf Club": { lat: -34.4208, lng: -58.6483 }, // Autovia Bancalari Nordelta km 1, General Pacheco
+      
+      // Keeping other golf courses with their existing coordinates
       "Olivos Golf Club": { lat: -34.5104, lng: -58.5220 },
       "Pilar Golf Club": { lat: -34.4255, lng: -58.8940 },
       "Jockey Club": { lat: -34.5442, lng: -58.5045 },
@@ -91,26 +94,37 @@ const CoursesMap = () => {
     // Generate a consistent hash based on course name for predictable "random" location
     const nameHash = courseName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
     
-    // Either return the real coordinates or a fallback location
-    const knownCourse = Object.keys(argentinaGolfCourses).find(name => 
-      courseName.toLowerCase().includes(name.toLowerCase())
+    // First, check for exact matches (case insensitive)
+    const exactMatch = Object.keys(argentinaGolfCourses).find(name => 
+      name.toLowerCase() === courseName.toLowerCase()
     );
     
-    if (knownCourse) {
-      return argentinaGolfCourses[knownCourse as keyof typeof argentinaGolfCourses];
-    } else {
-      const index = nameHash % fallbackLocations.length;
-      const baseLocation = fallbackLocations[index];
-      
-      // Add small variation so points don't overlap
-      const latVariation = ((nameHash % 100) / 5000) * (nameHash % 2 === 0 ? 1 : -1);
-      const lngVariation = ((nameHash * 7 % 100) / 5000) * (nameHash % 3 === 0 ? 1 : -1);
-      
-      return {
-        lat: baseLocation.lat + latVariation,
-        lng: baseLocation.lng + lngVariation
-      };
+    if (exactMatch) {
+      return argentinaGolfCourses[exactMatch as keyof typeof argentinaGolfCourses];
     }
+    
+    // Then check for partial matches (contains the name)
+    const partialMatch = Object.keys(argentinaGolfCourses).find(name => 
+      courseName.toLowerCase().includes(name.toLowerCase()) || 
+      name.toLowerCase().includes(courseName.toLowerCase())
+    );
+    
+    if (partialMatch) {
+      return argentinaGolfCourses[partialMatch as keyof typeof argentinaGolfCourses];
+    }
+    
+    // If no match found, use fallback location
+    const index = nameHash % fallbackLocations.length;
+    const baseLocation = fallbackLocations[index];
+    
+    // Add small variation so points don't overlap
+    const latVariation = ((nameHash % 100) / 5000) * (nameHash % 2 === 0 ? 1 : -1);
+    const lngVariation = ((nameHash * 7 % 100) / 5000) * (nameHash % 3 === 0 ? 1 : -1);
+    
+    return {
+      lat: baseLocation.lat + latVariation,
+      lng: baseLocation.lng + lngVariation
+    };
   };
 
   // Map initialization
@@ -143,12 +157,12 @@ const CoursesMap = () => {
       // Use the provided Mapbox token
       window.mapboxgl.accessToken = 'pk.eyJ1Ijoib3dlbmhhaWVrIiwiYSI6ImNtYW8zbWZpajAyeGsyaXB3Z2NrOG9yeWsifQ.EutakvlH6R5Hala3cVTEYw';
       
-      // Initialize map centered on Argentina
+      // Initialize map centered on Buenos Aires area, Argentina
       mapInstance.current = new window.mapboxgl.Map({
         container: mapRef.current,
         style: 'mapbox://styles/mapbox/light-v11',
-        center: [-58.3816, -34.6037], // Center on Buenos Aires, Argentina
-        zoom: 5,
+        center: [-58.5, -34.5], // Center better on Buenos Aires area
+        zoom: 10, // Increased zoom to see the courses better
         attributionControl: false
       });
       
@@ -268,13 +282,44 @@ const CoursesMap = () => {
       e.preventDefault();
     };
     
-    // Prevent touch move and wheel events to disable scroll
-    document.body.addEventListener('touchmove', preventDefault, { passive: false });
-    document.body.addEventListener('wheel', preventDefault, { passive: false });
+    // More aggressive prevention of scroll events and refresh
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
+    document.body.style.height = '100%';
+    document.body.style.touchAction = 'none';
+    
+    // Prevent all possible scroll events
+    const options = { passive: false };
+    document.addEventListener('touchmove', preventDefault, options);
+    document.addEventListener('wheel', preventDefault, options);
+    document.addEventListener('mousewheel', preventDefault, options);
+    document.addEventListener('touchstart', (e) => {
+      if (e.touches.length > 1) {
+        e.preventDefault();
+      }
+    }, { passive: false });
+    
+    // Override browser refresh behavior
+    window.addEventListener('beforeunload', (e) => {
+      if (window.location.pathname === '/map') {
+        e.preventDefault();
+        return (e.returnValue = '');
+      }
+    });
     
     return () => {
-      document.body.removeEventListener('touchmove', preventDefault);
-      document.body.removeEventListener('wheel', preventDefault);
+      document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+      document.body.style.height = '';
+      document.body.style.touchAction = '';
+      
+      document.removeEventListener('touchmove', preventDefault);
+      document.removeEventListener('wheel', preventDefault);
+      document.removeEventListener('mousewheel', preventDefault);
     };
   }, []);
 
