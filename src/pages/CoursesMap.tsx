@@ -1,11 +1,9 @@
-
 import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Flag, Map, Loader, X, Clock, Search } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion, AnimatePresence } from "framer-motion";
@@ -37,6 +35,7 @@ const CoursesMap = () => {
   const [selectedCourse, setSelectedCourse] = useState<GolfCourse | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [mapInitialized, setMapInitialized] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
 
   // Prevent the pull-to-refresh behavior as soon as component mounts
   useEffect(() => {
@@ -104,9 +103,9 @@ const CoursesMap = () => {
   const getArgentinaGolfCourseLocation = (courseName: string) => {
     // Map of real golf courses in Argentina with actual coordinates
     const argentinaGolfCourses = {
-      "Boulogne Golf Club": { lat: -34.4844, lng: -58.5563 }, // Ruta Panamericana y Camino Real Moron, Boulogne
-      "Buenos Aires Golf Club": { lat: -34.5446, lng: -58.6741 }, // Mayor Irusta 3777, Bella Vista
-      "Pacheco Golf Club": { lat: -34.4208, lng: -58.6483 }, // Autovia Bancalari Nordelta km 1, General Pacheco
+      "BOULOGNE GOLF CLUB": { lat: -34.4844, lng: -58.5563 }, // Ruta Panamericana y Camino Real Moron, Boulogne
+      "BUENOS AIRES GOLF CLUB": { lat: -34.5446, lng: -58.6741 }, // Mayor Irusta 3777, Bella Vista
+      "PACHECO GOLF CLUB": { lat: -34.4208, lng: -58.6483 }, // Autovia Bancalari Nordelta km 1, General Pacheco
       
       // Keeping other golf courses with their existing coordinates
       "Olivos Golf Club": { lat: -34.5104, lng: -58.5220 },
@@ -119,6 +118,15 @@ const CoursesMap = () => {
       "Highland Park Country Club": { lat: -34.4701, lng: -58.7528 },
       "San Andrés Golf Club": { lat: -34.5087, lng: -58.6102 }
     };
+    
+    // First check for exact match (case insensitive)
+    const exactMatch = Object.keys(argentinaGolfCourses).find(name => 
+      name.toLowerCase() === courseName.toLowerCase()
+    );
+    
+    if (exactMatch) {
+      return argentinaGolfCourses[exactMatch as keyof typeof argentinaGolfCourses];
+    }
     
     // For demo purposes, if the course isn't in our list, give it a reasonable location in Argentina
     const fallbackLocations = [
@@ -134,27 +142,6 @@ const CoursesMap = () => {
     
     // Generate a consistent hash based on course name for predictable "random" location
     const nameHash = courseName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    
-    // First, check for exact matches (case insensitive)
-    const exactMatch = Object.keys(argentinaGolfCourses).find(name => 
-      name.toLowerCase() === courseName.toLowerCase()
-    );
-    
-    if (exactMatch) {
-      return argentinaGolfCourses[exactMatch as keyof typeof argentinaGolfCourses];
-    }
-    
-    // Then check for partial matches (contains the name)
-    const partialMatch = Object.keys(argentinaGolfCourses).find(name => 
-      courseName.toLowerCase().includes(name.toLowerCase()) || 
-      name.toLowerCase().includes(courseName.toLowerCase())
-    );
-    
-    if (partialMatch) {
-      return argentinaGolfCourses[partialMatch as keyof typeof argentinaGolfCourses];
-    }
-    
-    // If no match found, use fallback location
     const index = nameHash % fallbackLocations.length;
     const baseLocation = fallbackLocations[index];
     
@@ -175,37 +162,42 @@ const CoursesMap = () => {
       if (mapInitialized || !mapRef.current || mapInstance.current) return;
       
       try {
-        // Check if mapboxgl is already loaded
-        if (!window.mapboxgl) {
-          // Create promise to load Mapbox JS and CSS
-          const loadMapboxScript = new Promise<void>((resolve) => {
-            const script = document.createElement("script");
-            script.src = "https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js";
-            script.async = true;
-            script.onload = () => resolve();
-            document.head.appendChild(script);
-          });
-          
-          const loadMapboxCSS = new Promise<void>((resolve) => {
-            const link = document.createElement("link");
-            link.href = "https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css";
-            link.rel = "stylesheet";
-            link.onload = () => resolve();
-            document.head.appendChild(link);
-          });
-          
-          // Wait for both to load
-          await Promise.all([loadMapboxScript, loadMapboxCSS]);
-        }
+        // Create promise to load Mapbox JS and CSS
+        const loadMapboxScript = new Promise<void>((resolve, reject) => {
+          const script = document.createElement("script");
+          script.src = "https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js";
+          script.async = true;
+          script.onload = () => resolve();
+          script.onerror = () => reject(new Error("Failed to load Mapbox GL JS"));
+          document.head.appendChild(script);
+        });
+        
+        const loadMapboxCSS = new Promise<void>((resolve) => {
+          const link = document.createElement("link");
+          link.href = "https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css";
+          link.rel = "stylesheet";
+          link.onload = () => resolve();
+          document.head.appendChild(link);
+        });
+        
+        // Wait for both to load
+        await Promise.all([loadMapboxScript, loadMapboxCSS]);
         
         // Initialize map after ensuring mapboxgl is available
         if (!window.mapboxgl) {
           console.error("Mapbox GL JS failed to load");
+          toast({
+            title: "Map error",
+            description: "Failed to load the map. Please refresh the page.",
+            variant: "destructive"
+          });
           return;
         }
         
         // Set access token
         window.mapboxgl.accessToken = 'pk.eyJ1Ijoib3dlbmhhaWVrIiwiYSI6ImNtYW8zbWZpajAyeGsyaXB3Z2NrOG9yeWsifQ.EutakvlH6R5Hala3cVTEYw';
+        
+        console.log("Initializing map with Mapbox GL JS:", window.mapboxgl.version);
         
         // Initialize map centered better on Buenos Aires area golf courses
         mapInstance.current = new window.mapboxgl.Map({
@@ -218,7 +210,8 @@ const CoursesMap = () => {
           touchZoomRotate: {
             around: 'center',
             pinchRotate: false
-          }
+          },
+          renderWorldCopies: false
         });
         
         // Add minimal controls
@@ -232,8 +225,18 @@ const CoursesMap = () => {
         
         // Add markers when map is loaded
         mapInstance.current.on('load', () => {
+          console.log("Map loaded successfully");
           setMapLoaded(true);
           addMarkersToMap();
+        });
+        
+        mapInstance.current.on('error', (e: any) => {
+          console.error("Map error:", e);
+          toast({
+            title: "Map error",
+            description: "There was a problem with the map. Please try again.",
+            variant: "destructive"
+          });
         });
         
         setMapInitialized(true);
@@ -265,12 +268,22 @@ const CoursesMap = () => {
 
   // Add markers when courses data is available
   const addMarkersToMap = () => {
-    if (!mapInstance.current || !courses || !courses.length || !window.mapboxgl) return;
+    if (!mapInstance.current || !courses || !courses.length || !window.mapboxgl) {
+      console.log("Cannot add markers:", {
+        map: !!mapInstance.current,
+        courses: !!courses,
+        coursesLength: courses?.length || 0,
+        mapboxgl: !!window.mapboxgl
+      });
+      return;
+    }
     
     // Clear existing markers and popups
     markers.current.forEach(marker => marker.remove());
     markers.current = [];
     cleanupPopups();
+    
+    console.log(`Adding ${courses.length} markers to map`);
     
     // Determine whether a course is "open" or "closed" (randomly for demo)
     const getRandomStatus = (courseId: string) => {
@@ -281,7 +294,12 @@ const CoursesMap = () => {
     
     // Add markers for each course
     courses.forEach(course => {
-      if (!course.latitude || !course.longitude) return;
+      if (!course.latitude || !course.longitude) {
+        console.log(`No coordinates for ${course.name}`);
+        return;
+      }
+      
+      console.log(`Adding marker for ${course.name} at ${course.latitude}, ${course.longitude}`);
       
       // Create custom marker element
       const el = document.createElement('div');
@@ -359,6 +377,23 @@ const CoursesMap = () => {
       addMarkersToMap();
     }
   }, [courses, mapLoaded, searchQuery]);
+  
+  // Handle search icon click
+  const handleSearchToggle = () => {
+    setShowSearch(!showSearch);
+    if (!showSearch) {
+      // Focus the input when search is shown
+      setTimeout(() => {
+        const searchInput = document.getElementById('course-search-input');
+        if (searchInput) {
+          searchInput.focus();
+        }
+      }, 100);
+    } else {
+      // Clear search when hiding
+      setSearchQuery('');
+    }
+  };
   
   // Handle search input changes
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -445,24 +480,46 @@ const CoursesMap = () => {
           <h1 className="text-2xl font-bold text-primary ml-2">{t("map", "golfCoursesMap")}</h1>
         </div>
         
-        {/* Search input */}
-        <div className="relative w-1/2 max-w-[200px]">
-          <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="text"
-            placeholder="Search courses"
-            value={searchQuery}
-            onChange={handleSearchChange}
-            className="pl-8 h-9 text-sm"
-          />
-          {searchQuery && (
-            <button 
-              className="absolute right-2 top-1/2 transform -translate-y-1/2" 
-              onClick={() => setSearchQuery('')}
-            >
-              <X className="h-3 w-3 text-muted-foreground" />
-            </button>
-          )}
+        {/* Search button and slide-down input */}
+        <div className="relative">
+          <button 
+            className="p-2 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors"
+            onClick={handleSearchToggle}
+          >
+            <Search className="h-5 w-5 text-primary" />
+          </button>
+          
+          <AnimatePresence>
+            {showSearch && (
+              <motion.div 
+                className="absolute right-0 top-full mt-2 bg-white rounded-lg shadow-lg overflow-hidden z-20"
+                initial={{ opacity: 0, y: -10, width: 40 }}
+                animate={{ opacity: 1, y: 0, width: 240 }}
+                exit={{ opacity: 0, y: -10, width: 40 }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className="relative p-2">
+                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="course-search-input"
+                    type="text"
+                    placeholder="Search courses"
+                    value={searchQuery}
+                    onChange={handleSearchChange}
+                    className="pl-8 pr-8 h-9 text-sm"
+                  />
+                  {searchQuery && (
+                    <button 
+                      className="absolute right-4 top-1/2 transform -translate-y-1/2" 
+                      onClick={() => setSearchQuery('')}
+                    >
+                      <X className="h-3 w-3 text-muted-foreground" />
+                    </button>
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
       

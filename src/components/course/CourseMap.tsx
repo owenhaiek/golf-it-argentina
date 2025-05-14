@@ -21,6 +21,7 @@ export const CourseMap = ({ latitude, longitude, name }: CourseMapProps) => {
     return () => clearTimeout(timer);
   }, []);
   
+  // Handle missing location data
   if (!latitude || !longitude) {
     return (
       <Card className="mb-4">
