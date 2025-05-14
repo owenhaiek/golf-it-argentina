@@ -36,6 +36,7 @@ const CoursesMap = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [mapInitialized, setMapInitialized] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
+  const [mapError, setMapError] = useState<string | null>(null);
 
   // Prevent the pull-to-refresh behavior as soon as component mounts
   useEffect(() => {
@@ -168,7 +169,10 @@ const CoursesMap = () => {
           script.src = "https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js";
           script.async = true;
           script.onload = () => resolve();
-          script.onerror = () => reject(new Error("Failed to load Mapbox GL JS"));
+          script.onerror = (e) => {
+            console.error("Failed to load Mapbox script:", e);
+            reject(new Error("Failed to load Mapbox GL JS"));
+          };
           document.head.appendChild(script);
         });
         
@@ -183,9 +187,13 @@ const CoursesMap = () => {
         // Wait for both to load
         await Promise.all([loadMapboxScript, loadMapboxCSS]);
         
+        // Small delay to ensure scripts are fully processed
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
         // Initialize map after ensuring mapboxgl is available
         if (!window.mapboxgl) {
           console.error("Mapbox GL JS failed to load");
+          setMapError("Failed to load map. Please refresh the page.");
           toast({
             title: "Map error",
             description: "Failed to load the map. Please refresh the page.",
@@ -211,7 +219,8 @@ const CoursesMap = () => {
             around: 'center',
             pinchRotate: false
           },
-          renderWorldCopies: false
+          renderWorldCopies: false,
+          failIfMajorPerformanceCaveat: false // Allow fallback to lower performance
         });
         
         // Add minimal controls
@@ -232,6 +241,7 @@ const CoursesMap = () => {
         
         mapInstance.current.on('error', (e: any) => {
           console.error("Map error:", e);
+          setMapError("There was a problem with the map. Please try again.");
           toast({
             title: "Map error",
             description: "There was a problem with the map. Please try again.",
@@ -242,6 +252,7 @@ const CoursesMap = () => {
         setMapInitialized(true);
       } catch (error) {
         console.error('Error initializing map:', error);
+        setMapError("Could not load map. Please check your connection and try again.");
         toast({
           title: "Map error",
           description: "There was a problem loading the map. Please try again.",
@@ -254,15 +265,26 @@ const CoursesMap = () => {
     
     return () => {
       if (mapInstance.current) {
-        mapInstance.current.remove();
+        // Properly clean up the map
+        try {
+          mapInstance.current.remove();
+        } catch (e) {
+          console.error("Error cleaning up map:", e);
+        }
         mapInstance.current = null;
       }
     };
-  }, [mapRef.current]);
+  }, [mapRef.current]); // Only dependency is the map container ref
 
   // Clean up any previously created popups
   const cleanupPopups = () => {
-    popups.current.forEach(popup => popup.remove());
+    popups.current.forEach(popup => {
+      try {
+        popup.remove();
+      } catch (e) {
+        console.error("Error removing popup:", e);
+      }
+    });
     popups.current = [];
   };
 
@@ -279,7 +301,13 @@ const CoursesMap = () => {
     }
     
     // Clear existing markers and popups
-    markers.current.forEach(marker => marker.remove());
+    markers.current.forEach(marker => {
+      try {
+        marker.remove();
+      } catch (e) {
+        console.error("Error removing marker:", e);
+      }
+    });
     markers.current = [];
     cleanupPopups();
     
@@ -299,75 +327,79 @@ const CoursesMap = () => {
         return;
       }
       
-      console.log(`Adding marker for ${course.name} at ${course.latitude}, ${course.longitude}`);
-      
-      // Create custom marker element
-      const el = document.createElement('div');
-      el.className = 'course-marker';
-      el.innerHTML = `<div class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer hover:bg-primary/90 transition-colors">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flag"><path d="M4 15s1-1 4-1 5 1 8 0 4-1 4-1V3s-1 1-4 1-5-1-8 0-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></svg>
-      </div>`;
-      
-      // Create popup for the marker
-      const isOpen = getRandomStatus(course.id);
-      
-      const popup = new window.mapboxgl.Popup({
-        offset: [0, -15],
-        closeButton: true,
-        closeOnClick: false,
-        className: 'custom-popup',
-        maxWidth: '250px'
-      }).setLngLat([course.longitude, course.latitude])
-        .setHTML(`
-          <div class="p-3 bg-white rounded-lg shadow-sm min-w-[200px] text-sm">
-            <div class="font-medium text-lg mb-2">${course.name}</div>
-            <div class="flex items-center mb-3 ${isOpen === 'Open' ? 'text-green-600' : 'text-red-600'}">
-              <span class="mr-1">●</span>
-              ${isOpen}
+      try {
+        console.log(`Adding marker for ${course.name} at ${course.latitude}, ${course.longitude}`);
+        
+        // Create custom marker element
+        const el = document.createElement('div');
+        el.className = 'course-marker';
+        el.innerHTML = `<div class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer hover:bg-primary/90 transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flag"><path d="M4 15s1-1 4-1 5 1 8 0 4-1 4-1V3s-1 1-4 1-5-1-8 0-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></svg>
+        </div>`;
+        
+        // Create popup for the marker
+        const isOpen = getRandomStatus(course.id);
+        
+        const popup = new window.mapboxgl.Popup({
+          offset: [0, -15],
+          closeButton: true,
+          closeOnClick: false,
+          className: 'custom-popup',
+          maxWidth: '250px'
+        }).setLngLat([course.longitude, course.latitude])
+          .setHTML(`
+            <div class="p-3 bg-white rounded-lg shadow-sm min-w-[200px] text-sm">
+              <div class="font-medium text-lg mb-2">${course.name}</div>
+              <div class="flex items-center mb-3 ${isOpen === 'Open' ? 'text-green-600' : 'text-red-600'}">
+                <span class="mr-1">●</span>
+                ${isOpen}
+              </div>
+              <button 
+                class="course-btn w-full bg-primary text-white py-2 px-3 rounded hover:bg-primary/90 transition-colors text-sm font-medium"
+                data-id="${course.id}"
+              >
+                Go to course
+              </button>
             </div>
-            <button 
-              class="course-btn w-full bg-primary text-white py-2 px-3 rounded hover:bg-primary/90 transition-colors text-sm font-medium"
-              data-id="${course.id}"
-            >
-              Go to course
-            </button>
-          </div>
-        `);
-      
-      // Add marker to map
-      const marker = new window.mapboxgl.Marker(el)
-        .setLngLat([course.longitude, course.latitude])
-        .addTo(mapInstance.current);
-      
-      // Add click event to marker
-      el.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
+          `);
         
-        // Close all other popups
-        cleanupPopups();
+        // Add marker to map
+        const marker = new window.mapboxgl.Marker(el)
+          .setLngLat([course.longitude, course.latitude])
+          .addTo(mapInstance.current);
         
-        // Add this popup to the map
-        popup.addTo(mapInstance.current);
+        // Add click event to marker
+        el.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          
+          // Close all other popups
+          cleanupPopups();
+          
+          // Add this popup to the map
+          popup.addTo(mapInstance.current);
+          
+          // Add to popups reference for cleanup
+          popups.current.push(popup);
+          
+          // Add navigation to the course page when clicking the button
+          setTimeout(() => {
+            const btn = document.querySelector(`.course-btn[data-id="${course.id}"]`);
+            if (btn) {
+              btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                navigate(`/course/${course.id}`);
+              });
+            }
+          }, 10);
+        });
         
-        // Add to popups reference for cleanup
-        popups.current.push(popup);
-        
-        // Add navigation to the course page when clicking the button
-        setTimeout(() => {
-          const btn = document.querySelector(`.course-btn[data-id="${course.id}"]`);
-          if (btn) {
-            btn.addEventListener('click', (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              navigate(`/course/${course.id}`);
-            });
-          }
-        }, 10);
-      });
-      
-      // Save marker reference
-      markers.current.push(marker);
+        // Save marker reference
+        markers.current.push(marker);
+      } catch (e) {
+        console.error(`Error creating marker for ${course.name}:`, e);
+      }
     });
   };
   
@@ -376,7 +408,7 @@ const CoursesMap = () => {
     if (mapLoaded && courses && courses.length > 0 && mapInstance.current) {
       addMarkersToMap();
     }
-  }, [courses, mapLoaded, searchQuery]);
+  }, [courses, mapLoaded]);
   
   // Handle search icon click
   const handleSearchToggle = () => {
@@ -472,6 +504,21 @@ const CoursesMap = () => {
     };
   }, []);
 
+  // Retry mechanism for map if it fails to load
+  const handleRetryMap = () => {
+    if (mapInstance.current) {
+      try {
+        mapInstance.current.remove();
+      } catch (e) {
+        console.error("Error removing map on retry:", e);
+      }
+      mapInstance.current = null;
+    }
+    setMapInitialized(false);
+    setMapLoaded(false);
+    setMapError(null);
+  };
+
   return (
     <div className="fixed inset-0 animate-fadeIn flex flex-col">
       <div className="absolute top-0 left-0 right-0 z-10 bg-background/80 backdrop-blur-sm flex items-center justify-between p-4 pt-safe">
@@ -531,7 +578,7 @@ const CoursesMap = () => {
         />
         
         {/* Loading Overlay */}
-        {(!mapLoaded || isLoading) && (
+        {(!mapLoaded || isLoading) && !mapError && (
           <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-sm">
             <div className="flex flex-col items-center gap-3">
               <div className="relative w-12 h-12">
@@ -540,6 +587,19 @@ const CoursesMap = () => {
                 <Map className="absolute inset-0 w-6 h-6 m-auto text-primary/70" />
               </div>
               <p className="text-sm font-medium">{t("common", "loading")}...</p>
+            </div>
+          </div>
+        )}
+        
+        {/* Error state with retry button */}
+        {mapError && (
+          <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+            <div className="flex flex-col items-center gap-4 max-w-xs text-center px-6">
+              <Map className="h-12 w-12 text-muted-foreground opacity-50" />
+              <p className="text-lg font-medium text-destructive">{mapError}</p>
+              <Button onClick={handleRetryMap} variant="outline" className="mt-2">
+                Try Again
+              </Button>
             </div>
           </div>
         )}
