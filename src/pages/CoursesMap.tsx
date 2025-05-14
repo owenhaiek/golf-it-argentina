@@ -46,25 +46,24 @@ const CoursesMap = () => {
         throw error;
       }
 
-      // Add geocoding for each course based on its address
-      // In a production app, you'd store lat/lng in the database
+      // Generate Argentina coordinates for golf courses
+      // Average latitude and longitude for Argentina: -38.416097, -63.616672
       return data.map(course => {
-        // For demonstration purposes, let's create deterministic but realistic coordinates
-        // based on the course name (in a real app, you'd use the actual coordinates)
+        // Create deterministic but realistic coordinates in Argentina
         const nameHash = course.name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
         
-        // Generate coordinates within continental US
-        const baseLat = 37.0902; // Base latitude (center of US)
-        const baseLng = -95.7129; // Base longitude (center of US)
+        // Base coordinates near Buenos Aires
+        const baseLat = -34.6037;
+        const baseLng = -58.3816;
         
-        // Vary by +/- 10 degrees based on course name hash
-        const latOffset = (nameHash % 20) - 10;
-        const lngOffset = ((nameHash * 13) % 30) - 15;
+        // Vary by small amounts to spread courses around Buenos Aires region
+        const latOffset = (nameHash % 10) * 0.05;
+        const lngOffset = ((nameHash * 7) % 10) * 0.05;
         
         return {
           ...course,
-          latitude: baseLat + latOffset * 0.3,
-          longitude: baseLng + lngOffset * 0.7
+          latitude: baseLat - latOffset,
+          longitude: baseLng - lngOffset
         };
       });
     }
@@ -100,12 +99,12 @@ const CoursesMap = () => {
       // Use the provided Mapbox token
       window.mapboxgl.accessToken = 'pk.eyJ1Ijoib3dlbmhhaWVrIiwiYSI6ImNtYW8zbWZpajAyeGsyaXB3Z2NrOG9yeWsifQ.EutakvlH6R5Hala3cVTEYw';
       
-      // Initialize map
+      // Initialize map centered on Argentina
       mapInstance.current = new window.mapboxgl.Map({
         container: mapRef.current,
         style: 'mapbox://styles/mapbox/light-v11',
-        center: [-95.7129, 37.0902], // Center of US
-        zoom: 3,
+        center: [-58.3816, -34.6037], // Center on Buenos Aires, Argentina
+        zoom: 10,
         attributionControl: false
       });
       
@@ -150,23 +149,22 @@ const CoursesMap = () => {
       
       // Create popup for the marker
       const isOpen = getRandomStatus();
+      
+      // Create minimal popup
       const popup = new window.mapboxgl.Popup({
         offset: 25,
-        closeButton: false,
+        closeButton: true,
         closeOnClick: false,
-        maxWidth: '240px',
         className: 'custom-popup'
-      });
-      
-      popup.setHTML(`
-        <div class="p-3 bg-white rounded-lg shadow-lg min-w-40">
-          <div class="font-medium text-sm mb-1">${course.name}</div>
-          <div class="flex items-center text-xs mb-2 ${isOpen === 'Open' ? 'text-green-600' : 'text-red-600'}">
+      }).setHTML(`
+        <div class="p-2 bg-white rounded-lg shadow-sm min-w-[150px] text-xs">
+          <div class="font-medium mb-1">${course.name}</div>
+          <div class="flex items-center mb-1 ${isOpen === 'Open' ? 'text-green-600' : 'text-red-600'}">
             <span class="mr-1">●</span>
             ${isOpen}
           </div>
           <button 
-            class="course-btn w-full text-xs bg-primary text-white py-1 px-2 rounded hover:bg-primary/90 transition-colors"
+            class="course-btn w-full bg-primary text-white py-1 px-2 rounded hover:bg-primary/90 transition-colors"
             data-id="${course.id}"
           >
             Go to course
@@ -177,26 +175,22 @@ const CoursesMap = () => {
       // Save popup reference
       popups.current.push(popup);
       
-      // Add marker to map
+      // Add marker and popup to map
       const marker = new window.mapboxgl.Marker(el)
         .setLngLat([course.longitude, course.latitude])
+        .setPopup(popup) // Attach popup to marker
         .addTo(mapInstance.current);
       
       // Add click event to marker
       el.addEventListener('click', () => {
         // Close all other popups
-        popups.current.forEach(p => {
-          if (p !== popup) {
-            p.remove();
-          }
-        });
+        cleanupPopups();
         
-        // Toggle this popup
-        marker.setPopup(popup);
-        marker.togglePopup();
+        // Show this popup
+        popup.addTo(mapInstance.current);
+        popup.setLngLat([course.longitude, course.latitude]);
         
         // Add navigation to the course page when clicking the button
-        // We need to do this after the popup is in the DOM
         setTimeout(() => {
           const btn = document.querySelector(`.course-btn[data-id="${course.id}"]`);
           if (btn) {
@@ -221,10 +215,10 @@ const CoursesMap = () => {
   }, [courses]);
 
   return (
-    <div className="max-w-7xl mx-auto animate-fadeIn relative min-h-screen">
-      <div className="flex items-center mb-6 gap-2 px-4">
+    <div className="fixed inset-0 animate-fadeIn flex flex-col">
+      <div className="flex items-center p-4 pt-safe">
         <Map className="text-primary h-6 w-6" />
-        <h1 className="text-2xl font-bold text-primary">{t("map", "golfCoursesMap")}</h1>
+        <h1 className="text-2xl font-bold text-primary ml-2">{t("map", "golfCoursesMap")}</h1>
         {isLoading && (
           <div className="ml-auto">
             <Loader className="h-5 w-5 text-primary animate-spin" />
@@ -232,11 +226,11 @@ const CoursesMap = () => {
         )}
       </div>
       
-      <div className="relative h-[calc(100vh-180px)] mx-4 rounded-xl overflow-hidden shadow-lg border border-muted/20 bg-muted/10">
+      <div className="flex-1 relative">
         {/* Map Container */}
         <div 
           ref={mapRef} 
-          className="w-full h-full"
+          className="absolute inset-0"
         />
         
         {/* Loading Overlay */}
@@ -255,35 +249,48 @@ const CoursesMap = () => {
         </div>
       </div>
       
-      <style jsx>{`
-        .mapboxgl-ctrl-attrib-inner {
-          display: none;
-        }
-        
-        .mapboxgl-popup-content {
-          padding: 0;
-          border-radius: 0.5rem;
-          overflow: hidden;
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        }
-        
-        .mapboxgl-popup-tip {
-          display: none;
-        }
-
-        /* Hide browser navigation tab bar on mobile */
-        @media screen and (max-width: 768px) {
-          html {
-            height: 100%;
+      <style>
+        {`
+          .mapboxgl-ctrl-attrib-inner {
+            display: none;
+          }
+          
+          .mapboxgl-popup-content {
+            padding: 0;
+            border-radius: 0.5rem;
             overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border: 1px solid rgba(229, 231, 235, 0.5);
           }
-          body {
-            height: 100%;
-            overflow: auto;
-            -webkit-overflow-scrolling: touch;
+          
+          .mapboxgl-popup-close-button {
+            font-size: 16px;
+            padding: 0 6px;
+            color: #666;
           }
-        }
-      `}</style>
+          
+          .mapboxgl-popup-tip {
+            display: none;
+          }
+
+          .custom-popup {
+            z-index: 10;
+          }
+
+          /* Hide browser navigation tab bar on mobile */
+          @media screen and (max-width: 768px) {
+            html {
+              height: 100%;
+              overflow: hidden;
+            }
+            body {
+              height: 100%;
+              overflow: hidden;
+              -webkit-overflow-scrolling: touch;
+            }
+          }
+        `}
+      </style>
     </div>
   );
 };
