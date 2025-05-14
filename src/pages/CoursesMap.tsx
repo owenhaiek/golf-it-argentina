@@ -197,7 +197,7 @@ const CoursesMap = () => {
         // Set access token
         window.mapboxgl.accessToken = 'pk.eyJ1Ijoib3dlbmhhaWVrIiwiYSI6ImNtYW8zbWZpajAyeGsyaXB3Z2NrOG9yeWsifQ.EutakvlH6R5Hala3cVTEYw';
         
-        console.log("Initializing map with Mapbox GL JS:", window.mapboxgl.version);
+        console.log("Initializing map with Mapbox GL JS");
         
         // Initialize map centered better on Buenos Aires area golf courses
         mapInstance.current = new window.mapboxgl.Map({

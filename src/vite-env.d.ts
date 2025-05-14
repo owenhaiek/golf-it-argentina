@@ -8,6 +8,7 @@ interface MapboxGl {
   Marker: any;
   Popup: any;
   accessToken: string;
+  version?: string; // Add version as optional property
 }
 
 interface Window {
