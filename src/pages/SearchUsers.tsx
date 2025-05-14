@@ -10,12 +10,22 @@ import { UserSearch } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 
+// Define the profile type
+interface Profile {
+  id: string;
+  username: string | null;
+  full_name: string | null;
+  avatar_url: string | null;
+  handicap: number | null;
+  updated_at: string | null;
+}
+
 const SearchUsers = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const { t } = useLanguage();
   const navigate = useNavigate();
   
-  const { data: profiles, isLoading } = useQuery({
+  const { data: profiles, isLoading } = useQuery<Profile[]>({
     queryKey: ["profiles", searchQuery],
     queryFn: async () => {
       let query = supabase
@@ -38,7 +48,7 @@ const SearchUsers = () => {
       
       return data || [];
     },
-    keepPreviousData: true,
+    placeholderData: [], // Use placeholderData instead of keepPreviousData
   });
 
   const handleViewProfile = (id: string) => {
