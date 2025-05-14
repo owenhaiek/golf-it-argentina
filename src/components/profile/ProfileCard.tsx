@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -6,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/components/ui/use-toast";
-import { Loader2, LogOut, Edit3, Check, X, Camera, User, Hash } from "lucide-react";
+import { Loader2, LogOut, Edit3, Check, X, Camera, User, Hash, Settings } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -189,6 +190,10 @@ const ProfileCard = ({
     }
   };
 
+  const handleGoToSettings = () => {
+    navigate('/settings');
+  };
+
   if (profileLoading) {
     return <Card className="border-0 shadow-md bg-gradient-to-br from-white to-muted h-full">
         <CardHeader className="flex items-center justify-center pb-0">
@@ -205,6 +210,9 @@ const ProfileCard = ({
   return <Card className="overflow-hidden border-0 shadow-md bg-gradient-to-br from-white to-muted h-full">
       <CardHeader className="relative pb-0 text-center">
         {!isEditing && <div className="absolute right-4 top-4 flex gap-2">
+            <Button variant="ghost" size="icon" onClick={handleGoToSettings} className="text-primary hover:bg-primary/10 rounded-full">
+              <Settings className="h-5 w-5" />
+            </Button>
             <Button variant="ghost" size="icon" onClick={handleEditClick} className="text-primary hover:bg-primary/10 rounded-full">
               <Edit3 className="h-5 w-5" />
             </Button>

@@ -1,6 +1,6 @@
 
 import { NavLink } from "react-router-dom";
-import { Flag, Plus, User, Settings, UserSearch } from "lucide-react";
+import { Flag, Plus, User, Map, UserSearch } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -20,7 +20,7 @@ export const Navigation = () => {
             className="text-primary" 
           />
           <NavItem to="/profile" icon={<User className="transition-colors" size={20} />} label={t("common", "profile")} />
-          <NavItem to="/settings" icon={<Settings className="transition-colors" size={20} />} label={t("common", "settings")} />
+          <NavItem to="/courses-map" icon={<Map className="transition-colors" size={20} />} label={t("common", "map")} />
         </ul>
       </nav>
     </div>

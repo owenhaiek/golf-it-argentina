@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Trophy, Flag } from "lucide-react";
+import { ArrowLeft, Trophy, Flag, Plus, Minus, Check } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const UserProfile = () => {
@@ -119,34 +119,54 @@ const UserProfile = () => {
           ) : recentRounds.length === 0 ? (
             <p className="text-muted-foreground">{t("profile", "noRoundsYet")}</p>
           ) : (
-            recentRounds.map((round) => (
-              <div key={round.id} className="border rounded-lg p-3">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <p className="font-medium">{round.golf_courses.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {new Date(round.date).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-bold text-lg">{round.score}</p>
-                    {round.golf_courses.par && (
-                      <p className="text-sm">
-                        {round.score - round.golf_courses.par > 0 
-                          ? `+${round.score - round.golf_courses.par}` 
-                          : round.score - round.golf_courses.par}
+            recentRounds.map((round) => {
+              const coursePar = round.golf_courses.par || 72;
+              const scoreDiff = round.score - coursePar;
+              
+              let scoreStatus;
+              let scoreColor;
+              let ScoreIcon;
+              
+              if (scoreDiff < 0) {
+                scoreStatus = `${Math.abs(scoreDiff)} ${t("profile", "underPar")}`;
+                scoreColor = "text-green-600";
+                ScoreIcon = Minus;
+              } else if (scoreDiff > 0) {
+                scoreStatus = `${scoreDiff} ${t("profile", "overPar")}`;
+                scoreColor = "text-red-600";
+                ScoreIcon = Plus;
+              } else {
+                scoreStatus = t("profile", "atPar");
+                scoreColor = "text-blue-600";
+                ScoreIcon = Check;
+              }
+              
+              return (
+                <div key={round.id} className="border rounded-lg p-3">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <p className="font-medium">{round.golf_courses.name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {new Date(round.date).toLocaleDateString()}
                       </p>
-                    )}
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-lg">{round.score}</p>
+                      <div className={`flex items-center justify-end gap-1 ${scoreColor}`}>
+                        <ScoreIcon className="h-3 w-3" />
+                        <span className="text-sm">{scoreStatus}</span>
+                      </div>
+                    </div>
                   </div>
+                  {round.notes && (
+                    <>
+                      <Separator className="my-2" />
+                      <p className="text-sm">{round.notes}</p>
+                    </>
+                  )}
                 </div>
-                {round.notes && (
-                  <>
-                    <Separator className="my-2" />
-                    <p className="text-sm">{round.notes}</p>
-                  </>
-                )}
-              </div>
-            ))
+              );
+            })
           )}
         </CardContent>
       </Card>

@@ -16,6 +16,7 @@ import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import SearchUsers from "./pages/SearchUsers";
 import UserProfile from "./pages/UserProfile";
+import CoursesMap from "./pages/CoursesMap";
 import { useAuth } from "./contexts/AuthContext";
 import { useEffect } from "react";
 
@@ -156,6 +157,7 @@ const App = () => {
                   <Route path="/settings" element={<Settings />} />
                   <Route path="/search-users" element={<SearchUsers />} />
                   <Route path="/user/:id" element={<UserProfile />} />
+                  <Route path="/courses-map" element={<CoursesMap />} />
                 </Route>
                 <Route path="*" element={<NotFound />} />
               </Routes>
