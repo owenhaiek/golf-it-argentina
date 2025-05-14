@@ -31,6 +31,7 @@ const CoursesMap = () => {
   const markers = useRef<any[]>([]);
   const popups = useRef<any[]>([]);
   
+  const [mapLoaded, setMapLoaded] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<GolfCourse | null>(null);
 
   const { data: courses, isLoading } = useQuery<GolfCourse[]>({
@@ -47,23 +48,30 @@ const CoursesMap = () => {
       }
 
       // Generate Argentina coordinates for golf courses
-      // Average latitude and longitude for Argentina: -38.416097, -63.616672
       return data.map(course => {
-        // Create deterministic but realistic coordinates in Argentina
+        // Create a more realistic distribution across Argentina's golf regions
         const nameHash = course.name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
         
-        // Base coordinates near Buenos Aires
-        const baseLat = -34.6037;
-        const baseLng = -58.3816;
+        // Base coordinates in different Argentine regions
+        const regions = [
+          { name: "Buenos Aires", lat: -34.6037, lng: -58.3816 },
+          { name: "Cordoba", lat: -31.4201, lng: -64.1888 },
+          { name: "Mendoza", lat: -32.8908, lng: -68.8272 },
+          { name: "Mar del Plata", lat: -38.0055, lng: -57.5426 },
+        ];
         
-        // Vary by small amounts to spread courses around Buenos Aires region
-        const latOffset = (nameHash % 10) * 0.05;
-        const lngOffset = ((nameHash * 7) % 10) * 0.05;
+        // Select a region based on the name hash
+        const regionIndex = nameHash % regions.length;
+        const baseRegion = regions[regionIndex];
+        
+        // Add small variation within the region
+        const latVariation = ((nameHash % 100) / 1000) * (Math.random() > 0.5 ? 1 : -1);
+        const lngVariation = ((nameHash * 7 % 100) / 1000) * (Math.random() > 0.5 ? 1 : -1);
         
         return {
           ...course,
-          latitude: baseLat - latOffset,
-          longitude: baseLng - lngOffset
+          latitude: baseRegion.lat + latVariation,
+          longitude: baseRegion.lng + lngVariation
         };
       });
     }
@@ -104,7 +112,7 @@ const CoursesMap = () => {
         container: mapRef.current,
         style: 'mapbox://styles/mapbox/light-v11',
         center: [-58.3816, -34.6037], // Center on Buenos Aires, Argentina
-        zoom: 10,
+        zoom: 5,
         attributionControl: false
       });
       
@@ -114,6 +122,7 @@ const CoursesMap = () => {
       // Add markers when map is loaded
       mapInstance.current.on('load', () => {
         addMarkersToMap();
+        setMapLoaded(true);
       });
     }
   }, []);
@@ -150,35 +159,32 @@ const CoursesMap = () => {
       // Create popup for the marker
       const isOpen = getRandomStatus();
       
-      // Create minimal popup
+      // Create minimal popup with correct positioning
       const popup = new window.mapboxgl.Popup({
-        offset: 25,
+        offset: [0, -15],
         closeButton: true,
         closeOnClick: false,
         className: 'custom-popup'
-      }).setHTML(`
-        <div class="p-2 bg-white rounded-lg shadow-sm min-w-[150px] text-xs">
-          <div class="font-medium mb-1">${course.name}</div>
-          <div class="flex items-center mb-1 ${isOpen === 'Open' ? 'text-green-600' : 'text-red-600'}">
-            <span class="mr-1">●</span>
-            ${isOpen}
+      }).setLngLat([course.longitude, course.latitude])
+        .setHTML(`
+          <div class="p-2 bg-white rounded-lg shadow-sm min-w-[150px] text-xs">
+            <div class="font-medium mb-1">${course.name}</div>
+            <div class="flex items-center mb-1 ${isOpen === 'Open' ? 'text-green-600' : 'text-red-600'}">
+              <span class="mr-1">●</span>
+              ${isOpen}
+            </div>
+            <button 
+              class="course-btn w-full bg-primary text-white py-1 px-2 rounded hover:bg-primary/90 transition-colors text-xs"
+              data-id="${course.id}"
+            >
+              Go to course
+            </button>
           </div>
-          <button 
-            class="course-btn w-full bg-primary text-white py-1 px-2 rounded hover:bg-primary/90 transition-colors"
-            data-id="${course.id}"
-          >
-            Go to course
-          </button>
-        </div>
-      `);
+        `);
       
-      // Save popup reference
-      popups.current.push(popup);
-      
-      // Add marker and popup to map
+      // Add marker to map
       const marker = new window.mapboxgl.Marker(el)
         .setLngLat([course.longitude, course.latitude])
-        .setPopup(popup) // Attach popup to marker
         .addTo(mapInstance.current);
       
       // Add click event to marker
@@ -186,9 +192,11 @@ const CoursesMap = () => {
         // Close all other popups
         cleanupPopups();
         
-        // Show this popup
+        // Add this popup to the map
         popup.addTo(mapInstance.current);
-        popup.setLngLat([course.longitude, course.latitude]);
+        
+        // Add to popups reference for cleanup
+        popups.current.push(popup);
         
         // Add navigation to the course page when clicking the button
         setTimeout(() => {
@@ -213,31 +221,41 @@ const CoursesMap = () => {
       addMarkersToMap();
     }
   }, [courses]);
+  
+  // Prevent pull-to-refresh on this specific page
+  useEffect(() => {
+    const handleTouchMove = (e: TouchEvent) => {
+      e.preventDefault();
+    };
+    
+    document.body.addEventListener('touchmove', handleTouchMove, { passive: false });
+    
+    return () => {
+      document.body.removeEventListener('touchmove', handleTouchMove);
+    };
+  }, []);
 
   return (
     <div className="fixed inset-0 animate-fadeIn flex flex-col">
-      <div className="flex items-center p-4 pt-safe">
+      <div className="absolute top-0 left-0 right-0 z-10 bg-background/80 backdrop-blur-sm flex items-center p-4 pt-safe">
         <Map className="text-primary h-6 w-6" />
         <h1 className="text-2xl font-bold text-primary ml-2">{t("map", "golfCoursesMap")}</h1>
-        {isLoading && (
-          <div className="ml-auto">
-            <Loader className="h-5 w-5 text-primary animate-spin" />
-          </div>
-        )}
       </div>
       
-      <div className="flex-1 relative">
+      <div className="absolute inset-0 pt-16">
         {/* Map Container */}
         <div 
           ref={mapRef} 
-          className="absolute inset-0"
+          className="w-full h-full"
         />
         
         {/* Loading Overlay */}
-        {isLoading && (
+        {(!mapLoaded || isLoading) && (
           <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-sm">
             <div className="flex flex-col items-center gap-2">
-              <Loader className="h-8 w-8 text-primary animate-spin" />
+              <div className="animate-spin">
+                <Map className="h-8 w-8 text-primary" />
+              </div>
               <p className="text-sm font-medium">{t("common", "loading")}...</p>
             </div>
           </div>
@@ -264,9 +282,11 @@ const CoursesMap = () => {
           }
           
           .mapboxgl-popup-close-button {
-            font-size: 16px;
-            padding: 0 6px;
+            font-size: 14px;
+            padding: 0 4px;
             color: #666;
+            top: 2px;
+            right: 2px;
           }
           
           .mapboxgl-popup-tip {
@@ -280,14 +300,25 @@ const CoursesMap = () => {
           /* Hide browser navigation tab bar on mobile */
           @media screen and (max-width: 768px) {
             html {
-              height: 100%;
+              height: 100vh; 
               overflow: hidden;
+              position: fixed;
+              width: 100%;
             }
             body {
-              height: 100%;
+              height: 100vh;
               overflow: hidden;
+              position: fixed;
+              width: 100%;
               -webkit-overflow-scrolling: touch;
             }
+            #root {
+              height: 100%;
+            }
+          }
+          
+          .mapboxgl-map {
+            touch-action: none;
           }
         `}
       </style>

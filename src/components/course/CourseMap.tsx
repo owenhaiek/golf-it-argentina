@@ -1,6 +1,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MapPin } from "lucide-react";
+import { MapPin, Map } from "lucide-react";
+import { useState, useEffect } from "react";
 
 interface CourseMapProps {
   latitude?: number | null;
@@ -9,6 +10,17 @@ interface CourseMapProps {
 }
 
 export const CourseMap = ({ latitude, longitude, name }: CourseMapProps) => {
+  const [isLoading, setIsLoading] = useState(true);
+  
+  useEffect(() => {
+    // Simulate map loading
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 800);
+    
+    return () => clearTimeout(timer);
+  }, []);
+  
   if (!latitude || !longitude) {
     return (
       <Card className="mb-4">
@@ -23,8 +35,6 @@ export const CourseMap = ({ latitude, longitude, name }: CourseMapProps) => {
     );
   }
 
-  // For demonstration, displaying location coordinates 
-  // In a real app, you'd integrate with a mapping service
   return (
     <Card className="mb-4">
       <CardHeader className="pb-2">
@@ -33,14 +43,24 @@ export const CourseMap = ({ latitude, longitude, name }: CourseMapProps) => {
       <CardContent>
         <div className="bg-muted h-[300px] rounded-md flex items-center justify-center relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5" />
-          <div className="flex flex-col items-center gap-2 text-center">
-            <MapPin className="h-8 w-8 text-primary" />
-            <p className="font-medium">{name}</p>
-            <p className="text-sm text-muted-foreground">
-              {latitude.toFixed(6)}, {longitude.toFixed(6)}
-            </p>
-            <p className="text-xs mt-2">Interactive map coming soon</p>
-          </div>
+          
+          {isLoading ? (
+            <div className="flex flex-col items-center gap-2">
+              <div className="animate-spin">
+                <Map className="h-8 w-8 text-primary/40" />
+              </div>
+              <p className="text-sm text-muted-foreground">Loading map...</p>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-2 text-center">
+              <MapPin className="h-8 w-8 text-primary" />
+              <p className="font-medium">{name}</p>
+              <p className="text-sm text-muted-foreground">
+                {latitude.toFixed(6)}, {longitude.toFixed(6)}
+              </p>
+              <p className="text-xs mt-2">Interactive map coming soon</p>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
