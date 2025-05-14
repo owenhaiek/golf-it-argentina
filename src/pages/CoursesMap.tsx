@@ -243,7 +243,7 @@ const CoursesMap = () => {
         </SheetContent>
       </Sheet>
       
-      <style jsx global>{`
+      <style>{`
         .mapboxgl-ctrl-attrib-inner {
           display: none;
         }
