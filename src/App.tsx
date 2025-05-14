@@ -14,6 +14,8 @@ import Settings from "./pages/Settings";
 import Course from "./pages/Course";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import SearchUsers from "./pages/SearchUsers";
+import UserProfile from "./pages/UserProfile";
 import { useAuth } from "./contexts/AuthContext";
 import { useEffect } from "react";
 
@@ -152,6 +154,8 @@ const App = () => {
                   <Route path="/add-round" element={<AddRound />} />
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/settings" element={<Settings />} />
+                  <Route path="/search-users" element={<SearchUsers />} />
+                  <Route path="/user/:id" element={<UserProfile />} />
                 </Route>
                 <Route path="*" element={<NotFound />} />
               </Routes>

@@ -1,6 +1,6 @@
 
 import { NavLink } from "react-router-dom";
-import { Flag, Plus, User, Settings } from "lucide-react";
+import { Flag, Plus, User, Settings, UserSearch } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -12,6 +12,7 @@ export const Navigation = () => {
       <nav className="bg-background/95 backdrop-blur-sm border-t border-border/5">
         <ul className="flex items-center justify-between max-w-xl mx-auto px-4">
           <NavItem to="/" icon={<Flag className="transition-colors" size={20} />} label={t("common", "home")} />
+          <NavItem to="/search-users" icon={<UserSearch className="transition-colors" size={20} />} label={t("common", "search")} />
           <NavItem 
             to="/add-round" 
             icon={<Plus className="transition-colors" size={22} />} 
