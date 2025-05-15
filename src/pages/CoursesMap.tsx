@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -106,20 +107,29 @@ const CoursesMap = () => {
   const getArgentinaGolfCourseLocation = (courseName: string) => {
     // Map of real golf courses in Argentina with actual coordinates
     const argentinaGolfCourses = {
-      "BOULOGNE GOLF CLUB": { lat: -34.4844, lng: -58.5563 }, // Ruta Panamericana y Camino Real Moron, Boulogne
-      "BUENOS AIRES GOLF CLUB": { lat: -34.5446, lng: -58.6741 }, // Mayor Irusta 3777, Bella Vista
-      "PACHECO GOLF CLUB": { lat: -34.4208, lng: -58.6483 }, // Autovia Bancalari Nordelta km 1, General Pacheco
-      
-      // Keeping other golf courses with their existing coordinates
+      // Buenos Aires Province
+      "BOULOGNE GOLF CLUB": { lat: -34.4844, lng: -58.5563 }, 
+      "BUENOS AIRES GOLF CLUB": { lat: -34.5446, lng: -58.6741 },
+      "PACHECO GOLF CLUB": { lat: -34.4208, lng: -58.6483 },
       "Olivos Golf Club": { lat: -34.5104, lng: -58.5220 },
       "Pilar Golf Club": { lat: -34.4255, lng: -58.8940 },
       "Jockey Club": { lat: -34.5442, lng: -58.5045 },
       "Mar del Plata Golf Club": { lat: -38.0160, lng: -57.5327 },
-      "Córdoba Golf Club": { lat: -31.4177, lng: -64.2390 },
       "Nordelta Golf Club": { lat: -34.4019, lng: -58.6309 },
-      "Chapelco Golf Club": { lat: -40.1564, lng: -71.3051 },
       "Highland Park Country Club": { lat: -34.4701, lng: -58.7528 },
-      "San Andrés Golf Club": { lat: -34.5087, lng: -58.6102 }
+      "San Andrés Golf Club": { lat: -34.5087, lng: -58.6102 },
+      "Hurlingham Club": { lat: -34.6016, lng: -58.6390 },
+      "Pilará Golf Club": { lat: -34.4322, lng: -58.9603 },
+      "Tortugas Country Club": { lat: -34.4385, lng: -58.8067 },
+      
+      // Interior provinces
+      "Córdoba Golf Club": { lat: -31.4177, lng: -64.2390 },
+      "Chapelco Golf Club": { lat: -40.1564, lng: -71.3051 },
+      "La Cumbre Golf Club": { lat: -30.9709, lng: -64.4949 },
+      "Mendoza Golf Club": { lat: -32.9689, lng: -68.7908 },
+      "Llao Llao Golf Club": { lat: -41.0531, lng: -71.5356 },
+      "Arelauquen Golf Club": { lat: -41.1171, lng: -71.5679 },
+      "Termas de Río Hondo Golf Club": { lat: -27.5016, lng: -64.8575 }
     };
     
     // First check for exact match (case insensitive)
@@ -348,25 +358,44 @@ const CoursesMap = () => {
             // Create popup for the marker
             const isOpen = getRandomStatus(course.id);
             
+            const defaultImageUrl = 'https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=870&q=80';
+            
             const popup = new window.mapboxgl.Popup({
               offset: [0, -15],
               closeButton: true,
               closeOnClick: false,
               className: 'custom-popup',
-              maxWidth: '250px'
+              maxWidth: '280px'
             }).setLngLat([course.longitude, course.latitude])
               .setHTML(`
-                <div class="p-3 bg-white rounded-lg shadow-sm min-w-[200px] text-sm">
+                <div class="p-3 bg-white rounded-lg shadow-sm min-w-[240px] text-sm">
+                  <div class="h-32 w-full mb-3 bg-gray-100 rounded-md overflow-hidden relative">
+                    <img 
+                      src="${course.image_url || defaultImageUrl}" 
+                      alt="${course.name}"
+                      class="w-full h-full object-cover"
+                      onerror="this.onerror=null; this.src='${defaultImageUrl}';"
+                    />
+                  </div>
                   <div class="font-medium text-lg mb-2">${course.name}</div>
-                  <div class="flex items-center mb-3 ${isOpen === 'Open' ? 'text-green-600' : 'text-red-600'}">
-                    <span class="mr-1">●</span>
-                    ${isOpen}
+                  <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center ${isOpen === 'Open' ? 'text-green-600' : 'text-red-600'}">
+                      <span class="mr-1">●</span>
+                      ${isOpen}
+                    </div>
+                    <div class="text-xs text-muted-foreground">
+                      ${course.holes} hoyos
+                    </div>
+                  </div>
+                  <div class="text-xs text-muted-foreground mb-3 line-clamp-2">
+                    ${course.address ? course.address : ''} 
+                    ${course.city ? course.city + (course.state ? ', ' + course.state : '') : ''}
                   </div>
                   <button 
                     class="course-btn w-full bg-primary text-white py-2 px-3 rounded hover:bg-primary/90 transition-colors text-sm font-medium"
                     data-id="${course.id}"
                   >
-                    Go to course
+                    Ir a la cancha
                   </button>
                 </div>
               `);
@@ -640,6 +669,7 @@ const CoursesMap = () => {
             display: flex;
             align-items: center;
             justify-content: center;
+            z-index: 10;
           }
           
           .mapboxgl-popup-close-button:hover {
