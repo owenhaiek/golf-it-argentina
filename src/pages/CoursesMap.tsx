@@ -415,7 +415,7 @@ const CoursesMap = () => {
         toast({
           title: "Warning",
           description: "Some course locations could not be displayed",
-          variant: "warning"
+          variant: "default"
         });
       }
     };
