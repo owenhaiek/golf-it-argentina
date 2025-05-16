@@ -1,137 +1,59 @@
 
-import { NavLink, useNavigate } from "react-router-dom";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { useAuth } from "@/contexts/AuthContext";
+import { NavLink } from "react-router-dom";
+import { Flag, Plus, User, Map, UserSearch } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
-import {
-  Home,
-  Book,
-  FileUp,
-  Settings,
-  User,
-  LogOut,
-  HelpCircle,
-  Flag,
-  Map,
-} from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { useState } from "react";
 
-const Navigation = () => {
-  const { user } = useAuth();
+export const Navigation = () => {
   const { t } = useLanguage();
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const navigate = useNavigate();
-
-  const handleLogout = async () => {
-    // Implement logout when AuthContext is updated
-    navigate('/login');
-  };
-
-  const closeDropdown = () => {
-    setIsDropdownOpen(false);
-  };
-
+  
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg z-30 pb-safe">
-      <div className="container flex justify-around items-center h-16 px-4">
-        <NavLink
-          to="/"
-          className={({ isActive }) =>
-            `flex flex-col items-center justify-center p-2 ${
-              isActive ? "text-primary" : "text-muted-foreground"
-            }`
-          }
-        >
-          <Home className="h-5 w-5" />
-          <span className="text-xs mt-1">Home</span>
-        </NavLink>
-
-        <NavLink
-          to="/courses-map"
-          className={({ isActive }) =>
-            `flex flex-col items-center justify-center p-2 ${
-              isActive ? "text-primary" : "text-muted-foreground"
-            }`
-          }
-        >
-          <Map className="h-5 w-5" />
-          <span className="text-xs mt-1">Map</span>
-        </NavLink>
-
-        {user && (
-          <NavLink
-            to="/reservations"
-            className={({ isActive }) =>
-              `flex flex-col items-center justify-center p-2 ${
-                isActive ? "text-primary" : "text-muted-foreground"
-              }`
-            }
-          >
-            <Book className="h-5 w-5" />
-            <span className="text-xs mt-1">Reservations</span>
-          </NavLink>
-        )}
-
-        <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="rounded-full">
-              <User className="h-5 w-5" />
-              <span className="text-xs mt-1">More</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56" onInteractOutside={closeDropdown}>
-            {user ? (
-              <>
-                <DropdownMenuLabel>
-                  {user?.user_metadata?.full_name || "User"}
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => { navigate('/profile'); closeDropdown(); }}>
-                  <User className="mr-2 h-4 w-4" />
-                  {t("profile", "profile")}
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => { navigate('/settings'); closeDropdown(); }}>
-                  <Settings className="mr-2 h-4 w-4" />
-                  {t("common", "settings")}
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => { navigate('/help'); closeDropdown(); }}>
-                  <HelpCircle className="mr-2 h-4 w-4" />
-                  {t("common", "help")}
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => { navigate('/import-courses'); closeDropdown(); }}>
-                  <FileUp className="mr-2 h-4 w-4" />
-                  Import Courses
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  {t("auth", "logout")}
-                </DropdownMenuItem>
-              </>
-            ) : (
-              <>
-                <DropdownMenuItem onClick={() => { navigate('/login'); closeDropdown(); }}>
-                  Login
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => { navigate('/register'); closeDropdown(); }}>
-                  Register
-                </DropdownMenuItem>
-              </>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-    </nav>
+    <div className="fixed bottom-0 left-0 right-0 z-50">
+      <nav className="bg-background/95 backdrop-blur-sm border-t border-border/5">
+        <ul className="flex items-center justify-between max-w-xl mx-auto px-4">
+          <NavItem to="/" icon={<Flag className="transition-colors" size={20} />} label={t("common", "home")} />
+          <NavItem to="/search-users" icon={<UserSearch className="transition-colors" size={20} />} label={t("common", "search")} />
+          <NavItem 
+            to="/add-round" 
+            icon={<Plus className="transition-colors" size={22} />} 
+            label={t("common", "add")}
+            className="text-primary" 
+          />
+          <NavItem to="/profile" icon={<User className="transition-colors" size={20} />} label={t("common", "profile")} />
+          <NavItem to="/courses-map" icon={<Map className="transition-colors" size={20} />} label={t("common", "map")} />
+        </ul>
+      </nav>
+    </div>
   );
 };
 
-export default Navigation;
+const NavItem = ({ 
+  to, 
+  icon, 
+  label,
+  className = "",
+}: { 
+  to: string; 
+  icon: React.ReactNode;
+  label: string;
+  className?: string;
+}) => (
+  <li>
+    <NavLink
+      to={to}
+      className={({ isActive }) =>
+        cn(
+          "flex flex-col items-center justify-center gap-0.5 py-2 px-3 transition-all duration-200",
+          isActive 
+            ? "text-primary" 
+            : "text-muted-foreground hover:text-primary/80",
+          className
+        )
+      }
+      aria-label={label}
+    >
+      {icon}
+      <span className="text-[10px] font-medium tracking-wider uppercase">{label}</span>
+    </NavLink>
+  </li>
+);

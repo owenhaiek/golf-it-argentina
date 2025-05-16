@@ -1,6 +1,6 @@
 
 import { Outlet } from "react-router-dom";
-import Navigation from "./Navigation";
+import { Navigation } from "./Navigation";
 import { useEffect, useState, useRef } from "react";
 import { GolfLoader } from "./ui/GolfLoader";
 
@@ -24,36 +24,12 @@ export const Layout = () => {
     appleMetaTag.setAttribute('content', 'yes');
     document.head.appendChild(appleMetaTag);
     
-    // Add apple-mobile-web-app-status-bar-style meta for iOS
-    let statusBarMeta = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
-    if (!statusBarMeta) {
-      statusBarMeta = document.createElement('meta');
-      statusBarMeta.setAttribute('name', 'apple-mobile-web-app-status-bar-style');
-      statusBarMeta.setAttribute('content', 'black-translucent');
-      document.head.appendChild(statusBarMeta);
-    }
-    
-    // For Android, add theme-color
-    let themeMeta = document.querySelector('meta[name="theme-color"]');
-    if (!themeMeta) {
-      themeMeta = document.createElement('meta');
-      themeMeta.setAttribute('name', 'theme-color');
-      themeMeta.setAttribute('content', '#ffffff');
-      document.head.appendChild(themeMeta);
-    }
-    
     // Clean up on component unmount
     return () => {
       if (meta) {
         meta.setAttribute('content', 'width=device-width, initial-scale=1');
       }
       document.head.removeChild(appleMetaTag);
-      if (statusBarMeta && statusBarMeta.parentNode) {
-        document.head.removeChild(statusBarMeta);
-      }
-      if (themeMeta && themeMeta.parentNode) {
-        document.head.removeChild(themeMeta);
-      }
     };
   }, []);
 
