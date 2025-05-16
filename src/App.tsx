@@ -17,6 +17,7 @@ import NotFound from "./pages/NotFound";
 import SearchUsers from "./pages/SearchUsers";
 import UserProfile from "./pages/UserProfile";
 import CoursesMap from "./pages/CoursesMap";
+import AdminCsvUpload from "./pages/AdminCsvUpload"; // Importamos la nueva página
 import { useAuth } from "./contexts/AuthContext";
 import { useEffect } from "react";
 
@@ -130,6 +131,25 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+// Special admin route that only allows access with a specific admin email
+const AdminRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, loading } = useAuth();
+  
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+  
+  // Check if user exists and has the admin email
+  // You can replace this with a more robust admin checking mechanism later
+  const adminEmails = ["admin@example.com"];
+  
+  if (!user || !adminEmails.includes(user.email || "")) {
+    return <Navigate to="/" />;
+  }
+
+  return <>{children}</>;
+};
+
 const App = () => {
   useHideBrowserUI();
   
@@ -159,6 +179,14 @@ const App = () => {
                   <Route path="/user/:id" element={<UserProfile />} />
                   <Route path="/courses-map" element={<CoursesMap />} />
                 </Route>
+                
+                {/* Ruta administrativa para carga CSV - no usa el Layout para que no aparezca en la navegación normal */}
+                <Route path="/admin/csv-upload" element={
+                  <AdminRoute>
+                    <AdminCsvUpload />
+                  </AdminRoute>
+                } />
+                
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>
