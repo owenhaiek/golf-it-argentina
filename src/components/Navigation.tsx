@@ -1,59 +1,202 @@
-
 import { NavLink } from "react-router-dom";
-import { Flag, Plus, User, Map, UserSearch } from "lucide-react";
-import { cn } from "@/lib/utils";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
+import {
+  Home,
+  Book,
+  Plus,
+  Settings,
+  User,
+  LogOut,
+  HelpCircle,
+  Flag,
+  Map,
+  FileUp,
+} from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-export const Navigation = () => {
-  const { t } = useLanguage();
-  
+interface NavigationProps {
+  isMobile: boolean;
+  toggleSidebar: () => void;
+}
+
+const Navigation = ({ isMobile, toggleSidebar }: NavigationProps) => {
+  const { user, logout } = useAuth();
+  const { t, changeLanguage } = useLanguage();
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await logout();
+      navigate('/login');
+  };
+
+  const closeDropdown = () => {
+    setIsDropdownOpen(false);
+  };
+
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50">
-      <nav className="bg-background/95 backdrop-blur-sm border-t border-border/5">
-        <ul className="flex items-center justify-between max-w-xl mx-auto px-4">
-          <NavItem to="/" icon={<Flag className="transition-colors" size={20} />} label={t("common", "home")} />
-          <NavItem to="/search-users" icon={<UserSearch className="transition-colors" size={20} />} label={t("common", "search")} />
-          <NavItem 
-            to="/add-round" 
-            icon={<Plus className="transition-colors" size={22} />} 
-            label={t("common", "add")}
-            className="text-primary" 
-          />
-          <NavItem to="/profile" icon={<User className="transition-colors" size={20} />} label={t("common", "profile")} />
-          <NavItem to="/courses-map" icon={<Map className="transition-colors" size={20} />} label={t("common", "map")} />
-        </ul>
-      </nav>
-    </div>
+    <nav className="border-b bg-white/50 backdrop-blur">
+      <div className="container flex items-center justify-between px-4 py-2">
+        <NavLink to="/" className="flex items-center font-bold">
+          <Flag className="mr-2 h-5 w-5 text-primary" />
+          {t("common", "appName")}
+        </NavLink>
+
+        {/* Mobile Menu Button */}
+        {isMobile && (
+          <Button variant="ghost" size="icon" onClick={toggleSidebar}>
+            <MenuIcon className="h-6 w-6" />
+            <span className="sr-only">Open sidebar</span>
+          </Button>
+        )}
+
+        {/* Desktop Navigation and Dropdown */}
+        {!isMobile && (
+          <div className="flex items-center space-x-4">
+            <ul className="flex items-center space-x-4">
+              <li>
+                <NavLink
+                  to="/"
+                  className={({ isActive }) =>
+                    `flex items-center px-3 py-2 rounded-md text-sm ${
+                      isActive
+                        ? "bg-primary/10 text-primary font-medium"
+                        : "text-foreground/80 hover:bg-muted"
+                    }`
+                  }
+                >
+                  <Home className="mr-2 h-4 w-4" />
+                  {t("navigation", "home")}
+                </NavLink>
+              </li>
+              <li>
+                <NavLink
+                  to="/courses-map"
+                  className={({ isActive }) =>
+                    `flex items-center px-3 py-2 rounded-md text-sm ${
+                      isActive
+                        ? "bg-primary/10 text-primary font-medium"
+                        : "text-foreground/80 hover:bg-muted"
+                    }`
+                  }
+                >
+                  <Map className="mr-2 h-4 w-4" />
+                  {t("map", "golfCoursesMap")}
+                </NavLink>
+              </li>
+              {user && (
+                <li>
+                  <NavLink
+                    to="/reservations"
+                    className={({ isActive }) =>
+                      `flex items-center px-3 py-2 rounded-md text-sm ${
+                        isActive
+                          ? "bg-primary/10 text-primary font-medium"
+                          : "text-foreground/80 hover:bg-muted"
+                      }`
+                    }
+                  >
+                    <Book className="mr-2 h-4 w-4" />
+                    {t("reservations", "myReservations")}
+                  </NavLink>
+                </li>
+              )}
+            </ul>
+
+            {/* Profile Dropdown */}
+            {user ? (
+              <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-8 w-8 rounded-full">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={user?.user_metadata?.avatar_url} alt={user?.user_metadata?.full_name} />
+                      <AvatarFallback>{user?.user_metadata?.full_name?.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <span className="sr-only">Open user menu</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48" onInteractOutside={closeDropdown}>
+                  <DropdownMenuLabel>{user?.user_metadata?.full_name}</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => { navigate('/profile'); closeDropdown(); }}>
+                    <User className="mr-2 h-4 w-4" />
+                    {t("profile", "profile")}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => { navigate('/settings'); closeDropdown(); }}>
+                    <Settings className="mr-2 h-4 w-4" />
+                    {t("settings", "settings")}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => { navigate('/help'); closeDropdown(); }}>
+                    <HelpCircle className="mr-2 h-4 w-4" />
+                    {t("common", "help")}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <li>
+                    <NavLink to="/import-courses" className={({ isActive }) => 
+                      `flex items-center px-3 py-2 rounded-md text-sm ${
+                        isActive ? "bg-primary/10 text-primary font-medium" : "text-foreground/80 hover:bg-muted"
+                      }`
+                    }>
+                      <FileUp className="mr-2 h-4 w-4" />
+                      Importar Canchas
+                    </NavLink>
+                  </li>
+                  <DropdownMenuItem onClick={handleLogout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    {t("auth", "logout")}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <>
+                <Button variant="ghost" onClick={() => navigate('/login')}>
+                  {t("auth", "login")}
+                </Button>
+                <Button onClick={() => navigate('/register')}>{t("auth", "register")}</Button>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+    </nav>
   );
 };
 
-const NavItem = ({ 
-  to, 
-  icon, 
-  label,
-  className = "",
-}: { 
-  to: string; 
-  icon: React.ReactNode;
-  label: string;
+interface MenuIconProps {
   className?: string;
-}) => (
-  <li>
-    <NavLink
-      to={to}
-      className={({ isActive }) =>
-        cn(
-          "flex flex-col items-center justify-center gap-0.5 py-2 px-3 transition-all duration-200",
-          isActive 
-            ? "text-primary" 
-            : "text-muted-foreground hover:text-primary/80",
-          className
-        )
-      }
-      aria-label={label}
+}
+
+function MenuIcon(props: MenuIconProps) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={props.className}
     >
-      {icon}
-      <span className="text-[10px] font-medium tracking-wider uppercase">{label}</span>
-    </NavLink>
-  </li>
-);
+      <line x1="4" y1="12" x2="20" y2="12" />
+      <line x1="4" y1="6" x2="20" y2="6" />
+      <line x1="4" y1="18" x2="20" y2="18" />
+    </svg>
+  );
+}
+
+export default Navigation;

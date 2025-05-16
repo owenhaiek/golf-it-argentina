@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -17,6 +16,7 @@ import NotFound from "./pages/NotFound";
 import SearchUsers from "./pages/SearchUsers";
 import UserProfile from "./pages/UserProfile";
 import CoursesMap from "./pages/CoursesMap";
+import ImportCourses from "./pages/ImportCourses";
 import { useAuth } from "./contexts/AuthContext";
 import { useEffect } from "react";
 
@@ -158,6 +158,7 @@ const App = () => {
                   <Route path="/search-users" element={<SearchUsers />} />
                   <Route path="/user/:id" element={<UserProfile />} />
                   <Route path="/courses-map" element={<CoursesMap />} />
+                  <Route path="/import-courses" element={<ImportCourses />} />
                 </Route>
                 <Route path="*" element={<NotFound />} />
               </Routes>
