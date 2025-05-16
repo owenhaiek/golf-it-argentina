@@ -1,6 +1,6 @@
 
 import { Outlet } from "react-router-dom";
-import Navigation from "./Navigation";
+import { Navigation } from "./Navigation";
 import { useEffect, useState, useRef } from "react";
 import { GolfLoader } from "./ui/GolfLoader";
 
@@ -127,7 +127,7 @@ export const Layout = () => {
           <Outlet />
         </div>
       </main>
-      <Navigation isMobile={true} toggleSidebar={() => {}} />
+      <Navigation />
     </div>
   );
 };
