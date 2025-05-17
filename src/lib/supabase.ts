@@ -1,4 +1,3 @@
-
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = "https://zlmotrppstqjnovpfgbd.supabase.co";
@@ -13,3 +12,20 @@ export type OpeningHourDay = {
 };
 
 export type OpeningHours = OpeningHourDay[];
+
+export type GolfCourse = {
+  id: string;
+  name: string;
+  holes: number;
+  par: number;
+  address?: string;
+  state?: string;
+  city?: string;
+  opening_hours?: string;
+  image_url?: string;
+  image_gallery?: string;
+  description?: string;
+  phone?: string;
+  website?: string;
+  hole_pars?: number[];
+};

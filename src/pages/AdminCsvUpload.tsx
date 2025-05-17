@@ -19,6 +19,7 @@ interface AdminGolfCourseFormProps {
     state: string;
     opening_hours?: OpeningHours;
     image_url?: string;
+    image_gallery?: string;
     description?: string;
     city?: string;
     phone?: string;
@@ -43,6 +44,7 @@ const AdminGolfCourseForm = ({ initialCourse = null, onSubmitSuccess }: AdminGol
     city: "",
     description: "",
     image_url: "",
+    image_gallery: "",
     phone: "",
     website: "",
     opening_hours: [
@@ -74,6 +76,7 @@ const AdminGolfCourseForm = ({ initialCourse = null, onSubmitSuccess }: AdminGol
         city: initialCourse.city || "",
         description: initialCourse.description || "",
         image_url: initialCourse.image_url || "",
+        image_gallery: initialCourse.image_gallery || "",
         phone: initialCourse.phone || "",
         website: initialCourse.website || "",
         opening_hours: initialCourse.opening_hours || formData.opening_hours,
@@ -134,6 +137,11 @@ const AdminGolfCourseForm = ({ initialCourse = null, onSubmitSuccess }: AdminGol
       par: newHolePars.reduce((sum, par) => sum + par, 0)
     });
   };
+  
+  // Parse gallery images for preview
+  const galleryImages = formData.image_gallery 
+    ? formData.image_gallery.split(',').map(url => url.trim()).filter(url => url !== '')
+    : [];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -158,6 +166,7 @@ const AdminGolfCourseForm = ({ initialCourse = null, onSubmitSuccess }: AdminGol
             city: formData.city,
             description: formData.description,
             image_url: formData.image_url,
+            image_gallery: formData.image_gallery,
             phone: formData.phone,
             website: formData.website,
             hole_pars: formData.hole_pars,
@@ -186,6 +195,7 @@ const AdminGolfCourseForm = ({ initialCourse = null, onSubmitSuccess }: AdminGol
             city: formData.city,
             description: formData.description,
             image_url: formData.image_url,
+            image_gallery: formData.image_gallery,
             phone: formData.phone,
             website: formData.website,
             hole_pars: formData.hole_pars,
@@ -210,6 +220,7 @@ const AdminGolfCourseForm = ({ initialCourse = null, onSubmitSuccess }: AdminGol
             city: "",
             description: "",
             image_url: "",
+            image_gallery: "",
             phone: "",
             website: "",
             hole_pars: Array(formData.holes).fill(4)
@@ -257,11 +268,11 @@ const AdminGolfCourseForm = ({ initialCourse = null, onSubmitSuccess }: AdminGol
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="image_url">URL de Imagen</Label>
+              <Label htmlFor="image_url">URL de Imagen Principal</Label>
               <Input 
                 id="image_url"
                 name="image_url"
-                placeholder="URL de la imagen del campo"
+                placeholder="URL de la imagen principal del campo"
                 value={formData.image_url}
                 onChange={handleInputChange}
               />
@@ -275,6 +286,38 @@ const AdminGolfCourseForm = ({ initialCourse = null, onSubmitSuccess }: AdminGol
                       (e.target as HTMLImageElement).src = 'https://placehold.co/600x400?text=Error+de+imagen';
                     }}
                   />
+                </div>
+              )}
+            </div>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="image_gallery">Galería de Imágenes</Label>
+              <Textarea 
+                id="image_gallery"
+                name="image_gallery"
+                placeholder="URLs de imágenes adicionales separadas por comas (,)"
+                value={formData.image_gallery}
+                onChange={handleInputChange}
+                rows={3}
+              />
+              <div className="text-sm text-muted-foreground">
+                Añade varias URLs separadas por comas para mostrar más imágenes del campo en el carrusel.
+              </div>
+              
+              {galleryImages.length > 0 && (
+                <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {galleryImages.map((url, index) => (
+                    <div key={index} className="border rounded overflow-hidden">
+                      <img 
+                        src={url} 
+                        alt={`Gallery image ${index + 1}`} 
+                        className="w-full h-24 object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = 'https://placehold.co/600x400?text=Error+de+imagen';
+                        }}
+                      />
+                    </div>
+                  ))}
                 </div>
               )}
             </div>

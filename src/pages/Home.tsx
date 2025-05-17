@@ -118,6 +118,25 @@ const Home = () => {
 
   const hasActiveFilters = filters.holes || filters.location || filters.isOpen;
 
+  // Helper function to get the best image for a course
+  const getDisplayImage = (course: any) => {
+    // If there's an image_url, use it
+    if (course.image_url) {
+      return course.image_url;
+    }
+    
+    // If there's a gallery, use the first image
+    if (course.image_gallery) {
+      const galleryImages = course.image_gallery.split(',').map((url: string) => url.trim()).filter((url: string) => url !== '');
+      if (galleryImages.length > 0) {
+        return galleryImages[0];
+      }
+    }
+    
+    // No images available
+    return null;
+  };
+
   return <div className="space-y-4 -mt-6 -mx-4">
       <div className="flex items-center justify-between px-4 pt-6">
         <h1 className="text-2xl font-bold">{t("home", "golfCourses")}</h1>
@@ -168,9 +187,13 @@ const Home = () => {
               <Card className="overflow-hidden hover:shadow-lg transition-shadow rounded-none border-x-0">
                 <CardContent className="p-0">
                   <div>
-                    {course.image_url ? <img src={course.image_url} alt={course.name} className="w-full h-48 object-cover" /> : <div className="w-full h-48 bg-secondary/20 flex items-center justify-center text-muted-foreground">
+                    {getDisplayImage(course) ? 
+                      <img src={getDisplayImage(course)} alt={course.name} className="w-full h-48 object-cover" /> 
+                    : 
+                      <div className="w-full h-48 bg-secondary/20 flex items-center justify-center text-muted-foreground">
                         {t("home", "noImageAvailable")}
-                      </div>}
+                      </div>
+                    }
                     <div className="p-4 space-y-2">
                       <h2 className="text-xl font-semibold">{course.name}</h2>
                       

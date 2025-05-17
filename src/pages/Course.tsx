@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -309,6 +308,9 @@ const Course = () => {
           </CardContent>
         </Card>
 
+        {/* Photos - Show carousel before the map */}
+        <CoursePhotos courseId={id} />
+
         {/* Map */}
         {courseData?.latitude && courseData?.longitude && (
           <CourseMap 
@@ -350,9 +352,6 @@ const Course = () => {
             longitude={courseData.longitude}
           />
         )}
-
-        {/* Photos */}
-        <CoursePhotos courseId={id} />
 
         {/* Reviews */}
         <CourseReviews 
