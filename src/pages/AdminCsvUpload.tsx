@@ -6,19 +6,21 @@ import { Card } from "@/components/ui/card";
 import { UploadCloud, FileText, Check, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 interface CSVGolfCourse {
   name: string;
-  description: string;
-  address: string;
-  city: string;
-  state: string;
+  description?: string;
+  address?: string;
+  city?: string;
+  state?: string;
   holes: number;
   par: number;
-  hole_pars: number[];
+  hole_pars?: number[];
   phone?: string;
   website?: string;
   image_url?: string;
+  opening_hours?: any;
 }
 
 const AdminCsvUpload = () => {
@@ -29,6 +31,21 @@ const AdminCsvUpload = () => {
     failed: number;
     details: string[];
   } | null>(null);
+  const [manualCourse, setManualCourse] = useState<CSVGolfCourse>({
+    name: "",
+    holes: 18,
+    par: 72,
+    hole_pars: Array(18).fill(4), // Default par 4 for each hole
+    opening_hours: [
+      { isOpen: true, open: "08:00", close: "18:00" }, // Monday
+      { isOpen: true, open: "08:00", close: "18:00" }, // Tuesday
+      { isOpen: true, open: "08:00", close: "18:00" }, // Wednesday
+      { isOpen: true, open: "08:00", close: "18:00" }, // Thursday
+      { isOpen: true, open: "08:00", close: "18:00" }, // Friday
+      { isOpen: true, open: "08:00", close: "18:00" }, // Saturday
+      { isOpen: true, open: "08:00", close: "18:00" }  // Sunday
+    ]
+  });
   const { toast } = useToast();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -67,6 +84,13 @@ const AdminCsvUpload = () => {
             course[header] = parseInt(values[index]);
             if (isNaN(course[header])) {
               throw new Error(`Invalid ${header} value at line ${i+1}`);
+            }
+          } else if (header === "opening_hours") {
+            try {
+              course[header] = values[index] ? JSON.parse(values[index]) : null;
+            } catch (e) {
+              // Default opening hours (all days open 8am-6pm)
+              course[header] = Array(7).fill({ isOpen: true, open: "08:00", close: "18:00" });
             }
           } else {
             course[header] = values[index];
@@ -121,7 +145,8 @@ const AdminCsvUpload = () => {
               hole_pars: course.hole_pars || null,
               phone: course.phone || null,
               website: course.website || null,
-              image_url: course.image_url || null
+              image_url: course.image_url || null,
+              opening_hours: course.opening_hours || null
             });
           
           if (error) {
@@ -164,79 +189,209 @@ const AdminCsvUpload = () => {
     }
   };
 
+  const handleManualCourseChange = (field: keyof CSVGolfCourse, value: any) => {
+    setManualCourse(prev => ({ ...prev, [field]: value }));
+  };
+
+  const addManualCourse = async () => {
+    setIsUploading(true);
+    
+    try {
+      const { data, error } = await supabase.from("golf_courses").insert({
+        name: manualCourse.name,
+        description: manualCourse.description || null,
+        address: manualCourse.address || null,
+        city: manualCourse.city || null,
+        state: manualCourse.state || null,
+        holes: manualCourse.holes,
+        par: manualCourse.par || null,
+        hole_pars: manualCourse.hole_pars || Array(manualCourse.holes).fill(4),
+        phone: manualCourse.phone || null,
+        website: manualCourse.website || null,
+        image_url: manualCourse.image_url || null,
+        opening_hours: manualCourse.opening_hours || null
+      });
+
+      if (error) {
+        toast({
+          title: "Error",
+          description: `Failed to add course: ${error.message}`,
+          variant: "destructive",
+        });
+        console.error("Error adding course:", error);
+      } else {
+        toast({
+          title: "Success",
+          description: `Added ${manualCourse.name} to the database`,
+          variant: "default",
+        });
+        
+        // Reset the form
+        setManualCourse({
+          name: "",
+          holes: 18,
+          par: 72,
+          hole_pars: Array(18).fill(4),
+          opening_hours: Array(7).fill({ isOpen: true, open: "08:00", close: "18:00" })
+        });
+      }
+    } catch (e) {
+      console.error("Error adding course:", e);
+      toast({
+        title: "Error",
+        description: `Something went wrong: ${(e as Error).message}`,
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   return (
     <div className="space-y-6 p-4">
       <div className="flex flex-col">
-        <h1 className="text-2xl font-bold">Admin: CSV Golf Course Upload</h1>
+        <h1 className="text-2xl font-bold">Admin: Golf Course Management</h1>
         <p className="text-muted-foreground">
-          Upload a CSV file to bulk import golf courses. This page is for administrators only.
+          Upload a CSV file to bulk import golf courses or add courses individually.
         </p>
       </div>
 
-      <Card className="p-6">
-        <div className="space-y-4">
-          <div className="border-2 border-dashed border-muted-foreground/20 rounded-lg p-8 text-center">
-            <div className="flex flex-col items-center">
-              {file ? (
-                <>
-                  <FileText className="h-10 w-10 text-primary mb-2" />
-                  <p className="font-medium">{file.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {(file.size / 1024).toFixed(2)} KB
-                  </p>
-                </>
-              ) : (
-                <>
-                  <UploadCloud className="h-10 w-10 text-muted-foreground mb-2" />
-                  <p className="text-muted-foreground">
-                    Drag and drop or click to upload your CSV file
-                  </p>
-                </>
-              )}
+      <div className="grid md:grid-cols-2 gap-6">
+        {/* CSV Upload Section */}
+        <Card className="p-6">
+          <h2 className="text-xl font-semibold mb-4">CSV Upload</h2>
+          <div className="space-y-4">
+            <div className="border-2 border-dashed border-muted-foreground/20 rounded-lg p-8 text-center">
+              <div className="flex flex-col items-center">
+                {file ? (
+                  <>
+                    <FileText className="h-10 w-10 text-primary mb-2" />
+                    <p className="font-medium">{file.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {(file.size / 1024).toFixed(2)} KB
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <UploadCloud className="h-10 w-10 text-muted-foreground mb-2" />
+                    <p className="text-muted-foreground">
+                      Drag and drop or click to upload your CSV file
+                    </p>
+                  </>
+                )}
+              </div>
+
+              <Input
+                type="file"
+                accept=".csv"
+                onChange={handleFileChange}
+                className="hidden"
+                id="csv-upload"
+              />
+              <label htmlFor="csv-upload">
+                <div className="inline-block">
+                  <Button
+                    variant="outline"
+                    className="mt-4"
+                    type="button"
+                    onClick={() => document.getElementById('csv-upload')?.click()}
+                  >
+                    Select CSV File
+                  </Button>
+                </div>
+              </label>
             </div>
 
-            <Input
-              type="file"
-              accept=".csv"
-              onChange={handleFileChange}
-              className="hidden"
-              id="csv-upload"
-            />
-            <label htmlFor="csv-upload">
-              <div className="inline-block">
-                <Button
-                  variant="outline"
-                  className="mt-4"
-                  type="button"
-                  onClick={() => document.getElementById('csv-upload')?.click()}
-                >
-                  Select CSV File
-                </Button>
+            <div className="text-sm text-muted-foreground">
+              <p className="font-medium mb-2">CSV Format:</p>
+              <code className="bg-muted p-2 rounded block overflow-x-auto">
+                name,description,address,city,state,holes,par,hole_pars,phone,website,image_url
+              </code>
+              <p className="mt-2">
+                Note: <span className="font-semibold">hole_pars</span> should be 
+                semicolon-separated values, e.g., <code>4;5;3;4;5</code>
+              </p>
+            </div>
+
+            <Button 
+              onClick={uploadCourses} 
+              disabled={!file || isUploading}
+              className="w-full"
+            >
+              {isUploading ? "Processing..." : "Upload and Process"}
+            </Button>
+          </div>
+        </Card>
+
+        {/* Manual Course Addition */}
+        <Card className="p-6">
+          <h2 className="text-xl font-semibold mb-4">Add Single Course</h2>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="col-span-2">
+                <label className="text-sm font-medium">Course Name*</label>
+                <Input 
+                  value={manualCourse.name} 
+                  onChange={(e) => handleManualCourseChange('name', e.target.value)}
+                  placeholder="e.g. Olivos Golf Club"
+                />
               </div>
-            </label>
+              <div>
+                <label className="text-sm font-medium">Holes*</label>
+                <Input 
+                  type="number" 
+                  value={manualCourse.holes} 
+                  onChange={(e) => handleManualCourseChange('holes', parseInt(e.target.value))}
+                  min={1}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Par*</label>
+                <Input 
+                  type="number" 
+                  value={manualCourse.par} 
+                  onChange={(e) => handleManualCourseChange('par', parseInt(e.target.value))}
+                  min={1}
+                />
+              </div>
+              <div className="col-span-2">
+                <label className="text-sm font-medium">Address</label>
+                <Input 
+                  value={manualCourse.address || ''} 
+                  onChange={(e) => handleManualCourseChange('address', e.target.value)}
+                  placeholder="Full address"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">City</label>
+                <Input 
+                  value={manualCourse.city || ''} 
+                  onChange={(e) => handleManualCourseChange('city', e.target.value)}
+                  placeholder="City"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">State</label>
+                <Input 
+                  value={manualCourse.state || ''} 
+                  onChange={(e) => handleManualCourseChange('state', e.target.value)}
+                  placeholder="State/Province"
+                />
+              </div>
+            </div>
+            
+            <Button 
+              onClick={addManualCourse} 
+              disabled={!manualCourse.name || isUploading}
+              className="w-full"
+            >
+              {isUploading ? "Adding..." : "Add Course"}
+            </Button>
           </div>
+        </Card>
+      </div>
 
-          <div className="text-sm text-muted-foreground">
-            <p className="font-medium mb-2">CSV Format:</p>
-            <code className="bg-muted p-2 rounded block overflow-x-auto">
-              name,description,address,city,state,holes,par,hole_pars,phone,website,image_url
-            </code>
-            <p className="mt-2">
-              Note: <span className="font-semibold">hole_pars</span> should be 
-              semicolon-separated values, e.g., <code>4;5;3;4;5</code>
-            </p>
-          </div>
-
-          <Button 
-            onClick={uploadCourses} 
-            disabled={!file || isUploading}
-            className="w-full"
-          >
-            {isUploading ? "Processing..." : "Upload and Process"}
-          </Button>
-        </div>
-      </Card>
-
+      {/* Results Section */}
       {results && (
         <Card className="p-6">
           <h2 className="text-lg font-semibold mb-4">Upload Results</h2>
@@ -277,6 +432,107 @@ const AdminCsvUpload = () => {
           </div>
         </Card>
       )}
+      
+      {/* Table of courses */}
+      <Card className="p-6">
+        <h2 className="text-xl font-semibold mb-4">Quick Course Addition</h2>
+        <p className="mb-4">Use this pre-filled data to add the courses you specified:</p>
+        
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Holes</TableHead>
+              <TableHead>Par</TableHead>
+              <TableHead>Address</TableHead>
+              <TableHead>Action</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableRow>
+              <TableCell>Olivos Golf Club</TableCell>
+              <TableCell>27</TableCell>
+              <TableCell>72</TableCell>
+              <TableCell>Ruta Panamericana Ramal Pilar, Km 40.5, Olivos</TableCell>
+              <TableCell>
+                <Button onClick={() => {
+                  setManualCourse({
+                    name: "Olivos Golf Club",
+                    holes: 27,
+                    par: 72,
+                    address: "Ruta Panamericana Ramal Pilar, Km 40.5, Olivos",
+                    state: "Buenos Aires",
+                    hole_pars: Array(27).fill(4),
+                    opening_hours: [
+                      { isOpen: false, open: null, close: null }, // Monday - Closed
+                      { isOpen: true, open: "08:00", close: "18:00" }, // Tuesday
+                      { isOpen: true, open: "08:00", close: "18:00" }, // Wednesday
+                      { isOpen: true, open: "08:00", close: "18:00" }, // Thursday
+                      { isOpen: true, open: "08:00", close: "18:00" }, // Friday
+                      { isOpen: true, open: "08:00", close: "18:00" }, // Saturday
+                      { isOpen: true, open: "08:00", close: "18:00" }  // Sunday
+                    ]
+                  });
+                }}>Load Data</Button>
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell>Buenos Aires Golf Club</TableCell>
+              <TableCell>27</TableCell>
+              <TableCell>72</TableCell>
+              <TableCell>Av. Campos Salles 1275, San Miguel</TableCell>
+              <TableCell>
+                <Button onClick={() => {
+                  setManualCourse({
+                    name: "Buenos Aires Golf Club",
+                    holes: 27,
+                    par: 72,
+                    address: "Av. Campos Salles 1275, San Miguel",
+                    state: "Buenos Aires",
+                    hole_pars: Array(27).fill(4),
+                    opening_hours: [
+                      { isOpen: false, open: null, close: null }, // Monday - Closed
+                      { isOpen: true, open: "08:00", close: "18:00" }, // Tuesday
+                      { isOpen: true, open: "08:00", close: "18:00" }, // Wednesday
+                      { isOpen: true, open: "08:00", close: "18:00" }, // Thursday
+                      { isOpen: true, open: "08:00", close: "18:00" }, // Friday
+                      { isOpen: true, open: "08:00", close: "18:00" }, // Saturday
+                      { isOpen: true, open: "08:00", close: "18:00" }  // Sunday
+                    ]
+                  });
+                }}>Load Data</Button>
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell>Jockey Club Argentino (Colorada Y Azul)</TableCell>
+              <TableCell>36</TableCell>
+              <TableCell>72</TableCell>
+              <TableCell>Av. Márquez 1702, San Isidro</TableCell>
+              <TableCell>
+                <Button onClick={() => {
+                  setManualCourse({
+                    name: "Jockey Club Argentino (Colorada Y Azul)",
+                    holes: 36,
+                    par: 72,
+                    address: "Av. Márquez 1702, San Isidro",
+                    state: "Buenos Aires",
+                    hole_pars: Array(36).fill(4),
+                    opening_hours: [
+                      { isOpen: false, open: null, close: null }, // Monday - Closed
+                      { isOpen: true, open: "08:00", close: "18:00" }, // Tuesday
+                      { isOpen: true, open: "08:00", close: "18:00" }, // Wednesday
+                      { isOpen: false, open: null, close: null }, // Thursday - Closed
+                      { isOpen: false, open: null, close: null }, // Friday - Closed
+                      { isOpen: false, open: null, close: null }, // Saturday - Closed
+                      { isOpen: false, open: null, close: null }  // Sunday - Closed
+                    ]
+                  });
+                }}>Load Data</Button>
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </Card>
     </div>
   );
 };
