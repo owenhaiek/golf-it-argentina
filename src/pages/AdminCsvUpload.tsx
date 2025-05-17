@@ -60,6 +60,8 @@ const AdminGolfCourseForm = ({ initialCourse = null, onSubmitSuccess }: AdminGol
   // Initialize form with course data if editing
   useEffect(() => {
     if (initialCourse) {
+      console.log("Initializing form with course data:", initialCourse);
+      
       // Create default hole_pars array if not provided
       const hole_pars = initialCourse.hole_pars || Array(initialCourse.holes || 18).fill(4);
       

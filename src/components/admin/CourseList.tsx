@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -38,7 +39,7 @@ const CourseList = ({ onEditCourse }: CourseListProps) => {
     try {
       let queryBuilder = supabase
         .from("golf_courses")
-        .select("id, name, holes, par, address, state, opening_hours", { count: "exact" });
+        .select("*", { count: "exact" });
       
       if (query) {
         queryBuilder = queryBuilder.ilike("name", `%${query}%`);
