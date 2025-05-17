@@ -5,15 +5,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AdminGolfCourseForm from "./AdminCsvUpload"; // Maintained for form functionality 
 import QuickAddGolfCourses from "@/components/admin/QuickAddGolfCourses";
 import CourseList from "@/components/admin/CourseList";
+import { OpeningHours } from "@/lib/supabase";
 
-interface GolfCourseTemplate {
+// Define interface that matches what CourseList is expecting
+export interface GolfCourseTemplate {
   id?: string;
   name: string;
   holes: number;
   par: number;
   address: string;
   state: string;
-  opening_hours: any[];
+  opening_hours: OpeningHours;
 }
 
 const AdminGolfCourseManager = () => {
@@ -39,30 +41,52 @@ const AdminGolfCourseManager = () => {
         </p>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="list">Lista de Campos</TabsTrigger>
-          <TabsTrigger value="form">
-            {courseToEdit ? "Editar Campo" : "Formulario Completo"}
-          </TabsTrigger>
-          <TabsTrigger value="quick">Adición Rápida</TabsTrigger>
-        </TabsList>
+      <div className="flex flex-wrap gap-2 mb-4">
+        <button 
+          onClick={() => {
+            setCourseToEdit(null);
+            setActiveTab("form");
+          }}
+          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md"
+        >
+          Agregar Nuevo Campo
+        </button>
         
-        <TabsContent value="list" className="mt-4">
+        <button 
+          onClick={() => setActiveTab("list")} 
+          className={`px-4 py-2 rounded-md ${activeTab === "list" 
+            ? "bg-blue-600 text-white" 
+            : "bg-gray-200 text-gray-700 hover:bg-gray-300"}`}
+        >
+          Ver Lista de Campos
+        </button>
+        
+        <button 
+          onClick={() => setActiveTab("quick")} 
+          className={`px-4 py-2 rounded-md ${activeTab === "quick" 
+            ? "bg-blue-600 text-white" 
+            : "bg-gray-200 text-gray-700 hover:bg-gray-300"}`}
+        >
+          Adición Rápida
+        </button>
+      </div>
+
+      <div className="mt-4">
+        {activeTab === "list" && (
           <CourseList onEditCourse={handleEditCourse} />
-        </TabsContent>
+        )}
         
-        <TabsContent value="form" className="mt-4">
+        {activeTab === "form" && (
           <AdminGolfCourseForm 
             initialCourse={courseToEdit} 
             onSubmitSuccess={handleFormSubmitted} 
           />
-        </TabsContent>
+        )}
         
-        <TabsContent value="quick" className="mt-4">
+        {activeTab === "quick" && (
           <QuickAddGolfCourses />
-        </TabsContent>
-      </Tabs>
+        )}
+      </div>
     </div>
   );
 };

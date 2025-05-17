@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -8,6 +7,8 @@ import { Edit, Trash2, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { Input } from "@/components/ui/input";
+import { GolfCourseTemplate } from "@/pages/AdminGolfCourseManager";
+import { OpeningHours } from "@/lib/supabase";
 
 interface Course {
   id: string;
@@ -19,11 +20,11 @@ interface Course {
 }
 
 interface CourseListProps {
-  onEditCourse: (course: Course) => void;
+  onEditCourse: (course: GolfCourseTemplate) => void;
 }
 
 const CourseList = ({ onEditCourse }: CourseListProps) => {
-  const [courses, setCourses] = useState<Course[]>([]);
+  const [courses, setCourses] = useState<GolfCourseTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
@@ -37,7 +38,7 @@ const CourseList = ({ onEditCourse }: CourseListProps) => {
     try {
       let queryBuilder = supabase
         .from("golf_courses")
-        .select("id, name, holes, par, address, state", { count: "exact" });
+        .select("id, name, holes, par, address, state, opening_hours", { count: "exact" });
       
       if (query) {
         queryBuilder = queryBuilder.ilike("name", `%${query}%`);
@@ -168,7 +169,7 @@ const CourseList = ({ onEditCourse }: CourseListProps) => {
                         <Button 
                           variant="destructive" 
                           size="sm"
-                          onClick={() => handleDeleteCourse(course.id)}
+                          onClick={() => handleDeleteCourse(course.id || '')}
                           disabled={deletingCourse === course.id}
                         >
                           <Trash2 className="h-4 w-4 mr-1" />
@@ -194,9 +195,7 @@ const CourseList = ({ onEditCourse }: CourseListProps) => {
                   />
                 </PaginationItem>
                 
-                {/* Generate page numbers */}
                 {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  // Show pages around current page
                   let pageNum;
                   if (totalPages <= 5) {
                     pageNum = i + 1;
