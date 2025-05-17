@@ -6,6 +6,35 @@ type DayOpeningHours = {
 
 export type OpeningHours = DayOpeningHours[];
 
+// Define default opening hours (9AM-5PM on weekdays, 10AM-3PM on weekends)
+export const defaultOpeningHours: OpeningHours = [
+  { isOpen: true, open: "09:00", close: "17:00" }, // Monday
+  { isOpen: true, open: "09:00", close: "17:00" }, // Tuesday
+  { isOpen: true, open: "09:00", close: "17:00" }, // Wednesday
+  { isOpen: true, open: "09:00", close: "17:00" }, // Thursday
+  { isOpen: true, open: "09:00", close: "17:00" }, // Friday
+  { isOpen: true, open: "10:00", close: "15:00" }, // Saturday
+  { isOpen: true, open: "10:00", close: "15:00" }  // Sunday
+];
+
+// Format opening hours for display as a string
+export const formatOpeningHoursForDisplay = (openingHours: OpeningHours | null): string => {
+  if (!openingHours || !Array.isArray(openingHours)) return "Hours not available";
+  
+  const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  let result = "";
+  
+  openingHours.forEach((day, index) => {
+    if (day && day.isOpen && day.open && day.close) {
+      result += `${days[index]}: ${day.open} - ${day.close}\n`;
+    } else {
+      result += `${days[index]}: Closed\n`;
+    }
+  });
+  
+  return result.trim();
+};
+
 /**
  * Checks if a golf course is currently open based on its opening hours
  */
@@ -15,13 +44,16 @@ export const isCurrentlyOpen = (openingHours: OpeningHours | null): boolean => {
   // Get current day (0 = Sunday, 1 = Monday, etc.)
   const today = new Date().getDay();
   
+  // Convert to our array index (0 = Monday, 6 = Sunday)
+  const dayIndex = today === 0 ? 6 : today - 1;
+  
   // Get current time
   const now = new Date();
   const currentHour = now.getHours();
   const currentMinute = now.getMinutes();
   
   // Get today's opening hours
-  const todayHours = openingHours[today];
+  const todayHours = openingHours[dayIndex];
   
   // If the day is marked as closed
   if (!todayHours || !todayHours.isOpen) return false;
@@ -56,7 +88,9 @@ export const formatOpeningHours = (openingHours: OpeningHours | null, dayIndex?:
   
   // Otherwise return today's hours
   const today = new Date().getDay();
-  const todayHours = openingHours[today];
+  // Convert Sunday (0) to our array index (6)
+  const adjustedDay = today === 0 ? 6 : today - 1;
+  const todayHours = openingHours[adjustedDay];
   
   if (!todayHours || !todayHours.isOpen) return "Closed today";
   return `Today: ${todayHours.open} - ${todayHours.close}`;
@@ -66,7 +100,7 @@ export const formatOpeningHours = (openingHours: OpeningHours | null, dayIndex?:
  * Get day name from index
  */
 export const getDayName = (dayIndex: number): string => {
-  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   return days[dayIndex] || '';
 };
 
@@ -74,5 +108,7 @@ export const getDayName = (dayIndex: number): string => {
  * Get current day index
  */
 export const getCurrentDayIndex = (): number => {
-  return new Date().getDay();
+  const today = new Date().getDay();
+  // Convert Sunday (0) to our array index (6)
+  return today === 0 ? 6 : today - 1;
 };

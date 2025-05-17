@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -15,6 +14,12 @@ export interface GolfCourseTemplate {
   par: number;
   address: string;
   state: string;
+  city: string;
+  description: string;
+  phone: string;
+  website: string;
+  image_url: string;
+  image_gallery: string;
   opening_hours: OpeningHours;
 }
 
