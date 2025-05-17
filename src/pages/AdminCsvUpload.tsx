@@ -4,7 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { supabase } from "@/integrations/supabase/client";
+import { Textarea } from "@/components/ui/textarea";
+import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { OpeningHours } from "@/lib/supabase";
 
@@ -17,6 +18,12 @@ interface AdminGolfCourseFormProps {
     address: string;
     state: string;
     opening_hours?: OpeningHours;
+    image_url?: string;
+    description?: string;
+    city?: string;
+    phone?: string;
+    website?: string;
+    hole_pars?: number[];
   } | null;
   onSubmitSuccess?: () => void;
 }
@@ -33,6 +40,11 @@ const AdminGolfCourseForm = ({ initialCourse = null, onSubmitSuccess }: AdminGol
     par: 72,
     address: "",
     state: "",
+    city: "",
+    description: "",
+    image_url: "",
+    phone: "",
+    website: "",
     opening_hours: [
       { isOpen: false, open: null, close: null }, // Monday
       { isOpen: true, open: "08:00", close: "18:00" }, // Tuesday
@@ -41,28 +53,62 @@ const AdminGolfCourseForm = ({ initialCourse = null, onSubmitSuccess }: AdminGol
       { isOpen: true, open: "08:00", close: "18:00" }, // Friday
       { isOpen: true, open: "08:00", close: "18:00" }, // Saturday
       { isOpen: true, open: "08:00", close: "18:00" }  // Sunday
-    ] as OpeningHours
+    ] as OpeningHours,
+    hole_pars: Array(18).fill(4)
   });
 
   // Initialize form with course data if editing
   useEffect(() => {
     if (initialCourse) {
+      // Create default hole_pars array if not provided
+      const hole_pars = initialCourse.hole_pars || Array(initialCourse.holes || 18).fill(4);
+      
       setFormData({
         name: initialCourse.name || "",
         holes: initialCourse.holes || 18,
         par: initialCourse.par || 72,
         address: initialCourse.address || "",
         state: initialCourse.state || "",
+        city: initialCourse.city || "",
+        description: initialCourse.description || "",
+        image_url: initialCourse.image_url || "",
+        phone: initialCourse.phone || "",
+        website: initialCourse.website || "",
         opening_hours: initialCourse.opening_hours || formData.opening_hours,
+        hole_pars: hole_pars
       });
+    } else {
+      // Set default hole_pars for a new course
+      setFormData(prev => ({
+        ...prev,
+        hole_pars: Array(prev.holes).fill(4)
+      }));
     }
   }, [initialCourse]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Update hole_pars array when number of holes changes
+  useEffect(() => {
+    const currentHolePars = [...formData.hole_pars];
+    const newHolePars = Array(formData.holes).fill(4);
+    
+    // Preserve existing values for holes that are still in range
+    for (let i = 0; i < Math.min(currentHolePars.length, formData.holes); i++) {
+      newHolePars[i] = currentHolePars[i];
+    }
+    
+    setFormData(prev => ({
+      ...prev,
+      hole_pars: newHolePars,
+      // Recalculate total par based on hole pars
+      par: newHolePars.reduce((sum, par) => sum + par, 0)
+    }));
+  }, [formData.holes]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
     
     // Handle number inputs
-    if (type === 'number') {
+    if ((e.target as HTMLInputElement).type === 'number') {
       setFormData({
         ...formData,
         [name]: parseInt(value) || 0
@@ -75,6 +121,18 @@ const AdminGolfCourseForm = ({ initialCourse = null, onSubmitSuccess }: AdminGol
     }
   };
 
+  const handleHoleParChange = (holeIndex: number, value: number) => {
+    const newHolePars = [...formData.hole_pars];
+    newHolePars[holeIndex] = value;
+    
+    setFormData({
+      ...formData,
+      hole_pars: newHolePars,
+      // Update total par based on individual hole pars
+      par: newHolePars.reduce((sum, par) => sum + par, 0)
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -84,9 +142,6 @@ const AdminGolfCourseForm = ({ initialCourse = null, onSubmitSuccess }: AdminGol
       if (!formData.name) {
         throw new Error("El nombre del campo es obligatorio");
       }
-
-      // Generate default hole pars based on holes count
-      const holePars = Array(formData.holes).fill(4);
       
       if (isEditMode && initialCourse?.id) {
         // Update existing golf course
@@ -98,7 +153,12 @@ const AdminGolfCourseForm = ({ initialCourse = null, onSubmitSuccess }: AdminGol
             par: formData.par,
             address: formData.address,
             state: formData.state,
-            hole_pars: holePars,
+            city: formData.city,
+            description: formData.description,
+            image_url: formData.image_url,
+            phone: formData.phone,
+            website: formData.website,
+            hole_pars: formData.hole_pars,
             opening_hours: formData.opening_hours,
             updated_at: new Date().toISOString()
           })
@@ -121,7 +181,12 @@ const AdminGolfCourseForm = ({ initialCourse = null, onSubmitSuccess }: AdminGol
             par: formData.par,
             address: formData.address,
             state: formData.state,
-            hole_pars: holePars,
+            city: formData.city,
+            description: formData.description,
+            image_url: formData.image_url,
+            phone: formData.phone,
+            website: formData.website,
+            hole_pars: formData.hole_pars,
             opening_hours: formData.opening_hours
           });
           
@@ -139,7 +204,13 @@ const AdminGolfCourseForm = ({ initialCourse = null, onSubmitSuccess }: AdminGol
             ...formData,
             name: "",
             address: "",
-            state: ""
+            state: "",
+            city: "",
+            description: "",
+            image_url: "",
+            phone: "",
+            website: "",
+            hole_pars: Array(formData.holes).fill(4)
           });
         }
       }
@@ -182,6 +253,41 @@ const AdminGolfCourseForm = ({ initialCourse = null, onSubmitSuccess }: AdminGol
                 required
               />
             </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="image_url">URL de Imagen</Label>
+              <Input 
+                id="image_url"
+                name="image_url"
+                placeholder="URL de la imagen del campo"
+                value={formData.image_url}
+                onChange={handleInputChange}
+              />
+              {formData.image_url && (
+                <div className="mt-2 p-2 border rounded">
+                  <img 
+                    src={formData.image_url} 
+                    alt="Vista previa del campo" 
+                    className="w-full max-h-40 object-cover rounded"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = 'https://placehold.co/600x400?text=Error+de+imagen';
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="description">Descripción</Label>
+              <Textarea 
+                id="description"
+                name="description"
+                placeholder="Descripción del campo"
+                value={formData.description}
+                onChange={handleInputChange}
+                rows={3}
+              />
+            </div>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="grid gap-2">
@@ -198,7 +304,7 @@ const AdminGolfCourseForm = ({ initialCourse = null, onSubmitSuccess }: AdminGol
               </div>
               
               <div className="grid gap-2">
-                <Label htmlFor="par">Par Total</Label>
+                <Label htmlFor="par">Par Total (calculado)</Label>
                 <Input 
                   id="par"
                   name="par"
@@ -206,11 +312,30 @@ const AdminGolfCourseForm = ({ initialCourse = null, onSubmitSuccess }: AdminGol
                   min="30"
                   max="100"
                   value={formData.par}
-                  onChange={handleInputChange}
+                  disabled
                 />
               </div>
             </div>
             
+            <div className="grid gap-2">
+              <Label>Par por Hoyo</Label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
+                {formData.hole_pars.map((par, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <span className="text-sm font-medium w-8">#{index+1}</span>
+                    <Input 
+                      type="number"
+                      min="3"
+                      max="6"
+                      value={par}
+                      onChange={(e) => handleHoleParChange(index, parseInt(e.target.value) || 4)}
+                      className="w-16"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
             <div className="grid gap-2">
               <Label htmlFor="address">Dirección</Label>
               <Input 
@@ -222,15 +347,52 @@ const AdminGolfCourseForm = ({ initialCourse = null, onSubmitSuccess }: AdminGol
               />
             </div>
             
-            <div className="grid gap-2">
-              <Label htmlFor="state">Provincia/Estado</Label>
-              <Input 
-                id="state"
-                name="state"
-                placeholder="Provincia o estado"
-                value={formData.state}
-                onChange={handleInputChange}
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="city">Ciudad</Label>
+                <Input 
+                  id="city"
+                  name="city"
+                  placeholder="Ciudad"
+                  value={formData.city}
+                  onChange={handleInputChange}
+                />
+              </div>
+              
+              <div className="grid gap-2">
+                <Label htmlFor="state">Provincia/Estado</Label>
+                <Input 
+                  id="state"
+                  name="state"
+                  placeholder="Provincia o estado"
+                  value={formData.state}
+                  onChange={handleInputChange}
+                />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="phone">Teléfono</Label>
+                <Input 
+                  id="phone"
+                  name="phone"
+                  placeholder="Teléfono del campo"
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                />
+              </div>
+              
+              <div className="grid gap-2">
+                <Label htmlFor="website">Sitio Web</Label>
+                <Input 
+                  id="website"
+                  name="website"
+                  placeholder="URL del sitio web"
+                  value={formData.website}
+                  onChange={handleInputChange}
+                />
+              </div>
             </div>
             
             {/* Opening hours could be added here in a more complete form */}
