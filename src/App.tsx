@@ -141,7 +141,7 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   
   // Check if user exists and has the admin email
   // You can replace this with a more robust admin checking mechanism later
-  const adminEmails = ["admin@example.com"];
+  const adminEmails = ["owenhaiek11@gmail.com"];
   
   if (!user || !adminEmails.includes(user.email || "")) {
     return <Navigate to="/" />;
