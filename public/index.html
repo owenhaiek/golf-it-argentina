@@ -12,6 +12,31 @@
     <meta name="apple-mobile-web-app-title" content="Golf App" />
     <meta name="application-name" content="Golf App" />
     <title>Golf App</title>
+    <style>
+      /* Hide browser navigation on mobile devices */
+      @media screen and (max-width: 768px) {
+        body {
+          /* Remove any margins that might create space for browser navigation */
+          margin: 0;
+          padding: 0;
+          /* Ensure content takes full screen */
+          width: 100vw;
+          height: 100vh;
+          /* Prevent overscrolling that might reveal browser UI */
+          overflow: hidden;
+          /* Apply padding to account for notches and home indicators on newer devices */
+          padding-top: env(safe-area-inset-top);
+          padding-bottom: env(safe-area-inset-bottom);
+        }
+        
+        #root {
+          /* Make sure the app content takes the full available space */
+          height: 100%;
+          overflow-y: auto;
+          -webkit-overflow-scrolling: touch;
+        }
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>

@@ -1,10 +1,10 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Check, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { addSpecifiedGolfCourses } from "@/scripts/addGolfCourses";
+import { supabase } from "@/integrations/supabase/client";
 
 const AddGolfCourses = () => {
   const [isAdding, setIsAdding] = useState(false);
@@ -13,6 +13,120 @@ const AddGolfCourses = () => {
     message: string;
   } | null>(null);
   const { toast } = useToast();
+
+  const addSpecifiedGolfCourses = async () => {
+    try {
+      // Check if Buenos Aires Golf Club exists
+      const { data: existingBA } = await supabase
+        .from("golf_courses")
+        .select("id")
+        .eq("name", "Buenos Aires Golf Club")
+        .maybeSingle();
+
+      // Define the golf courses
+      const golfCourses = [
+        {
+          name: "Olivos Golf Club",
+          holes: 27,
+          par: 72,
+          address: "Ruta Panamericana Ramal Pilar, Km 40.5, Olivos",
+          state: "Buenos Aires",
+          hole_pars: Array(27).fill(4),
+          opening_hours: [
+            { isOpen: false, open: null, close: null }, // Monday - Closed
+            { isOpen: true, open: "08:00", close: "18:00" }, // Tuesday
+            { isOpen: true, open: "08:00", close: "18:00" }, // Wednesday
+            { isOpen: true, open: "08:00", close: "18:00" }, // Thursday
+            { isOpen: true, open: "08:00", close: "18:00" }, // Friday
+            { isOpen: true, open: "08:00", close: "18:00" }, // Saturday
+            { isOpen: true, open: "08:00", close: "18:00" }  // Sunday
+          ]
+        },
+        {
+          name: "Jockey Club Argentino (Colorada Y Azul)",
+          holes: 36,
+          par: 72,
+          address: "Av. Márquez 1702, San Isidro",
+          state: "Buenos Aires",
+          hole_pars: Array(36).fill(4),
+          opening_hours: [
+            { isOpen: false, open: null, close: null }, // Monday - Closed
+            { isOpen: true, open: "08:00", close: "18:00" }, // Tuesday
+            { isOpen: true, open: "08:00", close: "18:00" }, // Wednesday
+            { isOpen: false, open: null, close: null }, // Thursday - Closed
+            { isOpen: false, open: null, close: null }, // Friday - Closed
+            { isOpen: false, open: null, close: null }, // Saturday - Closed
+            { isOpen: false, open: null, close: null }  // Sunday - Closed
+          ]
+        }
+      ];
+
+      // Insert or update Buenos Aires Golf Club
+      if (existingBA) {
+        await supabase
+          .from("golf_courses")
+          .update({
+            holes: 27,
+            par: 72,
+            address: "Av. Campos Salles 1275, San Miguel",
+            state: "Buenos Aires",
+            hole_pars: Array(27).fill(4),
+            opening_hours: [
+              { isOpen: false, open: null, close: null }, // Monday - Closed
+              { isOpen: true, open: "08:00", close: "18:00" }, // Tuesday
+              { isOpen: true, open: "08:00", close: "18:00" }, // Wednesday
+              { isOpen: true, open: "08:00", close: "18:00" }, // Thursday
+              { isOpen: true, open: "08:00", close: "18:00" }, // Friday
+              { isOpen: true, open: "08:00", close: "18:00" }, // Saturday
+              { isOpen: true, open: "08:00", close: "18:00" }  // Sunday
+            ]
+          })
+          .eq("id", existingBA.id);
+      } else {
+        golfCourses.push({
+          name: "Buenos Aires Golf Club",
+          holes: 27,
+          par: 72,
+          address: "Av. Campos Salles 1275, San Miguel",
+          state: "Buenos Aires",
+          hole_pars: Array(27).fill(4),
+          opening_hours: [
+            { isOpen: false, open: null, close: null }, // Monday - Closed
+            { isOpen: true, open: "08:00", close: "18:00" }, // Tuesday
+            { isOpen: true, open: "08:00", close: "18:00" }, // Wednesday
+            { isOpen: true, open: "08:00", close: "18:00" }, // Thursday
+            { isOpen: true, open: "08:00", close: "18:00" }, // Friday
+            { isOpen: true, open: "08:00", close: "18:00" }, // Saturday
+            { isOpen: true, open: "08:00", close: "18:00" }  // Sunday
+          ]
+        });
+      }
+
+      // Insert all courses that need to be inserted
+      const { error } = await supabase
+        .from("golf_courses")
+        .insert(golfCourses);
+
+      if (error) {
+        console.error("Error inserting golf courses:", error);
+        return {
+          success: false,
+          message: `Error adding courses: ${error.message}`
+        };
+      }
+
+      return {
+        success: true,
+        message: `Successfully added ${golfCourses.length} golf courses${existingBA ? " and updated 1 existing course" : ""}.`
+      };
+    } catch (e) {
+      console.error("Error in addSpecifiedGolfCourses:", e);
+      return {
+        success: false,
+        message: `An error occurred: ${(e as Error).message}`
+      };
+    }
+  };
 
   const handleAddCourses = async () => {
     setIsAdding(true);
