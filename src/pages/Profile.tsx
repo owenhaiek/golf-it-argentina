@@ -91,18 +91,19 @@ const Profile = () => {
       if (!user?.id) throw new Error("User not authenticated");
       
       // Delete the round from the database
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('rounds')
         .delete()
         .eq('id', roundId)
-        .eq('user_id', user.id); // Security: ensure user can only delete their own rounds
+        .eq('user_id', user.id) // Security: ensure user can only delete their own rounds
+        .select(); // Add select to return the deleted data
       
       if (error) {
         console.error("Delete round error:", error);
         throw error;
       }
       
-      console.log(`Successfully deleted round ${roundId} from database`);
+      console.log(`Successfully deleted round ${roundId} from database, response:`, data);
       return roundId;
     },
     onMutate: (roundId) => {

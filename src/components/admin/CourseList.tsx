@@ -51,6 +51,7 @@ const CourseList = ({ onEditCourse }: CourseListProps) => {
       
       if (error) throw error;
       
+      console.log("Courses fetched:", data);
       setCourses(data || []);
       setTotalPages(count ? Math.ceil(count / coursesPerPage) : 1);
     } catch (error: any) {
@@ -82,11 +83,78 @@ const CourseList = ({ onEditCourse }: CourseListProps) => {
     if (window.confirm("¿Estás seguro que deseas eliminar este campo de golf?")) {
       setDeletingCourse(id);
       try {
-        const { error } = await supabase.from("golf_courses").delete().eq("id", id);
+        console.log(`Attempting to delete course with ID: ${id}`);
         
-        if (error) throw error;
+        // Check if there are related records in the rounds table
+        const { data: relatedRounds, error: roundsError } = await supabase
+          .from("rounds")
+          .select("id")
+          .eq("course_id", id);
+          
+        if (roundsError) throw roundsError;
         
+        // Check if there are related reservations
+        const { data: relatedReservations, error: reservationsError } = await supabase
+          .from("reservations")
+          .select("id")
+          .eq("course_id", id);
+          
+        if (reservationsError) throw reservationsError;
+        
+        // If there are related records, prompt the user
+        if ((relatedRounds && relatedRounds.length > 0) || 
+            (relatedReservations && relatedReservations.length > 0)) {
+          const hasRounds = relatedRounds && relatedRounds.length > 0;
+          const hasReservations = relatedReservations && relatedReservations.length > 0;
+          
+          let warningMessage = "Este campo de golf tiene ";
+          if (hasRounds) warningMessage += `${relatedRounds.length} ronda(s)`;
+          if (hasRounds && hasReservations) warningMessage += " y ";
+          if (hasReservations) warningMessage += `${relatedReservations.length} reserva(s)`;
+          warningMessage += " asociadas. Si lo elimina, se eliminarán también estos datos. ¿Desea continuar?";
+          
+          if (!window.confirm(warningMessage)) {
+            setDeletingCourse(null);
+            return;
+          }
+          
+          // Delete related rounds
+          if (hasRounds) {
+            const { error: deleteRoundsError } = await supabase
+              .from("rounds")
+              .delete()
+              .eq("course_id", id);
+              
+            if (deleteRoundsError) throw deleteRoundsError;
+          }
+          
+          // Delete related reservations
+          if (hasReservations) {
+            const { error: deleteReservationsError } = await supabase
+              .from("reservations")
+              .delete()
+              .eq("course_id", id);
+              
+            if (deleteReservationsError) throw deleteReservationsError;
+          }
+        }
+        
+        // Now delete the course
+        const { error } = await supabase
+          .from("golf_courses")
+          .delete()
+          .eq("id", id);
+        
+        if (error) {
+          console.error("Error from delete operation:", error);
+          throw error;
+        }
+        
+        console.log(`Successfully deleted course with ID: ${id}`);
+        
+        // Update local state to reflect the deletion
         setCourses(courses.filter(course => course.id !== id));
+        
         toast({
           title: "Éxito",
           description: "Campo de golf eliminado correctamente",
@@ -172,6 +240,7 @@ const CourseList = ({ onEditCourse }: CourseListProps) => {
                           size="sm"
                           onClick={() => handleDeleteCourse(course.id || '')}
                           disabled={deletingCourse === course.id}
+                          className="bg-red-600 hover:bg-red-700 text-white"
                         >
                           <Trash2 className="h-4 w-4 mr-1" />
                           <span className="hidden sm:inline">
