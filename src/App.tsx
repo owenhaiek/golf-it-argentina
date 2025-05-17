@@ -17,7 +17,7 @@ import NotFound from "./pages/NotFound";
 import SearchUsers from "./pages/SearchUsers";
 import UserProfile from "./pages/UserProfile";
 import CoursesMap from "./pages/CoursesMap";
-import AdminCsvUpload from "./pages/AdminCsvUpload"; // Importamos la nueva página
+import AdminGolfCourseManager from "./pages/AdminGolfCourseManager"; // Updated import
 import { useAuth } from "./contexts/AuthContext";
 import { useEffect } from "react";
 
@@ -180,10 +180,10 @@ const App = () => {
                   <Route path="/courses-map" element={<CoursesMap />} />
                 </Route>
                 
-                {/* Ruta administrativa para carga CSV - no usa el Layout para que no aparezca en la navegación normal */}
-                <Route path="/admin/csv-upload" element={
+                {/* Updated route for admin golf course management */}
+                <Route path="/admin/course-edit" element={
                   <AdminRoute>
-                    <AdminCsvUpload />
+                    <AdminGolfCourseManager />
                   </AdminRoute>
                 } />
                 

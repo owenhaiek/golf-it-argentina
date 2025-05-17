@@ -2,10 +2,12 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import AdminGolfCourseForm from "./AdminCsvUpload"; // Usamos el mismo archivo pero ahora tiene un componente diferente
+import AdminGolfCourseForm from "./AdminCsvUpload"; // Maintained for form functionality 
 import QuickAddGolfCourses from "@/components/admin/QuickAddGolfCourses";
+import CourseList from "@/components/admin/CourseList";
 
 interface GolfCourseTemplate {
+  id?: string;
   name: string;
   holes: number;
   par: number;
@@ -15,7 +17,18 @@ interface GolfCourseTemplate {
 }
 
 const AdminGolfCourseManager = () => {
-  const [activeTab, setActiveTab] = useState("form");
+  const [activeTab, setActiveTab] = useState("list");
+  const [courseToEdit, setCourseToEdit] = useState<GolfCourseTemplate | null>(null);
+
+  const handleEditCourse = (course: GolfCourseTemplate) => {
+    setCourseToEdit(course);
+    setActiveTab("form");
+  };
+
+  const handleFormSubmitted = () => {
+    setCourseToEdit(null);
+    setActiveTab("list");
+  };
 
   return (
     <div className="space-y-6 p-4">
@@ -27,13 +40,23 @@ const AdminGolfCourseManager = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="form">Formulario Completo</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="list">Lista de Campos</TabsTrigger>
+          <TabsTrigger value="form">
+            {courseToEdit ? "Editar Campo" : "Formulario Completo"}
+          </TabsTrigger>
           <TabsTrigger value="quick">Adición Rápida</TabsTrigger>
         </TabsList>
         
+        <TabsContent value="list" className="mt-4">
+          <CourseList onEditCourse={handleEditCourse} />
+        </TabsContent>
+        
         <TabsContent value="form" className="mt-4">
-          <AdminGolfCourseForm />
+          <AdminGolfCourseForm 
+            initialCourse={courseToEdit} 
+            onSubmitSuccess={handleFormSubmitted} 
+          />
         </TabsContent>
         
         <TabsContent value="quick" className="mt-4">
