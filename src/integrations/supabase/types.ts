@@ -18,6 +18,7 @@ export type Database = {
           hole_pars: number[] | null
           holes: number
           id: string
+          image_gallery: string | null
           image_url: string | null
           name: string
           opening_hours: Json | null
@@ -35,6 +36,7 @@ export type Database = {
           hole_pars?: number[] | null
           holes?: number
           id?: string
+          image_gallery?: string | null
           image_url?: string | null
           name: string
           opening_hours?: Json | null
@@ -52,6 +54,7 @@ export type Database = {
           hole_pars?: number[] | null
           holes?: number
           id?: string
+          image_gallery?: string | null
           image_url?: string | null
           name?: string
           opening_hours?: Json | null

@@ -1,459 +1,520 @@
 
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { supabase } from "@/lib/supabase";
+import React, { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
 import { useToast } from "@/hooks/use-toast";
-import { OpeningHours } from "@/lib/supabase";
+import { Card } from "@/components/ui/card";
+import { Loader2, Plus, Trash } from "lucide-react";
+import { GolfCourseTemplate } from "@/pages/AdminGolfCourseManager";
+import { OpeningHours, supabase } from "@/lib/supabase";
+import { defaultOpeningHours, formatOpeningHoursForDisplay } from "@/utils/openingHours";
 
 interface AdminGolfCourseFormProps {
-  initialCourse?: {
-    id?: string;
-    name: string;
-    holes: number;
-    par: number;
-    address: string;
-    state: string;
-    opening_hours?: OpeningHours;
-    image_url?: string;
-    image_gallery?: string;
-    description?: string;
-    city?: string;
-    phone?: string;
-    website?: string;
-    hole_pars?: number[];
-  } | null;
+  initialCourse?: GolfCourseTemplate | null;
   onSubmitSuccess?: () => void;
 }
 
-const AdminGolfCourseForm = ({ initialCourse = null, onSubmitSuccess }: AdminGolfCourseFormProps) => {
+interface FormData {
+  name: string;
+  holes: number;
+  par: number;
+  address: string;
+  city: string;
+  state: string;
+  description: string;
+  phone: string;
+  website: string;
+  image_url: string;
+  image_gallery: string;
+  opening_hours: OpeningHours;
+}
+
+const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGolfCourseFormProps) => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const isEditMode = Boolean(initialCourse?.id);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [galleryPreviews, setGalleryPreviews] = useState<string[]>([]);
   
-  // Form state
-  const [formData, setFormData] = useState({
-    name: "",
-    holes: 18,
-    par: 72,
-    address: "",
-    state: "",
-    city: "",
-    description: "",
-    image_url: "",
-    image_gallery: "",
-    phone: "",
-    website: "",
-    opening_hours: [
-      { isOpen: false, open: null, close: null }, // Monday
-      { isOpen: true, open: "08:00", close: "18:00" }, // Tuesday
-      { isOpen: true, open: "08:00", close: "18:00" }, // Wednesday
-      { isOpen: true, open: "08:00", close: "18:00" }, // Thursday
-      { isOpen: true, open: "08:00", close: "18:00" }, // Friday
-      { isOpen: true, open: "08:00", close: "18:00" }, // Saturday
-      { isOpen: true, open: "08:00", close: "18:00" }  // Sunday
-    ] as OpeningHours,
-    hole_pars: Array(18).fill(4)
+  const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm<FormData>({
+    defaultValues: {
+      name: "",
+      holes: 18,
+      par: 72,
+      address: "",
+      city: "",
+      state: "",
+      description: "",
+      phone: "",
+      website: "",
+      image_url: "",
+      image_gallery: "",
+      opening_hours: defaultOpeningHours,
+    },
   });
 
-  // Initialize form with course data if editing
+  const currentImageUrl = watch("image_url");
+  const currentGalleryUrls = watch("image_gallery");
+
+  // Initialize form with existing golf course data if available
   useEffect(() => {
     if (initialCourse) {
-      console.log("Initializing form with course data:", initialCourse);
+      // Set basic fields
+      setValue("name", initialCourse.name || "");
+      setValue("holes", initialCourse.holes || 18);
+      setValue("par", initialCourse.par || 72);
+      setValue("address", initialCourse.address || "");
+      setValue("city", initialCourse.city || "");
+      setValue("state", initialCourse.state || "");
+      setValue("phone", initialCourse.phone || "");
+      setValue("website", initialCourse.website || "");
+      setValue("description", initialCourse.description || "");
+      setValue("image_url", initialCourse.image_url || "");
+      setValue("image_gallery", initialCourse.image_gallery || "");
       
-      // Create default hole_pars array if not provided
-      const hole_pars = initialCourse.hole_pars || Array(initialCourse.holes || 18).fill(4);
-      
-      setFormData({
-        name: initialCourse.name || "",
-        holes: initialCourse.holes || 18,
-        par: initialCourse.par || 72,
-        address: initialCourse.address || "",
-        state: initialCourse.state || "",
-        city: initialCourse.city || "",
-        description: initialCourse.description || "",
-        image_url: initialCourse.image_url || "",
-        image_gallery: initialCourse.image_gallery || "",
-        phone: initialCourse.phone || "",
-        website: initialCourse.website || "",
-        opening_hours: initialCourse.opening_hours || formData.opening_hours,
-        hole_pars: hole_pars
-      });
-    } else {
-      // Set default hole_pars for a new course
-      setFormData(prev => ({
-        ...prev,
-        hole_pars: Array(prev.holes).fill(4)
-      }));
-    }
-  }, [initialCourse]);
-
-  // Update hole_pars array when number of holes changes
-  useEffect(() => {
-    const currentHolePars = [...formData.hole_pars];
-    const newHolePars = Array(formData.holes).fill(4);
-    
-    // Preserve existing values for holes that are still in range
-    for (let i = 0; i < Math.min(currentHolePars.length, formData.holes); i++) {
-      newHolePars[i] = currentHolePars[i];
-    }
-    
-    setFormData(prev => ({
-      ...prev,
-      hole_pars: newHolePars,
-      // Recalculate total par based on hole pars
-      par: newHolePars.reduce((sum, par) => sum + par, 0)
-    }));
-  }, [formData.holes]);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value, type } = e.target;
-    
-    // Handle number inputs
-    if ((e.target as HTMLInputElement).type === 'number') {
-      setFormData({
-        ...formData,
-        [name]: parseInt(value) || 0
-      });
-    } else {
-      setFormData({
-        ...formData,
-        [name]: value
-      });
-    }
-  };
-
-  const handleHoleParChange = (holeIndex: number, value: number) => {
-    const newHolePars = [...formData.hole_pars];
-    newHolePars[holeIndex] = value;
-    
-    setFormData({
-      ...formData,
-      hole_pars: newHolePars,
-      // Update total par based on individual hole pars
-      par: newHolePars.reduce((sum, par) => sum + par, 0)
-    });
-  };
-  
-  // Parse gallery images for preview
-  const galleryImages = formData.image_gallery 
-    ? formData.image_gallery.split(',').map(url => url.trim()).filter(url => url !== '')
-    : [];
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    
-    try {
-      // Validate required fields
-      if (!formData.name) {
-        throw new Error("El nombre del campo es obligatorio");
-      }
-      
-      if (isEditMode && initialCourse?.id) {
-        // Update existing golf course
-        const { error } = await supabase
-          .from("golf_courses")
-          .update({
-            name: formData.name,
-            holes: formData.holes,
-            par: formData.par,
-            address: formData.address,
-            state: formData.state,
-            city: formData.city,
-            description: formData.description,
-            image_url: formData.image_url,
-            image_gallery: formData.image_gallery,
-            phone: formData.phone,
-            website: formData.website,
-            hole_pars: formData.hole_pars,
-            opening_hours: formData.opening_hours,
-            updated_at: new Date().toISOString()
-          })
-          .eq("id", initialCourse.id);
-          
-        if (error) throw error;
-        
-        toast({
-          title: "Campo actualizado",
-          description: `${formData.name} ha sido actualizado correctamente`,
-          variant: "default"
-        });
-      } else {
-        // Create new golf course
-        const { error } = await supabase
-          .from("golf_courses")
-          .insert({
-            name: formData.name,
-            holes: formData.holes,
-            par: formData.par,
-            address: formData.address,
-            state: formData.state,
-            city: formData.city,
-            description: formData.description,
-            image_url: formData.image_url,
-            image_gallery: formData.image_gallery,
-            phone: formData.phone,
-            website: formData.website,
-            hole_pars: formData.hole_pars,
-            opening_hours: formData.opening_hours
-          });
-          
-        if (error) throw error;
-        
-        toast({
-          title: "Campo agregado",
-          description: `${formData.name} ha sido agregado correctamente`,
-          variant: "default"
-        });
-        
-        // Reset form after successful submission for new courses
-        if (!isEditMode) {
-          setFormData({
-            ...formData,
-            name: "",
-            address: "",
-            state: "",
-            city: "",
-            description: "",
-            image_url: "",
-            image_gallery: "",
-            phone: "",
-            website: "",
-            hole_pars: Array(formData.holes).fill(4)
-          });
+      // Set opening hours if available, otherwise set defaults
+      if (typeof initialCourse.opening_hours === 'string') {
+        try {
+          setValue("opening_hours", JSON.parse(initialCourse.opening_hours));
+        } catch (e) {
+          setValue("opening_hours", defaultOpeningHours);
         }
+      } else if (Array.isArray(initialCourse.opening_hours)) {
+        setValue("opening_hours", initialCourse.opening_hours);
+      } else {
+        setValue("opening_hours", defaultOpeningHours);
       }
       
-      // Call the success callback if provided
+      // Set image preview if URL exists
+      if (initialCourse.image_url) {
+        setImagePreview(initialCourse.image_url);
+      }
+      
+      // Set gallery previews if URLs exist
+      if (initialCourse.image_gallery) {
+        const galleryUrls = initialCourse.image_gallery
+          .split(',')
+          .map(url => url.trim())
+          .filter(url => url !== '');
+          
+        setGalleryPreviews(galleryUrls);
+      }
+    }
+  }, [initialCourse, setValue]);
+  
+  // Update image preview when URL changes
+  useEffect(() => {
+    if (currentImageUrl) {
+      setImagePreview(currentImageUrl);
+    } else {
+      setImagePreview(null);
+    }
+  }, [currentImageUrl]);
+  
+  // Update gallery previews when URLs change
+  useEffect(() => {
+    if (currentGalleryUrls) {
+      const galleryUrls = currentGalleryUrls
+        .split(',')
+        .map(url => url.trim())
+        .filter(url => url !== '');
+        
+      setGalleryPreviews(galleryUrls);
+    } else {
+      setGalleryPreviews([]);
+    }
+  }, [currentGalleryUrls]);
+
+  const onSubmit = async (data: FormData) => {
+    setIsSubmitting(true);
+    try {
+      const formattedOpeningHours = JSON.stringify(data.opening_hours);
+      
+      const courseData = {
+        name: data.name,
+        holes: data.holes,
+        par: data.par,
+        address: data.address,
+        city: data.city,
+        state: data.state,
+        description: data.description,
+        phone: data.phone,
+        website: data.website,
+        image_url: data.image_url,
+        image_gallery: data.image_gallery,
+        opening_hours: formattedOpeningHours,
+      };
+      
+      let result;
+      
+      if (initialCourse?.id) {
+        // Update existing course
+        result = await supabase
+          .from("golf_courses")
+          .update(courseData)
+          .eq("id", initialCourse.id);
+      } else {
+        // Create new course
+        result = await supabase
+          .from("golf_courses")
+          .insert([courseData]);
+      }
+      
+      if (result.error) {
+        throw result.error;
+      }
+      
+      toast({
+        title: initialCourse ? "Campo de golf actualizado" : "Campo de golf creado",
+        description: `El campo ${data.name} ha sido ${initialCourse ? "actualizado" : "creado"} exitosamente.`,
+      });
+      
       if (onSubmitSuccess) {
         onSubmitSuccess();
+      } else {
+        // Reset form if no callback provided
+        reset();
+        setImagePreview(null);
+        setGalleryPreviews([]);
       }
     } catch (error: any) {
-      console.error("Error:", error);
+      console.error("Error submitting form:", error);
       toast({
-        title: `Error al ${isEditMode ? "actualizar" : "agregar"} campo`,
-        description: error.message || "Ha ocurrido un error",
-        variant: "destructive"
+        title: "Error",
+        description: `Error al ${initialCourse ? "actualizar" : "crear"} el campo de golf: ${error.message}`,
+        variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
     }
   };
+  
+  // Function to handle opening hours changes
+  const handleOpeningHoursChange = (dayIndex: number, field: string, value: any) => {
+    const currentHours = watch("opening_hours");
+    const updatedHours = [...currentHours];
+    
+    // If toggling isOpen, reset open/close times when closing
+    if (field === "isOpen" && value === false) {
+      updatedHours[dayIndex] = { isOpen: false, open: null, close: null };
+    } else {
+      updatedHours[dayIndex] = {
+        ...updatedHours[dayIndex],
+        [field]: value
+      };
+    }
+    
+    setValue("opening_hours", updatedHours);
+  };
+
+  const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+  const openingHours = watch("opening_hours");
+  
+  const handleImageError = (index: number) => {
+    const updatedPreviews = [...galleryPreviews];
+    updatedPreviews[index] = 'https://placehold.co/600x400?text=Image+Error';
+    setGalleryPreviews(updatedPreviews);
+  };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{isEditMode ? "Editar Campo de Golf" : "Agregar Nuevo Campo de Golf"}</CardTitle>
-        <CardDescription>
-          Completa el formulario para {isEditMode ? "actualizar" : "agregar"} un campo de golf.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="name">Nombre del Campo *</Label>
-              <Input 
+    <Card className="p-6">
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold">
+          {initialCourse ? "Editar Campo de Golf" : "Agregar Nuevo Campo de Golf"}
+        </h2>
+        <p className="text-muted-foreground">
+          {initialCourse
+            ? "Actualiza la información del campo de golf"
+            : "Ingresa la información del nuevo campo de golf"}
+        </p>
+      </div>
+      
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Basic Info Section */}
+          <fieldset className="space-y-4">
+            <legend className="text-lg font-semibold mb-2">Información Básica</legend>
+            
+            <div>
+              <label className="block text-sm font-medium mb-1" htmlFor="name">
+                Nombre *
+              </label>
+              <input
                 id="name"
-                name="name"
-                placeholder="Nombre del campo de golf"
-                value={formData.name}
-                onChange={handleInputChange}
-                required
+                className="w-full p-2 border rounded-md"
+                {...register("name", { required: "Este campo es obligatorio" })}
+              />
+              {errors.name && (
+                <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
+              )}
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-1" htmlFor="holes">
+                  Hoyos *
+                </label>
+                <input
+                  id="holes"
+                  type="number"
+                  className="w-full p-2 border rounded-md"
+                  {...register("holes", {
+                    required: "Este campo es obligatorio",
+                    valueAsNumber: true,
+                  })}
+                />
+                {errors.holes && (
+                  <p className="text-red-500 text-sm mt-1">{errors.holes.message}</p>
+                )}
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-1" htmlFor="par">
+                  Par *
+                </label>
+                <input
+                  id="par"
+                  type="number"
+                  className="w-full p-2 border rounded-md"
+                  {...register("par", {
+                    required: "Este campo es obligatorio",
+                    valueAsNumber: true,
+                  })}
+                />
+                {errors.par && (
+                  <p className="text-red-500 text-sm mt-1">{errors.par.message}</p>
+                )}
+              </div>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium mb-1" htmlFor="description">
+                Descripción
+              </label>
+              <textarea
+                id="description"
+                className="w-full p-2 border rounded-md h-32"
+                {...register("description")}
               />
             </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="image_url">URL de Imagen Principal</Label>
-              <Input 
-                id="image_url"
-                name="image_url"
-                placeholder="URL de la imagen principal del campo"
-                value={formData.image_url}
-                onChange={handleInputChange}
+          </fieldset>
+          
+          {/* Location Section */}
+          <fieldset className="space-y-4">
+            <legend className="text-lg font-semibold mb-2">Ubicación</legend>
+            
+            <div>
+              <label className="block text-sm font-medium mb-1" htmlFor="address">
+                Dirección
+              </label>
+              <input
+                id="address"
+                className="w-full p-2 border rounded-md"
+                {...register("address")}
               />
-              {formData.image_url && (
-                <div className="mt-2 p-2 border rounded">
-                  <img 
-                    src={formData.image_url} 
-                    alt="Vista previa del campo" 
-                    className="w-full max-h-40 object-cover rounded"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = 'https://placehold.co/600x400?text=Error+de+imagen';
-                    }}
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-1" htmlFor="city">
+                  Ciudad
+                </label>
+                <input
+                  id="city"
+                  className="w-full p-2 border rounded-md"
+                  {...register("city")}
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-1" htmlFor="state">
+                  Estado
+                </label>
+                <input
+                  id="state"
+                  className="w-full p-2 border rounded-md"
+                  {...register("state")}
+                />
+              </div>
+            </div>
+          </fieldset>
+        </div>
+        
+        <hr className="my-6" />
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Contact Section */}
+          <fieldset className="space-y-4">
+            <legend className="text-lg font-semibold mb-2">Información de Contacto</legend>
+            
+            <div>
+              <label className="block text-sm font-medium mb-1" htmlFor="phone">
+                Teléfono
+              </label>
+              <input
+                id="phone"
+                className="w-full p-2 border rounded-md"
+                {...register("phone")}
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium mb-1" htmlFor="website">
+                Sitio Web
+              </label>
+              <input
+                id="website"
+                className="w-full p-2 border rounded-md"
+                {...register("website")}
+              />
+            </div>
+          </fieldset>
+          
+          {/* Media Section */}
+          <fieldset className="space-y-4">
+            <legend className="text-lg font-semibold mb-2">Multimedia</legend>
+            
+            <div>
+              <label className="block text-sm font-medium mb-1" htmlFor="image_url">
+                URL de Imagen Principal
+              </label>
+              <input
+                id="image_url"
+                className="w-full p-2 border rounded-md"
+                placeholder="https://ejemplo.com/imagen.jpg"
+                {...register("image_url")}
+              />
+              
+              {imagePreview && (
+                <div className="mt-2 relative">
+                  <img
+                    src={imagePreview}
+                    alt="Vista previa"
+                    className="h-40 w-full object-cover rounded-md"
+                    onError={() => setImagePreview('https://placehold.co/600x400?text=Image+Error')}
                   />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setValue("image_url", "");
+                      setImagePreview(null);
+                    }}
+                    className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full"
+                  >
+                    <Trash className="h-4 w-4" />
+                  </button>
                 </div>
               )}
             </div>
             
-            <div className="grid gap-2">
-              <Label htmlFor="image_gallery">Galería de Imágenes</Label>
-              <Textarea 
+            <div>
+              <label className="block text-sm font-medium mb-1" htmlFor="image_gallery">
+                Galería de Imágenes (URLs separadas por comas)
+              </label>
+              <textarea
                 id="image_gallery"
-                name="image_gallery"
-                placeholder="URLs de imágenes adicionales separadas por comas (,)"
-                value={formData.image_gallery}
-                onChange={handleInputChange}
-                rows={3}
+                className="w-full p-2 border rounded-md h-20"
+                placeholder="https://ejemplo.com/imagen1.jpg, https://ejemplo.com/imagen2.jpg"
+                {...register("image_gallery")}
               />
-              <div className="text-sm text-muted-foreground">
-                Añade varias URLs separadas por comas para mostrar más imágenes del campo en el carrusel.
-              </div>
               
-              {galleryImages.length > 0 && (
-                <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {galleryImages.map((url, index) => (
-                    <div key={index} className="border rounded overflow-hidden">
-                      <img 
-                        src={url} 
-                        alt={`Gallery image ${index + 1}`} 
-                        className="w-full h-24 object-cover"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = 'https://placehold.co/600x400?text=Error+de+imagen';
-                        }}
+              {galleryPreviews.length > 0 && (
+                <div className="mt-2 grid grid-cols-3 gap-2">
+                  {galleryPreviews.map((url, index) => (
+                    <div key={index} className="relative">
+                      <img
+                        src={url}
+                        alt={`Vista previa ${index + 1}`}
+                        className="h-24 w-full object-cover rounded-md"
+                        onError={() => handleImageError(index)}
                       />
                     </div>
                   ))}
                 </div>
               )}
             </div>
-            
-            <div className="grid gap-2">
-              <Label htmlFor="description">Descripción</Label>
-              <Textarea 
-                id="description"
-                name="description"
-                placeholder="Descripción del campo"
-                value={formData.description}
-                onChange={handleInputChange}
-                rows={3}
-              />
-            </div>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="holes">Número de Hoyos</Label>
-                <Input 
-                  id="holes"
-                  name="holes"
-                  type="number"
-                  min="9"
-                  max="36"
-                  value={formData.holes}
-                  onChange={handleInputChange}
-                />
-              </div>
-              
-              <div className="grid gap-2">
-                <Label htmlFor="par">Par Total (calculado)</Label>
-                <Input 
-                  id="par"
-                  name="par"
-                  type="number"
-                  min="30"
-                  max="100"
-                  value={formData.par}
-                  disabled
-                />
-              </div>
-            </div>
-            
-            <div className="grid gap-2">
-              <Label>Par por Hoyo</Label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
-                {formData.hole_pars.map((par, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <span className="text-sm font-medium w-8">#{index+1}</span>
-                    <Input 
-                      type="number"
-                      min="3"
-                      max="6"
-                      value={par}
-                      onChange={(e) => handleHoleParChange(index, parseInt(e.target.value) || 4)}
-                      className="w-16"
+          </fieldset>
+        </div>
+        
+        <hr className="my-6" />
+        
+        {/* Opening Hours Section */}
+        <fieldset>
+          <legend className="text-lg font-semibold mb-4">Horarios de Apertura</legend>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {days.map((day, index) => (
+              <div key={day} className="border rounded-md p-3">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-medium">{day}</span>
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id={`isOpen-${index}`}
+                      checked={openingHours[index]?.isOpen || false}
+                      onChange={(e) => handleOpeningHoursChange(index, "isOpen", e.target.checked)}
+                      className="mr-2"
                     />
+                    <label htmlFor={`isOpen-${index}`} className="text-sm">
+                      Abierto
+                    </label>
                   </div>
-                ))}
+                </div>
+                
+                {openingHours[index]?.isOpen && (
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-xs mb-1" htmlFor={`open-${index}`}>
+                        Apertura
+                      </label>
+                      <input
+                        type="time"
+                        id={`open-${index}`}
+                        value={openingHours[index]?.open || ""}
+                        onChange={(e) => handleOpeningHoursChange(index, "open", e.target.value)}
+                        className="w-full p-1 border rounded-md text-sm"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-xs mb-1" htmlFor={`close-${index}`}>
+                        Cierre
+                      </label>
+                      <input
+                        type="time"
+                        id={`close-${index}`}
+                        value={openingHours[index]?.close || ""}
+                        onChange={(e) => handleOpeningHoursChange(index, "close", e.target.value)}
+                        className="w-full p-1 border rounded-md text-sm"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="address">Dirección</Label>
-              <Input 
-                id="address"
-                name="address"
-                placeholder="Dirección del campo"
-                value={formData.address}
-                onChange={handleInputChange}
-              />
-            </div>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="city">Ciudad</Label>
-                <Input 
-                  id="city"
-                  name="city"
-                  placeholder="Ciudad"
-                  value={formData.city}
-                  onChange={handleInputChange}
-                />
-              </div>
-              
-              <div className="grid gap-2">
-                <Label htmlFor="state">Provincia/Estado</Label>
-                <Input 
-                  id="state"
-                  name="state"
-                  placeholder="Provincia o estado"
-                  value={formData.state}
-                  onChange={handleInputChange}
-                />
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="phone">Teléfono</Label>
-                <Input 
-                  id="phone"
-                  name="phone"
-                  placeholder="Teléfono del campo"
-                  value={formData.phone}
-                  onChange={handleInputChange}
-                />
-              </div>
-              
-              <div className="grid gap-2">
-                <Label htmlFor="website">Sitio Web</Label>
-                <Input 
-                  id="website"
-                  name="website"
-                  placeholder="URL del sitio web"
-                  value={formData.website}
-                  onChange={handleInputChange}
-                />
-              </div>
-            </div>
-            
-            {/* Opening hours could be added here in a more complete form */}
-            
-            <Button 
-              type="submit" 
-              className="w-full" 
-              disabled={isSubmitting}
-            >
-              {isSubmitting 
-                ? `${isEditMode ? "Actualizando" : "Agregando"}...` 
-                : `${isEditMode ? "Actualizar" : "Agregar"} Campo`}
-            </Button>
+            ))}
           </div>
-        </form>
-      </CardContent>
+        </fieldset>
+        
+        <div className="flex justify-end gap-4 pt-4">
+          <button
+            type="button"
+            onClick={() => {
+              if (onSubmitSuccess) onSubmitSuccess();
+            }}
+            className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
+            disabled={isSubmitting}
+          >
+            Cancelar
+          </button>
+          
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center"
+          >
+            {isSubmitting && <Loader2 className="animate-spin h-4 w-4 mr-2" />}
+            {initialCourse ? "Actualizar Campo" : "Crear Campo"}
+          </button>
+        </div>
+      </form>
     </Card>
   );
 };
