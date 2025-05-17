@@ -203,14 +203,16 @@ const AdminCsvUpload = () => {
               id="csv-upload"
             />
             <label htmlFor="csv-upload">
-              <Button
-                variant="outline"
-                className="mt-4"
-                type="button"
-                as="span"
-              >
-                Select CSV File
-              </Button>
+              <div className="inline-block">
+                <Button
+                  variant="outline"
+                  className="mt-4"
+                  type="button"
+                  onClick={() => document.getElementById('csv-upload')?.click()}
+                >
+                  Select CSV File
+                </Button>
+              </div>
             </label>
           </div>
 
