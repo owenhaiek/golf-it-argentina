@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ImageIcon } from "lucide-react";
@@ -10,56 +9,40 @@ import {
   CarouselNext, 
   CarouselPrevious 
 } from "@/components/ui/carousel";
+import { useState, useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useEffect, useState } from "react";
-import type { Api as CarouselApi } from "embla-carousel";
+import type { EmblaCarouselType } from "embla-carousel";
 
 interface CoursePhotosProps {
-  courseId?: string;
+  courseId: string;
+  courseName: string;
+  galleryString?: string;
+  mainImageUrl?: string;
 }
 
-export const CoursePhotos = ({ courseId }: CoursePhotosProps) => {
-  const [imagesLoaded, setImagesLoaded] = useState<boolean[]>([]);
-  const [api, setApi] = useState<CarouselApi | null>(null);
+const CoursePhotos = ({ courseId, courseName, galleryString, mainImageUrl }: CoursePhotosProps) => {
+  const [api, setApi] = useState<EmblaCarouselType | null>(null);
   const [current, setCurrent] = useState(0);
-  
-  const { data: course } = useQuery({
-    queryKey: ['course-photos', courseId],
-    queryFn: async () => {
-      if (!courseId) return null;
-      
-      const { data, error } = await supabase
-        .from('golf_courses')
-        .select('image_url, image_gallery')
-        .eq('id', courseId)
-        .single();
-        
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!courseId
-  });
-
+  const [imagesLoaded, setImagesLoaded] = useState<boolean[]>([]);
   const isMobile = useIsMobile();
-
-  // Extract all image URLs from both the main image and the gallery
-  const allImages = [];
   
-  // Add main image if it exists
-  if (course?.image_url) {
-    allImages.push(course?.image_url);
-  }
+  // Parse gallery string to array
+  const galleryImages = galleryString
+    ? galleryString.split(',').map(url => url.trim()).filter(url => url)
+    : [];
+    
+  // Include main image if it exists and isn't already in gallery
+  const allImages = mainImageUrl 
+    ? [mainImageUrl, ...galleryImages.filter(url => url !== mainImageUrl)]
+    : galleryImages;
   
-  // Add gallery images if they exist
-  if (course?.image_gallery) {
-    const galleryImages = course.image_gallery
-      .split(',')
-      .map(url => url.trim())
-      .filter(url => url !== '');
-      
-    allImages.push(...galleryImages);
-  }
-
+  // Initialize loaded state for images
+  useEffect(() => {
+    if (allImages.length) {
+      setImagesLoaded(new Array(allImages.length).fill(false));
+    }
+  }, [allImages.length]);
+  
   // Keep track of current slide
   useEffect(() => {
     if (!api) return;
@@ -77,95 +60,155 @@ export const CoursePhotos = ({ courseId }: CoursePhotosProps) => {
     };
   }, [api]);
   
-  // Initialize loaded state for images
+  // Fetch additional images from reviews if needed
+  const { data: reviewImages, isLoading: isLoadingReviews } = useQuery({
+    queryKey: ['reviewImages', courseId],
+    queryFn: async () => {
+      // Only fetch review images if we have few or no images
+      if (allImages.length >= 5) return [];
+      
+      const { data, error } = await supabase
+        .from('course_reviews')
+        .select('id, rating, image_url')
+        .eq('course_id', courseId)
+        .not('image_url', 'is', null)
+        .order('rating', { ascending: false })
+        .limit(10);
+        
+      if (error) {
+        console.error("Error fetching review images:", error);
+        return [];
+      }
+      
+      return data
+        .map(review => review.image_url)
+        .filter(Boolean) as string[];
+    },
+    enabled: allImages.length < 5 && !!courseId,
+  });
+  
+  // Combine all images, removing duplicates
+  const combinedImages = [...allImages];
+  if (reviewImages && reviewImages.length > 0) {
+    reviewImages.forEach(img => {
+      if (!combinedImages.includes(img)) {
+        combinedImages.push(img);
+      }
+    });
+  }
+  
+  // Preload all images
   useEffect(() => {
-    if (allImages.length) {
-      setImagesLoaded(new Array(allImages.length).fill(false));
-    }
-  }, [allImages.length]);
-
-  // If there are no images, show the placeholder
-  if (allImages.length === 0) {
+    if (!combinedImages.length) return;
+    
+    combinedImages.forEach((src, index) => {
+      if (!src) return;
+      
+      const img = new Image();
+      
+      img.onload = () => {
+        setImagesLoaded(prev => {
+          const newState = [...prev];
+          newState[index] = true;
+          return newState;
+        });
+      };
+      
+      img.onerror = () => {
+        setImagesLoaded(prev => {
+          const newState = [...prev];
+          newState[index] = true;
+          return newState;
+        });
+      };
+      
+      img.src = src;
+    });
+  }, [combinedImages]);
+  
+  if (combinedImages.length === 0) {
     return (
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-lg">Photos</CardTitle>
+      <Card className="border shadow-sm">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <ImageIcon className="h-5 w-5" /> 
+            Fotos del Campo
+          </CardTitle>
         </CardHeader>
-        <CardContent className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-          <ImageIcon className="h-12 w-12 mb-2 opacity-20" />
-          <p>No photos available</p>
+        <CardContent className="text-center py-8 text-muted-foreground">
+          No hay fotos disponibles para este campo
         </CardContent>
       </Card>
     );
   }
-
-  const showControls = allImages.length > 1 && !isMobile;
-
+  
   return (
-    <Card>
+    <Card className="border shadow-sm">
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg">Photos</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <ImageIcon className="h-5 w-5" /> 
+          Fotos del Campo
+        </CardTitle>
       </CardHeader>
-      <CardContent className="py-4">
-        <div className="w-full relative">
-          <Carousel className="w-full" opts={{
-            loop: true,
-            align: "start",
-          }} setApi={setApi}>
+      <CardContent>
+        <div className="relative">
+          <Carousel 
+            className="w-full"
+            opts={{
+              loop: true,
+              align: "start",
+            }}
+            setApi={setApi}
+          >
             <CarouselContent>
-              {allImages.map((imageUrl, index) => (
-                <CarouselItem key={index} className="basis-full md:basis-full">
-                  <div className="p-1">
-                    <div className="overflow-hidden rounded-lg relative h-64">
-                      {/* Loader placeholder */}
-                      {!imagesLoaded[index] && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-secondary/10">
-                          <div className="w-8 h-8 border-2 border-primary/30 border-t-transparent rounded-full animate-spin"></div>
-                        </div>
-                      )}
-                      <img 
-                        src={imageUrl} 
-                        alt={`Course photo ${index + 1}`} 
-                        className={`w-full h-full object-cover transition-opacity duration-300 ${imagesLoaded[index] ? 'opacity-100' : 'opacity-0'}`}
-                        onLoad={() => {
-                          setImagesLoaded(prev => {
-                            const newState = [...prev];
-                            newState[index] = true;
-                            return newState;
-                          });
-                        }}
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = 'https://placehold.co/600x400?text=Image+Error';
-                          setImagesLoaded(prev => {
-                            const newState = [...prev];
-                            newState[index] = true;
-                            return newState;
-                          });
-                        }}
-                      />
-                    </div>
+              {combinedImages.map((imageUrl, index) => (
+                <CarouselItem key={`photo-${index}`}>
+                  <div className="relative h-52 md:h-80 w-full">
+                    {/* Placeholder/loader while image loads */}
+                    {!imagesLoaded[index] && (
+                      <div className="absolute inset-0 bg-secondary/10 flex items-center justify-center">
+                        <div className="w-6 h-6 border-2 border-primary/30 border-t-transparent rounded-full animate-spin"></div>
+                      </div>
+                    )}
+                    
+                    {/* The actual image with smooth transition */}
+                    <img
+                      src={imageUrl}
+                      alt={`${courseName} - foto ${index + 1}`}
+                      className={`w-full h-full object-cover rounded-sm transition-opacity duration-300 ${imagesLoaded[index] ? 'opacity-100' : 'opacity-0'}`}
+                      onLoad={() => {
+                        setImagesLoaded(prev => {
+                          const newState = [...prev];
+                          newState[index] = true;
+                          return newState;
+                        });
+                      }}
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = 'https://placehold.co/600x400?text=Error+de+Imagen';
+                        setImagesLoaded(prev => {
+                          const newState = [...prev];
+                          newState[index] = true;
+                          return newState;
+                        });
+                      }}
+                    />
                   </div>
                 </CarouselItem>
               ))}
             </CarouselContent>
-            {showControls && (
+            
+            {combinedImages.length > 1 && !isMobile && (
               <>
-                <CarouselPrevious 
-                  className="left-2 lg:left-4"
-                  variant="outline"
-                />
-                <CarouselNext 
-                  className="right-2 lg:right-4"
-                  variant="outline"
-                />
+                <CarouselPrevious className="left-2" variant="outline" />
+                <CarouselNext className="right-2" variant="outline" />
               </>
             )}
           </Carousel>
 
           {/* Dots for mobile navigation with minimalist design */}
-          {allImages.length > 1 && isMobile && (
+          {combinedImages.length > 1 && isMobile && (
             <div className="flex justify-center gap-2 mt-4">
-              {allImages.map((_, index) => (
+              {combinedImages.map((_, index) => (
                 <button
                   key={`dot-${index}`}
                   className="focus:outline-none"

@@ -91,39 +91,38 @@ const Profile = () => {
       if (!user?.id) throw new Error("User not authenticated");
       
       // Delete the round from the database
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('rounds')
         .delete()
         .eq('id', roundId)
-        .eq('user_id', user.id) // Security: ensure user can only delete their own rounds
-        .select(); // Add select to return the deleted data
+        .eq('user_id', user.id); // Security: ensure user can only delete their own rounds
       
       if (error) {
         console.error("Delete round error:", error);
         throw error;
       }
       
-      console.log(`Successfully deleted round ${roundId} from database, response:`, data);
+      console.log(`Successfully deleted round ${roundId} from database`);
       return roundId;
     },
     onMutate: (roundId) => {
       console.log(`Setting UI state for round ${roundId} deletion`);
       setDeletingRoundId(roundId);
       
-      // Optimistically update the UI
-      // Store the previous rounds value
+      // Snapshot the previous value
       const previousRounds = queryClient.getQueryData(['rounds', user?.id]);
       
-      // Optimistically remove the round from the cache
-      queryClient.setQueryData(['rounds', user?.id], (oldData: any) => {
-        if (!oldData) return [];
-        return oldData.filter((round: any) => round.id !== roundId);
+      // Optimistically update to the new value
+      queryClient.setQueryData(['rounds', user?.id], (old: any) => {
+        if (!old) return [];
+        return old.filter((round: any) => round.id !== roundId);
       });
       
+      // Return a context object with the snapshot
       return { previousRounds };
     },
-    onSuccess: async (roundId) => {
-      console.log(`Round ${roundId} successfully deleted, updating UI`);
+    onSuccess: async () => {
+      console.log("Round successfully deleted, updating UI");
       
       // Show success toast
       toast({
@@ -135,14 +134,19 @@ const Profile = () => {
       await refetchRounds();
       
       // Also invalidate profile to update any stats that might depend on rounds
-      queryClient.invalidateQueries({ queryKey: ['profile', user?.id] });
+      queryClient.invalidateQueries({
+        queryKey: ['profile', user?.id]
+      });
     },
-    onError: (error, roundId, context: any) => {
+    onError: (error, _, context: any) => {
       console.error(`Error deleting round:`, error);
       
       // Revert to the previous state if available
       if (context?.previousRounds) {
         queryClient.setQueryData(['rounds', user?.id], context.previousRounds);
+      } else {
+        // Force refetch if we don't have a previous state
+        refetchRounds();
       }
       
       toast({

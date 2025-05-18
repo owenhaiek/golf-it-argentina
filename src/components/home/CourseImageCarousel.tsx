@@ -9,7 +9,7 @@ import {
   CarouselNext, 
   CarouselPrevious 
 } from "@/components/ui/carousel";
-import type { Api as CarouselApi } from "embla-carousel";
+import type { EmblaCarouselType } from "embla-carousel";
 
 interface CourseImageCarouselProps {
   images: string[];
@@ -19,7 +19,7 @@ interface CourseImageCarouselProps {
 
 const CourseImageCarousel = ({ images, courseName, courseId }: CourseImageCarouselProps) => {
   const [imagesLoaded, setImagesLoaded] = useState<boolean[]>([]);
-  const [api, setApi] = useState<CarouselApi | null>(null);
+  const [api, setApi] = useState<EmblaCarouselType | null>(null);
   const [current, setCurrent] = useState(0);
   const isMobile = useIsMobile();
   

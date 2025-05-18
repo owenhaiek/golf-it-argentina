@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -153,7 +152,7 @@ const CourseList = ({ onEditCourse }: CourseListProps) => {
         console.log(`Successfully deleted course with ID: ${id}`);
         
         // Update local state to reflect the deletion
-        setCourses(courses.filter(course => course.id !== id));
+        setCourses(prevCourses => prevCourses.filter(course => course.id !== id));
         
         toast({
           title: "Éxito",
@@ -161,10 +160,12 @@ const CourseList = ({ onEditCourse }: CourseListProps) => {
           variant: "default",
         });
 
-        // If we deleted the last item on the page, go back a page
-        if (courses.length === 1 && currentPage > 1) {
-          setCurrentPage(currentPage - 1);
+        // Adjust pagination if needed
+        if (courses.length <= 1 && currentPage > 1) {
+          // If we just deleted the last item on the page, go back a page
+          setCurrentPage(prevPage => prevPage - 1);
         } else {
+          // Otherwise refresh the current page to get updated data
           fetchCourses(currentPage, searchQuery);
         }
       } catch (error: any) {
