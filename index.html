@@ -4,36 +4,10 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <title>Mi Golf App</title>
-    <script type="module" src="https://unpkg.com/@lovable.dev/viewer@latest"></script>
-    <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
-    <style>
-      /* Hide browser navigation on mobile devices */
-      @media screen and (max-width: 768px) {
-        body {
-          /* Remove margins that might create space for browser navigation */
-          margin: 0;
-          padding: 0;
-          /* Ensure content takes full screen */
-          width: 100vw;
-          height: 100vh;
-          /* Apply padding to account for notches and home indicators */
-          padding-top: env(safe-area-inset-top);
-          padding-bottom: env(safe-area-inset-bottom);
-        }
-        
-        #root {
-          /* Make sure the app content takes the full available space */
-          height: 100%;
-          overflow-y: auto;
-          -webkit-overflow-scrolling: touch;
-        }
-      }
-    </style>
+    <title>Golf App</title>
   </head>
   <body>
     <div id="root"></div>

@@ -4,9 +4,9 @@ import { useForm } from 'react-hook-form';
 import { Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AddReviewFormProps {
   courseId: string;
@@ -49,6 +49,13 @@ const AddReviewForm = ({ courseId, onSuccess, onCancel }: AddReviewFormProps) =>
     try {
       setIsSubmitting(true);
       
+      console.log('Submitting review:', {
+        courseId,
+        userId: user.id,
+        rating,
+        comment: data.comment
+      });
+
       const { error } = await supabase
         .from('course_reviews')
         .insert({
@@ -58,8 +65,12 @@ const AddReviewForm = ({ courseId, onSuccess, onCancel }: AddReviewFormProps) =>
           comment: data.comment
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error submitting review:', error);
+        throw error;
+      }
       
+      console.log('Review submitted successfully');
       onSuccess();
     } catch (error) {
       console.error('Error submitting review:', error);
