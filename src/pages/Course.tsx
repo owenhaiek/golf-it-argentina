@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -9,7 +10,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { ArrowLeft, MapPin, Clock, Calendar, Info, Users, Star, Phone } from "lucide-react";
 import CourseMap from "@/components/course/CourseMap";
-import CourseReviews from "@/components/course/CourseReviews";
+import CourseReviews, { Review } from "@/components/course/CourseReviews";
 import CoursePhotos from "@/components/course/CoursePhotos";
 import CourseHoleDetails from "@/components/course/CourseHoleDetails";
 import CourseWeather from "@/components/course/CourseWeather";
@@ -95,28 +96,56 @@ const Course = () => {
     enabled: !!id
   });
 
-  // Fetch course reviews
+  // Fetch course reviews and profiles separately, then combine them
   const { data: reviews, isLoading: reviewsLoading, refetch: refetchReviews } = useQuery({
     queryKey: ['courseReviews', id],
     queryFn: async () => {
       if (!id) return [];
-      const { data, error } = await supabase
+      
+      // Fetch reviews first
+      const { data: reviewsData, error: reviewsError } = await supabase
         .from('course_reviews')
-        .select(`
-          *,
-          profiles (
-            username,
-            avatar_url
-          )
-        `)
+        .select('*')
         .eq('course_id', id)
         .order('created_at', { ascending: false });
       
-      if (error) {
-        console.error("Reviews fetch error:", error);
-        throw error;
+      if (reviewsError) {
+        console.error("Reviews fetch error:", reviewsError);
+        throw reviewsError;
       }
-      return data || [];
+      
+      if (!reviewsData || reviewsData.length === 0) {
+        return [];
+      }
+      
+      // Get unique user IDs from reviews
+      const userIds = [...new Set(reviewsData.map(review => review.user_id))];
+      
+      // Fetch profiles for these users
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, username, avatar_url')
+        .in('id', userIds);
+      
+      if (profilesError) {
+        console.error("Profiles fetch error:", profilesError);
+        // Continue with reviews even if profiles can't be fetched
+      }
+      
+      // Create a map of user profiles
+      const profilesMap = (profilesData || []).reduce((map, profile) => {
+        map[profile.id] = profile;
+        return map;
+      }, {});
+      
+      // Combine reviews with user profile data
+      const enrichedReviews: Review[] = reviewsData.map(review => ({
+        ...review,
+        username: profilesMap[review.user_id]?.username || "Anonymous User",
+        avatar_url: profilesMap[review.user_id]?.avatar_url || null
+      }));
+      
+      return enrichedReviews;
     },
     enabled: !!id
   });

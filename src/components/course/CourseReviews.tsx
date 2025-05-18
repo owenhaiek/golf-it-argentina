@@ -14,7 +14,9 @@ export interface Review {
   comment: string;
   created_at: string;
   user_id?: string;
-  profiles: ReviewProfile;
+  profiles?: ReviewProfile;
+  username?: string;
+  avatar_url?: string;
 }
 
 interface CourseReviewsProps {
@@ -81,21 +83,21 @@ export const CourseReviews = ({ courseId, reviews, isLoading }: CourseReviewsPro
           <div key={review.id} className="border-b border-border pb-4 last:border-0 last:pb-0">
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                {review.profiles.avatar_url ? (
+                {review.avatar_url ? (
                   <img 
-                    src={review.profiles.avatar_url} 
-                    alt={review.profiles.username || "User"} 
+                    src={review.avatar_url} 
+                    alt={review.username || "User"} 
                     className="w-full h-full rounded-full object-cover" 
                   />
                 ) : (
                   <span className="text-primary font-bold">
-                    {(review.profiles.username || "User")[0].toUpperCase()}
+                    {(review.username || "User")[0].toUpperCase()}
                   </span>
                 )}
               </div>
               <div className="flex-1">
                 <div className="flex justify-between">
-                  <span className="font-medium">{review.profiles.username || "Anonymous User"}</span>
+                  <span className="font-medium">{review.username || "Anonymous User"}</span>
                   <span className="text-xs text-muted-foreground">
                     {formatDistanceToNow(new Date(review.created_at), { addSuffix: true })}
                   </span>
