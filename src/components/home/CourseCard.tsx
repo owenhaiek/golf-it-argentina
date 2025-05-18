@@ -57,17 +57,11 @@ const CourseCard = ({ course, currentTime }: CourseCardProps) => {
       <Card className="overflow-hidden hover:shadow-lg transition-shadow rounded-none border-x-0">
         <CardContent className="p-0">
           <div>
-            {courseImages.length > 0 ? (
-              <CourseImageCarousel 
-                images={courseImages} 
-                courseName={course.name} 
-                courseId={course.id} 
-              />
-            ) : (
-              <div className="w-full h-48 bg-secondary/20 flex items-center justify-center text-muted-foreground">
-                {t("home", "noImageAvailable")}
-              </div>
-            )}
+            <CourseImageCarousel 
+              images={courseImages} 
+              courseName={course.name} 
+              courseId={course.id} 
+            />
             
             <div className="p-4 space-y-2">
               <h2 className="text-xl font-semibold">{course.name}</h2>

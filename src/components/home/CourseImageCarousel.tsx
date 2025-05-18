@@ -2,6 +2,13 @@
 import { useState, useRef, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { 
+  Carousel, 
+  CarouselContent, 
+  CarouselItem, 
+  CarouselNext, 
+  CarouselPrevious 
+} from "@/components/ui/carousel";
 
 interface CourseImageCarouselProps {
   images: string[];
@@ -10,58 +17,19 @@ interface CourseImageCarouselProps {
 }
 
 const CourseImageCarousel = ({ images, courseName, courseId }: CourseImageCarouselProps) => {
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [touchStart, setTouchStart] = useState<number | null>(null);
-  const [touchEnd, setTouchEnd] = useState<number | null>(null);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const [isLoaded, setIsLoaded] = useState<boolean[]>([]);
-  const [preloadedImages, setPreloadedImages] = useState<HTMLImageElement[]>([]);
-  const carouselRef = useRef<HTMLDivElement>(null);
+  const [imagesLoaded, setImagesLoaded] = useState<boolean[]>([]);
   const isMobile = useIsMobile();
-
-  // Minimum swipe distance required (in px)
-  const minSwipeDistance = 50;
-
-  // Initialize loaded state for all images
+  
+  // Initialize loaded state for images
   useEffect(() => {
-    setIsLoaded(new Array(images.length).fill(false));
+    if (images.length) {
+      setImagesLoaded(new Array(images.length).fill(false));
+    }
   }, [images.length]);
 
-  const handlePrevImage = (e?: React.MouseEvent) => {
-    if (e) e.preventDefault();
-    if (isTransitioning || !images.length) return;
-    
-    setIsTransitioning(true);
-    
-    // Pre-load previous image to avoid white flash
-    const prevIndex = (currentImageIndex - 1 + images.length) % images.length;
-    
-    setCurrentImageIndex(prevIndex);
-    
-    // Reset transition state after animation completes
-    setTimeout(() => setIsTransitioning(false), 300);
-  };
-
-  const handleNextImage = (e?: React.MouseEvent) => {
-    if (e) e.preventDefault();
-    if (isTransitioning || !images.length) return;
-    
-    setIsTransitioning(true);
-    
-    // Pre-load next image to avoid white flash
-    const nextIndex = (currentImageIndex + 1) % images.length;
-    
-    setCurrentImageIndex(nextIndex);
-    
-    // Reset transition state after animation completes
-    setTimeout(() => setIsTransitioning(false), 300);
-  };
-
-  // Pre-load all images when component mounts
+  // Preload all images
   useEffect(() => {
     if (!images.length) return;
-    
-    const imageObjects: HTMLImageElement[] = [];
     
     images.forEach((src, index) => {
       if (!src) return;
@@ -69,7 +37,7 @@ const CourseImageCarousel = ({ images, courseName, courseId }: CourseImageCarous
       const img = new Image();
       
       img.onload = () => {
-        setIsLoaded(prev => {
+        setImagesLoaded(prev => {
           const newState = [...prev];
           newState[index] = true;
           return newState;
@@ -77,7 +45,7 @@ const CourseImageCarousel = ({ images, courseName, courseId }: CourseImageCarous
       };
       
       img.onerror = () => {
-        setIsLoaded(prev => {
+        setImagesLoaded(prev => {
           const newState = [...prev];
           newState[index] = true;
           return newState;
@@ -85,138 +53,73 @@ const CourseImageCarousel = ({ images, courseName, courseId }: CourseImageCarous
       };
       
       img.src = src;
-      imageObjects.push(img);
     });
-    
-    setPreloadedImages(imageObjects);
-    
-    return () => {
-      // Clean up preloaded images on unmount
-      setPreloadedImages([]);
-    };
   }, [images]);
 
-  // Touch event handlers for mobile swipe
-  const onTouchStart = (e: React.TouchEvent) => {
-    setTouchEnd(null);
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-
-  const onTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
-
-  const onTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-    
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
-    
-    if (isLeftSwipe) {
-      handleNextImage();
-    }
-    
-    if (isRightSwipe) {
-      handlePrevImage();
-    }
-  };
-
-  // Auto-play carousel
-  useEffect(() => {
-    if (images.length <= 1) return;
-    
-    const interval = setInterval(() => {
-      handleNextImage();
-    }, 5000);
-    
-    return () => clearInterval(interval);
-  }, [images.length, currentImageIndex]);
+  // If there are no images, show a placeholder
+  if (!images.length) {
+    return (
+      <div className="w-full h-48 bg-secondary/20 flex items-center justify-center text-muted-foreground">
+        No hay imágenes disponibles
+      </div>
+    );
+  }
 
   return (
-    <div className="relative overflow-hidden">
-      <div 
-        ref={carouselRef}
-        className="flex transition-transform duration-300 ease-in-out h-48"
-        style={{ 
-          transform: `translateX(-${currentImageIndex * 100}%)`,
-          width: `${images.length * 100}%`
-        }}
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
-      >
+    <Carousel className="w-full" opts={{
+      loop: true,
+      align: "start",
+    }}>
+      <CarouselContent>
         {images.map((image, idx) => (
-          <div 
-            key={`${courseId}-${idx}`} 
-            className="w-full h-full flex-shrink-0 relative"
-            style={{ width: `${100 / images.length}%` }}
-          >
-            {/* Placeholder while image loads */}
-            <div 
-              className={`absolute inset-0 bg-secondary/10 flex items-center justify-center transition-opacity duration-300 ${isLoaded[idx] ? 'opacity-0' : 'opacity-100'}`}
-            >
-              <div className="w-6 h-6 border-2 border-primary/30 border-t-transparent rounded-full animate-spin"></div>
+          <CarouselItem key={`${courseId}-${idx}`} className="basis-full">
+            <div className="relative h-48 w-full">
+              {/* Placeholder/loader while image loads */}
+              {!imagesLoaded[idx] && (
+                <div className="absolute inset-0 bg-secondary/10 flex items-center justify-center">
+                  <div className="w-6 h-6 border-2 border-primary/30 border-t-transparent rounded-full animate-spin"></div>
+                </div>
+              )}
+              
+              {/* The actual image with smooth transition */}
+              <img
+                src={image}
+                alt={`${courseName} - imagen ${idx + 1}`}
+                className={`w-full h-full object-cover transition-opacity duration-300 ${imagesLoaded[idx] ? 'opacity-100' : 'opacity-0'}`}
+                onLoad={() => {
+                  setImagesLoaded(prev => {
+                    const newState = [...prev];
+                    newState[idx] = true;
+                    return newState;
+                  });
+                }}
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = 'https://placehold.co/600x400?text=Image+Error';
+                  setImagesLoaded(prev => {
+                    const newState = [...prev];
+                    newState[idx] = true;
+                    return newState;
+                  });
+                }}
+              />
             </div>
-            
-            {/* The actual image with smooth transition */}
-            <img
-              src={image}
-              alt={`${courseName} - imagen ${idx + 1}`}
-              className={`w-full h-full object-cover transition-opacity duration-300 ${isLoaded[idx] ? 'opacity-100' : 'opacity-0'}`}
-              onLoad={() => {
-                setIsLoaded(prev => {
-                  const newState = [...prev];
-                  newState[idx] = true;
-                  return newState;
-                });
-              }}
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = 'https://placehold.co/600x400?text=Image+Error';
-                setIsLoaded(prev => {
-                  const newState = [...prev];
-                  newState[idx] = true;
-                  return newState;
-                });
-              }}
-            />
-          </div>
+          </CarouselItem>
         ))}
-      </div>
+      </CarouselContent>
       
-      {images.length > 1 && (
+      {images.length > 1 && !isMobile && (
         <>
-          {!isMobile && (
-            <>
-              <button
-                onClick={handlePrevImage}
-                className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 text-white rounded-full p-1 hover:bg-black/70 transition-colors z-10"
-                aria-label="Imagen anterior"
-              >
-                <ChevronLeft size={20} />
-              </button>
-              <button
-                onClick={handleNextImage}
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 text-white rounded-full p-1 hover:bg-black/70 transition-colors z-10"
-                aria-label="Imagen siguiente"
-              >
-                <ChevronRight size={20} />
-              </button>
-            </>
-          )}
-          <div className="absolute bottom-2 left-0 right-0 flex justify-center z-10">
-            <div className="flex gap-1">
-              {images.map((_, idx) => (
-                <div
-                  key={idx}
-                  className={`h-1.5 rounded-full transition-all duration-300 ${idx === currentImageIndex ? 'w-4 bg-white' : 'w-1.5 bg-white/50'}`}
-                />
-              ))}
-            </div>
-          </div>
+          <CarouselPrevious 
+            className="left-2 h-8 w-8 lg:left-4"
+            variant="outline"
+          />
+          <CarouselNext 
+            className="right-2 h-8 w-8 lg:right-4"
+            variant="outline"
+          />
         </>
       )}
-    </div>
+    </Carousel>
   );
 };
 

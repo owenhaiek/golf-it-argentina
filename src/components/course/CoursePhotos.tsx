@@ -64,23 +64,6 @@ export const CoursePhotos = ({ courseId }: CoursePhotosProps) => {
     }
   }, [allImages.length]);
 
-  // Preload images
-  useEffect(() => {
-    if (!allImages.length) return;
-    
-    allImages.forEach((src, index) => {
-      const img = new Image();
-      img.onload = () => {
-        setImagesLoaded(prev => {
-          const newState = [...prev];
-          newState[index] = true;
-          return newState;
-        });
-      };
-      img.src = src;
-    });
-  }, [allImages]);
-
   // If there are no images, show the placeholder
   if (allImages.length === 0) {
     return (
@@ -107,13 +90,12 @@ export const CoursePhotos = ({ courseId }: CoursePhotosProps) => {
         <Carousel className="w-full" opts={{
           loop: true,
           align: "start",
-          dragFree: true
         }}>
           <CarouselContent>
             {allImages.map((imageUrl, index) => (
               <CarouselItem key={index} className="basis-full md:basis-full">
                 <div className="p-1">
-                  <div className="overflow-hidden rounded-lg relative">
+                  <div className="overflow-hidden rounded-lg relative h-64">
                     {/* Loader placeholder */}
                     {!imagesLoaded[index] && (
                       <div className="absolute inset-0 flex items-center justify-center bg-secondary/10">
@@ -123,7 +105,7 @@ export const CoursePhotos = ({ courseId }: CoursePhotosProps) => {
                     <img 
                       src={imageUrl} 
                       alt={`Course photo ${index + 1}`} 
-                      className={`w-full h-64 object-cover transition-opacity duration-300 ${imagesLoaded[index] ? 'opacity-100' : 'opacity-0'}`}
+                      className={`w-full h-full object-cover transition-opacity duration-300 ${imagesLoaded[index] ? 'opacity-100' : 'opacity-0'}`}
                       onLoad={() => {
                         setImagesLoaded(prev => {
                           const newState = [...prev];
