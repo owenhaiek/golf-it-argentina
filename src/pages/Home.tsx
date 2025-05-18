@@ -1,13 +1,15 @@
+
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { Card, CardContent } from "@/components/ui/card";
-import { MapPin, Phone, Globe, Flag, Search, Filter, X, Clock } from "lucide-react";
+import { MapPin, Phone, Globe, Flag, Search, Filter, X, Clock, ChevronLeft, ChevronRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import FilterPanel from "@/components/FilterPanel";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { isCurrentlyOpen } from "@/utils/openingHours";
 
 type FilterOptions = {
   holes: string;
@@ -26,6 +28,7 @@ const Home = () => {
     isOpen: false
   });
   const [currentTime, setCurrentTime] = useState<Date>(new Date());
+  const [imageIndexes, setImageIndexes] = useState<Record<string, number>>({});
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -34,39 +37,14 @@ const Home = () => {
     return () => clearInterval(timer);
   }, []);
 
-  const isGolfCourseOpen = (openHours: string | null): boolean => {
-    if (!openHours) return false;
-    try {
-      const today = currentTime.getDay();
-      const hours = JSON.parse(openHours);
-      if (!hours[today] || !hours[today].isOpen) return false;
-      const {
-        open,
-        close
-      } = hours[today];
-      if (!open || !close) return false;
-      const currentHour = currentTime.getHours();
-      const currentMinute = currentTime.getMinutes();
-      const [openHour, openMinute] = open.split(':').map(Number);
-      const [closeHour, closeMinute] = close.split(':').map(Number);
-      const currentTotalMinutes = currentHour * 60 + currentMinute;
-      const openTotalMinutes = openHour * 60 + openMinute;
-      const closeTotalMinutes = closeHour * 60 + closeMinute;
-      return currentTotalMinutes >= openTotalMinutes && currentTotalMinutes < closeTotalMinutes;
-    } catch (error) {
-      console.error("Error parsing opening hours:", error);
-      return false;
-    }
-  };
-
   const formatOpeningHours = (openHours: string | null): string => {
     if (!openHours) return "Hours not available";
     try {
       const today = currentTime.getDay();
       const hours = JSON.parse(openHours);
-      if (!hours[today]) return "Hours not available";
-      if (!hours[today].isOpen) return "Closed today";
-      return `${hours[today].open} - ${hours[today].close}`;
+      if (!hours[today === 0 ? 6 : today - 1]) return "Hours not available";
+      if (!hours[today === 0 ? 6 : today - 1].isOpen) return "Closed today";
+      return `${hours[today === 0 ? 6 : today - 1].open} - ${hours[today === 0 ? 6 : today - 1].close}`;
     } catch (error) {
       console.error("Error formatting opening hours:", error);
       return "Hours not available";
@@ -97,7 +75,15 @@ const Home = () => {
       if (error) throw error;
 
       if (filters.isOpen) {
-        return data.filter(course => isGolfCourseOpen(course.opening_hours));
+        return data.filter(course => {
+          try {
+            const openingHours = course.opening_hours ? JSON.parse(course.opening_hours) : null;
+            return isCurrentlyOpen(openingHours);
+          } catch (error) {
+            console.error("Error parsing opening hours:", error);
+            return false;
+          }
+        });
       }
       return data;
     }
@@ -118,23 +104,37 @@ const Home = () => {
 
   const hasActiveFilters = filters.holes || filters.location || filters.isOpen;
 
-  // Helper function to get the best image for a course
-  const getDisplayImage = (course: any) => {
-    // If there's an image_url, use it
+  // Helper function to get all images for a course
+  const getCourseImages = (course: any): string[] => {
+    const images: string[] = [];
+    
+    // If there's an image_url, add it first
     if (course.image_url) {
-      return course.image_url;
+      images.push(course.image_url);
     }
     
-    // If there's a gallery, use the first image
+    // If there's a gallery, add those images
     if (course.image_gallery) {
       const galleryImages = course.image_gallery.split(',').map((url: string) => url.trim()).filter((url: string) => url !== '');
-      if (galleryImages.length > 0) {
-        return galleryImages[0];
-      }
+      images.push(...galleryImages);
     }
     
-    // No images available
-    return null;
+    // If no images, return a placeholder
+    return images.length > 0 ? images : [];
+  };
+
+  const handlePrevImage = (courseId: string, imagesLength: number) => {
+    setImageIndexes(prev => ({
+      ...prev,
+      [courseId]: (prev[courseId] - 1 + imagesLength) % imagesLength
+    }));
+  };
+
+  const handleNextImage = (courseId: string, imagesLength: number) => {
+    setImageIndexes(prev => ({
+      ...prev,
+      [courseId]: (prev[courseId] + 1) % imagesLength
+    }));
   };
 
   return <div className="space-y-4 -mt-6 -mx-4">
@@ -183,51 +183,113 @@ const Home = () => {
                   </div>
                 </div>
               </CardContent>
-            </Card>) : courses?.map(course => <Link to={`/course/${course.id}`} key={course.id} className="block">
-              <Card className="overflow-hidden hover:shadow-lg transition-shadow rounded-none border-x-0">
-                <CardContent className="p-0">
-                  <div>
-                    {getDisplayImage(course) ? 
-                      <img src={getDisplayImage(course)} alt={course.name} className="w-full h-48 object-cover" /> 
-                    : 
-                      <div className="w-full h-48 bg-secondary/20 flex items-center justify-center text-muted-foreground">
-                        {t("home", "noImageAvailable")}
+            </Card>) : courses?.map(course => {
+              const courseImages = getCourseImages(course);
+              // Initialize image index for this course if not already set
+              if (imageIndexes[course.id] === undefined && courseImages.length > 0) {
+                setImageIndexes(prev => ({...prev, [course.id]: 0}));
+              }
+              const currentImageIndex = imageIndexes[course.id] || 0;
+              
+              let courseOpeningHours;
+              try {
+                courseOpeningHours = course.opening_hours ? JSON.parse(course.opening_hours) : null;
+              } catch (error) {
+                console.error("Error parsing opening hours:", error);
+                courseOpeningHours = null;
+              }
+              
+              const isOpen = isCurrentlyOpen(courseOpeningHours);
+              
+              return <Link to={`/course/${course.id}`} key={course.id} className="block">
+                <Card className="overflow-hidden hover:shadow-lg transition-shadow rounded-none border-x-0">
+                  <CardContent className="p-0">
+                    <div>
+                      <div className="relative">
+                        {courseImages.length > 0 ? (
+                          <>
+                            <img 
+                              src={courseImages[currentImageIndex]} 
+                              alt={course.name} 
+                              className="w-full h-48 object-cover"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src = 'https://placehold.co/600x400?text=Image+Error';
+                              }}
+                            />
+                            {courseImages.length > 1 && (
+                              <>
+                                <button 
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    handlePrevImage(course.id, courseImages.length);
+                                  }} 
+                                  className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 text-white rounded-full p-1 hover:bg-black/70 transition-colors"
+                                >
+                                  <ChevronLeft size={20} />
+                                </button>
+                                <button 
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    handleNextImage(course.id, courseImages.length);
+                                  }} 
+                                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 text-white rounded-full p-1 hover:bg-black/70 transition-colors"
+                                >
+                                  <ChevronRight size={20} />
+                                </button>
+                                <div className="absolute bottom-2 left-0 right-0 flex justify-center">
+                                  <div className="flex gap-1">
+                                    {courseImages.map((_, idx) => (
+                                      <div 
+                                        key={idx} 
+                                        className={`h-1.5 rounded-full ${idx === currentImageIndex ? 'w-4 bg-white' : 'w-1.5 bg-white/50'}`}
+                                      />
+                                    ))}
+                                  </div>
+                                </div>
+                              </>
+                            )}
+                          </>
+                        ) : (
+                          <div className="w-full h-48 bg-secondary/20 flex items-center justify-center text-muted-foreground">
+                            {t("home", "noImageAvailable")}
+                          </div>
+                        )}
                       </div>
-                    }
-                    <div className="p-4 space-y-2">
-                      <h2 className="text-xl font-semibold">{course.name}</h2>
-                      
-                      {course.description && <p className="text-muted-foreground line-clamp-2">{course.description}</p>}
-                      
-                      <div className="space-y-1 text-sm text-muted-foreground">
-                        {course.address && <div className="flex items-center gap-2">
-                            <MapPin size={16} />
-                            <span>{[course.address, course.city, course.state].filter(Boolean).join(', ')}</span>
-                          </div>}
+                      <div className="p-4 space-y-2">
+                        <h2 className="text-xl font-semibold">{course.name}</h2>
                         
-                        <div className="flex items-center gap-2 text-primary">
-                          <Flag size={16} />
-                          <span>{course.holes} {t("profile", "holes")}</span>
-                          {course.par && <span>• {t("course", "par")} {course.par}</span>}
-                        </div>
+                        {course.description && <p className="text-muted-foreground line-clamp-2">{course.description}</p>}
                         
-                        <div className="flex items-center gap-2">
-                          <Clock size={16} className={isGolfCourseOpen(course.opening_hours) ? "text-green-600" : "text-amber-600"} />
-                          <div>
-                            <span className={isGolfCourseOpen(course.opening_hours) ? "text-green-600 font-medium" : "text-amber-600"}>
-                              {isGolfCourseOpen(course.opening_hours) ? t("home", "openNow") : t("home", "closed")}
-                            </span>
-                            <span className="text-muted-foreground ml-1">
-                              • {t("home", "today")} {formatOpeningHours(course.opening_hours)}
-                            </span>
+                        <div className="space-y-1 text-sm text-muted-foreground">
+                          {course.address && <div className="flex items-center gap-2">
+                              <MapPin size={16} />
+                              <span>{[course.address, course.city, course.state].filter(Boolean).join(', ')}</span>
+                            </div>}
+                          
+                          <div className="flex items-center gap-2 text-primary">
+                            <Flag size={16} />
+                            <span>{course.holes} {t("profile", "holes")}</span>
+                            {course.par && <span>• {t("course", "par")} {course.par}</span>}
+                          </div>
+                          
+                          <div className="flex items-center gap-2">
+                            <Clock size={16} className={isOpen ? "text-green-600" : "text-amber-600"} />
+                            <div>
+                              <span className={isOpen ? "text-green-600 font-medium" : "text-amber-600"}>
+                                {isOpen ? t("home", "openNow") : t("home", "closed")}
+                              </span>
+                              <span className="text-muted-foreground ml-1">
+                                • {t("home", "today")} {formatOpeningHours(course.opening_hours)}
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>)}
+                  </CardContent>
+                </Card>
+              </Link>;
+            })}
 
         {courses?.length === 0 && !isLoading && <div className="text-center py-8 text-muted-foreground">
             <p>{t("home", "noCoursesFound")}</p>
