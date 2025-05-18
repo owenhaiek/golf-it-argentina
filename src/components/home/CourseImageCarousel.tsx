@@ -1,5 +1,6 @@
+
 import { useState, useRef, useEffect } from "react";
-import { ChevronLeft, ChevronRight, CircleDot, Circle } from "lucide-react";
+import { ChevronLeft, ChevronRight, Circle } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { 
   Carousel, 
@@ -141,9 +142,9 @@ const CourseImageCarousel = ({ images, courseName, courseId }: CourseImageCarous
         )}
       </Carousel>
 
-      {/* Dots for mobile navigation */}
+      {/* Dots for mobile navigation with minimalist design */}
       {images.length > 1 && isMobile && (
-        <div className="flex justify-center gap-1 mt-2">
+        <div className="flex justify-center gap-2 mt-4">
           {images.map((_, index) => (
             <button
               key={`dot-${index}`}
@@ -151,10 +152,13 @@ const CourseImageCarousel = ({ images, courseName, courseId }: CourseImageCarous
               onClick={() => api?.scrollTo(index)}
               aria-label={`Go to slide ${index + 1}`}
             >
-              {index === current ? 
-                <CircleDot className="h-4 w-4 text-primary" /> : 
-                <Circle className="h-4 w-4 text-muted-foreground" />
-              }
+              <div 
+                className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                  index === current 
+                    ? 'bg-primary scale-110' 
+                    : 'bg-muted-foreground/30 scale-100'
+                }`} 
+              />
             </button>
           ))}
         </div>

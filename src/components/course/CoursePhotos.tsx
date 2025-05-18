@@ -1,6 +1,7 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ImageIcon, CircleDot, Circle } from "lucide-react";
+import { ImageIcon } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { 
   Carousel, 
@@ -161,9 +162,9 @@ export const CoursePhotos = ({ courseId }: CoursePhotosProps) => {
             )}
           </Carousel>
 
-          {/* Dots for mobile navigation */}
+          {/* Dots for mobile navigation with minimalist design */}
           {allImages.length > 1 && isMobile && (
-            <div className="flex justify-center gap-1 mt-2">
+            <div className="flex justify-center gap-2 mt-4">
               {allImages.map((_, index) => (
                 <button
                   key={`dot-${index}`}
@@ -171,10 +172,13 @@ export const CoursePhotos = ({ courseId }: CoursePhotosProps) => {
                   onClick={() => api?.scrollTo(index)}
                   aria-label={`Go to slide ${index + 1}`}
                 >
-                  {index === current ? 
-                    <CircleDot className="h-4 w-4 text-primary" /> : 
-                    <Circle className="h-4 w-4 text-muted-foreground" />
-                  }
+                  <div 
+                    className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                      index === current 
+                        ? 'bg-primary scale-110' 
+                        : 'bg-muted-foreground/30 scale-100'
+                    }`} 
+                  />
                 </button>
               ))}
             </div>
