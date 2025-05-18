@@ -71,6 +71,10 @@ const AddReviewForm = ({ courseId, onSuccess, onCancel }: AddReviewFormProps) =>
       }
       
       console.log('Review submitted successfully');
+      toast({
+        title: "Review submitted",
+        description: "Your review has been posted successfully"
+      });
       onSuccess();
     } catch (error) {
       console.error('Error submitting review:', error);
