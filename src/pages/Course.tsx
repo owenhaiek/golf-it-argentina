@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -18,6 +17,7 @@ import CourseLeaderboard from "@/components/course/CourseLeaderboard";
 import CourseStats from "@/components/course/CourseStats";
 import { formatOpeningHoursForDisplay } from "@/utils/openingHours";
 import { format } from "date-fns";
+import AddReviewForm from "@/components/course/AddReviewForm";
 
 const Course = () => {
   const { id } = useParams<{ id: string }>();
@@ -25,6 +25,7 @@ const Course = () => {
   const { toast } = useToast();
   const { t } = useLanguage();
   const { user } = useAuth();
+  const [showReviewForm, setShowReviewForm] = useState(false);
 
   // Fetch course data
   const { data: courseData, isLoading: courseLoading } = useQuery({
@@ -101,7 +102,7 @@ const Course = () => {
   });
 
   // Fetch course reviews
-  const { data: reviews, isLoading: reviewsLoading } = useQuery({
+  const { data: reviews, isLoading: reviewsLoading, refetch: refetchReviews } = useQuery({
     queryKey: ['courseReviews', id],
     queryFn: async () => {
       if (!id) return [];
@@ -126,6 +127,29 @@ const Course = () => {
       return data || [];
     },
     enabled: !!id,
+  });
+
+  // Check if user has already reviewed this course
+  const { data: userReview } = useQuery({
+    queryKey: ['userReview', id, user?.id],
+    queryFn: async () => {
+      if (!id || !user?.id) return null;
+      
+      const { data, error } = await supabase
+        .from('course_reviews')
+        .select('*')
+        .eq('course_id', id)
+        .eq('user_id', user.id)
+        .maybeSingle();
+        
+      if (error) {
+        console.error("User review fetch error:", error);
+        throw error;
+      }
+      
+      return data;
+    },
+    enabled: !!id && !!user?.id,
   });
 
   // Parse opening hours from JSON if needed
@@ -173,6 +197,15 @@ const Course = () => {
         variant: "destructive"
       });
     }
+  };
+
+  const handleReviewSubmitSuccess = () => {
+    setShowReviewForm(false);
+    refetchReviews();
+    toast({
+      title: t("course", "reviewSubmitted"),
+      description: t("course", "thankYouForReview"),
+    });
   };
 
   // Set page title
@@ -231,6 +264,7 @@ const Course = () => {
         
         <div className="absolute bottom-0 left-0 p-4 text-white">
           <h1 className="text-2xl font-bold">{courseData?.name}</h1>
+          {/* Enhanced address display */}
           {courseData?.city && (
             <div className="flex items-center mt-1">
               <MapPin className="h-4 w-4 mr-1" />
@@ -250,14 +284,32 @@ const Course = () => {
         </div>
       </div>
 
-      {/* Main content - removed tabs, showing all content in a single view */}
+      {/* Main content */}
       <div className="space-y-6">
-        {/* Course details card */}
+        {/* Course details card with prominently displayed address */}
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Course Details</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* Address section - Enhanced */}
+            {(courseData?.address || courseData?.city || courseData?.state) && (
+              <div className="bg-primary/5 p-3 rounded-lg mb-4">
+                <div className="flex items-start gap-2">
+                  <MapPin className="h-5 w-5 text-primary mt-0.5" />
+                  <div>
+                    <h3 className="font-medium">Location</h3>
+                    <p className="text-sm">
+                      {courseData.address && <span className="block">{courseData.address}</span>}
+                      {(courseData.city || courseData.state) && (
+                        <span>{[courseData.city, courseData.state].filter(Boolean).join(', ')}</span>
+                      )}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="grid grid-cols-2 gap-4">
               <div className="flex items-center">
                 <Info className="h-5 w-5 mr-2 text-primary" />
@@ -355,6 +407,37 @@ const Course = () => {
           />
         )}
 
+        {/* Reviews - Now with Add Review button */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-lg">Reviews</CardTitle>
+            {user && !userReview && !showReviewForm && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setShowReviewForm(true)}
+              >
+                Add Review
+              </Button>
+            )}
+          </CardHeader>
+          <CardContent>
+            {showReviewForm ? (
+              <AddReviewForm 
+                courseId={id!} 
+                onSuccess={handleReviewSubmitSuccess}
+                onCancel={() => setShowReviewForm(false)}
+              />
+            ) : (
+              <CourseReviews 
+                courseId={id} 
+                reviews={reviews || []} 
+                isLoading={reviewsLoading}
+              />
+            )}
+          </CardContent>
+        </Card>
+
         {/* Hole details */}
         {courseData?.hole_pars && (
           <CourseHoleDetails 
@@ -388,13 +471,6 @@ const Course = () => {
           />
         )}
 
-        {/* Reviews */}
-        <CourseReviews 
-          courseId={id} 
-          reviews={reviews || []} 
-          isLoading={reviewsLoading}
-        />
-        
         {/* Contact Button - moved to bottom */}
         <Button 
           onClick={handleContact} 
