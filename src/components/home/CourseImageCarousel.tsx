@@ -58,8 +58,12 @@ const CourseImageCarousel = ({ images, courseName, courseId }: CourseImageCarous
 
   // Pre-load all images when component mounts
   useEffect(() => {
-    const imagePromises = images.map((src, index) => {
-      return new Promise<void>((resolve) => {
+    if (!images.length) return;
+    
+    const preloadImages = () => {
+      images.forEach((src, index) => {
+        if (!src) return;
+        
         const img = new Image();
         img.onload = () => {
           setIsLoaded(prev => {
@@ -67,22 +71,19 @@ const CourseImageCarousel = ({ images, courseName, courseId }: CourseImageCarous
             newState[index] = true;
             return newState;
           });
-          resolve();
         };
         img.onerror = () => {
-          // Mark as loaded even on error to avoid infinite loading state
           setIsLoaded(prev => {
             const newState = [...prev];
             newState[index] = true;
             return newState;
           });
-          resolve();
         };
         img.src = src;
       });
-    });
-
-    Promise.all(imagePromises);
+    };
+    
+    preloadImages();
   }, [images]);
 
   // Touch event handlers for mobile swipe
@@ -138,15 +139,17 @@ const CourseImageCarousel = ({ images, courseName, courseId }: CourseImageCarous
         {images.map((image, idx) => (
           <div 
             key={`${courseId}-${idx}`} 
-            className="w-full h-full flex-shrink-0"
+            className="w-full h-full flex-shrink-0 relative"
             style={{ width: `${100 / images.length}%` }}
           >
-            {/* El placeholder toma el lugar hasta que la imagen real se carga */}
+            {/* Placeholder que se muestra mientras la imagen se carga */}
             <div 
-              className={`w-full h-full bg-secondary/10 flex items-center justify-center transition-opacity duration-300 ${isLoaded[idx] ? 'hidden' : 'flex'}`}
+              className={`absolute inset-0 bg-secondary/10 flex items-center justify-center transition-opacity duration-300 ${isLoaded[idx] ? 'opacity-0' : 'opacity-100'}`}
             >
               <div className="w-6 h-6 border-2 border-primary/30 border-t-transparent rounded-full animate-spin"></div>
             </div>
+            
+            {/* Imagen real con transición suave */}
             <img
               src={image}
               alt={`${courseName} - imagen ${idx + 1}`}
