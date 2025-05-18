@@ -25,7 +25,13 @@ const CourseImageCarousel = ({ images, courseName, courseId }: CourseImageCarous
     if (isTransitioning) return;
     
     setIsTransitioning(true);
-    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
+    
+    // Pre-load previous image to avoid white flash
+    const prevIndex = (currentImageIndex - 1 + images.length) % images.length;
+    const img = new Image();
+    img.src = images[prevIndex];
+    
+    setCurrentImageIndex(prevIndex);
     
     // Reset transition state after animation completes
     setTimeout(() => setIsTransitioning(false), 300);
@@ -36,11 +42,25 @@ const CourseImageCarousel = ({ images, courseName, courseId }: CourseImageCarous
     if (isTransitioning) return;
     
     setIsTransitioning(true);
-    setCurrentImageIndex((prev) => (prev + 1) % images.length);
+    
+    // Pre-load next image to avoid white flash
+    const nextIndex = (currentImageIndex + 1) % images.length;
+    const img = new Image();
+    img.src = images[nextIndex];
+    
+    setCurrentImageIndex(nextIndex);
     
     // Reset transition state after animation completes
     setTimeout(() => setIsTransitioning(false), 300);
   };
+
+  // Pre-load all images when component mounts
+  useEffect(() => {
+    images.forEach((src) => {
+      const img = new Image();
+      img.src = src;
+    });
+  }, [images]);
 
   // Touch event handlers for mobile swipe
   const onTouchStart = (e: React.TouchEvent) => {
@@ -77,7 +97,7 @@ const CourseImageCarousel = ({ images, courseName, courseId }: CourseImageCarous
     }, 5000);
     
     return () => clearInterval(interval);
-  }, [images.length]);
+  }, [images.length, currentImageIndex]);
 
   return (
     <div className="relative overflow-hidden">

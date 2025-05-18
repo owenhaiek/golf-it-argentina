@@ -11,6 +11,7 @@ import {
   CarouselPrevious 
 } from "@/components/ui/carousel";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useEffect } from "react";
 
 interface CoursePhotosProps {
   courseId?: string;
@@ -41,7 +42,7 @@ export const CoursePhotos = ({ courseId }: CoursePhotosProps) => {
   
   // Add main image if it exists
   if (course?.image_url) {
-    allImages.push(course.image_url);
+    allImages.push(course?.image_url);
   }
   
   // Add gallery images if they exist
@@ -77,10 +78,13 @@ export const CoursePhotos = ({ courseId }: CoursePhotosProps) => {
         <CardTitle className="text-lg">Photos</CardTitle>
       </CardHeader>
       <CardContent className="py-4">
-        <Carousel className="w-full">
+        <Carousel className="w-full" opts={{
+          loop: true,
+          align: "start",
+        }}>
           <CarouselContent>
             {allImages.map((imageUrl, index) => (
-              <CarouselItem key={index}>
+              <CarouselItem key={index} className="basis-full md:basis-full">
                 <div className="p-1">
                   <div className="overflow-hidden rounded-lg">
                     <img 
