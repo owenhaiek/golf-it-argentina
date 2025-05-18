@@ -37,18 +37,19 @@ export const formatOpeningHoursForDisplay = (openingHours: OpeningHours | null):
 
 /**
  * Checks if a golf course is currently open based on its opening hours
+ * This is the unified function that will be used across the app
  */
 export const isCurrentlyOpen = (openingHours: OpeningHours | null): boolean => {
   if (!openingHours || !Array.isArray(openingHours)) return false;
   
   // Get current day (0 = Sunday, 1 = Monday, etc.)
-  const today = new Date().getDay();
+  const now = new Date();
+  const today = now.getDay();
   
   // Convert to our array index (0 = Monday, 6 = Sunday)
   const dayIndex = today === 0 ? 6 : today - 1;
   
   // Get current time
-  const now = new Date();
   const currentHour = now.getHours();
   const currentMinute = now.getMinutes();
   
@@ -87,7 +88,8 @@ export const formatOpeningHours = (openingHours: OpeningHours | null, dayIndex?:
   }
   
   // Otherwise return today's hours
-  const today = new Date().getDay();
+  const now = new Date();
+  const today = now.getDay();
   // Convert Sunday (0) to our array index (6)
   const adjustedDay = today === 0 ? 6 : today - 1;
   const todayHours = openingHours[adjustedDay];

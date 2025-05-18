@@ -39,11 +39,12 @@ const CourseCard = ({ course, currentTime }: CourseCardProps) => {
   try {
     courseOpeningHours = course.opening_hours ? JSON.parse(course.opening_hours) : null;
   } catch (error) {
-    console.error("Error parsing opening hours:", error);
+    console.error("Error parsing opening hours for course:", course.name, error);
     courseOpeningHours = null;
   }
   
   const isOpen = isCurrentlyOpen(courseOpeningHours);
+  const formattedHours = formatOpeningHours(courseOpeningHours);
   
   return (
     <Link to={`/course/${course.id}`} className="block">
@@ -86,7 +87,7 @@ const CourseCard = ({ course, currentTime }: CourseCardProps) => {
                       {isOpen ? t("home", "openNow") : t("home", "closed")}
                     </span>
                     <span className="text-muted-foreground ml-1">
-                      • {t("home", "today")} {formatOpeningHours(courseOpeningHours)}
+                      • {formattedHours}
                     </span>
                   </div>
                 </div>
