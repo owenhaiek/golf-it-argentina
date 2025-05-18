@@ -3,10 +3,12 @@ import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useToast } from "@/hooks/use-toast";
 import { Card } from "@/components/ui/card";
-import { Loader2, Plus, Trash } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { GolfCourseTemplate } from "@/pages/AdminGolfCourseManager";
 import { OpeningHours, supabase } from "@/lib/supabase";
 import { defaultOpeningHours, formatOpeningHoursForDisplay } from "@/utils/openingHours";
+import ImageUploader from "@/components/admin/ImageUploader";
+import GalleryUploader from "@/components/admin/GalleryUploader";
 
 interface AdminGolfCourseFormProps {
   initialCourse?: GolfCourseTemplate | null;
@@ -31,8 +33,6 @@ interface FormData {
 const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGolfCourseFormProps) => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [galleryPreviews, setGalleryPreviews] = useState<string[]>([]);
   
   const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm<FormData>({
     defaultValues: {
@@ -50,9 +50,6 @@ const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGolfCourse
       opening_hours: defaultOpeningHours,
     },
   });
-
-  const currentImageUrl = watch("image_url");
-  const currentGalleryUrls = watch("image_gallery");
 
   // Initialize form with existing golf course data if available
   useEffect(() => {
@@ -82,46 +79,8 @@ const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGolfCourse
       } else {
         setValue("opening_hours", defaultOpeningHours);
       }
-      
-      // Set image preview if URL exists
-      if (initialCourse.image_url) {
-        setImagePreview(initialCourse.image_url);
-      }
-      
-      // Set gallery previews if URLs exist
-      if (initialCourse.image_gallery) {
-        const galleryUrls = initialCourse.image_gallery
-          .split(',')
-          .map(url => url.trim())
-          .filter(url => url !== '');
-          
-        setGalleryPreviews(galleryUrls);
-      }
     }
   }, [initialCourse, setValue]);
-  
-  // Update image preview when URL changes
-  useEffect(() => {
-    if (currentImageUrl) {
-      setImagePreview(currentImageUrl);
-    } else {
-      setImagePreview(null);
-    }
-  }, [currentImageUrl]);
-  
-  // Update gallery previews when URLs change
-  useEffect(() => {
-    if (currentGalleryUrls) {
-      const galleryUrls = currentGalleryUrls
-        .split(',')
-        .map(url => url.trim())
-        .filter(url => url !== '');
-        
-      setGalleryPreviews(galleryUrls);
-    } else {
-      setGalleryPreviews([]);
-    }
-  }, [currentGalleryUrls]);
 
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
@@ -172,8 +131,6 @@ const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGolfCourse
       } else {
         // Reset form if no callback provided
         reset();
-        setImagePreview(null);
-        setGalleryPreviews([]);
       }
     } catch (error: any) {
       console.error("Error submitting form:", error);
@@ -208,10 +165,14 @@ const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGolfCourse
   const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
   const openingHours = watch("opening_hours");
   
-  const handleImageError = (index: number) => {
-    const updatedPreviews = [...galleryPreviews];
-    updatedPreviews[index] = 'https://placehold.co/600x400?text=Image+Error';
-    setGalleryPreviews(updatedPreviews);
+  // Handler for image uploads
+  const handleMainImageUploaded = (url: string) => {
+    setValue("image_url", url);
+  };
+  
+  // Handler for gallery uploads
+  const handleGalleryUpdated = (galleryUrlsString: string) => {
+    setValue("image_gallery", galleryUrlsString);
   };
 
   return (
@@ -373,63 +334,31 @@ const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGolfCourse
             <legend className="text-lg font-semibold mb-2">Multimedia</legend>
             
             <div>
-              <label className="block text-sm font-medium mb-1" htmlFor="image_url">
-                URL de Imagen Principal
+              <label className="block text-sm font-medium mb-1">
+                Imagen Principal
               </label>
+              <ImageUploader 
+                onImageUploaded={handleMainImageUploaded}
+                initialImage={watch("image_url")}
+              />
               <input
-                id="image_url"
-                className="w-full p-2 border rounded-md"
-                placeholder="https://ejemplo.com/imagen.jpg"
+                type="hidden"
                 {...register("image_url")}
               />
-              
-              {imagePreview && (
-                <div className="mt-2 relative">
-                  <img
-                    src={imagePreview}
-                    alt="Vista previa"
-                    className="h-40 w-full object-cover rounded-md"
-                    onError={() => setImagePreview('https://placehold.co/600x400?text=Image+Error')}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setValue("image_url", "");
-                      setImagePreview(null);
-                    }}
-                    className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full"
-                  >
-                    <Trash className="h-4 w-4" />
-                  </button>
-                </div>
-              )}
             </div>
             
             <div>
-              <label className="block text-sm font-medium mb-1" htmlFor="image_gallery">
-                Galería de Imágenes (URLs separadas por comas)
+              <label className="block text-sm font-medium mb-1">
+                Galería de Imágenes
               </label>
-              <textarea
-                id="image_gallery"
-                className="w-full p-2 border rounded-md h-20"
-                placeholder="https://ejemplo.com/imagen1.jpg, https://ejemplo.com/imagen2.jpg"
+              <GalleryUploader
+                onGalleryUpdated={handleGalleryUpdated}
+                initialGallery={watch("image_gallery")}
+              />
+              <input
+                type="hidden"
                 {...register("image_gallery")}
               />
-              
-              {galleryPreviews.length > 0 && (
-                <div className="mt-2 grid grid-cols-3 gap-2">
-                  {galleryPreviews.map((url, index) => (
-                    <div key={index} className="relative">
-                      <img
-                        src={url}
-                        alt={`Vista previa ${index + 1}`}
-                        className="h-24 w-full object-cover rounded-md"
-                        onError={() => handleImageError(index)}
-                      />
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
           </fieldset>
         </div>
