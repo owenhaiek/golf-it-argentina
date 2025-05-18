@@ -100,10 +100,13 @@ const ImageUploader = ({
           </button>
         </div>
       ) : (
-        <div className="border-2 border-dashed border-gray-300 rounded-md p-6 flex flex-col items-center justify-center text-gray-500">
+        <div 
+          className="border-2 border-dashed border-gray-300 rounded-md p-6 flex flex-col items-center justify-center text-gray-500"
+          onClick={() => document.getElementById('image-upload')?.click()}
+        >
           <Upload className="h-8 w-8 mb-2" />
-          <p className="mb-2">Haz clic para subir una imagen</p>
-          <span className="text-xs">JPG, PNG, GIF hasta 5MB</span>
+          <p className="mb-2 text-center">Toca para subir una imagen</p>
+          <span className="text-xs text-center">JPG, PNG, GIF hasta 5MB</span>
         </div>
       )}
       

@@ -116,6 +116,14 @@ const GalleryUploader = ({
         </div>
       )}
       
+      <div
+        className="border-2 border-dashed border-gray-300 rounded-md p-4 flex flex-col items-center justify-center text-gray-500 cursor-pointer"
+        onClick={() => document.getElementById('gallery-upload')?.click()}
+      >
+        <Upload className="h-6 w-6 mb-2" />
+        <p className="text-sm text-center">Toca para agregar imágenes a la galería</p>
+      </div>
+      
       <input
         type="file"
         id="gallery-upload"
@@ -124,30 +132,6 @@ const GalleryUploader = ({
         disabled={uploading}
         className="hidden"
       />
-      
-      <label htmlFor="gallery-upload">
-        <Button
-          type="button"
-          variant="outline"
-          disabled={uploading}
-          className="w-full cursor-pointer"
-          asChild
-        >
-          <span>
-            {uploading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Subiendo...
-              </>
-            ) : (
-              <>
-                <Upload className="mr-2 h-4 w-4" />
-                Agregar imagen a la galería
-              </>
-            )}
-          </span>
-        </Button>
-      </label>
     </div>
   );
 };
