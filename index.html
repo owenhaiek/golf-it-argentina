@@ -10,6 +10,29 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <title>Mi Golf App</title>
     <script type="module" src="https://unpkg.com/@lovable.dev/viewer@latest"></script>
+    <style>
+      /* Hide browser navigation on mobile devices */
+      @media screen and (max-width: 768px) {
+        body {
+          /* Remove margins that might create space for browser navigation */
+          margin: 0;
+          padding: 0;
+          /* Ensure content takes full screen */
+          width: 100vw;
+          height: 100vh;
+          /* Apply padding to account for notches and home indicators */
+          padding-top: env(safe-area-inset-top);
+          padding-bottom: env(safe-area-inset-bottom);
+        }
+        
+        #root {
+          /* Make sure the app content takes the full available space */
+          height: 100%;
+          overflow-y: auto;
+          -webkit-overflow-scrolling: touch;
+        }
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>

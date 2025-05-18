@@ -10,6 +10,7 @@ import {
   CarouselNext, 
   CarouselPrevious 
 } from "@/components/ui/carousel";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface CoursePhotosProps {
   courseId?: string;
@@ -32,6 +33,8 @@ export const CoursePhotos = ({ courseId }: CoursePhotosProps) => {
     },
     enabled: !!courseId
   });
+
+  const isMobile = useIsMobile();
 
   // Extract all image URLs from both the main image and the gallery
   const allImages = [];
@@ -66,6 +69,8 @@ export const CoursePhotos = ({ courseId }: CoursePhotosProps) => {
     );
   }
 
+  const showControls = allImages.length > 1 && !isMobile;
+
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -91,14 +96,18 @@ export const CoursePhotos = ({ courseId }: CoursePhotosProps) => {
               </CarouselItem>
             ))}
           </CarouselContent>
-          <CarouselPrevious 
-            className="left-2 lg:left-4"
-            variant="outline"
-          />
-          <CarouselNext 
-            className="right-2 lg:right-4"
-            variant="outline"
-          />
+          {showControls && (
+            <>
+              <CarouselPrevious 
+                className="left-2 lg:left-4"
+                variant="outline"
+              />
+              <CarouselNext 
+                className="right-2 lg:right-4"
+                variant="outline"
+              />
+            </>
+          )}
         </Carousel>
       </CardContent>
     </Card>
