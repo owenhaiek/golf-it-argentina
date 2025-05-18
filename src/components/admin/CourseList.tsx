@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -160,14 +161,8 @@ const CourseList = ({ onEditCourse }: CourseListProps) => {
           variant: "default",
         });
 
-        // Adjust pagination if needed
-        if (courses.length <= 1 && currentPage > 1) {
-          // If we just deleted the last item on the page, go back a page
-          setCurrentPage(prevPage => prevPage - 1);
-        } else {
-          // Otherwise refresh the current page to get updated data
-          fetchCourses(currentPage, searchQuery);
-        }
+        // Force refetch courses instead of trying to manage state manually
+        fetchCourses(currentPage, searchQuery);
       } catch (error: any) {
         console.error("Error deleting course:", error);
         toast({

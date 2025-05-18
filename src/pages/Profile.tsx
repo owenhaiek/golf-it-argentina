@@ -121,7 +121,7 @@ const Profile = () => {
       // Return a context object with the snapshot
       return { previousRounds };
     },
-    onSuccess: async () => {
+    onSuccess: async (roundId) => {
       console.log("Round successfully deleted, updating UI");
       
       // Show success toast
