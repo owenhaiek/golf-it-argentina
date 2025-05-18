@@ -14,11 +14,17 @@ const CourseImageCarousel = ({ images, courseName, courseId }: CourseImageCarous
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isLoaded, setIsLoaded] = useState<boolean[]>([]);
   const carouselRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
 
   // Minimum swipe distance required (in px)
   const minSwipeDistance = 50;
+
+  // Initialize loaded state for all images
+  useEffect(() => {
+    setIsLoaded(new Array(images.length).fill(false));
+  }, [images.length]);
 
   const handlePrevImage = (e?: React.MouseEvent) => {
     if (e) e.preventDefault();
@@ -28,8 +34,6 @@ const CourseImageCarousel = ({ images, courseName, courseId }: CourseImageCarous
     
     // Pre-load previous image to avoid white flash
     const prevIndex = (currentImageIndex - 1 + images.length) % images.length;
-    const img = new Image();
-    img.src = images[prevIndex];
     
     setCurrentImageIndex(prevIndex);
     
@@ -45,8 +49,6 @@ const CourseImageCarousel = ({ images, courseName, courseId }: CourseImageCarous
     
     // Pre-load next image to avoid white flash
     const nextIndex = (currentImageIndex + 1) % images.length;
-    const img = new Image();
-    img.src = images[nextIndex];
     
     setCurrentImageIndex(nextIndex);
     
@@ -56,10 +58,31 @@ const CourseImageCarousel = ({ images, courseName, courseId }: CourseImageCarous
 
   // Pre-load all images when component mounts
   useEffect(() => {
-    images.forEach((src) => {
-      const img = new Image();
-      img.src = src;
+    const imagePromises = images.map((src, index) => {
+      return new Promise<void>((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          setIsLoaded(prev => {
+            const newState = [...prev];
+            newState[index] = true;
+            return newState;
+          });
+          resolve();
+        };
+        img.onerror = () => {
+          // Mark as loaded even on error to avoid infinite loading state
+          setIsLoaded(prev => {
+            const newState = [...prev];
+            newState[index] = true;
+            return newState;
+          });
+          resolve();
+        };
+        img.src = src;
+      });
     });
+
+    Promise.all(imagePromises);
   }, [images]);
 
   // Touch event handlers for mobile swipe
@@ -118,12 +141,30 @@ const CourseImageCarousel = ({ images, courseName, courseId }: CourseImageCarous
             className="w-full h-full flex-shrink-0"
             style={{ width: `${100 / images.length}%` }}
           >
+            {/* El placeholder toma el lugar hasta que la imagen real se carga */}
+            <div 
+              className={`w-full h-full bg-secondary/10 flex items-center justify-center transition-opacity duration-300 ${isLoaded[idx] ? 'hidden' : 'flex'}`}
+            >
+              <div className="w-6 h-6 border-2 border-primary/30 border-t-transparent rounded-full animate-spin"></div>
+            </div>
             <img
               src={image}
               alt={`${courseName} - imagen ${idx + 1}`}
-              className="w-full h-full object-cover"
+              className={`w-full h-full object-cover transition-opacity duration-300 ${isLoaded[idx] ? 'opacity-100' : 'opacity-0'}`}
+              onLoad={() => {
+                setIsLoaded(prev => {
+                  const newState = [...prev];
+                  newState[idx] = true;
+                  return newState;
+                });
+              }}
               onError={(e) => {
                 (e.target as HTMLImageElement).src = 'https://placehold.co/600x400?text=Image+Error';
+                setIsLoaded(prev => {
+                  const newState = [...prev];
+                  newState[idx] = true;
+                  return newState;
+                });
               }}
             />
           </div>

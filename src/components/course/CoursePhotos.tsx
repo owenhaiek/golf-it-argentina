@@ -11,13 +11,15 @@ import {
   CarouselPrevious 
 } from "@/components/ui/carousel";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 interface CoursePhotosProps {
   courseId?: string;
 }
 
 export const CoursePhotos = ({ courseId }: CoursePhotosProps) => {
+  const [imagesLoaded, setImagesLoaded] = useState<boolean[]>([]);
+  
   const { data: course } = useQuery({
     queryKey: ['course-photos', courseId],
     queryFn: async () => {
@@ -54,6 +56,30 @@ export const CoursePhotos = ({ courseId }: CoursePhotosProps) => {
       
     allImages.push(...galleryImages);
   }
+  
+  // Initialize loaded state for images
+  useEffect(() => {
+    if (allImages.length) {
+      setImagesLoaded(new Array(allImages.length).fill(false));
+    }
+  }, [allImages.length]);
+
+  // Preload images
+  useEffect(() => {
+    if (!allImages.length) return;
+    
+    allImages.forEach((src, index) => {
+      const img = new Image();
+      img.onload = () => {
+        setImagesLoaded(prev => {
+          const newState = [...prev];
+          newState[index] = true;
+          return newState;
+        });
+      };
+      img.src = src;
+    });
+  }, [allImages]);
 
   // If there are no images, show the placeholder
   if (allImages.length === 0) {
@@ -81,18 +107,37 @@ export const CoursePhotos = ({ courseId }: CoursePhotosProps) => {
         <Carousel className="w-full" opts={{
           loop: true,
           align: "start",
+          dragFree: true
         }}>
           <CarouselContent>
             {allImages.map((imageUrl, index) => (
               <CarouselItem key={index} className="basis-full md:basis-full">
                 <div className="p-1">
-                  <div className="overflow-hidden rounded-lg">
+                  <div className="overflow-hidden rounded-lg relative">
+                    {/* Loader placeholder */}
+                    {!imagesLoaded[index] && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-secondary/10">
+                        <div className="w-8 h-8 border-2 border-primary/30 border-t-transparent rounded-full animate-spin"></div>
+                      </div>
+                    )}
                     <img 
                       src={imageUrl} 
                       alt={`Course photo ${index + 1}`} 
-                      className="w-full h-64 object-cover"
+                      className={`w-full h-64 object-cover transition-opacity duration-300 ${imagesLoaded[index] ? 'opacity-100' : 'opacity-0'}`}
+                      onLoad={() => {
+                        setImagesLoaded(prev => {
+                          const newState = [...prev];
+                          newState[index] = true;
+                          return newState;
+                        });
+                      }}
                       onError={(e) => {
                         (e.target as HTMLImageElement).src = 'https://placehold.co/600x400?text=Image+Error';
+                        setImagesLoaded(prev => {
+                          const newState = [...prev];
+                          newState[index] = true;
+                          return newState;
+                        });
                       }}
                     />
                   </div>
