@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -15,7 +16,7 @@ import CourseHoleDetails from "@/components/course/CourseHoleDetails";
 import CourseWeather from "@/components/course/CourseWeather";
 import CourseLeaderboard from "@/components/course/CourseLeaderboard";
 import CourseStats from "@/components/course/CourseStats";
-import formatOpeningHours from "@/utils/formatOpeningHours";
+import { formatOpeningHoursForDisplay } from "@/utils/openingHours";
 import { format } from "date-fns";
 
 const Course = () => {
@@ -127,10 +128,25 @@ const Course = () => {
     enabled: !!id,
   });
 
-  // Format opening hours
-  const formattedHours = courseData?.opening_hours 
-    ? formatOpeningHours(courseData.opening_hours) 
-    : [];
+  // Parse opening hours from JSON if needed
+  const parseOpeningHours = () => {
+    if (!courseData?.opening_hours) return null;
+    
+    if (typeof courseData.opening_hours === 'string') {
+      try {
+        return JSON.parse(courseData.opening_hours);
+      } catch (error) {
+        console.error("Error parsing opening hours:", error);
+        return null;
+      }
+    }
+    
+    return courseData.opening_hours;
+  };
+
+  // Format opening hours for display
+  const openingHoursData = parseOpeningHours();
+  const formattedOpeningHours = openingHoursData ? formatOpeningHoursForDisplay(openingHoursData) : '';
 
   // Calculate average rating
   const averageRating = reviews?.length 
@@ -170,6 +186,20 @@ const Course = () => {
   }, [courseData?.name]);
 
   const isLoading = courseLoading || roundsLoading || allRoundsLoading || reviewsLoading;
+
+  // Format opening hours to display for the day
+  const getDayOpeningHours = () => {
+    if (!openingHoursData || !Array.isArray(openingHoursData)) return "Horario no disponible";
+    
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const today = new Date().getDay(); // 0 is Sunday
+    const adjustedDay = today === 0 ? 6 : today - 1; // Convert to 0-6 where 0 is Monday
+    
+    const dayData = openingHoursData[adjustedDay];
+    if (!dayData || !dayData.isOpen) return "Cerrado hoy";
+    
+    return `${dayData.open} - ${dayData.close}`;
+  };
 
   return (
     <div className="pb-20">
@@ -260,16 +290,21 @@ const Course = () => {
             </div>
 
             {/* Opening hours */}
-            {formattedHours.length > 0 && (
+            {openingHoursData && Array.isArray(openingHoursData) && (
               <div className="mt-4">
                 <h3 className="font-medium mb-2">Opening Hours</h3>
                 <div className="grid grid-cols-1 gap-1">
-                  {formattedHours.map((day, index) => (
-                    <div key={index} className="flex justify-between text-sm">
-                      <span className="font-medium">{day.day}</span>
-                      <span>{day.hours}</span>
-                    </div>
-                  ))}
+                  {openingHoursData.map((day, index) => {
+                    const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+                    return (
+                      <div key={index} className="flex justify-between text-sm">
+                        <span className="font-medium">{dayNames[index]}</span>
+                        <span>
+                          {day && day.isOpen ? `${day.open} - ${day.close}` : 'Closed'}
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}

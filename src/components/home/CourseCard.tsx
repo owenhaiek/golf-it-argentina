@@ -29,22 +29,28 @@ const CourseCard = ({ course, currentTime }: CourseCardProps) => {
       images.push(...galleryImages);
     }
     
-    // If no images, return a placeholder
+    // If no images, return an empty array
     return images.length > 0 ? images : [];
   };
 
   const courseImages = getCourseImages(course);
   
-  let courseOpeningHours;
-  try {
-    courseOpeningHours = course.opening_hours ? JSON.parse(course.opening_hours) : null;
-  } catch (error) {
-    console.error("Error parsing opening hours for course:", course.name, error);
-    courseOpeningHours = null;
-  }
+  // Parse opening_hours if it's a string
+  const parseOpeningHours = () => {
+    try {
+      if (typeof course.opening_hours === 'string') {
+        return JSON.parse(course.opening_hours);
+      }
+      return course.opening_hours;
+    } catch (error) {
+      console.error("Error parsing opening hours for course:", course.name, error);
+      return null;
+    }
+  };
   
-  const isOpen = isCurrentlyOpen(courseOpeningHours);
-  const formattedHours = formatOpeningHours(courseOpeningHours);
+  const openingHoursData = parseOpeningHours();
+  const isOpen = isCurrentlyOpen(openingHoursData);
+  const formattedHours = formatOpeningHours(openingHoursData);
   
   return (
     <Link to={`/course/${course.id}`} className="block">

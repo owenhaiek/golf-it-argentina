@@ -15,6 +15,7 @@ const CourseImageCarousel = ({ images, courseName, courseId }: CourseImageCarous
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isLoaded, setIsLoaded] = useState<boolean[]>([]);
+  const [preloadedImages, setPreloadedImages] = useState<HTMLImageElement[]>([]);
   const carouselRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
 
@@ -28,7 +29,7 @@ const CourseImageCarousel = ({ images, courseName, courseId }: CourseImageCarous
 
   const handlePrevImage = (e?: React.MouseEvent) => {
     if (e) e.preventDefault();
-    if (isTransitioning) return;
+    if (isTransitioning || !images.length) return;
     
     setIsTransitioning(true);
     
@@ -43,7 +44,7 @@ const CourseImageCarousel = ({ images, courseName, courseId }: CourseImageCarous
 
   const handleNextImage = (e?: React.MouseEvent) => {
     if (e) e.preventDefault();
-    if (isTransitioning) return;
+    if (isTransitioning || !images.length) return;
     
     setIsTransitioning(true);
     
@@ -60,30 +61,39 @@ const CourseImageCarousel = ({ images, courseName, courseId }: CourseImageCarous
   useEffect(() => {
     if (!images.length) return;
     
-    const preloadImages = () => {
-      images.forEach((src, index) => {
-        if (!src) return;
-        
-        const img = new Image();
-        img.onload = () => {
-          setIsLoaded(prev => {
-            const newState = [...prev];
-            newState[index] = true;
-            return newState;
-          });
-        };
-        img.onerror = () => {
-          setIsLoaded(prev => {
-            const newState = [...prev];
-            newState[index] = true;
-            return newState;
-          });
-        };
-        img.src = src;
-      });
-    };
+    const imageObjects: HTMLImageElement[] = [];
     
-    preloadImages();
+    images.forEach((src, index) => {
+      if (!src) return;
+      
+      const img = new Image();
+      
+      img.onload = () => {
+        setIsLoaded(prev => {
+          const newState = [...prev];
+          newState[index] = true;
+          return newState;
+        });
+      };
+      
+      img.onerror = () => {
+        setIsLoaded(prev => {
+          const newState = [...prev];
+          newState[index] = true;
+          return newState;
+        });
+      };
+      
+      img.src = src;
+      imageObjects.push(img);
+    });
+    
+    setPreloadedImages(imageObjects);
+    
+    return () => {
+      // Clean up preloaded images on unmount
+      setPreloadedImages([]);
+    };
   }, [images]);
 
   // Touch event handlers for mobile swipe
@@ -142,14 +152,14 @@ const CourseImageCarousel = ({ images, courseName, courseId }: CourseImageCarous
             className="w-full h-full flex-shrink-0 relative"
             style={{ width: `${100 / images.length}%` }}
           >
-            {/* Placeholder que se muestra mientras la imagen se carga */}
+            {/* Placeholder while image loads */}
             <div 
               className={`absolute inset-0 bg-secondary/10 flex items-center justify-center transition-opacity duration-300 ${isLoaded[idx] ? 'opacity-0' : 'opacity-100'}`}
             >
               <div className="w-6 h-6 border-2 border-primary/30 border-t-transparent rounded-full animate-spin"></div>
             </div>
             
-            {/* Imagen real con transición suave */}
+            {/* The actual image with smooth transition */}
             <img
               src={image}
               alt={`${courseName} - imagen ${idx + 1}`}
