@@ -91,8 +91,7 @@ export const useProfileQueries = () => {
       const { error } = await supabase
         .from('rounds')
         .delete()
-        .eq('id', roundId)
-        .eq('user_id', user.id); // Security: ensure user can only delete their own rounds
+        .eq('id', roundId);
       
       if (error) {
         console.error("Delete round error:", error);
@@ -118,7 +117,7 @@ export const useProfileQueries = () => {
       // Return a context object with the snapshot
       return { previousRounds };
     },
-    onSuccess: async (roundId) => {
+    onSuccess: (roundId) => {
       console.log("Round successfully deleted, updating UI");
       
       // Show success toast
@@ -128,22 +127,21 @@ export const useProfileQueries = () => {
       });
       
       // Force refetch to ensure UI is in sync with server
-      await refetchRounds();
+      queryClient.invalidateQueries({
+        queryKey: ['rounds', user?.id]
+      });
       
       // Also invalidate profile to update any stats that might depend on rounds
       queryClient.invalidateQueries({
         queryKey: ['profile', user?.id]
       });
     },
-    onError: (error, _, context: any) => {
-      console.error(`Error deleting round:`, error);
+    onError: (error, roundId, context: any) => {
+      console.error(`Error deleting round ${roundId}:`, error);
       
       // Revert to the previous state if available
       if (context?.previousRounds) {
         queryClient.setQueryData(['rounds', user?.id], context.previousRounds);
-      } else {
-        // Force refetch if we don't have a previous state
-        refetchRounds();
       }
       
       toast({

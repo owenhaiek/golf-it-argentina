@@ -4,21 +4,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { Card } from "@/components/ui/card";
-import { Edit, Trash2, Search } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { Edit, Trash2, Search, Loader2 } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
 import { Input } from "@/components/ui/input";
 import { GolfCourseTemplate } from "@/pages/AdminGolfCourseManager";
-import { OpeningHours } from "@/lib/supabase";
-
-interface Course {
-  id: string;
-  name: string;
-  holes: number;
-  par: number;
-  address: string;
-  state: string;
-}
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 interface CourseListProps {
   onEditCourse: (course: GolfCourseTemplate) => void;
@@ -80,99 +71,81 @@ const CourseList = ({ onEditCourse }: CourseListProps) => {
   };
 
   const handleDeleteCourse = async (id: string) => {
-    if (window.confirm("¿Estás seguro que deseas eliminar este campo de golf?")) {
-      setDeletingCourse(id);
-      try {
-        console.log(`Attempting to delete course with ID: ${id}`);
+    setDeletingCourse(id);
+    try {
+      console.log(`Attempting to delete course with ID: ${id}`);
+      
+      // Check if there are related records in the rounds table
+      const { data: relatedRounds, error: roundsError } = await supabase
+        .from("rounds")
+        .select("id")
+        .eq("course_id", id);
         
-        // Check if there are related records in the rounds table
-        const { data: relatedRounds, error: roundsError } = await supabase
+      if (roundsError) throw roundsError;
+      
+      // Check if there are related reservations
+      const { data: relatedReservations, error: reservationsError } = await supabase
+        .from("reservations")
+        .select("id")
+        .eq("course_id", id);
+        
+      if (reservationsError) throw reservationsError;
+      
+      // If there are related records, handle them by deleting
+      if (relatedRounds && relatedRounds.length > 0) {
+        console.log(`Deleting ${relatedRounds.length} related rounds`);
+        const { error: deleteRoundsError } = await supabase
           .from("rounds")
-          .select("id")
-          .eq("course_id", id);
-          
-        if (roundsError) throw roundsError;
-        
-        // Check if there are related reservations
-        const { data: relatedReservations, error: reservationsError } = await supabase
-          .from("reservations")
-          .select("id")
-          .eq("course_id", id);
-          
-        if (reservationsError) throw reservationsError;
-        
-        // If there are related records, prompt the user
-        if ((relatedRounds && relatedRounds.length > 0) || 
-            (relatedReservations && relatedReservations.length > 0)) {
-          const hasRounds = relatedRounds && relatedRounds.length > 0;
-          const hasReservations = relatedReservations && relatedReservations.length > 0;
-          
-          let warningMessage = "Este campo de golf tiene ";
-          if (hasRounds) warningMessage += `${relatedRounds.length} ronda(s)`;
-          if (hasRounds && hasReservations) warningMessage += " y ";
-          if (hasReservations) warningMessage += `${relatedReservations.length} reserva(s)`;
-          warningMessage += " asociadas. Si lo elimina, se eliminarán también estos datos. ¿Desea continuar?";
-          
-          if (!window.confirm(warningMessage)) {
-            setDeletingCourse(null);
-            return;
-          }
-          
-          // Delete related rounds
-          if (hasRounds) {
-            const { error: deleteRoundsError } = await supabase
-              .from("rounds")
-              .delete()
-              .eq("course_id", id);
-              
-            if (deleteRoundsError) throw deleteRoundsError;
-          }
-          
-          // Delete related reservations
-          if (hasReservations) {
-            const { error: deleteReservationsError } = await supabase
-              .from("reservations")
-              .delete()
-              .eq("course_id", id);
-              
-            if (deleteReservationsError) throw deleteReservationsError;
-          }
-        }
-        
-        // Now delete the course
-        const { error } = await supabase
-          .from("golf_courses")
           .delete()
-          .eq("id", id);
-        
-        if (error) {
-          console.error("Error from delete operation:", error);
-          throw error;
-        }
-        
-        console.log(`Successfully deleted course with ID: ${id}`);
-        
-        // Update local state to reflect the deletion
-        setCourses(prevCourses => prevCourses.filter(course => course.id !== id));
-        
-        toast({
-          title: "Éxito",
-          description: "Campo de golf eliminado correctamente",
-          variant: "default",
-        });
-
-        // Force refetch courses instead of trying to manage state manually
-        fetchCourses(currentPage, searchQuery);
-      } catch (error: any) {
-        console.error("Error deleting course:", error);
-        toast({
-          title: "Error",
-          description: `No se pudo eliminar el campo: ${error.message}`,
-          variant: "destructive",
-        });
-      } finally {
-        setDeletingCourse(null);
+          .eq("course_id", id);
+          
+        if (deleteRoundsError) throw deleteRoundsError;
       }
+      
+      // Delete related reservations
+      if (relatedReservations && relatedReservations.length > 0) {
+        console.log(`Deleting ${relatedReservations.length} related reservations`);
+        const { error: deleteReservationsError } = await supabase
+          .from("reservations")
+          .delete()
+          .eq("course_id", id);
+          
+        if (deleteReservationsError) throw deleteReservationsError;
+      }
+      
+      // Now delete the course
+      const { error } = await supabase
+        .from("golf_courses")
+        .delete()
+        .eq("id", id);
+      
+      if (error) {
+        console.error("Error from delete operation:", error);
+        throw error;
+      }
+      
+      console.log(`Successfully deleted course with ID: ${id}`);
+      
+      // Update local state to reflect the deletion
+      setCourses(prevCourses => prevCourses.filter(course => course.id !== id));
+      
+      toast({
+        title: "Éxito",
+        description: "Campo de golf eliminado correctamente",
+        variant: "default",
+      });
+
+      // Refetch courses to make sure we're showing the correct data
+      await fetchCourses(currentPage, searchQuery);
+    } catch (error: any) {
+      console.error("Error deleting course:", error);
+      toast({
+        title: "Error",
+        description: `No se pudo eliminar el campo: ${error.message}`,
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingCourse(null);
     }
   };
 
@@ -231,18 +204,50 @@ const CourseList = ({ onEditCourse }: CourseListProps) => {
                           <Edit className="h-4 w-4 mr-1" />
                           <span className="hidden sm:inline">Editar</span>
                         </Button>
-                        <Button 
-                          variant="destructive" 
-                          size="sm"
-                          onClick={() => handleDeleteCourse(course.id || '')}
-                          disabled={deletingCourse === course.id}
-                          className="bg-red-600 hover:bg-red-700 text-white"
-                        >
-                          <Trash2 className="h-4 w-4 mr-1" />
-                          <span className="hidden sm:inline">
-                            {deletingCourse === course.id ? "Eliminando..." : "Eliminar"}
-                          </span>
-                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button 
+                              variant="destructive" 
+                              size="sm"
+                              disabled={deletingCourse === course.id}
+                              className="bg-red-600 hover:bg-red-700 text-white"
+                            >
+                              {deletingCourse === course.id ? (
+                                <>
+                                  <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                                  <span className="hidden sm:inline">Eliminando...</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Trash2 className="h-4 w-4 mr-1" />
+                                  <span className="hidden sm:inline">Eliminar</span>
+                                </>
+                              )}
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Eliminar Campo de Golf</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Esta acción no se puede deshacer. ¿Estás seguro que deseas eliminar este campo de golf?
+                                {course.id && (
+                                  <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-sm">
+                                    <strong>Nota:</strong> Si hay rondas o reservas asociadas a este campo, también serán eliminadas.
+                                  </div>
+                                )}
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDeleteCourse(course.id || '')}
+                                className="bg-red-600 hover:bg-red-700"
+                              >
+                                Eliminar
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     </TableCell>
                   </TableRow>

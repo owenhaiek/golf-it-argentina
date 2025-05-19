@@ -44,6 +44,12 @@ const RoundCard = ({ round, onDeleteRound, isDeleting }: RoundCardProps) => {
     ScoreIcon = Check;
   }
 
+  const handleDelete = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onDeleteRound(round.id);
+  };
+
   return (
     <motion.div
       layout
@@ -130,7 +136,7 @@ const RoundCard = ({ round, onDeleteRound, isDeleting }: RoundCardProps) => {
             <AlertDialogFooter>
               <AlertDialogCancel>{t("common", "cancel")}</AlertDialogCancel>
               <AlertDialogAction 
-                onClick={() => onDeleteRound(round.id)}
+                onClick={handleDelete}
                 className="bg-red-500 hover:bg-red-600"
               >
                 {t("profile", "deleteRound")}
