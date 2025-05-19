@@ -5,41 +5,31 @@ import App from './App.tsx'
 import './index.css'
 import GolfBallLoader from './components/ui/GolfBallLoader.tsx'
 
-// Add viewport meta for hiding browser UI
-const metaViewport = document.createElement('meta');
-metaViewport.name = 'viewport';
-metaViewport.content = 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui, viewport-fit=cover';
-document.head.appendChild(metaViewport);
-
-// Add apple-mobile-web-app-capable meta for iOS
-const appleMeta = document.createElement('meta');
-appleMeta.name = 'apple-mobile-web-app-capable';
-appleMeta.content = 'yes';
-document.head.appendChild(appleMeta);
-
-// Add apple-mobile-web-app-status-bar-style meta for iOS
-const statusBarMeta = document.createElement('meta');
-statusBarMeta.name = 'apple-mobile-web-app-status-bar-style';
-statusBarMeta.content = 'black-translucent';
-document.head.appendChild(statusBarMeta);
-
-// Add mobile-web-app-capable meta for Android
-const androidMeta = document.createElement('meta');
-androidMeta.name = 'mobile-web-app-capable';
-androidMeta.content = 'yes';
-document.head.appendChild(androidMeta);
-
 // Root component with loading state
 const Root = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Simular un tiempo de carga mínimo para mostrar la animación
-    const timer = setTimeout(() => {
+    // Preload key assets and resources
+    const preloadAssets = async () => {
+      // Ensure a minimum display time for the loading animation
+      const minDelay = new Promise(resolve => setTimeout(resolve, 2500));
+      
+      // Wait for initial page resources to load
+      const pageLoaded = new Promise(resolve => {
+        if (document.readyState === 'complete') {
+          resolve(true);
+        } else {
+          window.addEventListener('load', () => resolve(true), { once: true });
+        }
+      });
+      
+      // Wait for both minimum delay and page load
+      await Promise.all([minDelay, pageLoaded]);
       setIsLoading(false);
-    }, 2000);
-
-    return () => clearTimeout(timer);
+    };
+    
+    preloadAssets();
   }, []);
 
   return (
