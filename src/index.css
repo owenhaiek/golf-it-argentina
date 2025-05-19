@@ -81,6 +81,29 @@
       "rlig" 1,
       "calt" 1;
   }
+  
+  /* Hide browser UI on mobile devices */
+  @media screen and (display-mode: standalone) {
+    /* For iOS */
+    html {
+      -webkit-overflow-scrolling: touch;
+      height: 100%;
+    }
+
+    body {
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    #root {
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      height: 100%;
+      width: 100%;
+    }
+  }
 }
 
 @layer components {

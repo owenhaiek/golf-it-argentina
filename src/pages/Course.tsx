@@ -279,6 +279,18 @@ const Course = () => {
         </div>
       </div>
 
+      {/* Contact Button - Moved below the main image */}
+      <div className="mb-6">
+        <Button
+          onClick={handleContact}
+          className="w-full bg-primary shadow-md"
+          size="lg"
+        >
+          <Phone className="mr-2 h-5 w-5" />
+          {t("course", "getInTouch")}
+        </Button>
+      </div>
+
       {/* Main content */}
       <div className="space-y-6">
         {/* Course details card with prominently displayed address */}
@@ -453,16 +465,6 @@ const Course = () => {
             longitude={courseData.longitude} 
           />
         )}
-
-        {/* Contact Button - moved to bottom */}
-        <Button
-          onClick={handleContact}
-          className="w-full bg-primary mt-6 fixed bottom-20 left-0 right-0 mx-auto max-w-md z-10 shadow-lg"
-          size="lg"
-        >
-          <Phone className="mr-2 h-5 w-5" />
-          {t("course", "getInTouch")}
-        </Button>
       </div>
     </div>
   );
