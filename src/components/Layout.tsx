@@ -3,6 +3,7 @@ import { Outlet } from "react-router-dom";
 import { Navigation } from "./Navigation";
 import { useEffect, useState, useRef } from "react";
 import { GolfLoader } from "./ui/GolfLoader";
+import { motion } from "framer-motion";
 
 export const Layout = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -42,7 +43,7 @@ export const Layout = () => {
     };
   }, []);
 
-  // Improved pull-to-refresh functionality
+  // Improved pull-to-refresh functionality with smoother animation
   useEffect(() => {
     const handleTouchStart = (e: TouchEvent) => {
       // Only start pull tracking if we're at the top of the page
@@ -58,7 +59,8 @@ export const Layout = () => {
       
       if (mainRef.current && mainRef.current.scrollTop <= 0) {
         const currentY = e.touches[0].clientY;
-        const newPullDistance = Math.max(0, currentY - startY);
+        // Use square root for more natural feeling resistance
+        const newPullDistance = Math.sqrt(Math.max(0, currentY - startY) * 8);
         
         setPullDistance(newPullDistance);
         
@@ -66,11 +68,18 @@ export const Layout = () => {
           e.preventDefault();
         }
         
-        if (newPullDistance > 120 && !isRefreshing) {
+        // Lower threshold for refresh (100 instead of 120)
+        if (newPullDistance > 100 && !isRefreshing) {
+          // Add haptic feedback if available
+          if (window.navigator && window.navigator.vibrate) {
+            window.navigator.vibrate(50);
+          }
+          
           setIsRefreshing(true);
+          // Shorter delay for reload (300ms feels more responsive)
           setTimeout(() => {
             window.location.reload();
-          }, 400);
+          }, 300);
         }
       } else {
         setIsPulling(false);
@@ -82,7 +91,7 @@ export const Layout = () => {
       setIsPulling(false);
       setPullDistance(0);
       
-      if (pullDistance < 120) {
+      if (pullDistance < 100) {
         setIsRefreshing(false);
       }
     };
@@ -103,20 +112,28 @@ export const Layout = () => {
 
   return (
     <div className="fixed inset-0 flex flex-col bg-background" style={{ height: 'var(--app-height, 100%)' }}>
+      {/* Improved pull indicator */}
       {pullDistance > 0 && !isRefreshing && (
-        <div 
+        <motion.div 
           className="absolute top-0 left-0 right-0 flex items-center justify-center z-40 pointer-events-none"
-          style={{ 
-            height: `${Math.min(pullDistance * 0.5, 40)}px`,
-            opacity: Math.min(pullDistance / 120, 0.4)
+          initial={{ opacity: 0 }}
+          animate={{ 
+            opacity: Math.min(pullDistance / 100, 0.7),
+            height: `${Math.min(pullDistance * 0.6, 50)}px`
           }}
         >
-          <div className="w-4 h-4 rounded-full border-2 border-primary/30 border-t-transparent animate-spin" />
-        </div>
+          <div className="w-5 h-5 rounded-full border-2 border-primary/40 border-t-transparent animate-spin" />
+        </motion.div>
       )}
       
+      {/* Enhanced refreshing overlay */}
       {isRefreshing && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-background/60 backdrop-blur-sm">
+        <div 
+          className="fixed inset-0 flex items-center justify-center z-50 bg-background/70 backdrop-blur-sm"
+          style={{
+            animation: 'fadeIn 0.3s ease-out'
+          }}
+        >
           <GolfLoader />
         </div>
       )}

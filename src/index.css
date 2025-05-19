@@ -126,9 +126,9 @@
     padding-right: env(safe-area-inset-right, 1rem);
   }
   
-  /* Animation utilities */
+  /* Animation utilities - Improved */
   .animate-fadeIn {
-    animation: fadeIn 0.3s ease-in-out;
+    animation: fadeIn 0.5s ease-out;
   }
   
   @keyframes fadeIn {
@@ -137,7 +137,28 @@
   }
   
   .animate-in {
-    animation: fadeIn 0.3s ease-in-out;
+    animation: fadeIn 0.4s ease-out;
+  }
+  
+  /* Added animation keyframes for smoother transitions */
+  @keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-5px); }
+    100% { transform: translateY(0px); }
+  }
+  
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+  
+  @keyframes pulse-subtle {
+    0% { opacity: 0.8; }
+    50% { opacity: 1; }
+    100% { opacity: 0.8; }
+  }
+  
+  .animate-pulse-subtle {
+    animation: pulse-subtle 2s ease-in-out infinite;
   }
 }
 
@@ -154,4 +175,13 @@
   .fixed-bottom-safe {
     bottom: env(safe-area-inset-bottom);
   }
+}
+
+/* Add smooth transition for loader */
+body {
+  transition: opacity 0.3s ease-in-out;
+}
+
+.transition-opacity {
+  transition: opacity 0.3s ease-in-out;
 }
