@@ -27,6 +27,8 @@
           /* Apply padding to account for notches and home indicators on newer devices */
           padding-top: env(safe-area-inset-top);
           padding-bottom: env(safe-area-inset-bottom);
+          /* Fix height issues on iOS Safari */
+          -webkit-text-size-adjust: 100%;
         }
         
         #root {

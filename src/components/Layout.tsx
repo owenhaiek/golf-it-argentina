@@ -11,25 +11,34 @@ export const Layout = () => {
   const [isPulling, setIsPulling] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
 
-  // Add meta viewport update for fullscreen
+  // Add app height variable to fix mobile viewport issues
   useEffect(() => {
+    const setAppHeight = () => {
+      document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
+    };
+    
+    // Set initial height
+    setAppHeight();
+    
+    // Update height on resize
+    window.addEventListener('resize', setAppHeight);
+    
+    // Update height on orientation change
+    window.addEventListener('orientationchange', setAppHeight);
+    
+    // Add iOS specific meta tags for fullscreen
     const meta = document.querySelector('meta[name="viewport"]');
     if (meta) {
       meta.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, minimal-ui, standalone');
     }
     
-    // Add iOS specific meta tags for fullscreen
-    const appleMetaTag = document.createElement('meta');
-    appleMetaTag.setAttribute('name', 'apple-mobile-web-app-capable');
-    appleMetaTag.setAttribute('content', 'yes');
-    document.head.appendChild(appleMetaTag);
-    
     // Clean up on component unmount
     return () => {
+      window.removeEventListener('resize', setAppHeight);
+      window.removeEventListener('orientationchange', setAppHeight);
       if (meta) {
         meta.setAttribute('content', 'width=device-width, initial-scale=1');
       }
-      document.head.removeChild(appleMetaTag);
     };
   }, []);
 
@@ -93,7 +102,7 @@ export const Layout = () => {
   }, [startY, isPulling, pullDistance, isRefreshing]);
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-background" style={{ height: 'var(--app-height)' }}>
+    <div className="fixed inset-0 flex flex-col bg-background" style={{ height: 'var(--app-height, 100%)' }}>
       {pullDistance > 0 && !isRefreshing && (
         <div 
           className="absolute top-0 left-0 right-0 flex items-center justify-center z-40 pointer-events-none"
@@ -114,7 +123,7 @@ export const Layout = () => {
       
       <main 
         ref={mainRef} 
-        className="flex-1 overflow-y-auto pb-16 hide-scrollbar pt-safe"
+        className="flex-1 overflow-y-auto pb-20 hide-scrollbar pt-safe"
         style={{
           height: '100%',
           WebkitOverflowScrolling: 'touch',

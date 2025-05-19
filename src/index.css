@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -117,6 +118,14 @@
     padding-bottom: env(safe-area-inset-bottom, 1rem);
   }
   
+  .pl-safe {
+    padding-left: env(safe-area-inset-left, 1rem);
+  }
+  
+  .pr-safe {
+    padding-right: env(safe-area-inset-right, 1rem);
+  }
+  
   /* Animation utilities */
   .animate-fadeIn {
     animation: fadeIn 0.3s ease-in-out;
@@ -129,5 +138,20 @@
   
   .animate-in {
     animation: fadeIn 0.3s ease-in-out;
+  }
+}
+
+/* Fix for iOS Safari viewport height issues */
+:root {
+  --app-height: 100%;
+}
+
+@supports (-webkit-touch-callout: none) {
+  body {
+    height: -webkit-fill-available;
+  }
+  
+  .fixed-bottom-safe {
+    bottom: env(safe-area-inset-bottom);
   }
 }
