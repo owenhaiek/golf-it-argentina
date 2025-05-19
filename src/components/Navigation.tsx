@@ -1,6 +1,6 @@
 
 import { NavLink } from "react-router-dom";
-import { Flag, Plus, User, Map, UserSearch } from "lucide-react";
+import { Flag, Plus, User, UserSearch, Map } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 

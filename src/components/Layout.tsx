@@ -33,6 +33,18 @@ export const Layout = () => {
       meta.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, minimal-ui, standalone');
     }
     
+    // Add meta tag for status bar appearance
+    const statusBarMeta = document.createElement('meta');
+    statusBarMeta.name = 'apple-mobile-web-app-status-bar-style';
+    statusBarMeta.content = 'black-translucent';
+    document.head.appendChild(statusBarMeta);
+    
+    // Add meta tag for standalone mode
+    const appMeta = document.createElement('meta');
+    appMeta.name = 'apple-mobile-web-app-capable';
+    appMeta.content = 'yes';
+    document.head.appendChild(appMeta);
+    
     // Clean up on component unmount
     return () => {
       window.removeEventListener('resize', setAppHeight);
@@ -40,6 +52,8 @@ export const Layout = () => {
       if (meta) {
         meta.setAttribute('content', 'width=device-width, initial-scale=1');
       }
+      document.head.removeChild(statusBarMeta);
+      document.head.removeChild(appMeta);
     };
   }, []);
 
