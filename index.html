@@ -7,9 +7,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, minimal-ui, viewport-fit=cover" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="theme-color" content="#ffffff" />
-    <title>GolfReserve</title>
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="theme-color" content="#2A4746" />
+    <meta name="apple-mobile-web-app-title" content="GolfReserve" />
     <meta name="description" content="Reserve a golf course, track your rounds and improve your game" />
+    <title>GolfReserve</title>
+    <style>
+      /* Hide browser navigation on mobile devices */
+      @media screen and (max-width: 768px) {
+        body {
+          /* Remove any margins that might create space for browser navigation */
+          margin: 0;
+          padding: 0;
+          /* Ensure content takes full screen */
+          width: 100vw;
+          height: 100vh;
+          /* Prevent overscrolling that might reveal browser UI */
+          overflow: hidden;
+          /* Apply padding to account for notches and home indicators on newer devices */
+          padding-top: env(safe-area-inset-top);
+          padding-bottom: env(safe-area-inset-bottom);
+        }
+        
+        #root {
+          /* Make sure the app content takes the full available space */
+          height: 100%;
+          overflow-y: auto;
+          -webkit-overflow-scrolling: touch;
+        }
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>

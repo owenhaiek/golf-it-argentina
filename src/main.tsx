@@ -1,7 +1,9 @@
 
 import { createRoot } from 'react-dom/client'
+import { useState, useEffect } from 'react'
 import App from './App.tsx'
 import './index.css'
+import GolfBallLoader from './components/ui/GolfBallLoader.tsx'
 
 // Add viewport meta for hiding browser UI
 const metaViewport = document.createElement('meta');
@@ -21,4 +23,36 @@ statusBarMeta.name = 'apple-mobile-web-app-status-bar-style';
 statusBarMeta.content = 'black-translucent';
 document.head.appendChild(statusBarMeta);
 
-createRoot(document.getElementById("root")!).render(<App />);
+// Add mobile-web-app-capable meta for Android
+const androidMeta = document.createElement('meta');
+androidMeta.name = 'mobile-web-app-capable';
+androidMeta.content = 'yes';
+document.head.appendChild(androidMeta);
+
+// Root component with loading state
+const Root = () => {
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Simular un tiempo de carga mínimo para mostrar la animación
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  return (
+    <div className="min-h-screen">
+      {isLoading ? (
+        <div className="fixed inset-0 flex items-center justify-center bg-background z-50">
+          <GolfBallLoader />
+        </div>
+      ) : (
+        <App />
+      )}
+    </div>
+  );
+}
+
+createRoot(document.getElementById("root")!).render(<Root />);
