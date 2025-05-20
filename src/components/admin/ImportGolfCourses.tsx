@@ -7,6 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
 import { Loader2, AlertCircle, CheckCircle } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 const ImportGolfCourses = () => {
   const { toast } = useToast();
@@ -15,6 +16,7 @@ const ImportGolfCourses = () => {
   const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState<'idle' | 'importing' | 'completed' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
+  const [apiKey, setApiKey] = useState<string>("");
   const [results, setResults] = useState<{
     total: number;
     inserted: number;
@@ -41,7 +43,8 @@ const ImportGolfCourses = () => {
         const { data, error } = await supabase.functions.invoke('fetch-argentina-golf-courses', {
           body: { 
             region: 'argentina',
-            pageToken: nextPageToken
+            pageToken: nextPageToken,
+            apiKey: apiKey || undefined // Only send if provided
           }
         });
         
@@ -180,6 +183,23 @@ const ImportGolfCourses = () => {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <label htmlFor="apiKey" className="text-sm font-medium">
+            Google Maps API Key
+          </label>
+          <Input
+            id="apiKey"
+            type="text" 
+            value={apiKey}
+            onChange={(e) => setApiKey(e.target.value)}
+            placeholder="AIzaSy..." 
+            className="w-full"
+          />
+          <p className="text-xs text-muted-foreground">
+            Required if not set in edge function environment.
+          </p>
+        </div>
+
         {status === 'error' && (
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
@@ -219,7 +239,7 @@ const ImportGolfCourses = () => {
       <CardFooter>
         <Button 
           onClick={handleImport} 
-          disabled={importing || loading}
+          disabled={importing || loading || !apiKey}
           className="w-full"
         >
           {(importing || loading) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

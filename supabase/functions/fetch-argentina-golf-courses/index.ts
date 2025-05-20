@@ -41,9 +41,16 @@ serve(async (req) => {
       );
     }
     
-    // Get API key from environment variable
-    const GOOGLE_MAPS_API_KEY = Deno.env.get('GOOGLE_MAPS_API_KEY');
+    // Get API key from environment variable or request body
+    let GOOGLE_MAPS_API_KEY = Deno.env.get('GOOGLE_MAPS_API_KEY');
+    
+    // If API key is provided in the request, use it instead (for testing)
+    if (requestData.apiKey) {
+      GOOGLE_MAPS_API_KEY = requestData.apiKey;
+    }
+    
     if (!GOOGLE_MAPS_API_KEY) {
+      console.error('Google Maps API key not configured');
       return new Response(JSON.stringify({ error: 'Google Maps API key not configured' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
