@@ -1,10 +1,11 @@
+
 import { useState } from "react";
-import { Card } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AdminGolfCourseForm from "./AdminCsvUpload"; // Maintained for form functionality 
 import QuickAddGolfCourses from "@/components/admin/QuickAddGolfCourses";
 import CourseList from "@/components/admin/CourseList";
+import ImportGolfCourses from "@/components/admin/ImportGolfCourses";
 import { OpeningHours } from "@/lib/supabase";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // Define interface that matches what CourseList is expecting
 export interface GolfCourseTemplate {
@@ -74,6 +75,15 @@ const AdminGolfCourseManager = () => {
         >
           Adición Rápida
         </button>
+        
+        <button 
+          onClick={() => setActiveTab("import")} 
+          className={`px-4 py-2 rounded-md ${activeTab === "import" 
+            ? "bg-blue-600 text-white" 
+            : "bg-gray-200 text-gray-700 hover:bg-gray-300"}`}
+        >
+          Importar de Google Maps
+        </button>
       </div>
 
       <div className="mt-4">
@@ -90,6 +100,10 @@ const AdminGolfCourseManager = () => {
         
         {activeTab === "quick" && (
           <QuickAddGolfCourses />
+        )}
+        
+        {activeTab === "import" && (
+          <ImportGolfCourses />
         )}
       </div>
     </div>
