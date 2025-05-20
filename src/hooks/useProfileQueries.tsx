@@ -36,7 +36,7 @@ export const useProfileQueries = () => {
     enabled: !!user?.id
   });
 
-  // Rounds Query - Fetch user's recent rounds
+  // Rounds Query - Fetch user's recent rounds with caching disabled
   const {
     data: rounds,
     isLoading: roundsLoading,
@@ -77,7 +77,9 @@ export const useProfileQueries = () => {
     },
     enabled: !!user?.id,
     staleTime: 0, // Consider data always stale
-    gcTime: 0    // Don't cache the data at all
+    gcTime: 0,    // Don't cache the data at all
+    refetchOnWindowFocus: true, // Refetch when window gains focus
+    refetchOnMount: true // Always refetch on mount
   });
 
   // Delete round mutation with improved error handling and UI updates
@@ -120,14 +122,14 @@ export const useProfileQueries = () => {
     onSuccess: (roundId) => {
       console.log("Round successfully deleted, updating UI");
       
-      // Force refetch to ensure UI is in sync with server
+      // Invalidate related queries to ensure UI refresh
       queryClient.invalidateQueries({
-        queryKey: ['rounds', user?.id]
+        queryKey: ['rounds']
       });
       
       // Also invalidate profile to update any stats that might depend on rounds
       queryClient.invalidateQueries({
-        queryKey: ['profile', user?.id]
+        queryKey: ['profile']
       });
       
       // Show success toast
@@ -150,7 +152,7 @@ export const useProfileQueries = () => {
         variant: "destructive"
       });
       
-      // Try to refetch the data to ensure UI is in sync
+      // Force refetch to ensure UI is in sync
       refetchRounds();
     },
     onSettled: () => {

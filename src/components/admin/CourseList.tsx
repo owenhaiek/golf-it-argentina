@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
@@ -26,7 +26,7 @@ const CourseList = ({ onEditCourse }: CourseListProps) => {
   const { toast } = useToast();
   const coursesPerPage = 10;
 
-  const fetchCourses = async (page: number, query: string = '') => {
+  const fetchCourses = useCallback(async (page: number, query: string = '') => {
     setLoading(true);
     try {
       let queryBuilder = supabase
@@ -56,11 +56,20 @@ const CourseList = ({ onEditCourse }: CourseListProps) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
 
   useEffect(() => {
     fetchCourses(currentPage, searchQuery);
-  }, [currentPage, searchQuery]);
+    
+    // Set up periodic refresh
+    const refreshInterval = setInterval(() => {
+      if (!deletingCourse) { // Don't refresh during deletion
+        fetchCourses(currentPage, searchQuery);
+      }
+    }, 5000);
+    
+    return () => clearInterval(refreshInterval);
+  }, [currentPage, searchQuery, fetchCourses, deletingCourse]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -134,8 +143,10 @@ const CourseList = ({ onEditCourse }: CourseListProps) => {
         description: "Campo de golf eliminado correctamente",
       });
       
-      // Refresh the course list to ensure it's up-to-date
-      await fetchCourses(currentPage, searchQuery);
+      // Force a refresh of the course list to ensure it's up-to-date
+      setTimeout(() => {
+        fetchCourses(currentPage, searchQuery);
+      }, 500);
       
     } catch (error: any) {
       console.error("Error in deletion process:", error);
@@ -144,6 +155,9 @@ const CourseList = ({ onEditCourse }: CourseListProps) => {
         description: `No se pudo eliminar el campo: ${error.message}`,
         variant: "destructive",
       });
+      
+      // Force a refresh to ensure UI state is in sync with database
+      fetchCourses(currentPage, searchQuery);
     } finally {
       setDeletingCourse(null);
     }

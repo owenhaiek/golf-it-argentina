@@ -6,6 +6,7 @@ import CourseList from "@/components/admin/CourseList";
 import ImportGolfCourses from "@/components/admin/ImportGolfCourses";
 import { OpeningHours } from "@/lib/supabase";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/components/ui/use-toast";
 
 // Define interface that matches what CourseList is expecting
 export interface GolfCourseTemplate {
@@ -28,6 +29,14 @@ const AdminGolfCourseManager = () => {
   const [activeTab, setActiveTab] = useState("list");
   const [courseToEdit, setCourseToEdit] = useState<GolfCourseTemplate | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const { toast } = useToast();
+
+  // Effect to reset course to edit if tab changes away from form
+  useEffect(() => {
+    if (activeTab !== "form" && courseToEdit) {
+      setCourseToEdit(null);
+    }
+  }, [activeTab, courseToEdit]);
 
   const handleEditCourse = (course: GolfCourseTemplate) => {
     setCourseToEdit(course);
@@ -37,7 +46,12 @@ const AdminGolfCourseManager = () => {
   const handleFormSubmitted = () => {
     setCourseToEdit(null);
     setActiveTab("list");
-    setRefreshTrigger(prev => prev + 1); // Trigger list refresh
+    toast({
+      title: "Éxito",
+      description: "Campo de golf guardado correctamente"
+    });
+    // Trigger list refresh
+    setRefreshTrigger(prev => prev + 1);
   };
 
   return (

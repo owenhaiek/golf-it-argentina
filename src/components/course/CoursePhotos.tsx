@@ -10,7 +10,7 @@ export interface CoursePhotosProps {
   courseId: string;
   courseName?: string;
   imageUrl?: string;
-  imageGallery?: string[];
+  imageGallery?: string[] | string;
 }
 
 const CoursePhotos = ({ imageUrl, imageGallery = [] }: CoursePhotosProps) => {
@@ -22,7 +22,12 @@ const CoursePhotos = ({ imageUrl, imageGallery = [] }: CoursePhotosProps) => {
     if (!imageGallery) return [];
     
     if (typeof imageGallery === 'string') {
-      return imageGallery.split(',').map(url => url.trim()).filter(url => url !== '');
+      try {
+        return imageGallery.split(',').map(url => url.trim()).filter(url => url !== '');
+      } catch (error) {
+        console.error("Error parsing gallery:", error);
+        return [];
+      }
     }
     
     return imageGallery;

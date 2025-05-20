@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import ProfileCard from "@/components/profile/ProfileCard";
 import RecentRounds from "@/components/profile/RecentRounds";
 import { User, Loader } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 
 const Profile = () => {
   const { user } = useAuth();
@@ -22,16 +22,34 @@ const Profile = () => {
 
   const isLoading = profileLoading || roundsLoading;
   
-  // Refetch rounds data when the component mounts to ensure fresh data
-  useEffect(() => {
+  // Improved data refresh strategy
+  const refreshData = useCallback(() => {
+    console.log("Refreshing rounds data");
     refetchRounds();
-    // Also set up an interval to periodically refetch rounds (cleanup on unmount)
-    const intervalId = setInterval(() => {
-      refetchRounds();
-    }, 10000); // Refresh every 10 seconds
-    
-    return () => clearInterval(intervalId);
   }, [refetchRounds]);
+  
+  // Refetch rounds data when the component mounts and set up refresh intervals
+  useEffect(() => {
+    // Initial fetch
+    refreshData();
+    
+    // Set up periodic refresh (every 5 seconds)
+    const intervalId = setInterval(() => {
+      if (!deletingRoundId) { // Don't refresh during deletion
+        refreshData();
+      }
+    }, 5000);
+    
+    // Set up focus-based refresh
+    const handleFocus = () => refreshData();
+    window.addEventListener('focus', handleFocus);
+    
+    // Clean up on unmount
+    return () => {
+      clearInterval(intervalId);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [refreshData, deletingRoundId]);
 
   return (
     <div className="max-w-7xl mx-auto animate-fadeIn">
