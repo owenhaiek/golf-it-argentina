@@ -22,6 +22,7 @@ const CourseList = ({ onEditCourse }: CourseListProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [totalPages, setTotalPages] = useState(1);
   const [deletingCourse, setDeletingCourse] = useState<string | null>(null);
+  const [openDialogId, setOpenDialogId] = useState<string | null>(null);
   const { toast } = useToast();
   const coursesPerPage = 10;
 
@@ -71,7 +72,11 @@ const CourseList = ({ onEditCourse }: CourseListProps) => {
   };
 
   const handleDeleteCourse = async (id: string) => {
+    if (deletingCourse) return; // Prevent multiple delete operations
+    
     setDeletingCourse(id);
+    setOpenDialogId(null);
+    
     try {
       console.log(`Attempting to delete course with ID: ${id}`);
       
@@ -204,7 +209,10 @@ const CourseList = ({ onEditCourse }: CourseListProps) => {
                           <Edit className="h-4 w-4 mr-1" />
                           <span className="hidden sm:inline">Editar</span>
                         </Button>
-                        <AlertDialog>
+                        <AlertDialog 
+                          open={openDialogId === course.id} 
+                          onOpenChange={(open) => setOpenDialogId(open ? course.id : null)}
+                        >
                           <AlertDialogTrigger asChild>
                             <Button 
                               variant="destructive" 
@@ -238,9 +246,9 @@ const CourseList = ({ onEditCourse }: CourseListProps) => {
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                              <AlertDialogCancel onClick={() => setOpenDialogId(null)}>Cancelar</AlertDialogCancel>
                               <AlertDialogAction
-                                onClick={() => handleDeleteCourse(course.id || '')}
+                                onClick={() => course.id && handleDeleteCourse(course.id)}
                                 className="bg-red-600 hover:bg-red-700"
                               >
                                 Eliminar

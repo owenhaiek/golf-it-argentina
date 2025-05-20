@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Round } from "./types";
+import { useState } from "react";
 
 interface RoundCardProps {
   round: Round;
@@ -15,6 +16,7 @@ interface RoundCardProps {
 
 const RoundCard = ({ round, onDeleteRound, isDeleting }: RoundCardProps) => {
   const { t } = useLanguage();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const formattedDate = format(new Date(round.date || round.created_at), 'MMM d, yyyy');
   
   // Calculate total par for a course
@@ -48,6 +50,7 @@ const RoundCard = ({ round, onDeleteRound, isDeleting }: RoundCardProps) => {
     e.preventDefault();
     e.stopPropagation();
     onDeleteRound(round.id);
+    setIsDialogOpen(false);
   };
 
   return (
@@ -105,7 +108,7 @@ const RoundCard = ({ round, onDeleteRound, isDeleting }: RoundCardProps) => {
           </div>
         </div>
         
-        <AlertDialog>
+        <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <AlertDialogTrigger asChild>
             <Button 
               variant="ghost" 
@@ -134,7 +137,9 @@ const RoundCard = ({ round, onDeleteRound, isDeleting }: RoundCardProps) => {
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>{t("common", "cancel")}</AlertDialogCancel>
+              <AlertDialogCancel onClick={() => setIsDialogOpen(false)}>
+                {t("common", "cancel")}
+              </AlertDialogCancel>
               <AlertDialogAction 
                 onClick={handleDelete}
                 className="bg-red-500 hover:bg-red-600"

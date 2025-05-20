@@ -91,7 +91,8 @@ export const useProfileQueries = () => {
       const { error } = await supabase
         .from('rounds')
         .delete()
-        .eq('id', roundId);
+        .eq('id', roundId)
+        .eq('user_id', user.id); // Ensure the round belongs to this user
       
       if (error) {
         console.error("Delete round error:", error);
