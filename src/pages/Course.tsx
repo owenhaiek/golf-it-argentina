@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -170,6 +169,17 @@ const Course = () => {
     },
     enabled: !!id && !!user?.id
   });
+
+  // Parse image gallery from string to array
+  const parseImageGallery = () => {
+    if (!courseData?.image_gallery) return [];
+    
+    if (typeof courseData.image_gallery === 'string') {
+      return courseData.image_gallery.split(',').map(url => url.trim()).filter(url => url !== '');
+    }
+    
+    return courseData.image_gallery;
+  };
 
   // Parse opening hours from JSON if needed
   const parseOpeningHours = () => {
@@ -403,7 +413,11 @@ const Course = () => {
         </Card>
 
         {/* Photos - Show carousel before the map */}
-        <CoursePhotos courseId={id} />
+        <CoursePhotos 
+          courseId={id || ''} 
+          imageUrl={courseData?.image_url} 
+          imageGallery={parseImageGallery()} 
+        />
 
         {/* Map */}
         {courseData?.latitude && courseData?.longitude && (

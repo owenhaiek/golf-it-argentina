@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { Loader2, Upload, X } from "lucide-react";
+import { Loader2, Upload, X, GalleryHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
@@ -120,7 +120,7 @@ const GalleryUploader = ({
         className="border-2 border-dashed border-gray-300 rounded-md p-4 flex flex-col items-center justify-center text-gray-500 cursor-pointer"
         onClick={() => document.getElementById('gallery-upload')?.click()}
       >
-        <Upload className="h-6 w-6 mb-2" />
+        <GalleryHorizontal className="h-6 w-6 mb-2" />
         <p className="text-sm text-center">Toca para agregar imágenes a la galería</p>
       </div>
       
