@@ -17,7 +17,7 @@ import NotFound from "./pages/NotFound";
 import SearchUsers from "./pages/SearchUsers";
 import UserProfile from "./pages/UserProfile";
 import CoursesMap from "./pages/CoursesMap";
-import AdminGolfCourseManager from "./pages/AdminGolfCourseManager"; // Updated import
+import AdminGolfCourseManager from "./pages/AdminGolfCourseManager";
 import { useAuth } from "./contexts/AuthContext";
 import { useEffect } from "react";
 
@@ -34,59 +34,12 @@ const queryClient = new QueryClient({
   },
 });
 
-// Handle fullscreen and browser UI hiding
+// Handle fullscreen and browser UI hiding - REMOVED viewport meta tag manipulation
 const useHideBrowserUI = () => {
   useEffect(() => {
     const hideUI = () => {
       if (document.documentElement.scrollTop === 0) {
         window.scrollTo(0, 1);
-      }
-      
-      // Add viewport meta tag to hide browser UI
-      const setViewport = () => {
-        let metaTag = document.querySelector('meta[name="viewport"]');
-        if (!metaTag) {
-          metaTag = document.createElement('meta');
-          metaTag.setAttribute('name', 'viewport');
-          document.head.appendChild(metaTag);
-        }
-        // Set the viewport meta with minimal-ui to hide browser chrome
-        metaTag.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui, viewport-fit=cover');
-        
-        // Add apple-mobile-web-app-capable meta for iOS
-        let appleMeta = document.querySelector('meta[name="apple-mobile-web-app-capable"]');
-        if (!appleMeta) {
-          appleMeta = document.createElement('meta');
-          appleMeta.setAttribute('name', 'apple-mobile-web-app-capable');
-          appleMeta.setAttribute('content', 'yes');
-          document.head.appendChild(appleMeta);
-        }
-        
-        // Add apple-mobile-web-app-status-bar-style meta for iOS
-        let statusBarMeta = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
-        if (!statusBarMeta) {
-          statusBarMeta = document.createElement('meta');
-          statusBarMeta.setAttribute('name', 'apple-mobile-web-app-status-bar-style');
-          statusBarMeta.setAttribute('content', 'black-translucent');
-          document.head.appendChild(statusBarMeta);
-        }
-        
-        // For Android
-        let themeMeta = document.querySelector('meta[name="theme-color"]');
-        if (!themeMeta) {
-          themeMeta = document.createElement('meta');
-          themeMeta.setAttribute('name', 'theme-color');
-          themeMeta.setAttribute('content', '#000000');
-          document.head.appendChild(themeMeta);
-        }
-      };
-      
-      setViewport();
-      
-      if (document.documentElement.requestFullscreen && !document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(() => {
-          // Silently fail if we can't enter fullscreen
-        });
       }
     };
 

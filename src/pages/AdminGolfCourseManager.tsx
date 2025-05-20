@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import AdminGolfCourseForm from "./AdminCsvUpload"; // Maintained for form functionality 
 import QuickAddGolfCourses from "@/components/admin/QuickAddGolfCourses";
@@ -36,36 +35,6 @@ const AdminGolfCourseManager = () => {
       setCourseToEdit(null);
     }
   }, [activeTab, courseToEdit]);
-
-  // Add effect to add viewport meta tag for mobile devices
-  useEffect(() => {
-    // Check if the viewport meta tag already exists
-    let viewportMeta = document.querySelector('meta[name="viewport"]');
-    
-    // If it doesn't exist, create one
-    if (!viewportMeta) {
-      viewportMeta = document.createElement('meta');
-      viewportMeta.setAttribute('name', 'viewport');
-      document.head.appendChild(viewportMeta);
-    }
-    
-    // Set the content to hide browser navigation on mobile
-    viewportMeta.setAttribute('content', 
-      'width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no');
-    
-    // Also add a meta tag to set the mobile web app capable attribute
-    let webAppMeta = document.querySelector('meta[name="apple-mobile-web-app-capable"]');
-    if (!webAppMeta) {
-      webAppMeta = document.createElement('meta');
-      webAppMeta.setAttribute('name', 'apple-mobile-web-app-capable');
-      webAppMeta.setAttribute('content', 'yes');
-      document.head.appendChild(webAppMeta);
-    }
-    
-    return () => {
-      // No cleanup needed as we want these meta tags to persist
-    };
-  }, []);
 
   const handleEditCourse = (course: GolfCourseTemplate) => {
     setCourseToEdit(course);
