@@ -44,7 +44,7 @@ serve(async (req) => {
     // Get API key from environment variable or request body
     let GOOGLE_MAPS_API_KEY = Deno.env.get('GOOGLE_MAPS_API_KEY');
     
-    // If API key is provided in the request, use it instead (for testing)
+    // If API key is provided in the request, use it instead
     if (requestData.apiKey) {
       GOOGLE_MAPS_API_KEY = requestData.apiKey;
     }
@@ -133,42 +133,13 @@ serve(async (req) => {
           });
         }
         
-        // Extract location information
-        const location = place.geometry?.location;
-        
-        // Parse address components
-        let city = null;
-        let state = null;
-        
-        if (place.formatted_address) {
-          const addressParts = place.formatted_address.split(',').map((part: string) => part.trim());
-          if (addressParts.length >= 2) {
-            // Typically, the city is the second-to-last part
-            city = addressParts[addressParts.length - 2];
-            // State/province might be in the last part
-            state = addressParts[addressParts.length - 1];
-            if (state.includes('Argentina')) {
-              state = state.replace('Argentina', '').trim();
-            }
-          }
-        }
-        
-        // Prepare the course data
+        // Prepare the course data - focusing only on name, address, and opening hours
         const courseData = {
           name: place.name,
           address: place.formatted_address,
-          city: city,
-          state: state,
-          latitude: location?.lat || null,
-          longitude: location?.lng || null,
-          image_url: place.photos?.[0]?.photo_reference 
-            ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photoreference=${place.photos[0].photo_reference}&key=${GOOGLE_MAPS_API_KEY}` 
-            : null,
-          phone: placeDetails.formatted_phone_number,
-          website: placeDetails.website,
           opening_hours: formattedOpeningHours,
-          holes: 18, // Default value as we don't have this from Google
-          par: 72, // Default value as we don't have this from Google
+          holes: 18, // Default value
+          par: 72, // Default value
           hole_pars: Array(18).fill(4), // Default value of par 4 for all holes
         };
         
@@ -185,13 +156,6 @@ serve(async (req) => {
             .from('golf_courses')
             .update({
               address: courseData.address,
-              city: courseData.city,
-              state: courseData.state,
-              latitude: courseData.latitude,
-              longitude: courseData.longitude,
-              image_url: courseData.image_url,
-              phone: courseData.phone,
-              website: courseData.website,
               opening_hours: courseData.opening_hours,
             })
             .eq('id', existingCourse.id);

@@ -133,8 +133,7 @@ const ImportGolfCourses = () => {
         return;
       }
       
-      // Instead of checking if the function exists (which we can't do from the client),
-      // We'll just try to invoke it with a simple check parameter
+      // Check if the function is accessible
       try {
         const { error: functionCheckError } = await supabase.functions.invoke('fetch-argentina-golf-courses', {
           body: { check: true }
@@ -179,7 +178,7 @@ const ImportGolfCourses = () => {
       <CardHeader>
         <CardTitle>Import Golf Courses from Argentina</CardTitle>
         <CardDescription>
-          Import golf courses from Argentina using Google Maps data. This process will fetch courses and add them to the database.
+          Import basic information (name, address, opening hours) for golf courses from Argentina using Google Maps data.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
