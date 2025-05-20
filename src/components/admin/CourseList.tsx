@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
@@ -26,7 +26,7 @@ const CourseList = ({ onEditCourse }: CourseListProps) => {
   const { toast } = useToast();
   const coursesPerPage = 10;
 
-  const fetchCourses = useCallback(async (page: number, query: string = '') => {
+  const fetchCourses = async (page: number, query: string = '') => {
     setLoading(true);
     try {
       let queryBuilder = supabase
@@ -56,11 +56,11 @@ const CourseList = ({ onEditCourse }: CourseListProps) => {
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  };
 
   useEffect(() => {
     fetchCourses(currentPage, searchQuery);
-  }, [currentPage, searchQuery, fetchCourses]);
+  }, [currentPage, searchQuery]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -72,13 +72,13 @@ const CourseList = ({ onEditCourse }: CourseListProps) => {
   };
 
   const handleDeleteCourse = async (id: string) => {
-    if (!id || deletingCourse) return; // Prevent multiple delete operations
+    if (deletingCourse) return; // Prevent multiple delete operations
     
     setDeletingCourse(id);
     setOpenDialogId(null);
     
     try {
-      console.log(`Starting deletion process for course with ID: ${id}`);
+      console.log(`Attempting to delete course with ID: ${id}`);
       
       // Step 1: Delete related rounds
       const { error: deleteRoundsError } = await supabase
@@ -91,8 +91,6 @@ const CourseList = ({ onEditCourse }: CourseListProps) => {
         throw deleteRoundsError;
       }
       
-      console.log("Related rounds deleted successfully");
-      
       // Step 2: Delete related reservations
       const { error: deleteReservationsError } = await supabase
         .from("reservations")
@@ -103,8 +101,6 @@ const CourseList = ({ onEditCourse }: CourseListProps) => {
         console.error("Error deleting related reservations:", deleteReservationsError);
         throw deleteReservationsError;
       }
-      
-      console.log("Related reservations deleted successfully");
       
       // Step 3: Delete related course reviews
       const { error: deleteReviewsError } = await supabase
@@ -117,8 +113,6 @@ const CourseList = ({ onEditCourse }: CourseListProps) => {
         throw deleteReviewsError;
       }
       
-      console.log("Related reviews deleted successfully");
-      
       // Step 4: Finally delete the golf course
       const { error: deleteCourseError } = await supabase
         .from("golf_courses")
@@ -130,9 +124,9 @@ const CourseList = ({ onEditCourse }: CourseListProps) => {
         throw deleteCourseError;
       }
       
-      console.log(`Golf course with ID: ${id} deleted successfully`);
+      console.log(`Successfully deleted course with ID: ${id}`);
       
-      // Update UI by removing deleted course from current state
+      // Update UI by removing deleted course
       setCourses(prevCourses => prevCourses.filter(course => course.id !== id));
       
       toast({
@@ -141,7 +135,7 @@ const CourseList = ({ onEditCourse }: CourseListProps) => {
       });
       
       // Refresh the course list to ensure it's up-to-date
-      fetchCourses(currentPage, searchQuery);
+      await fetchCourses(currentPage, searchQuery);
       
     } catch (error: any) {
       console.error("Error in deletion process:", error);

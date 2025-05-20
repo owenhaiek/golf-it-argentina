@@ -10,7 +10,7 @@ export interface CoursePhotosProps {
   courseId: string;
   courseName?: string;
   imageUrl?: string;
-  imageGallery?: string[] | string;
+  imageGallery?: string[];
 }
 
 const CoursePhotos = ({ imageUrl, imageGallery = [] }: CoursePhotosProps) => {
@@ -22,12 +22,7 @@ const CoursePhotos = ({ imageUrl, imageGallery = [] }: CoursePhotosProps) => {
     if (!imageGallery) return [];
     
     if (typeof imageGallery === 'string') {
-      try {
-        return imageGallery.split(',').map(url => url.trim()).filter(url => url !== '');
-      } catch (error) {
-        console.error("Error parsing gallery:", error);
-        return [];
-      }
+      return imageGallery.split(',').map(url => url.trim()).filter(url => url !== '');
     }
     
     return imageGallery;
@@ -38,11 +33,11 @@ const CoursePhotos = ({ imageUrl, imageGallery = [] }: CoursePhotosProps) => {
   const allImages = [imageUrl, ...parsedGallery].filter(Boolean) as string[];
   
   const handlePrev = () => {
-    setCurrentIndex(prev => (prev > 0 ? prev - 1 : allImages.length - 1));
+    setCurrentIndex((prev) => (prev > 0 ? prev - 1 : allImages.length - 1));
   };
   
   const handleNext = () => {
-    setCurrentIndex(prev => (prev < allImages.length - 1 ? prev + 1 : 0));
+    setCurrentIndex((prev) => (prev < allImages.length - 1 ? prev + 1 : 0));
   };
 
   if (allImages.length === 0) {

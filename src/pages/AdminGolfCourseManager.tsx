@@ -1,10 +1,11 @@
+
 import { useState, useEffect } from "react";
 import AdminGolfCourseForm from "./AdminCsvUpload"; // Maintained for form functionality 
 import QuickAddGolfCourses from "@/components/admin/QuickAddGolfCourses";
 import CourseList from "@/components/admin/CourseList";
 import ImportGolfCourses from "@/components/admin/ImportGolfCourses";
 import { OpeningHours } from "@/lib/supabase";
-import { useToast } from "@/components/ui/use-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // Define interface that matches what CourseList is expecting
 export interface GolfCourseTemplate {
@@ -27,14 +28,6 @@ const AdminGolfCourseManager = () => {
   const [activeTab, setActiveTab] = useState("list");
   const [courseToEdit, setCourseToEdit] = useState<GolfCourseTemplate | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const { toast } = useToast();
-
-  // Effect to reset course to edit if tab changes away from form
-  useEffect(() => {
-    if (activeTab !== "form" && courseToEdit) {
-      setCourseToEdit(null);
-    }
-  }, [activeTab, courseToEdit]);
 
   const handleEditCourse = (course: GolfCourseTemplate) => {
     setCourseToEdit(course);
@@ -44,12 +37,7 @@ const AdminGolfCourseManager = () => {
   const handleFormSubmitted = () => {
     setCourseToEdit(null);
     setActiveTab("list");
-    toast({
-      title: "Éxito",
-      description: "Campo de golf guardado correctamente"
-    });
-    // Trigger list refresh
-    setRefreshTrigger(prev => prev + 1);
+    setRefreshTrigger(prev => prev + 1); // Trigger list refresh
   };
 
   return (
@@ -73,10 +61,7 @@ const AdminGolfCourseManager = () => {
         </button>
         
         <button 
-          onClick={() => {
-            setActiveTab("list");
-            setRefreshTrigger(prev => prev + 1); // Force refresh when switching to list
-          }} 
+          onClick={() => setActiveTab("list")} 
           className={`px-4 py-2 rounded-md ${activeTab === "list" 
             ? "bg-blue-600 text-white" 
             : "bg-gray-200 text-gray-700 hover:bg-gray-300"}`}

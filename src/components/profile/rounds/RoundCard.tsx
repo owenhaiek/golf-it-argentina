@@ -1,4 +1,3 @@
-
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Loader2, Trash2, Calendar, Trophy, MapPin, Flag, Plus, Minus, Check } from "lucide-react";
@@ -47,7 +46,7 @@ const RoundCard = ({ round, onDeleteRound, isDeleting }: RoundCardProps) => {
   }
 
   const handleDelete = () => {
-    if (!isDeleting && round.id) {
+    if (!isDeleting) {
       onDeleteRound(round.id);
       setIsDialogOpen(false);
     }
