@@ -30,6 +30,17 @@ serve(async (req) => {
       });
     }
 
+    // Parse request body
+    const requestData = await req.json();
+    
+    // Handle check parameter - just return success to verify the function exists
+    if (requestData.check === true) {
+      return new Response(
+        JSON.stringify({ success: true, message: 'Function is accessible' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
     // Get API key from environment variable
     const GOOGLE_MAPS_API_KEY = Deno.env.get('GOOGLE_MAPS_API_KEY');
     if (!GOOGLE_MAPS_API_KEY) {
@@ -53,8 +64,8 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Parse request body
-    const { region = 'argentina', pageToken } = await req.json();
+    // Extract parameters from request
+    const { region = 'argentina', pageToken } = requestData;
     
     console.log(`Fetching golf courses in ${region}${pageToken ? ' with page token' : ''}`);
 

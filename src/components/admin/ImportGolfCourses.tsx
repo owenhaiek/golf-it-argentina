@@ -130,11 +130,23 @@ const ImportGolfCourses = () => {
         return;
       }
       
-      // Check if the edge function exists
-      const { data: functions } = await supabase.functions.list();
-      const hasFetchFunction = functions.some(fn => fn.name === 'fetch-argentina-golf-courses');
-      
-      if (!hasFetchFunction) {
+      // Instead of checking if the function exists (which we can't do from the client),
+      // We'll just try to invoke it with a simple check parameter
+      try {
+        const { error: functionCheckError } = await supabase.functions.invoke('fetch-argentina-golf-courses', {
+          body: { check: true }
+        });
+
+        if (functionCheckError) {
+          toast({
+            title: "Edge function not available",
+            description: "The fetch-argentina-golf-courses function is not accessible. Please check your configuration.",
+            variant: "destructive",
+          });
+          setLoading(false);
+          return;
+        }
+      } catch (err) {
         toast({
           title: "Edge function not deployed",
           description: "The fetch-argentina-golf-courses function is not yet deployed. Please wait a few minutes and try again.",
