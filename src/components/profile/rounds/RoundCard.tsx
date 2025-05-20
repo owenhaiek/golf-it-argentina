@@ -49,8 +49,10 @@ const RoundCard = ({ round, onDeleteRound, isDeleting }: RoundCardProps) => {
   const handleDelete = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    onDeleteRound(round.id);
-    setIsDialogOpen(false);
+    if (!isDeleting) {
+      onDeleteRound(round.id);
+      setIsDialogOpen(false);
+    }
   };
 
   return (
@@ -137,9 +139,7 @@ const RoundCard = ({ round, onDeleteRound, isDeleting }: RoundCardProps) => {
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel onClick={() => setIsDialogOpen(false)}>
-                {t("common", "cancel")}
-              </AlertDialogCancel>
+              <AlertDialogCancel>{t("common", "cancel")}</AlertDialogCancel>
               <AlertDialogAction 
                 onClick={handleDelete}
                 className="bg-red-500 hover:bg-red-600"

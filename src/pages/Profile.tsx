@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import ProfileCard from "@/components/profile/ProfileCard";
 import RecentRounds from "@/components/profile/RecentRounds";
 import { User, Loader } from "lucide-react";
+import { useEffect } from "react";
 
 const Profile = () => {
   const { user } = useAuth();
@@ -15,10 +16,16 @@ const Profile = () => {
     rounds,
     roundsLoading,
     deletingRoundId,
-    handleDeleteRound
+    handleDeleteRound,
+    refetchRounds
   } = useProfileQueries();
 
   const isLoading = profileLoading || roundsLoading;
+  
+  // Refetch rounds data when the component mounts to ensure fresh data
+  useEffect(() => {
+    refetchRounds();
+  }, [refetchRounds]);
 
   return (
     <div className="max-w-7xl mx-auto animate-fadeIn">
@@ -37,7 +44,7 @@ const Profile = () => {
           <ProfileCard user={user} profile={profile} profileLoading={profileLoading} />
         </div>
         
-        <div className="w-full">
+        <div className="w-full pb-20">
           <RecentRounds 
             rounds={rounds} 
             roundsLoading={roundsLoading} 

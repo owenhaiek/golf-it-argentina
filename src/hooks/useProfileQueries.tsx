@@ -2,7 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -157,14 +157,14 @@ export const useProfileQueries = () => {
     }
   });
 
-  const handleDeleteRound = (roundId: string) => {
+  const handleDeleteRound = useCallback((roundId: string) => {
     if (deletingRoundId) {
       console.log("Deletion already in progress, ignoring request");
       return; // Prevent multiple deletions at once
     }
     console.log(`User initiated deletion of round ${roundId}`);
     deleteRoundMutation.mutate(roundId);
-  };
+  }, [deletingRoundId, deleteRoundMutation]);
 
   return {
     profile,
@@ -172,6 +172,7 @@ export const useProfileQueries = () => {
     rounds,
     roundsLoading,
     deletingRoundId,
-    handleDeleteRound
+    handleDeleteRound,
+    refetchRounds
   };
 };
