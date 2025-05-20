@@ -25,6 +25,12 @@ const Profile = () => {
   // Refetch rounds data when the component mounts to ensure fresh data
   useEffect(() => {
     refetchRounds();
+    // Also set up an interval to periodically refetch rounds (cleanup on unmount)
+    const intervalId = setInterval(() => {
+      refetchRounds();
+    }, 10000); // Refresh every 10 seconds
+    
+    return () => clearInterval(intervalId);
   }, [refetchRounds]);
 
   return (
@@ -44,7 +50,7 @@ const Profile = () => {
           <ProfileCard user={user} profile={profile} profileLoading={profileLoading} />
         </div>
         
-        <div className="w-full pb-12">
+        <div className="w-full pb-20">
           <RecentRounds 
             rounds={rounds} 
             roundsLoading={roundsLoading} 

@@ -102,7 +102,7 @@ export const Layout = () => {
       
       <main 
         ref={mainRef} 
-        className="flex-1 overflow-y-auto pb-16"
+        className="flex-1 overflow-y-auto pb-20"
         style={{
           height: '100%',
           WebkitOverflowScrolling: 'touch',

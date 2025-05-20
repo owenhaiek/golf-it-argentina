@@ -80,35 +80,18 @@ export const useProfileQueries = () => {
     gcTime: 0    // Don't cache the data at all
   });
 
-  // Delete round mutation with improved error handling
+  // Delete round mutation with improved error handling and UI updates
   const deleteRoundMutation = useMutation({
     mutationFn: async (roundId: string) => {
       console.log(`Starting deletion of round ${roundId}`);
       if (!user?.id) throw new Error("User not authenticated");
-      
-      // Verify the round exists and belongs to the user before deletion
-      const { data: roundData, error: verifyError } = await supabase
-        .from('rounds')
-        .select('id')
-        .eq('id', roundId)
-        .eq('user_id', user.id)
-        .maybeSingle();
-        
-      if (verifyError) {
-        console.error("Verify round error:", verifyError);
-        throw verifyError;
-      }
-      
-      if (!roundData) {
-        throw new Error("Round not found or doesn't belong to this user");
-      }
       
       // Delete the round from the database
       const { error: deleteError } = await supabase
         .from('rounds')
         .delete()
         .eq('id', roundId)
-        .eq('user_id', user.id); // Double check the round belongs to this user
+        .eq('user_id', user.id); 
       
       if (deleteError) {
         console.error("Delete round error:", deleteError);
@@ -166,6 +149,9 @@ export const useProfileQueries = () => {
         description: error instanceof Error ? error.message : t("profile", "generalError"),
         variant: "destructive"
       });
+      
+      // Try to refetch the data to ensure UI is in sync
+      refetchRounds();
     },
     onSettled: () => {
       console.log("Delete operation settled, resetting UI state");
