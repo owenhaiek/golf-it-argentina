@@ -46,9 +46,7 @@ const RoundCard = ({ round, onDeleteRound, isDeleting }: RoundCardProps) => {
     ScoreIcon = Check;
   }
 
-  const handleDelete = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleDelete = () => {
     if (!isDeleting) {
       onDeleteRound(round.id);
       setIsDialogOpen(false);

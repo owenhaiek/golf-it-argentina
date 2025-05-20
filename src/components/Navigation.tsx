@@ -9,7 +9,7 @@ export const Navigation = () => {
   
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50">
-      <nav className="bg-background/95 backdrop-blur-sm border-t border-border/5 pb-safe">
+      <nav className="bg-background/95 backdrop-blur-sm border-t border-border/5">
         <ul className="flex items-center justify-between max-w-xl mx-auto px-4">
           <NavItem to="/" icon={<Flag className="transition-colors" size={20} />} label={t("common", "home")} />
           <NavItem to="/search-users" icon={<UserSearch className="transition-colors" size={20} />} label={t("common", "search")} />

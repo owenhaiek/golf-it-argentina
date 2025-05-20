@@ -44,7 +44,7 @@ const Profile = () => {
           <ProfileCard user={user} profile={profile} profileLoading={profileLoading} />
         </div>
         
-        <div className="w-full pb-20">
+        <div className="w-full pb-12">
           <RecentRounds 
             rounds={rounds} 
             roundsLoading={roundsLoading} 
