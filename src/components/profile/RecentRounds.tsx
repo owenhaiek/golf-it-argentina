@@ -7,6 +7,7 @@ import RoundCard from "./rounds/RoundCard";
 import EmptyRoundsList from "./rounds/EmptyRoundsList";
 import LoadingRoundsList from "./rounds/LoadingRoundsList";
 import { RecentRoundsProps } from "./rounds/types";
+import { useEffect } from "react";
 
 const RecentRounds = ({
   rounds,
@@ -15,6 +16,36 @@ const RecentRounds = ({
   deletingRoundId
 }: RecentRoundsProps) => {
   const { t } = useLanguage();
+
+  // Add effect to add viewport meta tag for mobile devices
+  useEffect(() => {
+    // Check if the viewport meta tag already exists
+    let viewportMeta = document.querySelector('meta[name="viewport"]');
+    
+    // If it doesn't exist, create one
+    if (!viewportMeta) {
+      viewportMeta = document.createElement('meta');
+      viewportMeta.setAttribute('name', 'viewport');
+      document.head.appendChild(viewportMeta);
+    }
+    
+    // Set the content to hide browser navigation on mobile
+    viewportMeta.setAttribute('content', 
+      'width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no');
+    
+    // Also add a meta tag to set the mobile web app capable attribute
+    let webAppMeta = document.querySelector('meta[name="apple-mobile-web-app-capable"]');
+    if (!webAppMeta) {
+      webAppMeta = document.createElement('meta');
+      webAppMeta.setAttribute('name', 'apple-mobile-web-app-capable');
+      webAppMeta.setAttribute('content', 'yes');
+      document.head.appendChild(webAppMeta);
+    }
+    
+    return () => {
+      // No cleanup needed as we want these meta tags to persist
+    };
+  }, []);
 
   if (roundsLoading) {
     return <LoadingRoundsList />;

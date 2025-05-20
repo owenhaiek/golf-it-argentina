@@ -82,7 +82,7 @@ export const useProfileQueries = () => {
     refetchOnMount: true // Always refetch on mount
   });
 
-  // Delete round mutation with improved error handling
+  // Delete round mutation with completely rewritten implementation
   const deleteRoundMutation = useMutation({
     mutationFn: async (roundId: string) => {
       console.log(`Starting deletion of round ${roundId}`);
@@ -146,9 +146,6 @@ export const useProfileQueries = () => {
         description: error instanceof Error ? error.message : t("profile", "generalError"),
         variant: "destructive"
       });
-      
-      // Force refetch to ensure UI state matches server state
-      refetchRounds();
     },
     onSettled: () => {
       // Clear deleting state regardless of outcome
@@ -159,7 +156,7 @@ export const useProfileQueries = () => {
     }
   });
 
-  // Handler for deleting rounds with retry logic
+  // Handler for deleting rounds
   const handleDeleteRound = useCallback((roundId: string) => {
     if (deletingRoundId) {
       console.log("Deletion already in progress, ignoring request");
