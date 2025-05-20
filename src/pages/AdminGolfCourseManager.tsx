@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AdminGolfCourseForm from "./AdminCsvUpload"; // Maintained for form functionality 
 import QuickAddGolfCourses from "@/components/admin/QuickAddGolfCourses";
 import CourseList from "@/components/admin/CourseList";
@@ -27,6 +27,7 @@ export interface GolfCourseTemplate {
 const AdminGolfCourseManager = () => {
   const [activeTab, setActiveTab] = useState("list");
   const [courseToEdit, setCourseToEdit] = useState<GolfCourseTemplate | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const handleEditCourse = (course: GolfCourseTemplate) => {
     setCourseToEdit(course);
@@ -36,6 +37,7 @@ const AdminGolfCourseManager = () => {
   const handleFormSubmitted = () => {
     setCourseToEdit(null);
     setActiveTab("list");
+    setRefreshTrigger(prev => prev + 1); // Trigger list refresh
   };
 
   return (
@@ -88,7 +90,10 @@ const AdminGolfCourseManager = () => {
 
       <div className="mt-4">
         {activeTab === "list" && (
-          <CourseList onEditCourse={handleEditCourse} />
+          <CourseList 
+            key={`course-list-${refreshTrigger}`} 
+            onEditCourse={handleEditCourse} 
+          />
         )}
         
         {activeTab === "form" && (

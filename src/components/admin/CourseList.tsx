@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -132,6 +133,9 @@ const CourseList = ({ onEditCourse }: CourseListProps) => {
         title: "Éxito",
         description: "Campo de golf eliminado correctamente",
       });
+      
+      // Refresh the course list to ensure it's up-to-date
+      await fetchCourses(currentPage, searchQuery);
       
     } catch (error: any) {
       console.error("Error in deletion process:", error);

@@ -86,12 +86,12 @@ export const useProfileQueries = () => {
       console.log(`Starting deletion of round ${roundId}`);
       if (!user?.id) throw new Error("User not authenticated");
       
-      // Delete the round from the database
+      // Attempt to delete the round from the database
       const { error: deleteError } = await supabase
         .from('rounds')
         .delete()
         .eq('id', roundId)
-        .eq('user_id', user.id); 
+        .eq('user_id', user.id);
       
       if (deleteError) {
         console.error("Delete round error:", deleteError);
@@ -120,12 +120,6 @@ export const useProfileQueries = () => {
     onSuccess: (roundId) => {
       console.log("Round successfully deleted, updating UI");
       
-      // Show success toast
-      toast({
-        title: t("profile", "deleteRoundSuccess"),
-        description: t("profile", "deleteRoundDescription"),
-      });
-      
       // Force refetch to ensure UI is in sync with server
       queryClient.invalidateQueries({
         queryKey: ['rounds', user?.id]
@@ -134,6 +128,12 @@ export const useProfileQueries = () => {
       // Also invalidate profile to update any stats that might depend on rounds
       queryClient.invalidateQueries({
         queryKey: ['profile', user?.id]
+      });
+      
+      // Show success toast
+      toast({
+        title: t("profile", "deleteRoundSuccess"),
+        description: t("profile", "deleteRoundDescription"),
       });
     },
     onError: (error, roundId, context: any) => {
