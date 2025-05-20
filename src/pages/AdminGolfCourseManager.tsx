@@ -75,7 +75,10 @@ const AdminGolfCourseManager = () => {
         </button>
         
         <button 
-          onClick={() => setActiveTab("list")} 
+          onClick={() => {
+            setActiveTab("list");
+            setRefreshTrigger(prev => prev + 1); // Force refresh when switching to list
+          }} 
           className={`px-4 py-2 rounded-md ${activeTab === "list" 
             ? "bg-blue-600 text-white" 
             : "bg-gray-200 text-gray-700 hover:bg-gray-300"}`}

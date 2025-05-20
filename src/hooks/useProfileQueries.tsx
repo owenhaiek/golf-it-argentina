@@ -82,55 +82,49 @@ export const useProfileQueries = () => {
     refetchOnMount: true // Always refetch on mount
   });
 
-  // Delete round mutation with improved error handling and UI updates
+  // Delete round mutation with improved error handling
   const deleteRoundMutation = useMutation({
     mutationFn: async (roundId: string) => {
       console.log(`Starting deletion of round ${roundId}`);
       if (!user?.id) throw new Error("User not authenticated");
       
       // Attempt to delete the round from the database
-      const { error: deleteError } = await supabase
+      const { error } = await supabase
         .from('rounds')
         .delete()
         .eq('id', roundId)
         .eq('user_id', user.id);
       
-      if (deleteError) {
-        console.error("Delete round error:", deleteError);
-        throw deleteError;
+      if (error) {
+        console.error("Delete round error:", error);
+        throw error;
       }
       
       console.log(`Successfully deleted round ${roundId} from database`);
       return roundId;
     },
-    onMutate: (roundId) => {
-      console.log(`Setting UI state for round ${roundId} deletion`);
+    onMutate: async (roundId) => {
+      // Set UI state to indicate deletion in progress
       setDeletingRoundId(roundId);
       
-      // Snapshot the previous value
+      // Cancel any outgoing refetches to avoid overwriting our optimistic update
+      await queryClient.cancelQueries({ queryKey: ['rounds', user?.id] });
+      
+      // Snapshot the previous rounds data for potential rollback
       const previousRounds = queryClient.getQueryData(['rounds', user?.id]);
       
-      // Optimistically update to the new value
-      queryClient.setQueryData(['rounds', user?.id], (old: any) => {
-        if (!old) return [];
-        return old.filter((round: any) => round.id !== roundId);
+      // Perform an optimistic update by removing the deleted round from UI
+      queryClient.setQueryData(['rounds', user?.id], (old: any[]) => {
+        return old ? old.filter(round => round.id !== roundId) : [];
       });
       
-      // Return a context object with the snapshot
       return { previousRounds };
     },
     onSuccess: (roundId) => {
       console.log("Round successfully deleted, updating UI");
       
-      // Invalidate related queries to ensure UI refresh
-      queryClient.invalidateQueries({
-        queryKey: ['rounds']
-      });
-      
-      // Also invalidate profile to update any stats that might depend on rounds
-      queryClient.invalidateQueries({
-        queryKey: ['profile']
-      });
+      // Force refetch to ensure data consistency
+      queryClient.invalidateQueries({ queryKey: ['rounds', user?.id] });
       
       // Show success toast
       toast({
@@ -141,26 +135,31 @@ export const useProfileQueries = () => {
     onError: (error, roundId, context: any) => {
       console.error(`Error deleting round ${roundId}:`, error);
       
-      // Revert to the previous state if available
+      // Restore previous data if available
       if (context?.previousRounds) {
         queryClient.setQueryData(['rounds', user?.id], context.previousRounds);
       }
       
+      // Show error toast
       toast({
         title: t("profile", "deleteRoundError"),
         description: error instanceof Error ? error.message : t("profile", "generalError"),
         variant: "destructive"
       });
       
-      // Force refetch to ensure UI is in sync
+      // Force refetch to ensure UI state matches server state
       refetchRounds();
     },
     onSettled: () => {
-      console.log("Delete operation settled, resetting UI state");
+      // Clear deleting state regardless of outcome
       setDeletingRoundId(null);
+      
+      // Final refetch to ensure consistency
+      refetchRounds();
     }
   });
 
+  // Handler for deleting rounds with retry logic
   const handleDeleteRound = useCallback((roundId: string) => {
     if (deletingRoundId) {
       console.log("Deletion already in progress, ignoring request");

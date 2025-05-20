@@ -38,11 +38,11 @@ const CoursePhotos = ({ imageUrl, imageGallery = [] }: CoursePhotosProps) => {
   const allImages = [imageUrl, ...parsedGallery].filter(Boolean) as string[];
   
   const handlePrev = () => {
-    setCurrentIndex((prev) => (prev > 0 ? prev - 1 : allImages.length - 1));
+    setCurrentIndex(prev => (prev > 0 ? prev - 1 : allImages.length - 1));
   };
   
   const handleNext = () => {
-    setCurrentIndex((prev) => (prev < allImages.length - 1 ? prev + 1 : 0));
+    setCurrentIndex(prev => (prev < allImages.length - 1 ? prev + 1 : 0));
   };
 
   if (allImages.length === 0) {
