@@ -7,6 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/components/ui/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { Separator } from "@/components/ui/separator";
+import { FcGoogle } from "react-icons/fc";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -43,6 +45,29 @@ const Auth = () => {
           description: t("auth", "confirmationEmailSent"),
         });
       }
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: t("common", "error"),
+        description: error.message,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      setIsLoading(true);
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin
+        }
+      });
+      
+      if (error) throw error;
+      
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -97,6 +122,29 @@ const Auth = () => {
                   : t("auth", "signUp")}
             </Button>
           </form>
+          
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <Separator className="w-full" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-muted px-2 text-muted-foreground">
+                {t("auth", "orContinueWith")}
+              </span>
+            </div>
+          </div>
+          
+          <Button 
+            variant="outline" 
+            type="button" 
+            className="w-full" 
+            onClick={handleGoogleSignIn}
+            disabled={isLoading}
+          >
+            <FcGoogle className="mr-2 h-5 w-5" />
+            Google
+          </Button>
+          
           <div className="text-center text-sm">
             <button
               type="button"
