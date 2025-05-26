@@ -10,7 +10,7 @@ export interface CoursePhotosProps {
   courseId: string;
   courseName?: string;
   imageUrl?: string;
-  imageGallery?: string[];
+  imageGallery?: string[] | string;
 }
 
 const CoursePhotos = ({ imageUrl, imageGallery = [] }: CoursePhotosProps) => {
@@ -18,14 +18,18 @@ const CoursePhotos = ({ imageUrl, imageGallery = [] }: CoursePhotosProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   
   // Parse the gallery if it's a string
-  const parseGallery = () => {
+  const parseGallery = (): string[] => {
     if (!imageGallery) return [];
     
     if (typeof imageGallery === 'string') {
       return imageGallery.split(',').map(url => url.trim()).filter(url => url !== '');
     }
     
-    return imageGallery;
+    if (Array.isArray(imageGallery)) {
+      return imageGallery;
+    }
+    
+    return [];
   };
   
   // Combine single image and gallery
