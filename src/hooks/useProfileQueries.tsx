@@ -76,15 +76,32 @@ export const useProfileQueries = () => {
       return data || [];
     },
     enabled: !!user?.id,
-    staleTime: 0, // Consider data always stale
-    gcTime: 0    // Don't cache the data at all
+    staleTime: 0,
+    gcTime: 0
   });
 
-  // Delete round mutation with improved error handling and UI updates
+  // Delete round mutation with improved error handling
   const deleteRoundMutation = useMutation({
     mutationFn: async (roundId: string) => {
       console.log(`Starting deletion of round ${roundId}`);
       if (!user?.id) throw new Error("User not authenticated");
+      
+      // First verify the round belongs to the user
+      const { data: roundCheck, error: checkError } = await supabase
+        .from('rounds')
+        .select('user_id')
+        .eq('id', roundId)
+        .eq('user_id', user.id)
+        .maybeSingle();
+      
+      if (checkError) {
+        console.error("Error checking round ownership:", checkError);
+        throw new Error("Failed to verify round ownership");
+      }
+      
+      if (!roundCheck) {
+        throw new Error("Round not found or you don't have permission to delete it");
+      }
       
       // Attempt to delete the round from the database
       const { error: deleteError } = await supabase
@@ -95,7 +112,7 @@ export const useProfileQueries = () => {
       
       if (deleteError) {
         console.error("Delete round error:", deleteError);
-        throw deleteError;
+        throw new Error(`Failed to delete round: ${deleteError.message}`);
       }
       
       console.log(`Successfully deleted round ${roundId} from database`);
@@ -144,9 +161,11 @@ export const useProfileQueries = () => {
         queryClient.setQueryData(['rounds', user?.id], context.previousRounds);
       }
       
+      const errorMessage = error instanceof Error ? error.message : t("profile", "generalError");
+      
       toast({
         title: t("profile", "deleteRoundError"),
-        description: error instanceof Error ? error.message : t("profile", "generalError"),
+        description: errorMessage,
         variant: "destructive"
       });
       
@@ -162,7 +181,7 @@ export const useProfileQueries = () => {
   const handleDeleteRound = useCallback((roundId: string) => {
     if (deletingRoundId) {
       console.log("Deletion already in progress, ignoring request");
-      return; // Prevent multiple deletions at once
+      return;
     }
     console.log(`User initiated deletion of round ${roundId}`);
     deleteRoundMutation.mutate(roundId);

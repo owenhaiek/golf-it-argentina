@@ -68,11 +68,11 @@ const CourseList = ({ onEditCourse }: CourseListProps) => {
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
-    setCurrentPage(1); // Reset to first page on new search
+    setCurrentPage(1);
   };
 
   const handleDeleteCourse = async (id: string) => {
-    if (deletingCourse) return; // Prevent multiple delete operations
+    if (deletingCourse) return;
     
     setDeletingCourse(id);
     setOpenDialogId(null);
@@ -80,40 +80,64 @@ const CourseList = ({ onEditCourse }: CourseListProps) => {
     try {
       console.log(`Attempting to delete course with ID: ${id}`);
       
-      // Step 1: Delete related rounds
-      const { error: deleteRoundsError } = await supabase
-        .from("rounds")
-        .delete()
-        .eq("course_id", id);
+      // First, check if there are any related records and get counts
+      const [roundsResult, reservationsResult, reviewsResult] = await Promise.all([
+        supabase.from("rounds").select("id", { count: "exact" }).eq("course_id", id),
+        supabase.from("reservations").select("id", { count: "exact" }).eq("course_id", id),
+        supabase.from("course_reviews").select("id", { count: "exact" }).eq("course_id", id)
+      ]);
       
-      if (deleteRoundsError) {
-        console.error("Error deleting related rounds:", deleteRoundsError);
-        throw deleteRoundsError;
+      console.log("Related records found:", {
+        rounds: roundsResult.count || 0,
+        reservations: reservationsResult.count || 0,
+        reviews: reviewsResult.count || 0
+      });
+      
+      // Delete related records in order (most dependent first)
+      if (roundsResult.count && roundsResult.count > 0) {
+        console.log(`Deleting ${roundsResult.count} related rounds...`);
+        const { error: deleteRoundsError } = await supabase
+          .from("rounds")
+          .delete()
+          .eq("course_id", id);
+        
+        if (deleteRoundsError) {
+          console.error("Error deleting related rounds:", deleteRoundsError);
+          throw new Error(`Failed to delete related rounds: ${deleteRoundsError.message}`);
+        }
+        console.log("Successfully deleted related rounds");
       }
       
-      // Step 2: Delete related reservations
-      const { error: deleteReservationsError } = await supabase
-        .from("reservations")
-        .delete()
-        .eq("course_id", id);
-      
-      if (deleteReservationsError) {
-        console.error("Error deleting related reservations:", deleteReservationsError);
-        throw deleteReservationsError;
+      if (reservationsResult.count && reservationsResult.count > 0) {
+        console.log(`Deleting ${reservationsResult.count} related reservations...`);
+        const { error: deleteReservationsError } = await supabase
+          .from("reservations")
+          .delete()
+          .eq("course_id", id);
+        
+        if (deleteReservationsError) {
+          console.error("Error deleting related reservations:", deleteReservationsError);
+          throw new Error(`Failed to delete related reservations: ${deleteReservationsError.message}`);
+        }
+        console.log("Successfully deleted related reservations");
       }
       
-      // Step 3: Delete related course reviews
-      const { error: deleteReviewsError } = await supabase
-        .from("course_reviews")
-        .delete()
-        .eq("course_id", id);
-      
-      if (deleteReviewsError) {
-        console.error("Error deleting related reviews:", deleteReviewsError);
-        throw deleteReviewsError;
+      if (reviewsResult.count && reviewsResult.count > 0) {
+        console.log(`Deleting ${reviewsResult.count} related reviews...`);
+        const { error: deleteReviewsError } = await supabase
+          .from("course_reviews")
+          .delete()
+          .eq("course_id", id);
+        
+        if (deleteReviewsError) {
+          console.error("Error deleting related reviews:", deleteReviewsError);
+          throw new Error(`Failed to delete related reviews: ${deleteReviewsError.message}`);
+        }
+        console.log("Successfully deleted related reviews");
       }
       
-      // Step 4: Finally delete the golf course
+      // Finally delete the golf course
+      console.log("Deleting golf course...");
       const { error: deleteCourseError } = await supabase
         .from("golf_courses")
         .delete()
@@ -121,7 +145,7 @@ const CourseList = ({ onEditCourse }: CourseListProps) => {
       
       if (deleteCourseError) {
         console.error("Error deleting golf course:", deleteCourseError);
-        throw deleteCourseError;
+        throw new Error(`Failed to delete golf course: ${deleteCourseError.message}`);
       }
       
       console.log(`Successfully deleted course with ID: ${id}`);
@@ -131,7 +155,7 @@ const CourseList = ({ onEditCourse }: CourseListProps) => {
       
       toast({
         title: "Éxito",
-        description: "Campo de golf eliminado correctamente",
+        description: "Campo de golf eliminado correctamente junto con todos sus registros relacionados",
       });
       
       // Refresh the course list to ensure it's up-to-date
