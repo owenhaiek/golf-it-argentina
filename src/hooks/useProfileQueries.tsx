@@ -80,39 +80,22 @@ export const useProfileQueries = () => {
     gcTime: 0
   });
 
-  // Delete round mutation with improved error handling
+  // Delete round mutation with proper database deletion
   const deleteRoundMutation = useMutation({
     mutationFn: async (roundId: string) => {
       console.log(`Starting deletion of round ${roundId}`);
       if (!user?.id) throw new Error("User not authenticated");
       
-      // First verify the round belongs to the user
-      const { data: roundCheck, error: checkError } = await supabase
-        .from('rounds')
-        .select('user_id')
-        .eq('id', roundId)
-        .eq('user_id', user.id)
-        .maybeSingle();
-      
-      if (checkError) {
-        console.error("Error checking round ownership:", checkError);
-        throw new Error("Failed to verify round ownership");
-      }
-      
-      if (!roundCheck) {
-        throw new Error("Round not found or you don't have permission to delete it");
-      }
-      
-      // Attempt to delete the round from the database
-      const { error: deleteError } = await supabase
+      // Delete the round directly from database
+      const { error } = await supabase
         .from('rounds')
         .delete()
         .eq('id', roundId)
         .eq('user_id', user.id);
       
-      if (deleteError) {
-        console.error("Delete round error:", deleteError);
-        throw new Error(`Failed to delete round: ${deleteError.message}`);
+      if (error) {
+        console.error("Delete round error:", error);
+        throw new Error(`Failed to delete round: ${error.message}`);
       }
       
       console.log(`Successfully deleted round ${roundId} from database`);
@@ -121,21 +104,15 @@ export const useProfileQueries = () => {
     onMutate: (roundId) => {
       console.log(`Setting UI state for round ${roundId} deletion`);
       setDeletingRoundId(roundId);
+    },
+    onSuccess: (roundId) => {
+      console.log("Round successfully deleted, updating UI");
       
-      // Snapshot the previous value
-      const previousRounds = queryClient.getQueryData(['rounds', user?.id]);
-      
-      // Optimistically update to the new value
+      // Immediately update the cache to remove the deleted round
       queryClient.setQueryData(['rounds', user?.id], (old: any) => {
         if (!old) return [];
         return old.filter((round: any) => round.id !== roundId);
       });
-      
-      // Return a context object with the snapshot
-      return { previousRounds };
-    },
-    onSuccess: (roundId) => {
-      console.log("Round successfully deleted, updating UI");
       
       // Force refetch to ensure UI is in sync with server
       queryClient.invalidateQueries({
@@ -153,13 +130,8 @@ export const useProfileQueries = () => {
         description: t("profile", "deleteRoundDescription"),
       });
     },
-    onError: (error, roundId, context: any) => {
+    onError: (error, roundId) => {
       console.error(`Error deleting round ${roundId}:`, error);
-      
-      // Revert to the previous state if available
-      if (context?.previousRounds) {
-        queryClient.setQueryData(['rounds', user?.id], context.previousRounds);
-      }
       
       const errorMessage = error instanceof Error ? error.message : t("profile", "generalError");
       
