@@ -80,22 +80,39 @@ export const useProfileQueries = () => {
     gcTime: 0
   });
 
-  // Delete round mutation with proper database deletion
+  // Delete round mutation with improved error handling
   const deleteRoundMutation = useMutation({
     mutationFn: async (roundId: string) => {
       console.log(`Starting deletion of round ${roundId}`);
       if (!user?.id) throw new Error("User not authenticated");
       
-      // Delete the round directly from database
-      const { error } = await supabase
+      // First verify the round exists and belongs to the user
+      const { data: existingRound, error: fetchError } = await supabase
+        .from('rounds')
+        .select('id, user_id')
+        .eq('id', roundId)
+        .eq('user_id', user.id)
+        .maybeSingle();
+      
+      if (fetchError) {
+        console.error("Error verifying round:", fetchError);
+        throw new Error(`Failed to verify round: ${fetchError.message}`);
+      }
+      
+      if (!existingRound) {
+        throw new Error("Round not found or you don't have permission to delete it");
+      }
+      
+      // Delete the round
+      const { error: deleteError } = await supabase
         .from('rounds')
         .delete()
         .eq('id', roundId)
         .eq('user_id', user.id);
       
-      if (error) {
-        console.error("Delete round error:", error);
-        throw new Error(`Failed to delete round: ${error.message}`);
+      if (deleteError) {
+        console.error("Delete round error:", deleteError);
+        throw new Error(`Failed to delete round: ${deleteError.message}`);
       }
       
       console.log(`Successfully deleted round ${roundId} from database`);

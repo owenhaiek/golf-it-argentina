@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -79,6 +80,22 @@ const CourseList = ({ onEditCourse }: CourseListProps) => {
     try {
       console.log(`Attempting to delete course with ID: ${id}`);
       
+      // First verify the course exists
+      const { data: existingCourse, error: fetchError } = await supabase
+        .from("golf_courses")
+        .select('id, name')
+        .eq('id', id)
+        .maybeSingle();
+      
+      if (fetchError) {
+        console.error("Error verifying course:", fetchError);
+        throw new Error(`Failed to verify course: ${fetchError.message}`);
+      }
+      
+      if (!existingCourse) {
+        throw new Error("Course not found");
+      }
+      
       // Delete related records first in proper order
       console.log("Deleting related rounds...");
       const { error: deleteRoundsError } = await supabase
@@ -132,7 +149,7 @@ const CourseList = ({ onEditCourse }: CourseListProps) => {
       
       toast({
         title: "Éxito",
-        description: "Campo de golf eliminado correctamente junto con todos sus registros relacionados",
+        description: `Campo de golf "${existingCourse.name}" eliminado correctamente junto con todos sus registros relacionados`,
       });
       
       // Refresh the course list to ensure it's up-to-date
@@ -207,7 +224,7 @@ const CourseList = ({ onEditCourse }: CourseListProps) => {
                         </Button>
                         <AlertDialog 
                           open={openDialogId === course.id} 
-                          onOpenChange={(open) => setOpenDialogId(open ? course.id : null)}
+                          onOpenChange={(open) => setOpenDialogId(open ? course.id || null : null)}
                         >
                           <AlertDialogTrigger asChild>
                             <Button 
@@ -233,7 +250,7 @@ const CourseList = ({ onEditCourse }: CourseListProps) => {
                             <AlertDialogHeader>
                               <AlertDialogTitle>Eliminar Campo de Golf</AlertDialogTitle>
                               <AlertDialogDescription>
-                                Esta acción no se puede deshacer. ¿Estás seguro que deseas eliminar este campo de golf?
+                                Esta acción no se puede deshacer. ¿Estás seguro que deseas eliminar el campo "{course.name}"?
                                 <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-sm">
                                   <strong>Nota:</strong> Se eliminarán también todas las rondas, reservas y reseñas asociadas a este campo.
                                 </div>
@@ -244,8 +261,9 @@ const CourseList = ({ onEditCourse }: CourseListProps) => {
                               <AlertDialogAction
                                 onClick={() => course.id && handleDeleteCourse(course.id)}
                                 className="bg-red-600 hover:bg-red-700"
+                                disabled={deletingCourse === course.id}
                               >
-                                Eliminar
+                                {deletingCourse === course.id ? "Eliminando..." : "Eliminar"}
                               </AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>
