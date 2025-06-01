@@ -1,3 +1,4 @@
+
 import { Outlet } from "react-router-dom";
 import { Navigation } from "./Navigation";
 import { useState, useRef } from "react";
@@ -65,10 +66,10 @@ export const Layout = () => {
   }
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-background">
+    <div className="fixed inset-0 flex flex-col bg-background h-full w-full">
       {pullDistance > 0 && !isRefreshing && (
         <motion.div 
-          className="absolute top-0 left-0 right-0 flex items-center justify-center z-40 pointer-events-none"
+          className="absolute top-0 left-0 right-0 flex items-center justify-center z-40 pointer-events-none safe-top"
           initial={{ opacity: 0 }}
           animate={{ 
             opacity: Math.min(pullDistance / 100, 0.8),
@@ -96,15 +97,16 @@ export const Layout = () => {
       
       <main 
         ref={mainRef} 
-        className="flex-1 overflow-y-auto pb-20"
+        className="flex-1 overflow-y-auto safe-top"
         style={{
-          height: '100%',
+          height: 'calc(100% - 72px)', // Account for navigation height
           WebkitOverflowScrolling: 'touch',
           position: 'relative',
-          zIndex: 1
+          zIndex: 1,
+          paddingBottom: '0'
         }}
       >
-        <div className="container max-w-md mx-auto px-4 pt-4 pb-4 animate-in">
+        <div className="container max-w-md mx-auto px-4 pt-4 pb-4 animate-in min-h-full">
           <Outlet />
         </div>
       </main>

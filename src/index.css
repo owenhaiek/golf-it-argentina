@@ -74,76 +74,85 @@
 @layer base {
   * {
     @apply border-border;
+    box-sizing: border-box;
   }
-  body {
+  
+  html, body {
     @apply bg-background text-foreground;
-    font-feature-settings:
-      "rlig" 1,
-      "calt" 1;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    position: fixed;
   }
   
-  /* Hide browser UI on mobile devices */
-  @media screen and (display-mode: standalone) {
-    /* For iOS */
-    html {
-      -webkit-overflow-scrolling: touch;
-      height: 100%;
-    }
-
-    body {
-      position: fixed;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-    }
-
-    #root {
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-      height: 100%;
-      width: 100%;
-    }
+  #root {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    position: relative;
   }
   
-  /* Additional mobile display fixes */
-  @media only screen and (max-width: 767px) {
+  /* Mobile-specific adjustments */
+  @media only screen and (max-width: 768px) {
     html, body {
-      height: 100%;
-      width: 100%;
+      height: 100vh;
+      height: 100dvh; /* Dynamic viewport height for better mobile support */
+      width: 100vw;
       overflow: hidden;
       margin: 0;
       padding: 0;
+      position: fixed;
+      -webkit-overflow-scrolling: touch;
     }
     
     #root {
-      height: 100%;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-      padding-top: env(safe-area-inset-top, 0);
-      padding-bottom: env(safe-area-inset-bottom, 0);
-      padding-left: env(safe-area-inset-left, 0);
-      padding-right: env(safe-area-inset-right, 0);
+      height: 100vh;
+      height: 100dvh;
+      width: 100vw;
+      overflow: hidden;
+      position: relative;
+      padding: 0;
+      margin: 0;
+    }
+  }
+  
+  /* Safe area handling for mobile devices */
+  @supports (padding: max(0px)) {
+    .safe-top {
+      padding-top: max(env(safe-area-inset-top), 0px);
     }
     
-    /* Ensure content doesn't go under nav bar */
-    main {
-      padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+    .safe-bottom {
+      padding-bottom: max(env(safe-area-inset-bottom), 0px);
+    }
+    
+    .safe-left {
+      padding-left: max(env(safe-area-inset-left), 0px);
+    }
+    
+    .safe-right {
+      padding-right: max(env(safe-area-inset-right), 0px);
     }
   }
   
   /* Hide Safari UI in PWA mode */
   @media screen and (display-mode: standalone) {
-    :root {
-      --app-height: 100vh;
+    html, body {
+      height: 100vh;
+      height: 100dvh;
+      width: 100vw;
+      overflow: hidden;
+      position: fixed;
     }
     
-    body {
-      min-height: var(--app-height);
-    }
-    
-    /* Status bar background color */
-    meta[name="apple-mobile-web-app-status-bar-style"] {
-      content: "black-translucent";
+    #root {
+      height: 100vh;
+      height: 100dvh;
+      width: 100vw;
+      overflow: hidden;
     }
   }
 }
@@ -172,23 +181,6 @@
   .hide-scrollbar {
     -ms-overflow-style: none;  /* IE and Edge */
     scrollbar-width: none;  /* Firefox */
-  }
-  
-  /* Safe area padding utilities */
-  .pt-safe {
-    padding-top: env(safe-area-inset-top, 1rem);
-  }
-  
-  .pb-safe {
-    padding-bottom: env(safe-area-inset-bottom, 1rem);
-  }
-  
-  .pl-safe {
-    padding-left: env(safe-area-inset-left, 1rem);
-  }
-  
-  .pr-safe {
-    padding-right: env(safe-area-inset-right, 1rem);
   }
   
   /* Animation utilities - Improved */
@@ -229,16 +221,19 @@
 
 /* Fix for iOS Safari viewport height issues */
 :root {
-  --app-height: 100%;
+  --app-height: 100vh;
+  --app-height: 100dvh;
 }
 
 @supports (-webkit-touch-callout: none) {
-  body {
+  html, body {
     height: -webkit-fill-available;
+    height: 100dvh;
   }
   
-  .fixed-bottom-safe {
-    bottom: env(safe-area-inset-bottom);
+  #root {
+    height: -webkit-fill-available;
+    height: 100dvh;
   }
 }
 
