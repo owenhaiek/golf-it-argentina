@@ -8,9 +8,9 @@ export const Navigation = () => {
   const { t } = useLanguage();
   
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-t border-border/5">
-      <nav className="w-full pb-safe">
-        <ul className="flex items-center justify-between max-w-xl mx-auto px-4 py-3">
+    <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-t border-border/5 h-[72px]">
+      <nav className="w-full h-full pb-safe">
+        <ul className="flex items-center justify-between max-w-xl mx-auto px-4 py-2 h-full">
           <NavItem to="/" icon={<Flag className="transition-colors" size={20} />} label={t("common", "home")} />
           <NavItem to="/search-users" icon={<UserSearch className="transition-colors" size={20} />} label={t("common", "search")} />
           <NavItem 
@@ -43,7 +43,7 @@ const NavItem = ({
       to={to}
       className={({ isActive }) =>
         cn(
-          "flex flex-col items-center justify-center gap-1 py-2 px-3 transition-all duration-200 min-h-[60px]",
+          "flex flex-col items-center justify-center gap-1 py-1 px-2 transition-all duration-200 min-h-[56px]",
           isActive 
             ? "text-primary" 
             : "text-muted-foreground hover:text-primary/80",
@@ -53,7 +53,7 @@ const NavItem = ({
       aria-label={label}
     >
       {icon}
-      <span className="text-[10px] font-medium tracking-wider uppercase leading-tight">{label}</span>
+      <span className="text-[9px] font-medium tracking-wider uppercase leading-tight">{label}</span>
     </NavLink>
   </li>
 );
