@@ -66,10 +66,10 @@ export const Layout = () => {
   }
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-background h-full w-full">
+    <div className="fixed inset-0 flex flex-col bg-background h-full w-full overflow-hidden">
       {pullDistance > 0 && !isRefreshing && (
         <motion.div 
-          className="absolute top-0 left-0 right-0 flex items-center justify-center z-40 pointer-events-none safe-top"
+          className="absolute top-0 left-0 right-0 flex items-center justify-center z-40 pointer-events-none pt-safe"
           initial={{ opacity: 0 }}
           animate={{ 
             opacity: Math.min(pullDistance / 100, 0.8),
@@ -97,13 +97,13 @@ export const Layout = () => {
       
       <main 
         ref={mainRef} 
-        className="flex-1 overflow-y-auto safe-top"
+        className="flex-1 overflow-y-auto pt-safe pb-[80px]"
         style={{
-          height: 'calc(100% - 72px)', // Account for navigation height
           WebkitOverflowScrolling: 'touch',
           position: 'relative',
           zIndex: 1,
-          paddingBottom: '0'
+          height: 'calc(100vh - 80px)',
+          height: 'calc(100dvh - 80px)'
         }}
       >
         <div className="container max-w-md mx-auto px-4 pt-4 pb-4 animate-in min-h-full">
