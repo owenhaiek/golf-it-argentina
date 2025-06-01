@@ -129,12 +129,23 @@
       padding-bottom: max(env(safe-area-inset-bottom), 0px);
     }
     
+    .pb-nav {
+      padding-bottom: calc(76px + max(env(safe-area-inset-bottom), 0px));
+    }
+    
     .pl-safe {
       padding-left: max(env(safe-area-inset-left), 0px);
     }
     
     .pr-safe {
       padding-right: max(env(safe-area-inset-right), 0px);
+    }
+  }
+  
+  /* Fallback for devices without safe area support */
+  @supports not (padding: max(0px)) {
+    .pb-nav {
+      padding-bottom: 76px;
     }
   }
   
