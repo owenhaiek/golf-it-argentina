@@ -55,12 +55,13 @@ const FilterPanel = ({
       style={{ 
         willChange: "transform",
         backfaceVisibility: "hidden",
-        zIndex: 999, // Extremely high z-index to ensure it's above everything
-        maxHeight: 'calc(100% - 20px)' // Prevent it from being too tall
+        zIndex: 999,
+        bottom: 'calc(76px + env(safe-area-inset-bottom, 0px))',
+        maxHeight: 'calc(100dvh - 96px - env(safe-area-inset-bottom, 0px))'
       }}
     >
       <div>
-        <Card className="rounded-t-xl border-b-0 shadow-lg bg-white py-[15px] px-[30px] pb-[75px]">
+        <Card className="rounded-t-xl border-b-0 shadow-lg bg-white py-4 px-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold">Filter Courses</h3>
             <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full">
@@ -127,7 +128,7 @@ const FilterPanel = ({
               </div>
             </div>
 
-            <div className="flex space-x-2 pt-2">
+            <div className="flex space-x-2 pt-2 pb-4">
               <Button onClick={handleResetFilters} variant="outline" className="w-1/2">
                 Reset
               </Button>
