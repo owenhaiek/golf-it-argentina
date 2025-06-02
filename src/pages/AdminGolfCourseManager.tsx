@@ -22,6 +22,7 @@ export interface GolfCourseTemplate {
   image_url: string;
   image_gallery: string;
   opening_hours: OpeningHours;
+  hole_pars?: number[];
 }
 
 const AdminGolfCourseManager = () => {

@@ -1,12 +1,12 @@
+
 import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useToast } from "@/hooks/use-toast";
 import { Card } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2 } from "lucide-react";
 import { GolfCourseTemplate } from "@/pages/AdminGolfCourseManager";
 import { OpeningHours, supabase } from "@/lib/supabase";
-import { defaultOpeningHours, formatOpeningHoursForDisplay } from "@/utils/openingHours";
+import { defaultOpeningHours } from "@/utils/openingHours";
 import ImageUploader from "@/components/admin/ImageUploader";
 import GalleryUploader from "@/components/admin/GalleryUploader";
 
@@ -28,6 +28,7 @@ interface FormData {
   image_url: string;
   image_gallery: string;
   opening_hours: OpeningHours;
+  hole_pars: number[];
 }
 
 const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGolfCourseFormProps) => {
@@ -48,6 +49,7 @@ const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGolfCourse
       image_url: "",
       image_gallery: "",
       opening_hours: defaultOpeningHours,
+      hole_pars: Array(18).fill(4),
     },
   });
 
@@ -79,8 +81,27 @@ const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGolfCourse
       } else {
         setValue("opening_hours", defaultOpeningHours);
       }
+      
+      // Set hole pars
+      if (initialCourse.hole_pars && Array.isArray(initialCourse.hole_pars)) {
+        setValue("hole_pars", initialCourse.hole_pars);
+      } else {
+        setValue("hole_pars", Array(initialCourse.holes || 18).fill(4));
+      }
     }
   }, [initialCourse, setValue]);
+
+  const watchedHoles = watch("holes");
+  const watchedHolePars = watch("hole_pars");
+
+  // Update hole pars array when number of holes changes
+  useEffect(() => {
+    const currentHolePars = watchedHolePars || [];
+    const newHolePars = Array(watchedHoles).fill(0).map((_, index) => 
+      currentHolePars[index] || 4
+    );
+    setValue("hole_pars", newHolePars);
+  }, [watchedHoles, setValue]);
 
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
@@ -100,6 +121,7 @@ const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGolfCourse
         image_url: data.image_url,
         image_gallery: data.image_gallery,
         opening_hours: formattedOpeningHours,
+        hole_pars: data.hole_pars,
       };
       
       let result;
@@ -162,6 +184,18 @@ const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGolfCourse
     setValue("opening_hours", updatedHours);
   };
 
+  // Function to handle hole par changes
+  const handleHoleParChange = (holeIndex: number, par: number) => {
+    const currentHolePars = watch("hole_pars") || [];
+    const updatedHolePars = [...currentHolePars];
+    updatedHolePars[holeIndex] = par;
+    setValue("hole_pars", updatedHolePars);
+    
+    // Update total par
+    const totalPar = updatedHolePars.reduce((sum, holePar) => sum + holePar, 0);
+    setValue("par", totalPar);
+  };
+
   const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
   const openingHours = watch("opening_hours");
   
@@ -176,9 +210,9 @@ const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGolfCourse
   };
 
   return (
-    <div className="h-full max-h-screen overflow-hidden">
-      <Card className="h-full flex flex-col">
-        <div className="p-6 border-b">
+    <div className="min-h-screen bg-gray-50">
+      <Card className="mx-auto max-w-6xl">
+        <div className="p-6 border-b bg-white">
           <h2 className="text-2xl font-bold">
             {initialCourse ? "Editar Campo de Golf" : "Agregar Nuevo Campo de Golf"}
           </h2>
@@ -189,8 +223,8 @@ const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGolfCourse
           </p>
         </div>
         
-        <ScrollArea className="flex-1 p-6">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <div className="p-6 bg-white max-h-[80vh] overflow-y-auto">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Basic Info Section */}
               <fieldset className="space-y-4">
@@ -218,10 +252,14 @@ const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGolfCourse
                     <input
                       id="holes"
                       type="number"
+                      min="1"
+                      max="36"
                       className="w-full p-2 border rounded-md"
                       {...register("holes", {
                         required: "Este campo es obligatorio",
                         valueAsNumber: true,
+                        min: { value: 1, message: "Mínimo 1 hoyo" },
+                        max: { value: 36, message: "Máximo 36 hoyos" }
                       })}
                     />
                     {errors.holes && (
@@ -231,20 +269,18 @@ const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGolfCourse
                   
                   <div>
                     <label className="block text-sm font-medium mb-1" htmlFor="par">
-                      Par *
+                      Par Total
                     </label>
                     <input
                       id="par"
                       type="number"
-                      className="w-full p-2 border rounded-md"
+                      className="w-full p-2 border rounded-md bg-gray-100"
                       {...register("par", {
-                        required: "Este campo es obligatorio",
                         valueAsNumber: true,
                       })}
+                      readOnly
                     />
-                    {errors.par && (
-                      <p className="text-red-500 text-sm mt-1">{errors.par.message}</p>
-                    )}
+                    <p className="text-xs text-gray-500 mt-1">Se calcula automáticamente</p>
                   </div>
                 </div>
                 
@@ -300,6 +336,35 @@ const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGolfCourse
                 </div>
               </fieldset>
             </div>
+            
+            <hr className="my-6" />
+            
+            {/* Par por Hoyo Section */}
+            <fieldset className="space-y-4">
+              <legend className="text-lg font-semibold mb-4">Par por Hoyo</legend>
+              <p className="text-sm text-gray-600 mb-4">
+                Configura el par para cada hoyo del campo de golf
+              </p>
+              
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 lg:grid-cols-9 gap-3">
+                {Array.from({ length: watchedHoles }, (_, index) => (
+                  <div key={index} className="flex flex-col items-center">
+                    <label className="text-xs font-medium mb-1">
+                      Hoyo {index + 1}
+                    </label>
+                    <select
+                      value={watchedHolePars[index] || 4}
+                      onChange={(e) => handleHoleParChange(index, parseInt(e.target.value))}
+                      className="w-full p-2 border rounded-md text-center"
+                    >
+                      <option value={3}>Par 3</option>
+                      <option value={4}>Par 4</option>
+                      <option value={5}>Par 5</option>
+                    </select>
+                  </div>
+                ))}
+              </div>
+            </fieldset>
             
             <hr className="my-6" />
             
@@ -424,7 +489,7 @@ const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGolfCourse
               </div>
             </fieldset>
             
-            <div className="flex justify-end gap-4 pt-4 pb-6">
+            <div className="flex justify-end gap-4 pt-6 border-t bg-white sticky bottom-0">
               <button
                 type="button"
                 onClick={() => {
@@ -446,7 +511,7 @@ const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGolfCourse
               </button>
             </div>
           </form>
-        </ScrollArea>
+        </div>
       </Card>
     </div>
   );
