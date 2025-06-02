@@ -1,8 +1,8 @@
-
 import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useToast } from "@/hooks/use-toast";
 import { Card } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2 } from "lucide-react";
 import { GolfCourseTemplate } from "@/pages/AdminGolfCourseManager";
 import { OpeningHours, supabase } from "@/lib/supabase";
@@ -176,275 +176,279 @@ const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGolfCourse
   };
 
   return (
-    <Card className="p-6">
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold">
-          {initialCourse ? "Editar Campo de Golf" : "Agregar Nuevo Campo de Golf"}
-        </h2>
-        <p className="text-muted-foreground">
-          {initialCourse
-            ? "Actualiza la información del campo de golf"
-            : "Ingresa la información del nuevo campo de golf"}
-        </p>
-      </div>
-      
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Basic Info Section */}
-          <fieldset className="space-y-4">
-            <legend className="text-lg font-semibold mb-2">Información Básica</legend>
-            
-            <div>
-              <label className="block text-sm font-medium mb-1" htmlFor="name">
-                Nombre *
-              </label>
-              <input
-                id="name"
-                className="w-full p-2 border rounded-md"
-                {...register("name", { required: "Este campo es obligatorio" })}
-              />
-              {errors.name && (
-                <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
-              )}
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1" htmlFor="holes">
-                  Hoyos *
-                </label>
-                <input
-                  id="holes"
-                  type="number"
-                  className="w-full p-2 border rounded-md"
-                  {...register("holes", {
-                    required: "Este campo es obligatorio",
-                    valueAsNumber: true,
-                  })}
-                />
-                {errors.holes && (
-                  <p className="text-red-500 text-sm mt-1">{errors.holes.message}</p>
-                )}
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium mb-1" htmlFor="par">
-                  Par *
-                </label>
-                <input
-                  id="par"
-                  type="number"
-                  className="w-full p-2 border rounded-md"
-                  {...register("par", {
-                    required: "Este campo es obligatorio",
-                    valueAsNumber: true,
-                  })}
-                />
-                {errors.par && (
-                  <p className="text-red-500 text-sm mt-1">{errors.par.message}</p>
-                )}
-              </div>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium mb-1" htmlFor="description">
-                Descripción
-              </label>
-              <textarea
-                id="description"
-                className="w-full p-2 border rounded-md h-32"
-                {...register("description")}
-              />
-            </div>
-          </fieldset>
-          
-          {/* Location Section */}
-          <fieldset className="space-y-4">
-            <legend className="text-lg font-semibold mb-2">Ubicación</legend>
-            
-            <div>
-              <label className="block text-sm font-medium mb-1" htmlFor="address">
-                Dirección
-              </label>
-              <input
-                id="address"
-                className="w-full p-2 border rounded-md"
-                {...register("address")}
-              />
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1" htmlFor="city">
-                  Ciudad
-                </label>
-                <input
-                  id="city"
-                  className="w-full p-2 border rounded-md"
-                  {...register("city")}
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium mb-1" htmlFor="state">
-                  Estado
-                </label>
-                <input
-                  id="state"
-                  className="w-full p-2 border rounded-md"
-                  {...register("state")}
-                />
-              </div>
-            </div>
-          </fieldset>
+    <div className="h-full max-h-screen overflow-hidden">
+      <Card className="h-full flex flex-col">
+        <div className="p-6 border-b">
+          <h2 className="text-2xl font-bold">
+            {initialCourse ? "Editar Campo de Golf" : "Agregar Nuevo Campo de Golf"}
+          </h2>
+          <p className="text-muted-foreground">
+            {initialCourse
+              ? "Actualiza la información del campo de golf"
+              : "Ingresa la información del nuevo campo de golf"}
+          </p>
         </div>
         
-        <hr className="my-6" />
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Contact Section */}
-          <fieldset className="space-y-4">
-            <legend className="text-lg font-semibold mb-2">Información de Contacto</legend>
-            
-            <div>
-              <label className="block text-sm font-medium mb-1" htmlFor="phone">
-                Teléfono
-              </label>
-              <input
-                id="phone"
-                className="w-full p-2 border rounded-md"
-                {...register("phone")}
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium mb-1" htmlFor="website">
-                Sitio Web
-              </label>
-              <input
-                id="website"
-                className="w-full p-2 border rounded-md"
-                {...register("website")}
-              />
-            </div>
-          </fieldset>
-          
-          {/* Media Section */}
-          <fieldset className="space-y-4">
-            <legend className="text-lg font-semibold mb-2">Multimedia</legend>
-            
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Imagen Principal
-              </label>
-              <ImageUploader 
-                onImageUploaded={handleMainImageUploaded}
-                initialImage={watch("image_url")}
-              />
-              <input
-                type="hidden"
-                {...register("image_url")}
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Galería de Imágenes
-              </label>
-              <GalleryUploader
-                onGalleryUpdated={handleGalleryUpdated}
-                initialGallery={watch("image_gallery")}
-              />
-              <input
-                type="hidden"
-                {...register("image_gallery")}
-              />
-            </div>
-          </fieldset>
-        </div>
-        
-        <hr className="my-6" />
-        
-        {/* Opening Hours Section */}
-        <fieldset>
-          <legend className="text-lg font-semibold mb-4">Horarios de Apertura</legend>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {days.map((day, index) => (
-              <div key={day} className="border rounded-md p-3">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-medium">{day}</span>
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id={`isOpen-${index}`}
-                      checked={openingHours[index]?.isOpen || false}
-                      onChange={(e) => handleOpeningHoursChange(index, "isOpen", e.target.checked)}
-                      className="mr-2"
-                    />
-                    <label htmlFor={`isOpen-${index}`} className="text-sm">
-                      Abierto
+        <ScrollArea className="flex-1 p-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Basic Info Section */}
+              <fieldset className="space-y-4">
+                <legend className="text-lg font-semibold mb-2">Información Básica</legend>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-1" htmlFor="name">
+                    Nombre *
+                  </label>
+                  <input
+                    id="name"
+                    className="w-full p-2 border rounded-md"
+                    {...register("name", { required: "Este campo es obligatorio" })}
+                  />
+                  {errors.name && (
+                    <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
+                  )}
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1" htmlFor="holes">
+                      Hoyos *
                     </label>
+                    <input
+                      id="holes"
+                      type="number"
+                      className="w-full p-2 border rounded-md"
+                      {...register("holes", {
+                        required: "Este campo es obligatorio",
+                        valueAsNumber: true,
+                      })}
+                    />
+                    {errors.holes && (
+                      <p className="text-red-500 text-sm mt-1">{errors.holes.message}</p>
+                    )}
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium mb-1" htmlFor="par">
+                      Par *
+                    </label>
+                    <input
+                      id="par"
+                      type="number"
+                      className="w-full p-2 border rounded-md"
+                      {...register("par", {
+                        required: "Este campo es obligatorio",
+                        valueAsNumber: true,
+                      })}
+                    />
+                    {errors.par && (
+                      <p className="text-red-500 text-sm mt-1">{errors.par.message}</p>
+                    )}
                   </div>
                 </div>
                 
-                {openingHours[index]?.isOpen && (
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="block text-xs mb-1" htmlFor={`open-${index}`}>
-                        Apertura
-                      </label>
-                      <input
-                        type="time"
-                        id={`open-${index}`}
-                        value={openingHours[index]?.open || ""}
-                        onChange={(e) => handleOpeningHoursChange(index, "open", e.target.value)}
-                        className="w-full p-1 border rounded-md text-sm"
-                      />
+                <div>
+                  <label className="block text-sm font-medium mb-1" htmlFor="description">
+                    Descripción
+                  </label>
+                  <textarea
+                    id="description"
+                    className="w-full p-2 border rounded-md h-32"
+                    {...register("description")}
+                  />
+                </div>
+              </fieldset>
+              
+              {/* Location Section */}
+              <fieldset className="space-y-4">
+                <legend className="text-lg font-semibold mb-2">Ubicación</legend>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-1" htmlFor="address">
+                    Dirección
+                  </label>
+                  <input
+                    id="address"
+                    className="w-full p-2 border rounded-md"
+                    {...register("address")}
+                  />
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1" htmlFor="city">
+                      Ciudad
+                    </label>
+                    <input
+                      id="city"
+                      className="w-full p-2 border rounded-md"
+                      {...register("city")}
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium mb-1" htmlFor="state">
+                      Estado
+                    </label>
+                    <input
+                      id="state"
+                      className="w-full p-2 border rounded-md"
+                      {...register("state")}
+                    />
+                  </div>
+                </div>
+              </fieldset>
+            </div>
+            
+            <hr className="my-6" />
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Contact Section */}
+              <fieldset className="space-y-4">
+                <legend className="text-lg font-semibold mb-2">Información de Contacto</legend>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-1" htmlFor="phone">
+                    Teléfono
+                  </label>
+                  <input
+                    id="phone"
+                    className="w-full p-2 border rounded-md"
+                    {...register("phone")}
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-1" htmlFor="website">
+                    Sitio Web
+                  </label>
+                  <input
+                    id="website"
+                    className="w-full p-2 border rounded-md"
+                    {...register("website")}
+                  />
+                </div>
+              </fieldset>
+              
+              {/* Media Section */}
+              <fieldset className="space-y-4">
+                <legend className="text-lg font-semibold mb-2">Multimedia</legend>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Imagen Principal
+                  </label>
+                  <ImageUploader 
+                    onImageUploaded={handleMainImageUploaded}
+                    initialImage={watch("image_url")}
+                  />
+                  <input
+                    type="hidden"
+                    {...register("image_url")}
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Galería de Imágenes
+                  </label>
+                  <GalleryUploader
+                    onGalleryUpdated={handleGalleryUpdated}
+                    initialGallery={watch("image_gallery")}
+                  />
+                  <input
+                    type="hidden"
+                    {...register("image_gallery")}
+                  />
+                </div>
+              </fieldset>
+            </div>
+            
+            <hr className="my-6" />
+            
+            {/* Opening Hours Section */}
+            <fieldset>
+              <legend className="text-lg font-semibold mb-4">Horarios de Apertura</legend>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {days.map((day, index) => (
+                  <div key={day} className="border rounded-md p-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-medium">{day}</span>
+                      <div className="flex items-center">
+                        <input
+                          type="checkbox"
+                          id={`isOpen-${index}`}
+                          checked={openingHours[index]?.isOpen || false}
+                          onChange={(e) => handleOpeningHoursChange(index, "isOpen", e.target.checked)}
+                          className="mr-2"
+                        />
+                        <label htmlFor={`isOpen-${index}`} className="text-sm">
+                          Abierto
+                        </label>
+                      </div>
                     </div>
                     
-                    <div>
-                      <label className="block text-xs mb-1" htmlFor={`close-${index}`}>
-                        Cierre
-                      </label>
-                      <input
-                        type="time"
-                        id={`close-${index}`}
-                        value={openingHours[index]?.close || ""}
-                        onChange={(e) => handleOpeningHoursChange(index, "close", e.target.value)}
-                        className="w-full p-1 border rounded-md text-sm"
-                      />
-                    </div>
+                    {openingHours[index]?.isOpen && (
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-xs mb-1" htmlFor={`open-${index}`}>
+                            Apertura
+                          </label>
+                          <input
+                            type="time"
+                            id={`open-${index}`}
+                            value={openingHours[index]?.open || ""}
+                            onChange={(e) => handleOpeningHoursChange(index, "open", e.target.value)}
+                            className="w-full p-1 border rounded-md text-sm"
+                          />
+                        </div>
+                        
+                        <div>
+                          <label className="block text-xs mb-1" htmlFor={`close-${index}`}>
+                            Cierre
+                          </label>
+                          <input
+                            type="time"
+                            id={`close-${index}`}
+                            value={openingHours[index]?.close || ""}
+                            onChange={(e) => handleOpeningHoursChange(index, "close", e.target.value)}
+                            className="w-full p-1 border rounded-md text-sm"
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
-                )}
+                ))}
               </div>
-            ))}
-          </div>
-        </fieldset>
-        
-        <div className="flex justify-end gap-4 pt-4">
-          <button
-            type="button"
-            onClick={() => {
-              if (onSubmitSuccess) onSubmitSuccess();
-            }}
-            className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
-            disabled={isSubmitting}
-          >
-            Cancelar
-          </button>
-          
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center"
-          >
-            {isSubmitting && <Loader2 className="animate-spin h-4 w-4 mr-2" />}
-            {initialCourse ? "Actualizar Campo" : "Crear Campo"}
-          </button>
-        </div>
-      </form>
-    </Card>
+            </fieldset>
+            
+            <div className="flex justify-end gap-4 pt-4 pb-6">
+              <button
+                type="button"
+                onClick={() => {
+                  if (onSubmitSuccess) onSubmitSuccess();
+                }}
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
+                disabled={isSubmitting}
+              >
+                Cancelar
+              </button>
+              
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center"
+              >
+                {isSubmitting && <Loader2 className="animate-spin h-4 w-4 mr-2" />}
+                {initialCourse ? "Actualizar Campo" : "Crear Campo"}
+              </button>
+            </div>
+          </form>
+        </ScrollArea>
+      </Card>
+    </div>
   );
 };
 
