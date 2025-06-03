@@ -29,7 +29,6 @@ const FilterPanel = ({
   const [filters, setFilters] = useState<FilterOptions>(currentFilters);
 
   useEffect(() => {
-    // Reset filters when panel opens/closes
     setFilters(currentFilters);
   }, [isOpen, currentFilters]);
 
@@ -50,96 +49,109 @@ const FilterPanel = ({
   };
 
   return (
-    <div 
-      className={`fixed inset-x-0 transform transition-transform duration-300 ease-in-out ${isOpen ? "translate-y-0" : "translate-y-full"}`}
-      style={{ 
-        willChange: "transform",
-        backfaceVisibility: "hidden",
-        zIndex: 999,
-        bottom: `calc(96px + max(env(safe-area-inset-bottom, 0px), 20px))`,
-        maxHeight: `calc(100dvh - 116px - max(env(safe-area-inset-bottom, 0px), 20px))`
-      }}
-    >
-      <div>
-        <Card className="rounded-t-xl border-b-0 shadow-lg bg-white py-4 px-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold">Filter Courses</h3>
-            <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full">
-              <X size={20} />
-            </Button>
-          </div>
-
-          <div className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="holes-filter">Number of Holes</Label>
-              <RadioGroup 
-                value={filters.holes} 
-                onValueChange={value => setFilters({
-                  ...filters,
-                  holes: value
-                })} 
-                className="flex flex-wrap gap-2"
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="" id="holes-all" />
-                  <Label htmlFor="holes-all">All</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="9" id="holes-9" />
-                  <Label htmlFor="holes-9">9 Holes</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="18" id="holes-18" />
-                  <Label htmlFor="holes-18">18 Holes</Label>
-                </div>
-              </RadioGroup>
+    <>
+      {/* Backdrop */}
+      <div 
+        className={`fixed inset-0 z-[70] bg-black/50 transition-opacity duration-300 ${
+          isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        }`}
+        onClick={onClose}
+      />
+      
+      {/* Filter Panel */}
+      <div 
+        className={`fixed inset-x-0 bottom-0 z-[80] transform transition-transform duration-500 ease-out ${
+          isOpen ? "translate-y-0" : "translate-y-full"
+        }`}
+        style={{
+          paddingBottom: `max(env(safe-area-inset-bottom, 0px), 8px)`
+        }}
+      >
+        <Card className="rounded-t-2xl border-b-0 shadow-2xl bg-white mx-2 mb-2">
+          <div className="p-6">
+            {/* Drag indicator */}
+            <div className="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-4" />
+            
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold">Filter Courses</h3>
+              <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full">
+                <X size={20} />
+              </Button>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="location-filter">Location</Label>
-              <Input 
-                id="location-filter" 
-                type="text" 
-                placeholder="City or state..." 
-                value={filters.location} 
-                onChange={e => setFilters({
-                  ...filters,
-                  location: e.target.value
-                })} 
-              />
-            </div>
+            <div className="space-y-6">
+              <div className="space-y-3">
+                <Label htmlFor="holes-filter" className="text-sm font-medium">Number of Holes</Label>
+                <RadioGroup 
+                  value={filters.holes} 
+                  onValueChange={value => setFilters({
+                    ...filters,
+                    holes: value
+                  })} 
+                  className="flex flex-wrap gap-3"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="" id="holes-all" />
+                    <Label htmlFor="holes-all" className="text-sm">All</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="9" id="holes-9" />
+                    <Label htmlFor="holes-9" className="text-sm">9 Holes</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="18" id="holes-18" />
+                    <Label htmlFor="holes-18" className="text-sm">18 Holes</Label>
+                  </div>
+                </RadioGroup>
+              </div>
 
-            <div className="space-y-2">
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="is-open-filter"
-                  checked={filters.isOpen}
+              <div className="space-y-3">
+                <Label htmlFor="location-filter" className="text-sm font-medium">Location</Label>
+                <Input 
+                  id="location-filter" 
+                  type="text" 
+                  placeholder="City or state..." 
+                  value={filters.location} 
                   onChange={e => setFilters({
                     ...filters,
-                    isOpen: e.target.checked
+                    location: e.target.value
                   })}
-                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                  className="h-11"
                 />
-                <Label htmlFor="is-open-filter" className="flex items-center gap-1">
-                  <Clock size={16} className="text-primary" />
-                  Currently Open
-                </Label>
               </div>
-            </div>
 
-            <div className="flex space-x-2 pt-2 pb-4">
-              <Button onClick={handleResetFilters} variant="outline" className="w-1/2">
-                Reset
-              </Button>
-              <Button onClick={handleApplyFilters} className="w-1/2">
-                Apply Filters
-              </Button>
+              <div className="space-y-3">
+                <div className="flex items-center space-x-3">
+                  <input
+                    type="checkbox"
+                    id="is-open-filter"
+                    checked={filters.isOpen}
+                    onChange={e => setFilters({
+                      ...filters,
+                      isOpen: e.target.checked
+                    })}
+                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                  />
+                  <Label htmlFor="is-open-filter" className="flex items-center gap-2 text-sm font-medium">
+                    <Clock size={16} className="text-primary" />
+                    Currently Open
+                  </Label>
+                </div>
+              </div>
+
+              <div className="flex space-x-3 pt-4">
+                <Button onClick={handleResetFilters} variant="outline" className="flex-1 h-11">
+                  Reset
+                </Button>
+                <Button onClick={handleApplyFilters} className="flex-1 h-11">
+                  Apply Filters
+                </Button>
+              </div>
             </div>
           </div>
         </Card>
       </div>
-    </div>
+    </>
   );
 };
 

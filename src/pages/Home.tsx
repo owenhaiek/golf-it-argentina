@@ -66,7 +66,7 @@ const Home = () => {
         handleResetFilters={handleResetFilters}
       />
 
-      <div className="space-y-6 pb-20">
+      <div className="space-y-6 pb-32">
         <CourseList 
           courses={courses}
           isLoading={isLoading}
@@ -78,9 +78,9 @@ const Home = () => {
       <Button 
         onClick={() => setIsFilterPanelOpen(true)} 
         size="icon" 
-        className="fixed right-4 h-12 w-12 rounded-full shadow-lg py-0 my-0 z-[60]"
+        className="fixed right-4 h-12 w-12 rounded-full shadow-lg z-[60] bg-primary hover:bg-primary/90"
         style={{
-          bottom: `calc(96px + max(env(safe-area-inset-bottom, 0px), 20px))`
+          bottom: `calc(76px + max(env(safe-area-inset-bottom, 0px), 8px))`
         }}
       >
         <Filter size={20} />
