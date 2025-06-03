@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -7,6 +6,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import CourseSearch from "@/components/rounds/CourseSearch";
 import ScoreCard from "@/components/rounds/ScoreCard";
 
@@ -17,6 +17,7 @@ const AddRound = () => {
   const { t } = useLanguage();
   const queryClient = useQueryClient();
   const [selectedCourse, setSelectedCourse] = useState<string>("");
+  const [holesPlayed, setHolesPlayed] = useState<"9" | "18">("18");
   const [scores, setScores] = useState<number[]>(Array(18).fill(0));
   const [notes, setNotes] = useState("");
 
@@ -38,6 +39,13 @@ const AddRound = () => {
     const newScores = [...scores];
     newScores[index] = value;
     setScores(newScores);
+  };
+
+  const handleHolesPlayedChange = (value: "9" | "18") => {
+    setHolesPlayed(value);
+    // Reset scores when changing holes played
+    const holesCount = value === "9" ? 9 : (selectedCourseData?.holes || 18);
+    setScores(Array(holesCount).fill(0));
   };
 
   const addRoundMutation = useMutation({
@@ -95,8 +103,9 @@ const AddRound = () => {
       return;
     }
 
-    // Check if user has added any scores
-    const hasScores = scores.some(score => score > 0);
+    // Check if user has added any scores for the holes they played
+    const holesCount = holesPlayed === "9" ? 9 : (selectedCourseData?.holes || 18);
+    const hasScores = scores.slice(0, holesCount).some(score => score > 0);
     if (!hasScores) {
       toast({
         title: "Please enter at least one score",
@@ -105,7 +114,7 @@ const AddRound = () => {
       return;
     }
 
-    const totalScore = scores.slice(0, selectedCourseData?.holes || 18).reduce((a, b) => a + b, 0);
+    const totalScore = scores.slice(0, holesCount).reduce((a, b) => a + b, 0);
     
     try {
       addRoundMutation.mutate({
@@ -126,7 +135,8 @@ const AddRound = () => {
     if (courseId) {
       const course = courses.find(c => c.id === courseId);
       if (course) {
-        setScores(Array(course.holes).fill(0));
+        const holesCount = holesPlayed === "9" ? 9 : course.holes;
+        setScores(Array(holesCount).fill(0));
       }
     }
   };
@@ -142,9 +152,33 @@ const AddRound = () => {
         onSelectCourse={handleSelectCourse}
       />
 
+      {selectedCourse && (
+        <div className="space-y-4">
+          <div className="space-y-3">
+            <h3 className="text-lg font-medium">Holes Played</h3>
+            <ToggleGroup 
+              type="single" 
+              value={holesPlayed} 
+              onValueChange={(value) => value && handleHolesPlayedChange(value as "9" | "18")}
+              className="justify-start"
+            >
+              <ToggleGroupItem value="9" aria-label="9 holes" className="px-6">
+                9 Holes
+              </ToggleGroupItem>
+              <ToggleGroupItem value="18" aria-label="18 holes" className="px-6">
+                18 Holes
+              </ToggleGroupItem>
+            </ToggleGroup>
+          </div>
+        </div>
+      )}
+
       {selectedCourseData && (
         <ScoreCard
-          selectedCourseData={selectedCourseData}
+          selectedCourseData={{
+            ...selectedCourseData,
+            holes: holesPlayed === "9" ? 9 : selectedCourseData.holes
+          }}
           scores={scores}
           onScoreChange={handleScoreChange}
         />
