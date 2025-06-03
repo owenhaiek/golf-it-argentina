@@ -95,7 +95,7 @@
     position: relative;
   }
   
-  /* Mobile-specific adjustments */
+  /* Enhanced mobile-specific adjustments for modern devices */
   @media only screen and (max-width: 768px) {
     html, body {
       height: 100vh;
@@ -119,7 +119,7 @@
     }
   }
   
-  /* Safe area handling for mobile devices */
+  /* Enhanced safe area handling for mobile devices */
   @supports (padding: max(0px)) {
     .pt-safe {
       padding-top: max(env(safe-area-inset-top), 0px);
@@ -140,16 +140,43 @@
     .pr-safe {
       padding-right: max(env(safe-area-inset-right), 0px);
     }
-  }
-  
-  /* Fallback for devices without safe area support */
-  @supports not (padding: max(0px)) {
-    .pb-nav {
-      padding-bottom: 76px;
+
+    /* New utility classes for better mobile support */
+    .bottom-safe {
+      bottom: max(env(safe-area-inset-bottom), 0px);
+    }
+    
+    .mb-safe {
+      margin-bottom: max(env(safe-area-inset-bottom), 0px);
+    }
+    
+    .h-safe-screen {
+      height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+      height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
     }
   }
   
-  /* Hide Safari UI in PWA mode */
+  /* Enhanced fallback for devices without safe area support */
+  @supports not (padding: max(0px)) {
+    .pb-nav {
+      padding-bottom: 96px; /* Increased for better mobile support */
+    }
+    
+    .bottom-safe {
+      bottom: 0px;
+    }
+    
+    .mb-safe {
+      margin-bottom: 0px;
+    }
+    
+    .h-safe-screen {
+      height: 100vh;
+      height: 100dvh;
+    }
+  }
+  
+  /* Enhanced PWA mode styles */
   @media screen and (display-mode: standalone) {
     html, body {
       height: 100vh;
@@ -164,6 +191,15 @@
       height: 100dvh;
       width: 100vw;
       overflow: hidden;
+    }
+  }
+
+  /* iOS specific fixes for Safari */
+  @supports (-webkit-appearance: none) {
+    @media (max-width: 768px) {
+      .pb-nav {
+        padding-bottom: calc(76px + max(env(safe-area-inset-bottom), 20px));
+      }
     }
   }
 }

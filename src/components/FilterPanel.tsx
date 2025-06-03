@@ -51,13 +51,13 @@ const FilterPanel = ({
 
   return (
     <div 
-      className={`fixed inset-x-0 bottom-0 transform transition-transform duration-300 ease-in-out ${isOpen ? "translate-y-0" : "translate-y-full"}`}
+      className={`fixed inset-x-0 transform transition-transform duration-300 ease-in-out ${isOpen ? "translate-y-0" : "translate-y-full"}`}
       style={{ 
         willChange: "transform",
         backfaceVisibility: "hidden",
         zIndex: 999,
-        bottom: 'calc(76px + env(safe-area-inset-bottom, 0px))',
-        maxHeight: 'calc(100dvh - 96px - env(safe-area-inset-bottom, 0px))'
+        bottom: `calc(96px + max(env(safe-area-inset-bottom, 0px), 20px))`,
+        maxHeight: `calc(100dvh - 116px - max(env(safe-area-inset-bottom, 0px), 20px))`
       }}
     >
       <div>

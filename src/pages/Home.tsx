@@ -78,7 +78,10 @@ const Home = () => {
       <Button 
         onClick={() => setIsFilterPanelOpen(true)} 
         size="icon" 
-        className="fixed right-4 bottom-24 h-12 w-12 rounded-full shadow-lg py-0 my-0 z-[60]"
+        className="fixed right-4 h-12 w-12 rounded-full shadow-lg py-0 my-0 z-[60]"
+        style={{
+          bottom: `calc(96px + max(env(safe-area-inset-bottom, 0px), 20px))`
+        }}
       >
         <Filter size={20} />
       </Button>
