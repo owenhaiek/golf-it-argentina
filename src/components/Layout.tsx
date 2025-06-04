@@ -77,7 +77,7 @@ export const Layout = () => {
           }}
           style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
         >
-          <div className="w-8 h-8">
+          <div className="w-12 h-12">
             <img 
               src="https://i.imgur.com/XuU1zUr.gif" 
               alt="Golf pull to refresh"
