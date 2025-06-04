@@ -16,9 +16,9 @@ const CourseList = ({ courses, isLoading, currentTime, handleResetFilters }: Cou
   
   if (isLoading) {
     return (
-      <div className="space-y-6">
-        {[1, 2, 3].map(i => (
-          <Card key={i} className="overflow-hidden rounded-none border-x-0">
+      <div className="md:grid md:grid-cols-2 md:gap-6 space-y-6 md:space-y-0">
+        {[1, 2, 3, 4].map(i => (
+          <Card key={i} className="overflow-hidden rounded-none border-x-0 md:rounded-lg md:border-x">
             <CardContent className="p-0">
               <div className="animate-pulse space-y-3">
                 <div className="h-48 bg-secondary/20" />
@@ -46,7 +46,7 @@ const CourseList = ({ courses, isLoading, currentTime, handleResetFilters }: Cou
   }
 
   return (
-    <div className="space-y-6">
+    <div className="md:grid md:grid-cols-2 md:gap-6 space-y-6 md:space-y-0">
       {courses.map(course => (
         <CourseCard key={course.id} course={course} currentTime={currentTime} />
       ))}

@@ -68,7 +68,7 @@ const Home = () => {
         />
       </div>
 
-      <div className="w-full">
+      <div className="w-full md:max-w-[80%] md:mx-auto">
         <CourseList 
           courses={courses}
           isLoading={isLoading}
