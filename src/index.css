@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -121,7 +122,7 @@
   /* Enhanced safe area handling for mobile devices */
   @supports (padding: max(0px)) {
     .pt-safe {
-      padding-top: max(env(safe-area-inset-top), 0px);
+      padding-top: max(env(safe-area-inset-top), 8px);
     }
     
     .pb-safe {
@@ -157,6 +158,10 @@
   
   /* Enhanced fallback for devices without safe area support */
   @supports not (padding: max(0px)) {
+    .pt-safe {
+      padding-top: 8px;
+    }
+    
     .pb-nav {
       padding-bottom: 96px; /* Increased for better mobile support */
     }

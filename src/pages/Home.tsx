@@ -42,8 +42,8 @@ const Home = () => {
   };
 
   return (
-    <div className="space-y-4 -mt-6 -mx-4">
-      <div className="flex items-center justify-between px-4 pt-6">
+    <div className="space-y-4 -mt-8 -mx-4">
+      <div className="flex items-center justify-between px-4 pt-safe">
         <h1 className="text-2xl font-bold">{t("home", "golfCourses")}</h1>
         <div className="flex gap-2">
           <button 

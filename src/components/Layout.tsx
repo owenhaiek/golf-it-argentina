@@ -97,14 +97,14 @@ export const Layout = () => {
       
       <main 
         ref={mainRef} 
-        className="flex-1 overflow-y-auto pt-safe pb-nav"
+        className="flex-1 overflow-y-auto pb-nav"
         style={{
           WebkitOverflowScrolling: 'touch',
           position: 'relative',
           zIndex: 1,
         }}
       >
-        <div className="container max-w-md mx-auto px-4 pt-4 pb-4 animate-in min-h-full">
+        <div className="container max-w-md mx-auto px-4 pb-4 animate-in min-h-full">
           <Outlet />
         </div>
       </main>
