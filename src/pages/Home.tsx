@@ -42,13 +42,13 @@ const Home = () => {
   };
 
   return (
-    <div className="space-y-4 -mt-8 -mx-4">
-      <div className="flex items-center justify-between px-4 pt-safe">
+    <div className="space-y-4">
+      <div className="flex items-center justify-between pt-safe">
         <h1 className="text-2xl font-bold">{t("home", "golfCourses")}</h1>
         <div className="flex gap-2">
           <button 
             onClick={() => setIsSearchVisible(!isSearchVisible)} 
-            className="p-2 hover:bg-secondary/20 rounded-full transition-colors"
+            className="p-2 hover:bg-secondary/20 rounded-full transition-all duration-200 active:scale-95"
           >
             <Search size={20} />
           </button>
@@ -66,7 +66,7 @@ const Home = () => {
         handleResetFilters={handleResetFilters}
       />
 
-      <div className="space-y-6 pb-32">
+      <div className="space-y-6">
         <CourseList 
           courses={courses}
           isLoading={isLoading}
@@ -78,9 +78,9 @@ const Home = () => {
       <Button 
         onClick={() => setIsFilterPanelOpen(true)} 
         size="icon" 
-        className="fixed right-4 h-12 w-12 rounded-full shadow-lg z-[60] bg-primary hover:bg-primary/90"
+        className="fixed right-4 h-12 w-12 rounded-full shadow-lg z-[60] bg-primary hover:bg-primary/90 transition-all duration-200 hover:scale-105 active:scale-95"
         style={{
-          bottom: `calc(76px + max(env(safe-area-inset-bottom, 0px), 8px))`
+          bottom: `calc(88px + env(safe-area-inset-bottom, 0px))`
         }}
       >
         <Filter size={20} />
