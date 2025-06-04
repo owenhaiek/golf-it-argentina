@@ -69,12 +69,13 @@ export const Layout = () => {
     <div className="fixed inset-0 flex flex-col bg-background h-full w-full overflow-hidden">
       {pullDistance > 0 && !isRefreshing && (
         <motion.div 
-          className="absolute top-0 left-0 right-0 flex items-center justify-center z-40 pointer-events-none pt-safe"
+          className="absolute top-0 left-0 right-0 flex items-center justify-center z-40 pointer-events-none"
           initial={{ opacity: 0 }}
           animate={{ 
             opacity: Math.min(pullDistance / 100, 0.8),
             height: `${Math.min(pullDistance * 0.8, 60)}px`
           }}
+          style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
         >
           <motion.div 
             className="w-8 h-8 border-3 border-primary/60 border-t-transparent rounded-full"
@@ -102,10 +103,11 @@ export const Layout = () => {
           WebkitOverflowScrolling: 'touch',
           position: 'relative',
           zIndex: 1,
-          paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px))'
+          paddingTop: 'env(safe-area-inset-top, 0px)',
+          paddingBottom: 'calc(76px + env(safe-area-inset-bottom, 0px))'
         }}
       >
-        <div className="container max-w-md mx-auto px-4 pb-4 animate-in min-h-full">
+        <div className="w-full mx-auto animate-in min-h-full">
           <Outlet />
         </div>
       </main>

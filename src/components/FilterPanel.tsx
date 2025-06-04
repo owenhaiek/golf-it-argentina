@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -27,6 +27,9 @@ const FilterPanel = ({
   currentFilters
 }: FilterPanelProps) => {
   const [filters, setFilters] = useState<FilterOptions>(currentFilters);
+  const [dragStart, setDragStart] = useState<number | null>(null);
+  const [dragOffset, setDragOffset] = useState(0);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setFilters(currentFilters);
@@ -48,6 +51,59 @@ const FilterPanel = ({
     onClose();
   };
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setDragStart(e.touches[0].clientY);
+    setDragOffset(0);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (dragStart === null) return;
+    
+    const currentY = e.touches[0].clientY;
+    const offset = Math.max(0, currentY - dragStart);
+    setDragOffset(offset);
+  };
+
+  const handleTouchEnd = () => {
+    if (dragOffset > 100) {
+      onClose();
+    }
+    setDragStart(null);
+    setDragOffset(0);
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setDragStart(e.clientY);
+    setDragOffset(0);
+  };
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (dragStart === null) return;
+    
+    const offset = Math.max(0, e.clientY - dragStart);
+    setDragOffset(offset);
+  };
+
+  const handleMouseUp = () => {
+    if (dragOffset > 100) {
+      onClose();
+    }
+    setDragStart(null);
+    setDragOffset(0);
+  };
+
+  useEffect(() => {
+    if (dragStart !== null) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [dragStart, dragOffset]);
+
   return (
     <>
       {/* Backdrop */}
@@ -60,17 +116,25 @@ const FilterPanel = ({
       
       {/* Filter Panel */}
       <div 
-        className={`fixed inset-x-0 bottom-0 z-[80] transform transition-transform duration-500 ease-out ${
+        ref={panelRef}
+        className={`fixed inset-x-0 bottom-0 z-[80] w-full transform transition-transform duration-500 ease-out ${
           isOpen ? "translate-y-0" : "translate-y-full"
         }`}
         style={{
-          paddingBottom: `max(env(safe-area-inset-bottom, 0px), 8px)`
+          transform: `translateY(${isOpen ? dragOffset : 100}%)`,
+          paddingBottom: `env(safe-area-inset-bottom, 0px)`
         }}
       >
-        <Card className="rounded-t-2xl border-b-0 shadow-2xl bg-white mx-2 mb-2">
+        <Card className="rounded-t-2xl border-b-0 shadow-2xl bg-white w-full">
           <div className="p-6">
             {/* Drag indicator */}
-            <div className="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-4" />
+            <div 
+              className="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-4 cursor-pointer touch-none"
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+              onMouseDown={handleMouseDown}
+            />
             
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-semibold">Filter Courses</h3>

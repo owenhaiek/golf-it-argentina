@@ -42,31 +42,33 @@ const Home = () => {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between pt-safe">
-        <h1 className="text-2xl font-bold">{t("home", "golfCourses")}</h1>
-        <div className="flex gap-2">
-          <button 
-            onClick={() => setIsSearchVisible(!isSearchVisible)} 
-            className="p-2 hover:bg-secondary/20 rounded-full transition-all duration-200 active:scale-95"
-          >
-            <Search size={20} />
-          </button>
+    <div className="w-full">
+      <div className="px-4 py-4">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold">{t("home", "golfCourses")}</h1>
+          <div className="flex gap-2">
+            <button 
+              onClick={() => setIsSearchVisible(!isSearchVisible)} 
+              className="p-2 hover:bg-secondary/20 rounded-full transition-all duration-200 active:scale-95"
+            >
+              <Search size={20} />
+            </button>
+          </div>
         </div>
+
+        <SearchBar 
+          search={search}
+          setSearch={setSearch}
+          isVisible={isSearchVisible}
+        />
+
+        <ActiveFilterBadges 
+          filters={filters}
+          handleResetFilters={handleResetFilters}
+        />
       </div>
 
-      <SearchBar 
-        search={search}
-        setSearch={setSearch}
-        isVisible={isSearchVisible}
-      />
-
-      <ActiveFilterBadges 
-        filters={filters}
-        handleResetFilters={handleResetFilters}
-      />
-
-      <div className="space-y-6">
+      <div className="w-full">
         <CourseList 
           courses={courses}
           isLoading={isLoading}

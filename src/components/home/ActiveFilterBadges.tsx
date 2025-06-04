@@ -24,7 +24,7 @@ const ActiveFilterBadges = ({ filters, handleResetFilters }: ActiveFilterBadgesP
   }
   
   return (
-    <div className="px-4">
+    <div className="mt-4">
       <div className="flex justify-between items-center">
         <div className="flex flex-wrap gap-2">
           {filters.holes && (
