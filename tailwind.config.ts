@@ -44,6 +44,9 @@ export default {
           DEFAULT: "#F5F5F0",
           foreground: "#6B7280",
         },
+        brown: {
+          600: "#92400e",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",

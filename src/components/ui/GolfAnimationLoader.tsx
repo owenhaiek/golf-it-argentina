@@ -1,24 +1,12 @@
 
 import React from "react";
+import CustomGolfAnimation from "./CustomGolfAnimation";
 
 const GolfAnimationLoader = () => {
   return (
     <div className="flex items-center justify-center w-full h-full min-h-screen relative">
-      {/* Full screen golf animation */}
-      <div className="w-full h-full flex items-center justify-center">
-        <img 
-          src="https://i.imgur.com/XuU1zUr.gif" 
-          alt="Golf animation loading"
-          className="w-full h-full object-cover"
-        />
-      </div>
-      
-      {/* Loading text at the bottom of the screen */}
-      <div className="absolute bottom-8 left-0 right-0 flex items-center justify-center">
-        <div className="text-3xl md:text-4xl font-bold text-white tracking-wide drop-shadow-lg">
-          Loading
-        </div>
-      </div>
+      {/* Custom golf animation that loads instantly */}
+      <CustomGolfAnimation />
     </div>
   );
 };
