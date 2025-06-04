@@ -2,7 +2,7 @@
 import { Outlet } from "react-router-dom";
 import { Navigation } from "./Navigation";
 import { useState, useRef } from "react";
-import ModernGolfLoader from "./ui/ModernGolfLoader";
+import GolfAnimationLoader from "./ui/GolfAnimationLoader";
 import { motion } from "framer-motion";
 
 export const Layout = () => {
@@ -77,11 +77,13 @@ export const Layout = () => {
           }}
           style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
         >
-          <motion.div 
-            className="w-8 h-8 border-3 border-primary/60 border-t-transparent rounded-full"
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-          />
+          <div className="w-8 h-8">
+            <img 
+              src="https://i.imgur.com/XuU1zUr.gif" 
+              alt="Golf pull to refresh"
+              className="w-full h-full object-contain"
+            />
+          </div>
         </motion.div>
       )}
       
@@ -92,7 +94,7 @@ export const Layout = () => {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3 }}
         >
-          <ModernGolfLoader />
+          <GolfAnimationLoader />
         </motion.div>
       )}
       
