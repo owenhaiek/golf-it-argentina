@@ -13,8 +13,8 @@ const GolfAnimationLoader = () => {
         />
       </div>
       
-      {/* Loading text overlaid on the image */}
-      <div className="absolute inset-0 flex items-center justify-center">
+      {/* Loading text at the bottom of the screen */}
+      <div className="absolute bottom-8 left-0 right-0 flex items-center justify-center">
         <div className="text-3xl md:text-4xl font-bold text-white tracking-wide drop-shadow-lg">
           Loading
         </div>
