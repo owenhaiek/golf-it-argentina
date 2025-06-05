@@ -36,6 +36,64 @@ const Course = () => {
     },
   });
 
+  // Fetch user's rounds for this course
+  const { data: userRounds = [], isLoading: roundsLoading } = useQuery({
+    queryKey: ['user-rounds', id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('rounds')
+        .select('*')
+        .eq('course_id', id)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Fetch course reviews
+  const { data: reviews = [], isLoading: reviewsLoading } = useQuery({
+    queryKey: ['course-reviews', id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('course_reviews')
+        .select(`
+          *,
+          profiles (
+            username,
+            avatar_url
+          )
+        `)
+        .eq('course_id', id)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Fetch leaderboard rounds
+  const { data: leaderboardRounds = [], isLoading: leaderboardLoading } = useQuery({
+    queryKey: ['course-leaderboard', id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('rounds')
+        .select(`
+          *,
+          profiles (
+            username,
+            avatar_url
+          )
+        `)
+        .eq('course_id', id)
+        .order('score', { ascending: true })
+        .limit(10);
+      
+      if (error) throw error;
+      return data;
+    },
+  });
+
   if (isLoading) {
     return <GolfAnimationLoader />;
   }
@@ -140,27 +198,48 @@ const Course = () => {
           
           <TabsContent value="overview" className="space-y-6">
             <div className="grid md:grid-cols-2 gap-6">
-              <CourseStats course={course} />
-              <CourseWeather course={course} />
+              <CourseStats rounds={userRounds} isLoading={roundsLoading} coursePar={course.par} />
+              <CourseWeather latitude={course.latitude} longitude={course.longitude} />
             </div>
-            <CourseMap course={course} />
-            <ReservationForm courseId={course.id} />
+            <CourseMap />
+            <ReservationForm 
+              courseId={course.id} 
+              courseName={course.name} 
+              courseLocation={[course.address, course.city, course.state].filter(Boolean).join(', ')} 
+            />
           </TabsContent>
           
           <TabsContent value="photos">
-            <CoursePhotos images={courseImages} courseName={course.name} />
+            <CoursePhotos 
+              courseId={course.id}
+              courseName={course.name}
+              imageUrl={course.image_url}
+              imageGallery={course.image_gallery}
+            />
           </TabsContent>
           
           <TabsContent value="holes">
-            <CourseHoleDetails course={course} />
+            <CourseHoleDetails 
+              holePars={course.hole_pars}
+              holeDistances={course.hole_distances}
+              holeHandicaps={course.hole_handicaps}
+            />
           </TabsContent>
           
           <TabsContent value="reviews">
-            <CourseReviews courseId={course.id} />
+            <CourseReviews 
+              courseId={course.id}
+              reviews={reviews}
+              isLoading={reviewsLoading}
+            />
           </TabsContent>
           
           <TabsContent value="leaderboard">
-            <CourseLeaderboard courseId={course.id} />
+            <CourseLeaderboard 
+              rounds={leaderboardRounds}
+              isLoading={leaderboardLoading}
+              coursePar={course.par}
+            />
           </TabsContent>
         </Tabs>
       </div>

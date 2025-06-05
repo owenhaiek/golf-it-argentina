@@ -139,8 +139,7 @@ export const Layout = () => {
           zIndex: 1,
           paddingTop: 'env(safe-area-inset-top, 0px)',
           paddingBottom: 'calc(88px + env(safe-area-inset-bottom, 0px))',
-          height: '100vh',
-          height: '100dvh' // Use dynamic viewport height for better mobile support
+          height: '100dvh'
         }}
       >
         <div className="w-full mx-auto animate-in min-h-full">
