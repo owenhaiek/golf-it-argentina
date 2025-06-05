@@ -1,7 +1,7 @@
 
 import { Outlet } from "react-router-dom";
 import { Navigation } from "./Navigation";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import GolfAnimationLoader from "./ui/GolfAnimationLoader";
 import { motion } from "framer-motion";
 
@@ -11,6 +11,38 @@ export const Layout = () => {
   const [pullDistance, setPullDistance] = useState(0);
   const [isPulling, setIsPulling] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
+
+  // Hide browser UI on mobile devices
+  useEffect(() => {
+    const hideAddressBar = () => {
+      if (window.navigator && window.navigator.userAgent.match(/(iPhone|iPod|iPad|Android|BlackBerry|IEMobile)/)) {
+        setTimeout(() => {
+          window.scrollTo(0, 1);
+        }, 500);
+      }
+    };
+
+    // Set viewport meta tag for mobile
+    const viewport = document.querySelector('meta[name="viewport"]');
+    if (viewport) {
+      viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover');
+    } else {
+      const meta = document.createElement('meta');
+      meta.name = 'viewport';
+      meta.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover';
+      document.head.appendChild(meta);
+    }
+
+    // Hide address bar on load and resize
+    hideAddressBar();
+    window.addEventListener('load', hideAddressBar);
+    window.addEventListener('resize', hideAddressBar);
+
+    return () => {
+      window.removeEventListener('load', hideAddressBar);
+      window.removeEventListener('resize', hideAddressBar);
+    };
+  }, []);
 
   const handleTouchStart = (e: TouchEvent) => {
     if (mainRef.current && mainRef.current.scrollTop <= 0) {
@@ -106,7 +138,9 @@ export const Layout = () => {
           position: 'relative',
           zIndex: 1,
           paddingTop: 'env(safe-area-inset-top, 0px)',
-          paddingBottom: 'calc(76px + env(safe-area-inset-bottom, 0px))'
+          paddingBottom: 'calc(88px + env(safe-area-inset-bottom, 0px))',
+          height: '100vh',
+          height: '100dvh' // Use dynamic viewport height for better mobile support
         }}
       >
         <div className="w-full mx-auto animate-in min-h-full">
