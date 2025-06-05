@@ -7,7 +7,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { Layout } from "@/components/Layout";
-import Index from "./pages/Index";
 import Home from "./pages/Home";
 import Profile from "./pages/Profile";
 import UserProfile from "./pages/UserProfile";
@@ -40,8 +39,7 @@ function App() {
                 <Route path="/course-manager-auth" element={<CourseManagerAuth />} />
                 <Route path="/course-dashboard" element={<CourseDashboard />} />
                 <Route path="/" element={<Layout />}>
-                  <Route index element={<Index />} />
-                  <Route path="home" element={<Home />} />
+                  <Route index element={<Home />} />
                   <Route path="profile" element={<Profile />} />
                   <Route path="user/:id" element={<UserProfile />} />
                   <Route path="settings" element={<Settings />} />
