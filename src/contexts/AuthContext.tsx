@@ -37,17 +37,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Sign out function with cleanup
+  // Enhanced sign out function with better error handling and cleanup
   const signOut = async () => {
     try {
+      console.log("Starting signOut process");
+      
       // Clean up auth state first
       cleanupAuthState();
-      // Attempt global sign out
-      await supabase.auth.signOut({ scope: 'global' });
+      
+      // Attempt global sign out with better error handling
+      const { error } = await supabase.auth.signOut({ scope: 'global' });
+      
+      if (error) {
+        console.error('Supabase signOut error:', error);
+        // Even if signOut fails, we should still redirect since we've cleaned up local state
+      }
+      
+      console.log("SignOut completed, redirecting to auth");
+      
       // Force page reload for a clean state
       window.location.href = '/auth';
     } catch (error) {
-      console.error('Error signing out:', error);
+      console.error('Error during signOut process:', error);
       // Still redirect even if there's an error
       window.location.href = '/auth';
     }
@@ -55,15 +66,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     // Check active sessions and sets the user
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        console.error('Error getting session:', error);
+        cleanupAuthState();
+      }
       setUser(session?.user ?? null);
       setLoading(false);
     });
 
     // Listen for changes on auth state (sign in, sign out, etc.)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth state changed:', event, session?.user?.id);
       setUser(session?.user ?? null);
       setLoading(false);
+      
+      // Clean up on sign out
+      if (event === 'SIGNED_OUT') {
+        cleanupAuthState();
+      }
     });
 
     return () => subscription.unsubscribe();

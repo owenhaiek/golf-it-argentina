@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -11,6 +10,7 @@ import { Loader2, LogOut, Edit3, Check, X, Camera, User, Hash, Settings } from "
 import { useNavigate } from "react-router-dom";
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ProfileData {
   username?: string;
@@ -32,6 +32,7 @@ const ProfileCard = ({
   const navigate = useNavigate();
   const { toast } = useToast();
   const { t } = useLanguage();
+  const { signOut } = useAuth();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -168,23 +169,16 @@ const ProfileCard = ({
 
   const handleLogout = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        toast({
-          title: t("profile", "logoutError"),
-          description: error.message,
-          variant: "destructive"
-        });
-      } else {
-        toast({
-          title: t("profile", "logoutSuccess")
-        });
-        navigate('/auth');
-      }
+      console.log("Initiating logout process");
+      await signOut();
+      toast({
+        title: t("profile", "logoutSuccess")
+      });
     } catch (error) {
       console.error("Error during logout:", error);
       toast({
         title: t("profile", "logoutError"),
+        description: error instanceof Error ? error.message : "An unknown error occurred",
         variant: "destructive"
       });
     }
