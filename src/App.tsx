@@ -21,6 +21,7 @@ import AdminGolfCourseManager from "./pages/AdminGolfCourseManager";
 import CourseManagerAuth from "./pages/CourseManagerAuth";
 import CourseDashboard from "./pages/CourseDashboard";
 import AddGolfCourses from "./pages/AddGolfCourses";
+import AdminPendingManagers from "./pages/AdminPendingManagers";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +39,7 @@ function App() {
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/course-manager-auth" element={<CourseManagerAuth />} />
                 <Route path="/course-dashboard" element={<CourseDashboard />} />
+                <Route path="/admin-pending-managers" element={<AdminPendingManagers />} />
                 <Route path="/" element={<Layout />}>
                   <Route index element={<Home />} />
                   <Route path="profile" element={<Profile />} />

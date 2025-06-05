@@ -145,6 +145,47 @@ export type Database = {
         }
         Relationships: []
       }
+      pending_course_managers: {
+        Row: {
+          course_id: string
+          created_at: string
+          email: string
+          id: string
+          name: string
+          password_hash: string
+          phone: string | null
+          status: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          password_hash: string
+          phone?: string | null
+          status?: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          password_hash?: string
+          phone?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pending_course_managers_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "golf_courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -281,6 +322,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      approve_course_manager: {
+        Args: { pending_id: string }
+        Returns: boolean
+      }
       authenticate_course_manager: {
         Args: { manager_email: string; manager_password: string }
         Returns: {
@@ -294,6 +339,10 @@ export type Database = {
       calculate_user_handicap: {
         Args: { user_uuid: string }
         Returns: number
+      }
+      reject_course_manager: {
+        Args: { pending_id: string }
+        Returns: boolean
       }
     }
     Enums: {

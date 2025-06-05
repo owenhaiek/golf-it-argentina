@@ -7,16 +7,37 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/components/ui/use-toast";
 import { Separator } from "@/components/ui/separator";
-import { Building2, ArrowLeft } from "lucide-react";
+import { Building2, ArrowLeft, UserPlus } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useQuery } from "@tanstack/react-query";
 
 const CourseManagerAuth = () => {
+  const [isLogin, setIsLogin] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [selectedCourseId, setSelectedCourseId] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Fetch golf courses for registration
+  const { data: golfCourses } = useQuery({
+    queryKey: ['golfCourses'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('golf_courses')
+        .select('id, name, city, state')
+        .order('name');
+      
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !isLogin
+  });
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
@@ -32,7 +53,6 @@ const CourseManagerAuth = () => {
       if (data && data.length > 0) {
         const managerData = data[0];
         
-        // Store manager session data
         localStorage.setItem('courseManager', JSON.stringify(managerData));
         
         toast({
@@ -59,6 +79,49 @@ const CourseManagerAuth = () => {
     }
   };
 
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      // Simple password hashing for demo purposes (in production, use proper bcrypt)
+      const passwordHash = btoa(password); // Base64 encoding as simple hash
+      
+      const { error } = await supabase
+        .from('pending_course_managers')
+        .insert({
+          course_id: selectedCourseId,
+          name,
+          email,
+          password_hash: passwordHash,
+          phone: phone || null
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Registration Submitted",
+        description: "Your registration has been submitted for admin approval. You'll be notified once approved.",
+      });
+
+      // Reset form
+      setName("");
+      setEmail("");
+      setPassword("");
+      setPhone("");
+      setSelectedCourseId("");
+      setIsLogin(true);
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Registration Failed",
+        description: error.message || "An error occurred during registration",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleBackToApp = () => {
     navigate("/");
   };
@@ -77,43 +140,91 @@ const CourseManagerAuth = () => {
             <Building2 className="h-12 w-12 text-primary" />
           </div>
           <CardTitle className="text-2xl font-bold text-center">
-            Course Manager Login
+            {isLogin ? "Course Manager Login" : "Course Manager Registration"}
           </CardTitle>
           <CardDescription className="text-center">
-            Sign in to manage your golf course reservations
+            {isLogin 
+              ? "Sign in to manage your golf course reservations"
+              : "Apply to become a course manager (admin approval required)"
+            }
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Input
-                type="email"
-                placeholder="Manager Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-              <Input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
+          <form onSubmit={isLogin ? handleLogin : handleRegister} className="space-y-4">
+            {!isLogin && (
+              <>
+                <Input
+                  type="text"
+                  placeholder="Full Name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                />
+                <Select value={selectedCourseId} onValueChange={setSelectedCourseId} required>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Golf Course" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {golfCourses?.map((course) => (
+                      <SelectItem key={course.id} value={course.id}>
+                        {course.name} {course.city && `- ${course.city}`}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Input
+                  type="tel"
+                  placeholder="Phone Number (optional)"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                />
+              </>
+            )}
+            <Input
+              type="email"
+              placeholder="Manager Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+            <Input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
             <Button 
               type="submit" 
               className="w-full bg-primary hover:bg-primary-hover"
               disabled={isLoading}
             >
-              {isLoading ? "Signing In..." : "Sign In"}
+              {isLoading 
+                ? (isLogin ? "Signing In..." : "Submitting...") 
+                : (isLogin ? "Sign In" : "Submit Registration")
+              }
             </Button>
           </form>
           
           <Separator />
           
+          <div className="text-center">
+            <button
+              type="button"
+              onClick={() => setIsLogin(!isLogin)}
+              className="text-primary hover:text-primary-hover underline text-sm"
+            >
+              {isLogin 
+                ? "Need to register as a course manager?" 
+                : "Already have an account? Sign in"}
+            </button>
+          </div>
+          
           <div className="text-center text-sm text-muted-foreground">
-            Need access? Contact your golf course administrator
+            {isLogin 
+              ? "Need access? Contact your golf course administrator"
+              : "Registration requires admin approval"
+            }
           </div>
         </CardContent>
       </Card>

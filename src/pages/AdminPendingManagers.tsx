@@ -1,0 +1,221 @@
+
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/components/ui/use-toast";
+import { 
+  CheckCircle, 
+  XCircle, 
+  Loader2, 
+  Building2, 
+  Mail, 
+  Phone, 
+  User,
+  Calendar
+} from "lucide-react";
+import { format } from "date-fns";
+
+interface PendingManager {
+  id: string;
+  course_id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  created_at: string;
+  status: string;
+  golf_courses: {
+    name: string;
+    city: string | null;
+    state: string | null;
+  };
+}
+
+const AdminPendingManagers = () => {
+  const [processingId, setProcessingId] = useState<string | null>(null);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const { data: pendingManagers, isLoading } = useQuery({
+    queryKey: ['pendingManagers'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('pending_course_managers')
+        .select(`
+          *,
+          golf_courses (
+            name,
+            city,
+            state
+          )
+        `)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error("Pending managers fetch error:", error);
+        throw error;
+      }
+      return data || [];
+    }
+  });
+
+  const approveMutation = useMutation({
+    mutationFn: async (pendingId: string) => {
+      const { data, error } = await supabase
+        .rpc('approve_course_manager', { pending_id: pendingId });
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      toast({
+        title: "Manager Approved",
+        description: "The course manager has been approved and can now log in.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['pendingManagers'] });
+    },
+    onError: (error: any) => {
+      toast({
+        variant: "destructive",
+        title: "Approval Failed",
+        description: error.message || "Failed to approve manager",
+      });
+    },
+    onSettled: () => {
+      setProcessingId(null);
+    }
+  });
+
+  const rejectMutation = useMutation({
+    mutationFn: async (pendingId: string) => {
+      const { data, error } = await supabase
+        .rpc('reject_course_manager', { pending_id: pendingId });
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      toast({
+        title: "Manager Rejected",
+        description: "The course manager application has been rejected.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['pendingManagers'] });
+    },
+    onError: (error: any) => {
+      toast({
+        variant: "destructive",
+        title: "Rejection Failed",
+        description: error.message || "Failed to reject manager",
+      });
+    },
+    onSettled: () => {
+      setProcessingId(null);
+    }
+  });
+
+  const handleApprove = (pendingId: string) => {
+    setProcessingId(pendingId);
+    approveMutation.mutate(pendingId);
+  };
+
+  const handleReject = (pendingId: string) => {
+    setProcessingId(pendingId);
+    rejectMutation.mutate(pendingId);
+  };
+
+  return (
+    <div className="p-6 max-w-7xl mx-auto">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold">Pending Course Manager Applications</h1>
+        <p className="text-muted-foreground">Review and approve course manager registrations</p>
+      </div>
+
+      {isLoading ? (
+        <div className="flex justify-center py-8">
+          <Loader2 className="h-6 w-6 animate-spin" />
+        </div>
+      ) : pendingManagers && pendingManagers.length > 0 ? (
+        <div className="space-y-4">
+          {pendingManagers.map((manager: PendingManager) => (
+            <Card key={manager.id}>
+              <CardHeader>
+                <div className="flex justify-between items-start">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <User className="h-5 w-5" />
+                      {manager.name}
+                    </CardTitle>
+                    <CardDescription className="flex items-center gap-2 mt-1">
+                      <Building2 className="h-4 w-4" />
+                      {manager.golf_courses.name}
+                      {manager.golf_courses.city && ` - ${manager.golf_courses.city}`}
+                    </CardDescription>
+                  </div>
+                  <Badge variant="outline">Pending</Badge>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">{manager.email}</span>
+                    </div>
+                    {manager.phone && (
+                      <div className="flex items-center gap-2">
+                        <Phone className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm">{manager.phone}</span>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">
+                        Applied on {format(new Date(manager.created_at), 'MMM d, yyyy')}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-2 pt-3">
+                    <Button
+                      onClick={() => handleApprove(manager.id)}
+                      disabled={processingId === manager.id}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      {processingId === manager.id && approveMutation.isPending ? (
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      ) : (
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                      )}
+                      Approve
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      onClick={() => handleReject(manager.id)}
+                      disabled={processingId === manager.id}
+                    >
+                      {processingId === manager.id && rejectMutation.isPending ? (
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      ) : (
+                        <XCircle className="h-4 w-4 mr-2" />
+                      )}
+                      Reject
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-8 text-muted-foreground">
+          No pending course manager applications.
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default AdminPendingManagers;
