@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -7,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   Calendar, 
   Clock, 
@@ -162,9 +164,9 @@ const CourseDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Mobile-optimized header */}
-      <div className="bg-white shadow-sm border-b px-4 py-4">
+      <div className="bg-white shadow-sm border-b px-4 py-4 flex-shrink-0">
         <div className="flex justify-between items-start">
           <div className="flex-1 min-w-0">
             <h1 className="text-xl md:text-3xl font-bold truncate">{manager.course_name}</h1>
@@ -178,201 +180,207 @@ const CourseDashboard = () => {
         </div>
       </div>
 
-      <div className="p-4 space-y-6">
-        {/* Mobile-optimized stats */}
-        <div className="grid grid-cols-3 gap-3">
-          <Card className="text-center">
-            <CardContent className="p-3">
-              <div className="text-lg md:text-2xl font-bold">{todayReservations.length}</div>
-              <div className="text-xs text-muted-foreground">Today</div>
-            </CardContent>
-          </Card>
-          
-          <Card className="text-center">
-            <CardContent className="p-3">
-              <div className="text-lg md:text-2xl font-bold">{upcomingReservations.length}</div>
-              <div className="text-xs text-muted-foreground">Upcoming</div>
-            </CardContent>
-          </Card>
-          
-          <Card className="text-center">
-            <CardContent className="p-3">
-              <div className="text-lg md:text-2xl font-bold">
-                {reservations?.filter(res => res.status === 'pending').length || 0}
-              </div>
-              <div className="text-xs text-muted-foreground">Pending</div>
-            </CardContent>
-          </Card>
-        </div>
+      <div className="flex-1 overflow-hidden">
+        <ScrollArea className="h-full">
+          <div className="p-4 space-y-6 pb-20">
+            {/* Mobile-optimized stats */}
+            <div className="grid grid-cols-3 gap-3">
+              <Card className="text-center">
+                <CardContent className="p-3">
+                  <div className="text-lg md:text-2xl font-bold">{todayReservations.length}</div>
+                  <div className="text-xs text-muted-foreground">Today</div>
+                </CardContent>
+              </Card>
+              
+              <Card className="text-center">
+                <CardContent className="p-3">
+                  <div className="text-lg md:text-2xl font-bold">{upcomingReservations.length}</div>
+                  <div className="text-xs text-muted-foreground">Upcoming</div>
+                </CardContent>
+              </Card>
+              
+              <Card className="text-center">
+                <CardContent className="p-3">
+                  <div className="text-lg md:text-2xl font-bold">
+                    {reservations?.filter(res => res.status === 'pending').length || 0}
+                  </div>
+                  <div className="text-xs text-muted-foreground">Pending</div>
+                </CardContent>
+              </Card>
+            </div>
 
-        {/* Tabs for Calendar and List views */}
-        <Tabs defaultValue="calendar" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="calendar" className="flex items-center gap-2">
-              <CalendarDays className="h-4 w-4" />
-              <span className="hidden sm:inline">Calendar View</span>
-              <span className="sm:hidden">Calendar</span>
-            </TabsTrigger>
-            <TabsTrigger value="list" className="flex items-center gap-2">
-              <List className="h-4 w-4" />
-              <span className="hidden sm:inline">List View</span>
-              <span className="sm:hidden">List</span>
-            </TabsTrigger>
-          </TabsList>
+            {/* Tabs for Calendar and List views */}
+            <Tabs defaultValue="calendar" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="calendar" className="flex items-center gap-2">
+                  <CalendarDays className="h-4 w-4" />
+                  <span className="hidden sm:inline">Calendar View</span>
+                  <span className="sm:hidden">Calendar</span>
+                </TabsTrigger>
+                <TabsTrigger value="list" className="flex items-center gap-2">
+                  <List className="h-4 w-4" />
+                  <span className="hidden sm:inline">List View</span>
+                  <span className="sm:hidden">List</span>
+                </TabsTrigger>
+              </TabsList>
 
-          <TabsContent value="calendar" className="mt-6">
-            {isLoading ? (
-              <div className="flex justify-center py-8">
-                <Loader2 className="h-6 w-6 animate-spin" />
-              </div>
-            ) : (
-              <ReservationCalendar reservations={reservations || []} />
-            )}
-          </TabsContent>
-
-          <TabsContent value="list" className="mt-6">
-            {/* Mobile-optimized reservations list */}
-            <Card>
-              <CardHeader className="pb-4">
-                <CardTitle className="text-lg">All Reservations</CardTitle>
-                <CardDescription className="text-sm">
-                  Manage reservations for your course
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="p-0">
+              <TabsContent value="calendar" className="mt-6">
                 {isLoading ? (
                   <div className="flex justify-center py-8">
                     <Loader2 className="h-6 w-6 animate-spin" />
                   </div>
-                ) : reservations && reservations.length > 0 ? (
-                  <div className="divide-y">
-                    {reservations.map((reservation) => {
-                      const additionalPlayers = parseAdditionalPlayers(reservation.additional_players);
-                      return (
-                        <div key={reservation.id} className="p-4 space-y-3">
-                          {/* Date and time row */}
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2 text-sm">
-                              <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                              <span className="font-medium">
-                                {format(new Date(reservation.date), 'MMM d, yyyy')}
-                              </span>
-                              <Clock className="h-4 w-4 text-muted-foreground ml-2 flex-shrink-0" />
-                              <span>{reservation.time}</span>
-                            </div>
-                            {getStatusBadge(reservation.status)}
-                          </div>
+                ) : (
+                  <ReservationCalendar reservations={reservations || []} />
+                )}
+              </TabsContent>
 
-                          {/* Players and location */}
-                          <div className="space-y-2">
-                            <div className="flex items-center gap-2 text-sm">
-                              <Users className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                              <span>{reservation.players} player(s)</span>
-                            </div>
-                            
-                            {/* Main player */}
-                            <div className="bg-gray-50 rounded-lg p-3 space-y-1">
-                              <div className="flex items-center gap-2">
-                                <User className="h-4 w-4 text-muted-foreground" />
-                                <span className="font-medium text-sm">{reservation.player_name}</span>
-                                <span className="text-xs text-muted-foreground">(Main)</span>
-                              </div>
-                              <div className="text-xs text-muted-foreground ml-6">
-                                License: {reservation.license}
-                              </div>
-                            </div>
+              <TabsContent value="list" className="mt-6">
+                {/* Mobile-optimized reservations list */}
+                <Card>
+                  <CardHeader className="pb-4">
+                    <CardTitle className="text-lg">All Reservations</CardTitle>
+                    <CardDescription className="text-sm">
+                      Manage reservations for your course
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    {isLoading ? (
+                      <div className="flex justify-center py-8">
+                        <Loader2 className="h-6 w-6 animate-spin" />
+                      </div>
+                    ) : reservations && reservations.length > 0 ? (
+                      <ScrollArea className="h-[60vh]">
+                        <div className="divide-y">
+                          {reservations.map((reservation) => {
+                            const additionalPlayers = parseAdditionalPlayers(reservation.additional_players);
+                            return (
+                              <div key={reservation.id} className="p-4 space-y-3">
+                                {/* Date and time row */}
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2 text-sm">
+                                    <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                    <span className="font-medium">
+                                      {format(new Date(reservation.date), 'MMM d, yyyy')}
+                                    </span>
+                                    <Clock className="h-4 w-4 text-muted-foreground ml-2 flex-shrink-0" />
+                                    <span>{reservation.time}</span>
+                                  </div>
+                                  {getStatusBadge(reservation.status)}
+                                </div>
 
-                            {/* Additional players */}
-                            {additionalPlayers.length > 0 && (
-                              <div className="space-y-2">
-                                {additionalPlayers.map((player: any, index: number) => (
-                                  <div key={index} className="bg-gray-50 rounded-lg p-3 space-y-1">
+                                {/* Players and location */}
+                                <div className="space-y-2">
+                                  <div className="flex items-center gap-2 text-sm">
+                                    <Users className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                    <span>{reservation.players} player(s)</span>
+                                  </div>
+                                  
+                                  {/* Main player */}
+                                  <div className="bg-gray-50 rounded-lg p-3 space-y-1">
                                     <div className="flex items-center gap-2">
                                       <User className="h-4 w-4 text-muted-foreground" />
-                                      <span className="font-medium text-sm">{player.name}</span>
+                                      <span className="font-medium text-sm">{reservation.player_name}</span>
+                                      <span className="text-xs text-muted-foreground">(Main)</span>
                                     </div>
                                     <div className="text-xs text-muted-foreground ml-6">
-                                      License: {player.license}
+                                      License: {reservation.license}
                                     </div>
                                   </div>
-                                ))}
-                              </div>
-                            )}
 
-                            {reservation.course_location && (
-                              <div className="flex items-center gap-2 text-sm">
-                                <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                                <span className="text-muted-foreground truncate">
-                                  {reservation.course_location}
-                                </span>
+                                  {/* Additional players */}
+                                  {additionalPlayers.length > 0 && (
+                                    <div className="space-y-2">
+                                      {additionalPlayers.map((player: any, index: number) => (
+                                        <div key={index} className="bg-gray-50 rounded-lg p-3 space-y-1">
+                                          <div className="flex items-center gap-2">
+                                            <User className="h-4 w-4 text-muted-foreground" />
+                                            <span className="font-medium text-sm">{player.name}</span>
+                                          </div>
+                                          <div className="text-xs text-muted-foreground ml-6">
+                                            License: {player.license}
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+
+                                  {reservation.course_location && (
+                                    <div className="flex items-center gap-2 text-sm">
+                                      <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                      <span className="text-muted-foreground truncate">
+                                        {reservation.course_location}
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                                
+                                {/* Action buttons for pending reservations */}
+                                {reservation.status === 'pending' && (
+                                  <div className="flex gap-2 pt-2">
+                                    <Button
+                                      size="sm"
+                                      onClick={() => updateReservationStatus(reservation.id, 'confirmed')}
+                                      disabled={updatingReservation === reservation.id}
+                                      className="bg-green-600 hover:bg-green-700 flex-1"
+                                    >
+                                      {updatingReservation === reservation.id ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                      ) : (
+                                        <>
+                                          <CheckCircle className="h-4 w-4 mr-1" />
+                                          <span className="text-xs">Confirm</span>
+                                        </>
+                                      )}
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="destructive"
+                                      onClick={() => updateReservationStatus(reservation.id, 'cancelled')}
+                                      disabled={updatingReservation === reservation.id}
+                                      className="flex-1"
+                                    >
+                                      {updatingReservation === reservation.id ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                      ) : (
+                                        <>
+                                          <XCircle className="h-4 w-4 mr-1" />
+                                          <span className="text-xs">Cancel</span>
+                                        </>
+                                      )}
+                                    </Button>
+                                  </div>
+                                )}
+                                
+                                {/* Notes */}
+                                {reservation.course_notes && (
+                                  <div className="p-2 bg-blue-50 rounded text-sm">
+                                    <strong>Notes:</strong> {reservation.course_notes}
+                                  </div>
+                                )}
+                                
+                                {/* Booking info */}
+                                <div className="text-xs text-muted-foreground pt-1 border-t">
+                                  Booked {format(new Date(reservation.created_at), 'MMM d, yyyy')}
+                                  {reservation.confirmed_at && (
+                                    <span> • Confirmed {format(new Date(reservation.confirmed_at), 'MMM d')}</span>
+                                  )}
+                                </div>
                               </div>
-                            )}
-                          </div>
-                          
-                          {/* Action buttons for pending reservations */}
-                          {reservation.status === 'pending' && (
-                            <div className="flex gap-2 pt-2">
-                              <Button
-                                size="sm"
-                                onClick={() => updateReservationStatus(reservation.id, 'confirmed')}
-                                disabled={updatingReservation === reservation.id}
-                                className="bg-green-600 hover:bg-green-700 flex-1"
-                              >
-                                {updatingReservation === reservation.id ? (
-                                  <Loader2 className="h-4 w-4 animate-spin" />
-                                ) : (
-                                  <>
-                                    <CheckCircle className="h-4 w-4 mr-1" />
-                                    <span className="text-xs">Confirm</span>
-                                  </>
-                                )}
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                onClick={() => updateReservationStatus(reservation.id, 'cancelled')}
-                                disabled={updatingReservation === reservation.id}
-                                className="flex-1"
-                              >
-                                {updatingReservation === reservation.id ? (
-                                  <Loader2 className="h-4 w-4 animate-spin" />
-                                ) : (
-                                  <>
-                                    <XCircle className="h-4 w-4 mr-1" />
-                                    <span className="text-xs">Cancel</span>
-                                  </>
-                                )}
-                              </Button>
-                            </div>
-                          )}
-                          
-                          {/* Notes */}
-                          {reservation.course_notes && (
-                            <div className="p-2 bg-blue-50 rounded text-sm">
-                              <strong>Notes:</strong> {reservation.course_notes}
-                            </div>
-                          )}
-                          
-                          {/* Booking info */}
-                          <div className="text-xs text-muted-foreground pt-1 border-t">
-                            Booked {format(new Date(reservation.created_at), 'MMM d, yyyy')}
-                            {reservation.confirmed_at && (
-                              <span> • Confirmed {format(new Date(reservation.confirmed_at), 'MMM d')}</span>
-                            )}
-                          </div>
+                            );
+                          })}
                         </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground px-4">
-                    <div className="text-sm">No reservations found for your course yet.</div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+                      </ScrollArea>
+                    ) : (
+                      <div className="text-center py-8 text-muted-foreground px-4">
+                        <div className="text-sm">No reservations found for your course yet.</div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </div>
+        </ScrollArea>
       </div>
     </div>
   );

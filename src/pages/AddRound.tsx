@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -7,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import CourseSearch from "@/components/rounds/CourseSearch";
 import ScoreCard from "@/components/rounds/ScoreCard";
 
@@ -26,7 +28,7 @@ const AddRound = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('golf_courses')
-        .select('id, name, holes, hole_pars, opening_hours')
+        .select('id, name, holes, hole_pars, opening_hours, image_url, address, city, state, par')
         .order('name');
       if (error) throw error;
       return data || [];
@@ -142,57 +144,63 @@ const AddRound = () => {
   };
 
   return (
-    <div className="space-y-6 pb-28">
-      <h1 className="text-2xl font-bold">{t("addRound", "title")}</h1>
+    <div className="h-screen flex flex-col">
+      <div className="flex-shrink-0 p-4 bg-white border-b">
+        <h1 className="text-2xl font-bold">{t("addRound", "title")}</h1>
+      </div>
+      
+      <ScrollArea className="flex-1">
+        <div className="p-4 space-y-6 pb-28">
+          <CourseSearch 
+            courses={courses}
+            isLoading={isLoadingCourses}
+            selectedCourse={selectedCourse}
+            onSelectCourse={handleSelectCourse}
+          />
 
-      <CourseSearch 
-        courses={courses}
-        isLoading={isLoadingCourses}
-        selectedCourse={selectedCourse}
-        onSelectCourse={handleSelectCourse}
-      />
+          {selectedCourse && (
+            <div className="space-y-4">
+              <div className="space-y-3">
+                <h3 className="text-lg font-medium">Holes Played</h3>
+                <ToggleGroup 
+                  type="single" 
+                  value={holesPlayed} 
+                  onValueChange={(value) => value && handleHolesPlayedChange(value as "9" | "18")}
+                  className="justify-start"
+                >
+                  <ToggleGroupItem value="9" aria-label="9 holes" className="px-6">
+                    9 Holes
+                  </ToggleGroupItem>
+                  <ToggleGroupItem value="18" aria-label="18 holes" className="px-6">
+                    18 Holes
+                  </ToggleGroupItem>
+                </ToggleGroup>
+              </div>
+            </div>
+          )}
 
-      {selectedCourse && (
-        <div className="space-y-4">
-          <div className="space-y-3">
-            <h3 className="text-lg font-medium">Holes Played</h3>
-            <ToggleGroup 
-              type="single" 
-              value={holesPlayed} 
-              onValueChange={(value) => value && handleHolesPlayedChange(value as "9" | "18")}
-              className="justify-start"
+          {selectedCourseData && (
+            <ScoreCard
+              selectedCourseData={{
+                ...selectedCourseData,
+                holes: holesPlayed === "9" ? 9 : selectedCourseData.holes
+              }}
+              scores={scores}
+              onScoreChange={handleScoreChange}
+            />
+          )}
+
+          <div className="flex flex-col gap-3">
+            <Button 
+              onClick={handleSubmit} 
+              className="w-full"
+              disabled={addRoundMutation.isPending}
             >
-              <ToggleGroupItem value="9" aria-label="9 holes" className="px-6">
-                9 Holes
-              </ToggleGroupItem>
-              <ToggleGroupItem value="18" aria-label="18 holes" className="px-6">
-                18 Holes
-              </ToggleGroupItem>
-            </ToggleGroup>
+              {addRoundMutation.isPending ? t("addRound", "saving") : t("addRound", "saveRound")}
+            </Button>
           </div>
         </div>
-      )}
-
-      {selectedCourseData && (
-        <ScoreCard
-          selectedCourseData={{
-            ...selectedCourseData,
-            holes: holesPlayed === "9" ? 9 : selectedCourseData.holes
-          }}
-          scores={scores}
-          onScoreChange={handleScoreChange}
-        />
-      )}
-
-      <div className="flex flex-col gap-3">
-        <Button 
-          onClick={handleSubmit} 
-          className="w-full"
-          disabled={addRoundMutation.isPending}
-        >
-          {addRoundMutation.isPending ? t("addRound", "saving") : t("addRound", "saveRound")}
-        </Button>
-      </div>
+      </ScrollArea>
     </div>
   );
 };
