@@ -9,6 +9,50 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      course_managers: {
+        Row: {
+          course_id: string
+          created_at: string
+          email: string
+          id: string
+          is_active: boolean
+          name: string
+          password_hash: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          email: string
+          id?: string
+          is_active?: boolean
+          name: string
+          password_hash: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          email?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          password_hash?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_managers_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "golf_courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       course_reviews: {
         Row: {
           comment: string
@@ -130,42 +174,62 @@ export type Database = {
       }
       reservations: {
         Row: {
+          confirmed_at: string | null
+          confirmed_by: string | null
           course_id: string
           course_location: string | null
           course_name: string
+          course_notes: string | null
           created_at: string | null
           date: string
           id: string
           players: number
+          status: string | null
           time: string
           updated_at: string | null
           user_id: string
         }
         Insert: {
+          confirmed_at?: string | null
+          confirmed_by?: string | null
           course_id: string
           course_location?: string | null
           course_name: string
+          course_notes?: string | null
           created_at?: string | null
           date: string
           id?: string
           players?: number
+          status?: string | null
           time: string
           updated_at?: string | null
           user_id: string
         }
         Update: {
+          confirmed_at?: string | null
+          confirmed_by?: string | null
           course_id?: string
           course_location?: string | null
           course_name?: string
+          course_notes?: string | null
           created_at?: string | null
           date?: string
           id?: string
           players?: number
+          status?: string | null
           time?: string
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "reservations_confirmed_by_fkey"
+            columns: ["confirmed_by"]
+            isOneToOne: false
+            referencedRelation: "course_managers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       rounds: {
         Row: {
@@ -217,6 +281,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      authenticate_course_manager: {
+        Args: { manager_email: string; manager_password: string }
+        Returns: {
+          manager_id: string
+          course_id: string
+          name: string
+          email: string
+          course_name: string
+        }[]
+      }
       calculate_user_handicap: {
         Args: { user_uuid: string }
         Returns: number
