@@ -62,7 +62,7 @@ const ReservationCalendar = ({ reservations }: ReservationCalendarProps) => {
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
       {/* Calendar */}
       <Card className="lg:col-span-2">
         <CardHeader>
@@ -109,8 +109,8 @@ const ReservationCalendar = ({ reservations }: ReservationCalendarProps) => {
       </Card>
 
       {/* Daily Reservations */}
-      <Card>
-        <CardHeader>
+      <Card className="flex flex-col">
+        <CardHeader className="flex-shrink-0">
           <CardTitle className="text-lg">
             {selectedDate ? format(selectedDate, "MMMM d, yyyy") : "Select a Date"}
           </CardTitle>
@@ -118,61 +118,63 @@ const ReservationCalendar = ({ reservations }: ReservationCalendarProps) => {
             {selectedDateReservations.length} reservation{selectedDateReservations.length !== 1 ? 's' : ''} for this day
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex-1 min-h-0 p-0">
           {selectedDateReservations.length > 0 ? (
-            <div className="space-y-4 max-h-96 overflow-y-auto">
-              {selectedDateReservations
-                .sort((a, b) => a.time.localeCompare(b.time))
-                .map((reservation) => {
-                  const additionalPlayers = parseAdditionalPlayers(reservation.additional_players);
-                  return (
-                    <div key={reservation.id} className="p-3 border rounded-lg bg-gray-50 space-y-2">
-                      {/* Time and Status */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Clock className="h-4 w-4 text-muted-foreground" />
-                          <span className="font-medium">{reservation.time}</span>
+            <div className="h-full overflow-auto p-4">
+              <div className="space-y-4">
+                {selectedDateReservations
+                  .sort((a, b) => a.time.localeCompare(b.time))
+                  .map((reservation) => {
+                    const additionalPlayers = parseAdditionalPlayers(reservation.additional_players);
+                    return (
+                      <div key={reservation.id} className="p-3 border rounded-lg bg-gray-50 space-y-2">
+                        {/* Time and Status */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-4 w-4 text-muted-foreground" />
+                            <span className="font-medium">{reservation.time}</span>
+                          </div>
+                          {getStatusBadge(reservation.status)}
                         </div>
-                        {getStatusBadge(reservation.status)}
-                      </div>
 
-                      {/* Players */}
-                      <div className="flex items-center gap-2 text-sm">
-                        <Users className="h-4 w-4 text-muted-foreground" />
-                        <span>{reservation.players} player(s)</span>
-                      </div>
-
-                      {/* Main Player */}
-                      <div className="text-sm">
-                        <div className="flex items-center gap-2">
-                          <User className="h-3 w-3 text-muted-foreground" />
-                          <span className="font-medium">{reservation.player_name}</span>
-                          <span className="text-xs text-muted-foreground">(Main)</span>
+                        {/* Players */}
+                        <div className="flex items-center gap-2 text-sm">
+                          <Users className="h-4 w-4 text-muted-foreground" />
+                          <span>{reservation.players} player(s)</span>
                         </div>
-                        <div className="text-xs text-muted-foreground ml-5">
-                          License: {reservation.license}
-                        </div>
-                      </div>
 
-                      {/* Additional Players */}
-                      {additionalPlayers.length > 0 && (
-                        <div className="space-y-1">
-                          {additionalPlayers.map((player: any, index: number) => (
-                            <div key={index} className="text-sm">
-                              <div className="flex items-center gap-2">
-                                <User className="h-3 w-3 text-muted-foreground" />
-                                <span className="font-medium">{player.name}</span>
+                        {/* Main Player */}
+                        <div className="text-sm">
+                          <div className="flex items-center gap-2">
+                            <User className="h-3 w-3 text-muted-foreground" />
+                            <span className="font-medium">{reservation.player_name}</span>
+                            <span className="text-xs text-muted-foreground">(Main)</span>
+                          </div>
+                          <div className="text-xs text-muted-foreground ml-5">
+                            License: {reservation.license}
+                          </div>
+                        </div>
+
+                        {/* Additional Players */}
+                        {additionalPlayers.length > 0 && (
+                          <div className="space-y-1">
+                            {additionalPlayers.map((player: any, index: number) => (
+                              <div key={index} className="text-sm">
+                                <div className="flex items-center gap-2">
+                                  <User className="h-3 w-3 text-muted-foreground" />
+                                  <span className="font-medium">{player.name}</span>
+                                </div>
+                                <div className="text-xs text-muted-foreground ml-5">
+                                  License: {player.license}
+                                </div>
                               </div>
-                              <div className="text-xs text-muted-foreground ml-5">
-                                License: {player.license}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+              </div>
             </div>
           ) : (
             <div className="text-center py-8 text-muted-foreground">

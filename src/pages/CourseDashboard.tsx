@@ -21,10 +21,22 @@ import {
   Loader2,
   User,
   CalendarDays,
-  List
+  List,
+  Trash2
 } from "lucide-react";
 import { format } from "date-fns";
 import ReservationCalendar from "@/components/course/ReservationCalendar";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface CourseManager {
   manager_id: string;
@@ -55,6 +67,7 @@ interface Reservation {
 const CourseDashboard = () => {
   const [manager, setManager] = useState<CourseManager | null>(null);
   const [updatingReservation, setUpdatingReservation] = useState<string | null>(null);
+  const [deletingReservation, setDeletingReservation] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -124,6 +137,36 @@ const CourseDashboard = () => {
     }
   };
 
+  const deleteReservation = async (reservationId: string) => {
+    if (!manager) return;
+    
+    setDeletingReservation(reservationId);
+    
+    try {
+      const { error } = await supabase
+        .from('reservations')
+        .delete()
+        .eq('id', reservationId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Reservation Deleted",
+        description: "Reservation has been permanently deleted",
+      });
+
+      refetch();
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "Failed to delete reservation",
+      });
+    } finally {
+      setDeletingReservation(null);
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('courseManager');
     navigate('/course-manager-auth');
@@ -180,143 +223,145 @@ const CourseDashboard = () => {
         </div>
       </div>
 
-      <div className="flex-1 overflow-hidden">
-        <ScrollArea className="h-full">
-          <div className="p-4 space-y-6 pb-20">
-            {/* Mobile-optimized stats */}
-            <div className="grid grid-cols-3 gap-3">
-              <Card className="text-center">
-                <CardContent className="p-3">
-                  <div className="text-lg md:text-2xl font-bold">{todayReservations.length}</div>
-                  <div className="text-xs text-muted-foreground">Today</div>
-                </CardContent>
-              </Card>
-              
-              <Card className="text-center">
-                <CardContent className="p-3">
-                  <div className="text-lg md:text-2xl font-bold">{upcomingReservations.length}</div>
-                  <div className="text-xs text-muted-foreground">Upcoming</div>
-                </CardContent>
-              </Card>
-              
-              <Card className="text-center">
-                <CardContent className="p-3">
-                  <div className="text-lg md:text-2xl font-bold">
-                    {reservations?.filter(res => res.status === 'pending').length || 0}
-                  </div>
-                  <div className="text-xs text-muted-foreground">Pending</div>
-                </CardContent>
-              </Card>
-            </div>
+      <div className="flex-1 min-h-0">
+        <div className="h-full flex flex-col p-4 pb-20">
+          {/* Mobile-optimized stats */}
+          <div className="grid grid-cols-3 gap-3 mb-6">
+            <Card className="text-center">
+              <CardContent className="p-3">
+                <div className="text-lg md:text-2xl font-bold">{todayReservations.length}</div>
+                <div className="text-xs text-muted-foreground">Today</div>
+              </CardContent>
+            </Card>
+            
+            <Card className="text-center">
+              <CardContent className="p-3">
+                <div className="text-lg md:text-2xl font-bold">{upcomingReservations.length}</div>
+                <div className="text-xs text-muted-foreground">Upcoming</div>
+              </CardContent>
+            </Card>
+            
+            <Card className="text-center">
+              <CardContent className="p-3">
+                <div className="text-lg md:text-2xl font-bold">
+                  {reservations?.filter(res => res.status === 'pending').length || 0}
+                </div>
+                <div className="text-xs text-muted-foreground">Pending</div>
+              </CardContent>
+            </Card>
+          </div>
 
-            {/* Tabs for Calendar and List views */}
-            <Tabs defaultValue="calendar" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="calendar" className="flex items-center gap-2">
-                  <CalendarDays className="h-4 w-4" />
-                  <span className="hidden sm:inline">Calendar View</span>
-                  <span className="sm:hidden">Calendar</span>
-                </TabsTrigger>
-                <TabsTrigger value="list" className="flex items-center gap-2">
-                  <List className="h-4 w-4" />
-                  <span className="hidden sm:inline">List View</span>
-                  <span className="sm:hidden">List</span>
-                </TabsTrigger>
-              </TabsList>
+          {/* Tabs for Calendar and List views */}
+          <Tabs defaultValue="calendar" className="flex-1 flex flex-col min-h-0">
+            <TabsList className="grid w-full grid-cols-2 mb-4">
+              <TabsTrigger value="calendar" className="flex items-center gap-2">
+                <CalendarDays className="h-4 w-4" />
+                <span className="hidden sm:inline">Calendar View</span>
+                <span className="sm:hidden">Calendar</span>
+              </TabsTrigger>
+              <TabsTrigger value="list" className="flex items-center gap-2">
+                <List className="h-4 w-4" />
+                <span className="hidden sm:inline">List View</span>
+                <span className="sm:hidden">List</span>
+              </TabsTrigger>
+            </TabsList>
 
-              <TabsContent value="calendar" className="mt-6">
-                {isLoading ? (
-                  <div className="flex justify-center py-8">
-                    <Loader2 className="h-6 w-6 animate-spin" />
-                  </div>
-                ) : (
+            <TabsContent value="calendar" className="flex-1 min-h-0">
+              {isLoading ? (
+                <div className="flex justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin" />
+                </div>
+              ) : (
+                <div className="h-full overflow-auto">
                   <ReservationCalendar reservations={reservations || []} />
-                )}
-              </TabsContent>
+                </div>
+              )}
+            </TabsContent>
 
-              <TabsContent value="list" className="mt-6">
-                {/* Mobile-optimized reservations list */}
-                <Card>
-                  <CardHeader className="pb-4">
-                    <CardTitle className="text-lg">All Reservations</CardTitle>
-                    <CardDescription className="text-sm">
-                      Manage reservations for your course
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-0">
-                    {isLoading ? (
-                      <div className="flex justify-center py-8">
-                        <Loader2 className="h-6 w-6 animate-spin" />
-                      </div>
-                    ) : reservations && reservations.length > 0 ? (
-                      <ScrollArea className="h-[60vh]">
-                        <div className="divide-y">
-                          {reservations.map((reservation) => {
-                            const additionalPlayers = parseAdditionalPlayers(reservation.additional_players);
-                            return (
-                              <div key={reservation.id} className="p-4 space-y-3">
-                                {/* Date and time row */}
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-2 text-sm">
-                                    <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                                    <span className="font-medium">
-                                      {format(new Date(reservation.date), 'MMM d, yyyy')}
-                                    </span>
-                                    <Clock className="h-4 w-4 text-muted-foreground ml-2 flex-shrink-0" />
-                                    <span>{reservation.time}</span>
-                                  </div>
-                                  {getStatusBadge(reservation.status)}
+            <TabsContent value="list" className="flex-1 min-h-0">
+              {/* Mobile-optimized reservations list */}
+              <Card className="h-full flex flex-col">
+                <CardHeader className="pb-4 flex-shrink-0">
+                  <CardTitle className="text-lg">All Reservations</CardTitle>
+                  <CardDescription className="text-sm">
+                    Manage reservations for your course
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="flex-1 min-h-0 p-0">
+                  {isLoading ? (
+                    <div className="flex justify-center py-8">
+                      <Loader2 className="h-6 w-6 animate-spin" />
+                    </div>
+                  ) : reservations && reservations.length > 0 ? (
+                    <div className="h-full overflow-auto">
+                      <div className="divide-y">
+                        {reservations.map((reservation) => {
+                          const additionalPlayers = parseAdditionalPlayers(reservation.additional_players);
+                          return (
+                            <div key={reservation.id} className="p-4 space-y-3">
+                              {/* Date and time row */}
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2 text-sm">
+                                  <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                  <span className="font-medium">
+                                    {format(new Date(reservation.date), 'MMM d, yyyy')}
+                                  </span>
+                                  <Clock className="h-4 w-4 text-muted-foreground ml-2 flex-shrink-0" />
+                                  <span>{reservation.time}</span>
                                 </div>
+                                {getStatusBadge(reservation.status)}
+                              </div>
 
-                                {/* Players and location */}
-                                <div className="space-y-2">
-                                  <div className="flex items-center gap-2 text-sm">
-                                    <Users className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                                    <span>{reservation.players} player(s)</span>
-                                  </div>
-                                  
-                                  {/* Main player */}
-                                  <div className="bg-gray-50 rounded-lg p-3 space-y-1">
-                                    <div className="flex items-center gap-2">
-                                      <User className="h-4 w-4 text-muted-foreground" />
-                                      <span className="font-medium text-sm">{reservation.player_name}</span>
-                                      <span className="text-xs text-muted-foreground">(Main)</span>
-                                    </div>
-                                    <div className="text-xs text-muted-foreground ml-6">
-                                      License: {reservation.license}
-                                    </div>
-                                  </div>
-
-                                  {/* Additional players */}
-                                  {additionalPlayers.length > 0 && (
-                                    <div className="space-y-2">
-                                      {additionalPlayers.map((player: any, index: number) => (
-                                        <div key={index} className="bg-gray-50 rounded-lg p-3 space-y-1">
-                                          <div className="flex items-center gap-2">
-                                            <User className="h-4 w-4 text-muted-foreground" />
-                                            <span className="font-medium text-sm">{player.name}</span>
-                                          </div>
-                                          <div className="text-xs text-muted-foreground ml-6">
-                                            License: {player.license}
-                                          </div>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  )}
-
-                                  {reservation.course_location && (
-                                    <div className="flex items-center gap-2 text-sm">
-                                      <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                                      <span className="text-muted-foreground truncate">
-                                        {reservation.course_location}
-                                      </span>
-                                    </div>
-                                  )}
+                              {/* Players and location */}
+                              <div className="space-y-2">
+                                <div className="flex items-center gap-2 text-sm">
+                                  <Users className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                  <span>{reservation.players} player(s)</span>
                                 </div>
                                 
-                                {/* Action buttons for pending reservations */}
+                                {/* Main player */}
+                                <div className="bg-gray-50 rounded-lg p-3 space-y-1">
+                                  <div className="flex items-center gap-2">
+                                    <User className="h-4 w-4 text-muted-foreground" />
+                                    <span className="font-medium text-sm">{reservation.player_name}</span>
+                                    <span className="text-xs text-muted-foreground">(Main)</span>
+                                  </div>
+                                  <div className="text-xs text-muted-foreground ml-6">
+                                    License: {reservation.license}
+                                  </div>
+                                </div>
+
+                                {/* Additional players */}
+                                {additionalPlayers.length > 0 && (
+                                  <div className="space-y-2">
+                                    {additionalPlayers.map((player: any, index: number) => (
+                                      <div key={index} className="bg-gray-50 rounded-lg p-3 space-y-1">
+                                        <div className="flex items-center gap-2">
+                                          <User className="h-4 w-4 text-muted-foreground" />
+                                          <span className="font-medium text-sm">{player.name}</span>
+                                        </div>
+                                        <div className="text-xs text-muted-foreground ml-6">
+                                          License: {player.license}
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+
+                                {reservation.course_location && (
+                                  <div className="flex items-center gap-2 text-sm">
+                                    <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                    <span className="text-muted-foreground truncate">
+                                      {reservation.course_location}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                              
+                              {/* Action buttons */}
+                              <div className="flex gap-2 pt-2">
                                 {reservation.status === 'pending' && (
-                                  <div className="flex gap-2 pt-2">
+                                  <>
                                     <Button
                                       size="sm"
                                       onClick={() => updateReservationStatus(reservation.id, 'confirmed')}
@@ -348,39 +393,74 @@ const CourseDashboard = () => {
                                         </>
                                       )}
                                     </Button>
-                                  </div>
+                                  </>
                                 )}
                                 
-                                {/* Notes */}
-                                {reservation.course_notes && (
-                                  <div className="p-2 bg-blue-50 rounded text-sm">
-                                    <strong>Notes:</strong> {reservation.course_notes}
-                                  </div>
-                                )}
-                                
-                                {/* Booking info */}
-                                <div className="text-xs text-muted-foreground pt-1 border-t">
-                                  Booked {format(new Date(reservation.created_at), 'MMM d, yyyy')}
-                                  {reservation.confirmed_at && (
-                                    <span> • Confirmed {format(new Date(reservation.confirmed_at), 'MMM d')}</span>
-                                  )}
-                                </div>
+                                {/* Delete button for all reservations */}
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      disabled={deletingReservation === reservation.id}
+                                      className="border-red-200 text-red-600 hover:bg-red-50"
+                                    >
+                                      {deletingReservation === reservation.id ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                      ) : (
+                                        <Trash2 className="h-4 w-4" />
+                                      )}
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent className="bg-white">
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Delete Reservation</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        Are you sure you want to permanently delete this reservation? This action cannot be undone.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                      <AlertDialogAction 
+                                        onClick={() => deleteReservation(reservation.id)}
+                                        className="bg-red-600 hover:bg-red-700"
+                                      >
+                                        Delete
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
                               </div>
-                            );
-                          })}
-                        </div>
-                      </ScrollArea>
-                    ) : (
-                      <div className="text-center py-8 text-muted-foreground px-4">
-                        <div className="text-sm">No reservations found for your course yet.</div>
+                              
+                              {/* Notes */}
+                              {reservation.course_notes && (
+                                <div className="p-2 bg-blue-50 rounded text-sm">
+                                  <strong>Notes:</strong> {reservation.course_notes}
+                                </div>
+                              )}
+                              
+                              {/* Booking info */}
+                              <div className="text-xs text-muted-foreground pt-1 border-t">
+                                Booked {format(new Date(reservation.created_at), 'MMM d, yyyy')}
+                                {reservation.confirmed_at && (
+                                  <span> • Confirmed {format(new Date(reservation.confirmed_at), 'MMM d')}</span>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
-          </div>
-        </ScrollArea>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground px-4">
+                      <div className="text-sm">No reservations found for your course yet.</div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
     </div>
   );
