@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -207,7 +206,7 @@ const CourseDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="h-screen flex flex-col overflow-hidden bg-gray-50">
       {/* Mobile-optimized header */}
       <div className="bg-white shadow-sm border-b px-4 py-4 flex-shrink-0">
         <div className="flex justify-between items-start">
@@ -223,10 +222,11 @@ const CourseDashboard = () => {
         </div>
       </div>
 
-      <div className="flex-1 min-h-0">
-        <div className="h-full flex flex-col p-4 pb-20">
+      {/* Main content area with proper scrolling */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="p-4 pb-2 flex-shrink-0">
           {/* Mobile-optimized stats */}
-          <div className="grid grid-cols-3 gap-3 mb-6">
+          <div className="grid grid-cols-3 gap-3 mb-4">
             <Card className="text-center">
               <CardContent className="p-3">
                 <div className="text-lg md:text-2xl font-bold">{todayReservations.length}</div>
@@ -250,10 +250,12 @@ const CourseDashboard = () => {
               </CardContent>
             </Card>
           </div>
+        </div>
 
-          {/* Tabs for Calendar and List views */}
-          <Tabs defaultValue="calendar" className="flex-1 flex flex-col min-h-0">
-            <TabsList className="grid w-full grid-cols-2 mb-4">
+        {/* Tabs with proper height handling */}
+        <div className="flex-1 flex flex-col overflow-hidden px-4 pb-4">
+          <Tabs defaultValue="calendar" className="flex-1 flex flex-col overflow-hidden">
+            <TabsList className="grid w-full grid-cols-2 mb-4 flex-shrink-0">
               <TabsTrigger value="calendar" className="flex items-center gap-2">
                 <CalendarDays className="h-4 w-4" />
                 <span className="hidden sm:inline">Calendar View</span>
@@ -266,19 +268,19 @@ const CourseDashboard = () => {
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="calendar" className="flex-1 min-h-0">
+            <TabsContent value="calendar" className="flex-1 overflow-hidden">
               {isLoading ? (
                 <div className="flex justify-center py-8">
                   <Loader2 className="h-6 w-6 animate-spin" />
                 </div>
               ) : (
-                <div className="h-full overflow-auto">
+                <div className="h-full">
                   <ReservationCalendar reservations={reservations || []} />
                 </div>
               )}
             </TabsContent>
 
-            <TabsContent value="list" className="flex-1 min-h-0">
+            <TabsContent value="list" className="flex-1 overflow-hidden">
               {/* Mobile-optimized reservations list */}
               <Card className="h-full flex flex-col">
                 <CardHeader className="pb-4 flex-shrink-0">
@@ -287,13 +289,13 @@ const CourseDashboard = () => {
                     Manage reservations for your course
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="flex-1 min-h-0 p-0">
+                <CardContent className="flex-1 overflow-hidden p-0">
                   {isLoading ? (
                     <div className="flex justify-center py-8">
                       <Loader2 className="h-6 w-6 animate-spin" />
                     </div>
                   ) : reservations && reservations.length > 0 ? (
-                    <div className="h-full overflow-auto">
+                    <ScrollArea className="h-full">
                       <div className="divide-y">
                         {reservations.map((reservation) => {
                           const additionalPlayers = parseAdditionalPlayers(reservation.additional_players);
@@ -450,7 +452,7 @@ const CourseDashboard = () => {
                           );
                         })}
                       </div>
-                    </div>
+                    </ScrollArea>
                   ) : (
                     <div className="text-center py-8 text-muted-foreground px-4">
                       <div className="text-sm">No reservations found for your course yet.</div>

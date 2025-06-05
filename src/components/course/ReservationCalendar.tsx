@@ -1,10 +1,24 @@
-
 import { useState } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { format, isSameDay, parseISO } from "date-fns";
-import { Calendar as CalendarIcon, Clock, Users, User } from "lucide-react";
+import { Calendar as CalendarIcon, Clock, Users, User, Trash2, Loader2 } from "lucide-react";
+import { supabase } from "@/lib/supabase";
+import { useToast } from "@/components/ui/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface Reservation {
   id: string;
@@ -23,6 +37,8 @@ interface ReservationCalendarProps {
 
 const ReservationCalendar = ({ reservations }: ReservationCalendarProps) => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [deletingReservation, setDeletingReservation] = useState<string | null>(null);
+  const { toast } = useToast();
 
   // Get reservations for selected date
   const getReservationsForDate = (date: Date) => {
@@ -61,11 +77,40 @@ const ReservationCalendar = ({ reservations }: ReservationCalendarProps) => {
     }
   };
 
+  const deleteReservation = async (reservationId: string) => {
+    setDeletingReservation(reservationId);
+    
+    try {
+      const { error } = await supabase
+        .from('reservations')
+        .delete()
+        .eq('id', reservationId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Reservation Deleted",
+        description: "Reservation has been permanently deleted",
+      });
+
+      // Trigger a page refresh to update the data
+      window.location.reload();
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "Failed to delete reservation",
+      });
+    } finally {
+      setDeletingReservation(null);
+    }
+  };
+
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
+    <div className="h-full flex flex-col lg:grid lg:grid-cols-3 gap-6">
       {/* Calendar */}
-      <Card className="lg:col-span-2">
-        <CardHeader>
+      <Card className="lg:col-span-2 flex flex-col">
+        <CardHeader className="flex-shrink-0">
           <CardTitle className="flex items-center gap-2">
             <CalendarIcon className="h-5 w-5" />
             Reservation Calendar
@@ -74,7 +119,7 @@ const ReservationCalendar = ({ reservations }: ReservationCalendarProps) => {
             Select a date to view reservations. Dates with reservations are highlighted.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex-1">
           <div className="flex justify-center">
             <Calendar
               mode="single"
@@ -109,7 +154,7 @@ const ReservationCalendar = ({ reservations }: ReservationCalendarProps) => {
       </Card>
 
       {/* Daily Reservations */}
-      <Card className="flex flex-col">
+      <Card className="flex flex-col h-full lg:h-auto">
         <CardHeader className="flex-shrink-0">
           <CardTitle className="text-lg">
             {selectedDate ? format(selectedDate, "MMMM d, yyyy") : "Select a Date"}
@@ -118,10 +163,10 @@ const ReservationCalendar = ({ reservations }: ReservationCalendarProps) => {
             {selectedDateReservations.length} reservation{selectedDateReservations.length !== 1 ? 's' : ''} for this day
           </CardDescription>
         </CardHeader>
-        <CardContent className="flex-1 min-h-0 p-0">
+        <CardContent className="flex-1 overflow-hidden p-0">
           {selectedDateReservations.length > 0 ? (
-            <div className="h-full overflow-auto p-4">
-              <div className="space-y-4">
+            <ScrollArea className="h-full">
+              <div className="p-4 space-y-4">
                 {selectedDateReservations
                   .sort((a, b) => a.time.localeCompare(b.time))
                   .map((reservation) => {
@@ -134,7 +179,42 @@ const ReservationCalendar = ({ reservations }: ReservationCalendarProps) => {
                             <Clock className="h-4 w-4 text-muted-foreground" />
                             <span className="font-medium">{reservation.time}</span>
                           </div>
-                          {getStatusBadge(reservation.status)}
+                          <div className="flex items-center gap-2">
+                            {getStatusBadge(reservation.status)}
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  disabled={deletingReservation === reservation.id}
+                                  className="border-red-200 text-red-600 hover:bg-red-50 h-6 w-6 p-0"
+                                >
+                                  {deletingReservation === reservation.id ? (
+                                    <Loader2 className="h-3 w-3 animate-spin" />
+                                  ) : (
+                                    <Trash2 className="h-3 w-3" />
+                                  )}
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent className="bg-white">
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete Reservation</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to permanently delete this reservation? This action cannot be undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction 
+                                    onClick={() => deleteReservation(reservation.id)}
+                                    className="bg-red-600 hover:bg-red-700"
+                                  >
+                                    Delete
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
                         </div>
 
                         {/* Players */}
@@ -175,7 +255,7 @@ const ReservationCalendar = ({ reservations }: ReservationCalendarProps) => {
                     );
                   })}
               </div>
-            </div>
+            </ScrollArea>
           ) : (
             <div className="text-center py-8 text-muted-foreground">
               <CalendarIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
