@@ -15,6 +15,7 @@ import CourseHoleDetails from "@/components/course/CourseHoleDetails";
 import CourseWeather from "@/components/course/CourseWeather";
 import CourseLeaderboard from "@/components/course/CourseLeaderboard";
 import CourseStats from "@/components/course/CourseStats";
+import ReservationForm from "@/components/course/ReservationForm";
 import { formatOpeningHoursForDisplay } from "@/utils/openingHours";
 import { format } from "date-fns";
 import AddReviewForm from "@/components/course/AddReviewForm";
@@ -258,7 +259,7 @@ const Course = () => {
   };
 
   return (
-    <div className="pb-20">
+    <div className="px-4 md:px-8 lg:px-12 xl:px-16 pb-20">
       {/* Back button */}
       <Button variant="ghost" size="sm" onClick={handleBack} className="mb-4">
         <ArrowLeft className="mr-2 h-4 w-4" />
@@ -289,16 +290,23 @@ const Course = () => {
         </div>
       </div>
 
-      {/* Contact Button - Moved below the main image */}
-      <div className="mb-6">
+      {/* Contact and Reservation Buttons */}
+      <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-3">
         <Button
           onClick={handleContact}
-          className="w-full bg-primary shadow-md"
+          className="bg-primary shadow-md"
           size="lg"
         >
           <Phone className="mr-2 h-5 w-5" />
           {t("course", "getInTouch")}
         </Button>
+        {user && courseData && (
+          <ReservationForm 
+            courseId={id!}
+            courseName={courseData.name}
+            courseLocation={[courseData.city, courseData.state].filter(Boolean).join(', ')}
+          />
+        )}
       </div>
 
       {/* Main content */}
