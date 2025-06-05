@@ -153,8 +153,8 @@ const FilterPanel = ({
         }`}
         style={{
           transform: `translateY(${isOpen ? dragOffset : 100}%)`,
-          paddingBottom: `calc(88px + env(safe-area-inset-bottom, 0px))`,
-          maxHeight: 'calc(85vh - 88px)'
+          paddingBottom: `calc(72px + env(safe-area-inset-bottom, 0px))`,
+          maxHeight: 'calc(85vh - 72px)'
         }}
       >
         <Card className="rounded-t-2xl border-b-0 shadow-2xl bg-white w-full h-full">

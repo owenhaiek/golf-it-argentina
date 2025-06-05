@@ -83,46 +83,44 @@ const CourseSearch = ({
         {/* Selected Course Display */}
         {selectedCourse && selectedCourseData && (
           <Card className="border-2 border-primary bg-primary/5">
-            <CardContent className="p-4">
-              <div className="flex items-start gap-4">
-                {selectedCourseData.image_url && (
-                  <div className="w-20 h-16 flex-shrink-0">
-                    <img
-                      src={selectedCourseData.image_url}
-                      alt={selectedCourseData.name}
-                      className="w-full h-full object-cover rounded-lg"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1535131749006-b7f58c99034b?w=400&h=300&fit=crop';
-                      }}
-                    />
-                  </div>
-                )}
-                <div className="flex-1 space-y-2">
-                  <h3 className="font-semibold text-lg">{selectedCourseData.name}</h3>
-                  <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                      <Flag className="h-4 w-4" />
-                      <span>{selectedCourseData.holes} holes • Par {coursePar(selectedCourseData)}</span>
-                    </div>
-                    {(selectedCourseData.address || selectedCourseData.city) && (
-                      <div className="flex items-center gap-1">
-                        <MapPin className="h-4 w-4" />
-                        <span>{[selectedCourseData.city, selectedCourseData.state].filter(Boolean).join(', ')}</span>
-                      </div>
-                    )}
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      onSelectCourse("");
-                      setSearchQuery("");
-                      setShowCourses(true);
+            <CardContent className="p-0">
+              {selectedCourseData.image_url && (
+                <div className="w-full h-48">
+                  <img
+                    src={selectedCourseData.image_url}
+                    alt={selectedCourseData.name}
+                    className="w-full h-full object-cover rounded-t-lg"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1535131749006-b7f58c99034b?w=400&h=300&fit=crop';
                     }}
-                  >
-                    Change Course
-                  </Button>
+                  />
                 </div>
+              )}
+              <div className="p-4 space-y-3">
+                <h3 className="font-semibold text-lg">{selectedCourseData.name}</h3>
+                <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-1">
+                    <Flag className="h-4 w-4" />
+                    <span>{selectedCourseData.holes} holes • Par {coursePar(selectedCourseData)}</span>
+                  </div>
+                  {(selectedCourseData.address || selectedCourseData.city) && (
+                    <div className="flex items-center gap-1">
+                      <MapPin className="h-4 w-4" />
+                      <span>{[selectedCourseData.city, selectedCourseData.state].filter(Boolean).join(', ')}</span>
+                    </div>
+                  )}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    onSelectCourse("");
+                    setSearchQuery("");
+                    setShowCourses(true);
+                  }}
+                >
+                  Change Course
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -151,45 +149,43 @@ const CourseSearch = ({
                           setShowCourses(false);
                         }}
                       >
-                        <CardContent className="p-4">
-                          <div className="flex items-start gap-4">
-                            <div className="w-20 h-16 flex-shrink-0">
-                              <img
-                                src={course.image_url || 'https://images.unsplash.com/photo-1535131749006-b7f58c99034b?w=400&h=300&fit=crop'}
-                                alt={course.name}
-                                className="w-full h-full object-cover rounded-lg"
-                                onError={(e) => {
-                                  (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1535131749006-b7f58c99034b?w=400&h=300&fit=crop';
-                                }}
-                              />
+                        <CardContent className="p-0">
+                          <div className="w-full h-48">
+                            <img
+                              src={course.image_url || 'https://images.unsplash.com/photo-1535131749006-b7f58c99034b?w=400&h=300&fit=crop'}
+                              alt={course.name}
+                              className="w-full h-full object-cover rounded-t-lg"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1535131749006-b7f58c99034b?w=400&h=300&fit=crop';
+                              }}
+                            />
+                          </div>
+                          <div className="p-4 space-y-2">
+                            <h3 className="font-semibold text-lg leading-tight">{course.name}</h3>
+                            
+                            <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+                              <div className="flex items-center gap-1">
+                                <Flag className="h-4 w-4" />
+                                <span>{course.holes} holes</span>
+                              </div>
+                              
+                              <div className="flex items-center gap-1">
+                                <span>Par {coursePar(course)}</span>
+                              </div>
+                              
+                              {location && (
+                                <div className="flex items-center gap-1">
+                                  <MapPin className="h-4 w-4" />
+                                  <span className="truncate">{location}</span>
+                                </div>
+                              )}
                             </div>
-                            <div className="flex-1 space-y-2">
-                              <h3 className="font-semibold text-lg leading-tight">{course.name}</h3>
-                              
-                              <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-                                <div className="flex items-center gap-1">
-                                  <Flag className="h-4 w-4" />
-                                  <span>{course.holes} holes</span>
-                                </div>
-                                
-                                <div className="flex items-center gap-1">
-                                  <span>Par {coursePar(course)}</span>
-                                </div>
-                                
-                                {location && (
-                                  <div className="flex items-center gap-1">
-                                    <MapPin className="h-4 w-4" />
-                                    <span className="truncate">{location}</span>
-                                  </div>
-                                )}
-                              </div>
-                              
-                              <div className="flex items-center gap-1 text-xs">
-                                <Clock className="h-3 w-3" />
-                                <span className={open ? "text-green-600 font-medium" : "text-muted-foreground"}>
-                                  {open ? "Open now" : formatOpeningHours(course.opening_hours)}
-                                </span>
-                              </div>
+                            
+                            <div className="flex items-center gap-1 text-xs">
+                              <Clock className="h-3 w-3" />
+                              <span className={open ? "text-green-600 font-medium" : "text-muted-foreground"}>
+                                {open ? "Open now" : formatOpeningHours(course.opening_hours)}
+                              </span>
                             </div>
                           </div>
                         </CardContent>
