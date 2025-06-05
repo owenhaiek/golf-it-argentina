@@ -42,22 +42,61 @@ const CourseManagerAuth = () => {
     setIsLoading(true);
 
     try {
-      const { data, error } = await supabase
-        .rpc('authenticate_course_manager', {
-          manager_email: email,
-          manager_password: password
+      console.log("Attempting course manager login with email:", email);
+      
+      // First, let's try to find the manager directly and verify password
+      const { data: managers, error: fetchError } = await supabase
+        .from('course_managers')
+        .select(`
+          id,
+          name,
+          email,
+          password_hash,
+          course_id,
+          is_active,
+          golf_courses (
+            name
+          )
+        `)
+        .eq('email', email)
+        .eq('is_active', true);
+
+      if (fetchError) {
+        console.error("Error fetching manager:", fetchError);
+        throw fetchError;
+      }
+
+      console.log("Found managers:", managers);
+
+      if (!managers || managers.length === 0) {
+        toast({
+          variant: "destructive",
+          title: "Authentication Failed",
+          description: "Invalid email or password. Please try again.",
         });
+        return;
+      }
 
-      if (error) throw error;
-
-      if (data && data.length > 0) {
-        const managerData = data[0];
+      const manager = managers[0];
+      
+      // Simple password verification (base64 encoded)
+      const expectedHash = btoa(password);
+      console.log("Password hash comparison:", { provided: expectedHash, stored: manager.password_hash });
+      
+      if (manager.password_hash === expectedHash) {
+        const managerData = {
+          id: manager.id,
+          name: manager.name,
+          email: manager.email,
+          course_id: manager.course_id,
+          course_name: manager.golf_courses.name
+        };
         
         localStorage.setItem('courseManager', JSON.stringify(managerData));
         
         toast({
           title: "Welcome back!",
-          description: `Logged in as ${managerData.name} for ${managerData.course_name}`,
+          description: `Logged in as ${manager.name} for ${manager.golf_courses.name}`,
         });
         
         navigate("/course-dashboard");
@@ -69,6 +108,7 @@ const CourseManagerAuth = () => {
         });
       }
     } catch (error: any) {
+      console.error("Login error:", error);
       toast({
         variant: "destructive",
         title: "Error",
