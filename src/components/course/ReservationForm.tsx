@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
@@ -22,7 +21,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
@@ -102,7 +101,9 @@ const ReservationForm = ({ courseId, courseName, courseLocation }: ReservationFo
     mutationFn: async (data: FormValues) => {
       if (!user) throw new Error("User not authenticated");
       
-      const { error } = await supabase.from("reservations").insert({
+      console.log("Creating reservation with data:", data);
+      
+      const reservationData = {
         course_id: courseId,
         course_name: courseName,
         course_location: courseLocation,
@@ -113,9 +114,17 @@ const ReservationForm = ({ courseId, courseName, courseLocation }: ReservationFo
         license: data.playerList[0].license, // Main player license
         additional_players: data.playerList.length > 1 ? JSON.stringify(data.playerList.slice(1)) : null,
         user_id: user.id,
-      });
+        status: 'pending'
+      };
       
-      if (error) throw error;
+      console.log("Inserting reservation data:", reservationData);
+      
+      const { error } = await supabase.from("reservations").insert(reservationData);
+      
+      if (error) {
+        console.error("Reservation creation error:", error);
+        throw error;
+      }
       return data;
     },
     onSuccess: (data) => {
@@ -149,6 +158,20 @@ const ReservationForm = ({ courseId, courseName, courseLocation }: ReservationFo
   });
   
   const onSubmit = (data: FormValues) => {
+    console.log("Form submitted with data:", data);
+    
+    // Validate that we have the correct number of players
+    if (data.playerList.length !== data.players) {
+      toast({
+        title: language === "en" ? "Player Count Mismatch" : "Diferencia en Número de Jugadores",
+        description: language === "en" 
+          ? `Please provide details for exactly ${data.players} player${data.players > 1 ? 's' : ''}` 
+          : `Por favor proporciona detalles para exactamente ${data.players} jugador${data.players > 1 ? 'es' : ''}`,
+        variant: "destructive"
+      });
+      return;
+    }
+    
     // Validate that all players have names and licenses
     const hasAllPlayerInfo = data.playerList.every(player => 
       player.name.trim() && player.license.trim()

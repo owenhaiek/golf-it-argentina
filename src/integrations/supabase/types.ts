@@ -215,6 +215,7 @@ export type Database = {
       }
       reservations: {
         Row: {
+          additional_players: Json | null
           confirmed_at: string | null
           confirmed_by: string | null
           course_id: string
@@ -224,6 +225,8 @@ export type Database = {
           created_at: string | null
           date: string
           id: string
+          license: string | null
+          player_name: string | null
           players: number
           status: string | null
           time: string
@@ -231,6 +234,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          additional_players?: Json | null
           confirmed_at?: string | null
           confirmed_by?: string | null
           course_id: string
@@ -240,6 +244,8 @@ export type Database = {
           created_at?: string | null
           date: string
           id?: string
+          license?: string | null
+          player_name?: string | null
           players?: number
           status?: string | null
           time: string
@@ -247,6 +253,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          additional_players?: Json | null
           confirmed_at?: string | null
           confirmed_by?: string | null
           course_id?: string
@@ -256,6 +263,8 @@ export type Database = {
           created_at?: string | null
           date?: string
           id?: string
+          license?: string | null
+          player_name?: string | null
           players?: number
           status?: string | null
           time?: string

@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -84,18 +85,18 @@ const CourseManagerAuth = () => {
       
       if (manager.password_hash === expectedHash) {
         const managerData = {
-          id: manager.id,
+          manager_id: manager.id,
           name: manager.name,
           email: manager.email,
           course_id: manager.course_id,
-          course_name: manager.golf_courses?.name || 'Unknown Course'
+          course_name: (manager.golf_courses as any)?.name || 'Unknown Course'
         };
         
         localStorage.setItem('courseManager', JSON.stringify(managerData));
         
         toast({
           title: "Welcome back!",
-          description: `Logged in as ${manager.name} for ${manager.golf_courses?.name || 'Unknown Course'}`,
+          description: `Logged in as ${manager.name} for ${(manager.golf_courses as any)?.name || 'Unknown Course'}`,
         });
         
         navigate("/course-dashboard");
