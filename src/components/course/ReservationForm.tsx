@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
@@ -21,7 +22,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
@@ -110,8 +111,8 @@ const ReservationForm = ({ courseId, courseName, courseLocation }: ReservationFo
         date: data.date.toISOString().split('T')[0],
         time: data.time,
         players: data.players,
-        player_name: data.playerList[0].name, // Main player name
-        license: data.playerList[0].license, // Main player license
+        player_name: data.playerList[0].name,
+        license: data.playerList[0].license,
         additional_players: data.playerList.length > 1 ? JSON.stringify(data.playerList.slice(1)) : null,
         user_id: user.id,
         status: 'pending'
@@ -202,8 +203,8 @@ const ReservationForm = ({ courseId, courseName, courseLocation }: ReservationFo
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-[500px] bg-white max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
+        <DialogContent className="sm:max-w-[500px] bg-white max-h-[95vh] flex flex-col">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle>{language === "en" ? "Book a Tee Time" : "Reservar un Horario"}</DialogTitle>
             <DialogDescription>
               {language === "en" 
@@ -212,213 +213,215 @@ const ReservationForm = ({ courseId, courseName, courseLocation }: ReservationFo
             </DialogDescription>
           </DialogHeader>
           
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-2">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="date"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>{language === "en" ? "Date" : "Fecha"}</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "w-full pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              {field.value ? (
-                                format(field.value, "PPP")
-                              ) : (
-                                <span>{language === "en" ? "Select date" : "Seleccionar fecha"}</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0 bg-white z-50" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            disabled={(date) => {
-                              const today = new Date();
-                              today.setHours(0, 0, 0, 0);
-                              const thirtyDaysFromNow = new Date();
-                              thirtyDaysFromNow.setDate(today.getDate() + 30);
-                              return date < today || date > thirtyDaysFromNow;
-                            }}
-                            initialFocus
-                            className="bg-white"
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="time"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{language === "en" ? "Time" : "Hora"}</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "w-full pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              {field.value || <span>{language === "en" ? "Select time" : "Seleccionar hora"}</span>}
-                              <Clock className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0 bg-white z-50" align="start">
-                          <ScrollArea className="h-64 bg-white p-2">
-                            <div className="grid grid-cols-3 gap-2">
-                              {timeSlots.map((time) => (
+          <div className="flex-1 overflow-hidden">
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="h-full flex flex-col">
+                <div className="space-y-6 pt-2 overflow-y-auto flex-1 px-1">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="date"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                          <FormLabel>{language === "en" ? "Date" : "Fecha"}</FormLabel>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
                                 <Button
-                                  key={time}
-                                  type="button"
-                                  variant={field.value === time ? "default" : "outline"}
-                                  className="text-sm"
-                                  onClick={() => field.onChange(time)}
+                                  variant="outline"
+                                  className={cn(
+                                    "w-full pl-3 text-left font-normal",
+                                    !field.value && "text-muted-foreground"
+                                  )}
                                 >
-                                  {time}
+                                  {field.value ? (
+                                    format(field.value, "PPP")
+                                  ) : (
+                                    <span>{language === "en" ? "Select date" : "Seleccionar fecha"}</span>
+                                  )}
+                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                                 </Button>
-                              ))}
-                            </div>
-                          </ScrollArea>
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0 bg-white z-50" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={field.value}
+                                onSelect={field.onChange}
+                                disabled={(date) => {
+                                  const today = new Date();
+                                  today.setHours(0, 0, 0, 0);
+                                  const thirtyDaysFromNow = new Date();
+                                  thirtyDaysFromNow.setDate(today.getDate() + 30);
+                                  return date < today || date > thirtyDaysFromNow;
+                                }}
+                                initialFocus
+                                className="bg-white pointer-events-auto"
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-              <FormField
-                control={form.control}
-                name="players"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{language === "en" ? "Number of players" : "Número de jugadores"}</FormLabel>
-                    <div className="flex gap-2">
-                      {[1, 2, 3, 4].map((num) => (
-                        <Button
-                          key={num}
-                          type="button"
-                          variant={field.value === num ? "default" : "outline"}
-                          className="flex-1"
-                          onClick={() => {
-                            form.setValue("players", num);
-                            updatePlayerList(num);
-                          }}
-                        >
-                          {num}
-                        </Button>
+                    <FormField
+                      control={form.control}
+                      name="time"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{language === "en" ? "Time" : "Hora"}</FormLabel>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant="outline"
+                                  className={cn(
+                                    "w-full pl-3 text-left font-normal",
+                                    !field.value && "text-muted-foreground"
+                                  )}
+                                >
+                                  {field.value || <span>{language === "en" ? "Select time" : "Seleccionar hora"}</span>}
+                                  <Clock className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0 bg-white z-50" align="start">
+                              <ScrollArea className="h-64 bg-white p-2">
+                                <div className="grid grid-cols-3 gap-2">
+                                  {timeSlots.map((time) => (
+                                    <Button
+                                      key={time}
+                                      type="button"
+                                      variant={field.value === time ? "default" : "outline"}
+                                      className="text-sm"
+                                      onClick={() => field.onChange(time)}
+                                    >
+                                      {time}
+                                    </Button>
+                                  ))}
+                                </div>
+                              </ScrollArea>
+                            </PopoverContent>
+                          </Popover>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <FormField
+                    control={form.control}
+                    name="players"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{language === "en" ? "Number of players" : "Número de jugadores"}</FormLabel>
+                        <div className="flex gap-2">
+                          {[1, 2, 3, 4].map((num) => (
+                            <Button
+                              key={num}
+                              type="button"
+                              variant={field.value === num ? "default" : "outline"}
+                              className="flex-1"
+                              onClick={() => {
+                                form.setValue("players", num);
+                                updatePlayerList(num);
+                              }}
+                            >
+                              {num}
+                            </Button>
+                          ))}
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Player Details with improved scrolling */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-medium">
+                        {language === "en" ? "Player Details" : "Detalles de Jugadores"}
+                      </h4>
+                    </div>
+                    
+                    <div className="max-h-80 overflow-y-auto space-y-4 pr-2">
+                      {playerList.map((player, index) => (
+                        <div key={index} className="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 border rounded-lg bg-gray-50">
+                          <div className="md:col-span-2">
+                            <h5 className="text-sm font-medium mb-2">
+                              {language === "en" ? `Player ${index + 1}` : `Jugador ${index + 1}`}
+                              {index === 0 && (
+                                <span className="text-xs text-muted-foreground ml-2">
+                                  ({language === "en" ? "Main contact" : "Contacto principal"})
+                                </span>
+                              )}
+                            </h5>
+                          </div>
+                          <div>
+                            <FormLabel className="text-xs">
+                              {language === "en" ? "Name" : "Nombre"}
+                            </FormLabel>
+                            <Input
+                              placeholder={language === "en" ? "Player name" : "Nombre del jugador"}
+                              value={player.name}
+                              onChange={(e) => {
+                                const newList = [...playerList];
+                                newList[index].name = e.target.value;
+                                form.setValue("playerList", newList);
+                              }}
+                              className="mt-1"
+                            />
+                          </div>
+                          <div>
+                            <FormLabel className="text-xs">
+                              {language === "en" ? "License/Matricula" : "Licencia/Matrícula"}
+                            </FormLabel>
+                            <Input
+                              placeholder={language === "en" ? "License number" : "Número de matrícula"}
+                              value={player.license}
+                              onChange={(e) => {
+                                const newList = [...playerList];
+                                newList[index].license = e.target.value;
+                                form.setValue("playerList", newList);
+                              }}
+                              className="mt-1"
+                            />
+                          </div>
+                        </div>
                       ))}
                     </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Player Details */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-medium">
-                    {language === "en" ? "Player Details" : "Detalles de Jugadores"}
-                  </h4>
-                </div>
-                
-                <ScrollArea className="max-h-60">
-                  <div className="space-y-4 pr-4">
-                    {playerList.map((player, index) => (
-                      <div key={index} className="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 border rounded-lg bg-gray-50">
-                        <div className="md:col-span-2">
-                          <h5 className="text-sm font-medium mb-2">
-                            {language === "en" ? `Player ${index + 1}` : `Jugador ${index + 1}`}
-                            {index === 0 && (
-                              <span className="text-xs text-muted-foreground ml-2">
-                                ({language === "en" ? "Main contact" : "Contacto principal"})
-                              </span>
-                            )}
-                          </h5>
-                        </div>
-                        <div>
-                          <FormLabel className="text-xs">
-                            {language === "en" ? "Name" : "Nombre"}
-                          </FormLabel>
-                          <Input
-                            placeholder={language === "en" ? "Player name" : "Nombre del jugador"}
-                            value={player.name}
-                            onChange={(e) => {
-                              const newList = [...playerList];
-                              newList[index].name = e.target.value;
-                              form.setValue("playerList", newList);
-                            }}
-                            className="mt-1"
-                          />
-                        </div>
-                        <div>
-                          <FormLabel className="text-xs">
-                            {language === "en" ? "License/Matricula" : "Licencia/Matrícula"}
-                          </FormLabel>
-                          <Input
-                            placeholder={language === "en" ? "License number" : "Número de matrícula"}
-                            value={player.license}
-                            onChange={(e) => {
-                              const newList = [...playerList];
-                              newList[index].license = e.target.value;
-                              form.setValue("playerList", newList);
-                            }}
-                            className="mt-1"
-                          />
-                        </div>
-                      </div>
-                    ))}
                   </div>
-                </ScrollArea>
-              </div>
+                </div>
 
-              <DialogFooter className="flex-col sm:flex-row gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setOpen(false)}
-                  disabled={reservation.isPending}
-                  className="w-full sm:w-auto"
-                >
-                  {language === "en" ? "Cancel" : "Cancelar"}
-                </Button>
-                <Button 
-                  type="submit"
-                  disabled={reservation.isPending}
-                  className="w-full sm:w-auto"
-                >
-                  {reservation.isPending ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      {language === "en" ? "Submitting..." : "Enviando..."}
-                    </>
-                  ) : (
-                    t("reservations", "bookTeeTime")
-                  )}
-                </Button>
-              </DialogFooter>
-            </form>
-          </Form>
+                <DialogFooter className="flex-col sm:flex-row gap-2 flex-shrink-0 pt-4 border-t">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setOpen(false)}
+                    disabled={reservation.isPending}
+                    className="w-full sm:w-auto"
+                  >
+                    {language === "en" ? "Cancel" : "Cancelar"}
+                  </Button>
+                  <Button 
+                    type="submit"
+                    disabled={reservation.isPending}
+                    className="w-full sm:w-auto"
+                  >
+                    {reservation.isPending ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        {language === "en" ? "Submitting..." : "Enviando..."}
+                      </>
+                    ) : (
+                      t("reservations", "bookTeeTime")
+                    )}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
+          </div>
         </DialogContent>
       </Dialog>
     </>
