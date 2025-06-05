@@ -17,6 +17,7 @@ import { Calendar as CalendarIcon, Clock, Loader2 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -47,6 +48,8 @@ const formSchema = z.object({
     required_error: "Please select a time",
   }),
   players: z.number().min(1).max(4),
+  playerName: z.string().min(1, "Player name is required"),
+  license: z.string().min(1, "License/Matricula is required"),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -62,6 +65,8 @@ const ReservationForm = ({ courseId, courseName, courseLocation }: ReservationFo
     resolver: zodResolver(formSchema),
     defaultValues: {
       players: 1,
+      playerName: "",
+      license: "",
     },
   });
 
@@ -77,6 +82,8 @@ const ReservationForm = ({ courseId, courseName, courseLocation }: ReservationFo
         date: data.date.toISOString().split('T')[0],
         time: data.time,
         players: data.players,
+        player_name: data.playerName,
+        license: data.license,
         user_id: user.id,
       });
       
@@ -103,6 +110,8 @@ const ReservationForm = ({ courseId, courseName, courseLocation }: ReservationFo
       // Reset form
       form.reset({
         players: 1,
+        playerName: "",
+        license: "",
       });
     },
     onError: (error) => {
@@ -132,7 +141,7 @@ const ReservationForm = ({ courseId, courseName, courseLocation }: ReservationFo
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-[425px] bg-white">
+        <DialogContent className="sm:max-w-[425px] bg-white max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{language === "en" ? "Book a Tee Time" : "Reservar un Horario"}</DialogTitle>
             <DialogDescription>
@@ -257,6 +266,40 @@ const ReservationForm = ({ courseId, courseName, courseLocation }: ReservationFo
                         </Button>
                       ))}
                     </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="playerName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{language === "en" ? "Player Name" : "Nombre del Jugador"}</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder={language === "en" ? "Enter player name" : "Ingrese nombre del jugador"} 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="license"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{language === "en" ? "License/Matricula" : "Licencia/Matrícula"}</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder={language === "en" ? "Enter license number" : "Ingrese número de matrícula"} 
+                        {...field} 
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}

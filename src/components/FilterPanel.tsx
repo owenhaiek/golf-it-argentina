@@ -35,27 +35,35 @@ const FilterPanel = ({
     setFilters(currentFilters);
   }, [isOpen, currentFilters]);
 
-  // Prevent body scrolling when filter is open
+  // Prevent body scrolling when filter is open - improved for all devices
   useEffect(() => {
     if (isOpen) {
+      // Store current scroll position
+      const scrollY = window.scrollY;
+      
+      // Apply styles to prevent scrolling
       document.body.style.overflow = 'hidden';
       document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
       document.body.style.width = '100%';
-      document.body.style.height = '100%';
-    } else {
-      document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.width = '';
-      document.body.style.height = '';
+      document.body.style.height = '100vh';
+      
+      // Also prevent scrolling on documentElement for some browsers
+      document.documentElement.style.overflow = 'hidden';
+      
+      return () => {
+        // Restore scroll position and styles
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.width = '';
+        document.body.style.height = '';
+        document.documentElement.style.overflow = '';
+        
+        // Restore scroll position
+        window.scrollTo(0, scrollY);
+      };
     }
-
-    // Cleanup on unmount
-    return () => {
-      document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.width = '';
-      document.body.style.height = '';
-    };
   }, [isOpen]);
 
   const handleApplyFilters = () => {
@@ -145,8 +153,8 @@ const FilterPanel = ({
         }`}
         style={{
           transform: `translateY(${isOpen ? dragOffset : 100}%)`,
-          paddingBottom: `env(safe-area-inset-bottom, 0px)`,
-          maxHeight: '85vh'
+          paddingBottom: `calc(88px + env(safe-area-inset-bottom, 0px))`,
+          maxHeight: 'calc(85vh - 88px)'
         }}
       >
         <Card className="rounded-t-2xl border-b-0 shadow-2xl bg-white w-full h-full">
