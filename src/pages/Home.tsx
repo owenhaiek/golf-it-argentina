@@ -82,7 +82,7 @@ const Home = () => {
         size="icon" 
         className="fixed right-4 h-12 w-12 rounded-full shadow-lg z-[60] bg-primary hover:bg-primary/90 transition-all duration-200 hover:scale-105 active:scale-95"
         style={{
-          bottom: `calc(100px + env(safe-area-inset-bottom, 0px))`
+          bottom: `calc(88px + env(safe-area-inset-bottom, 0px))`
         }}
       >
         <Filter size={20} />

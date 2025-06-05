@@ -9,12 +9,7 @@ export const Navigation = () => {
   
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-t border-border/20 shadow-lg">
-      <div 
-        className="pb-safe"
-        style={{
-          paddingBottom: `calc(8px + env(safe-area-inset-bottom, 0px))`
-        }}
-      >
+      <div className="pb-safe">
         <nav className="w-full">
           <ul className="flex items-center justify-between max-w-xl mx-auto px-4 py-2">
             <NavItem to="/" icon={<Flag className="transition-all duration-200" size={20} />} label={t("common", "home")} />
