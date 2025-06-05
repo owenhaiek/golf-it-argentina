@@ -89,14 +89,14 @@ const CourseManagerAuth = () => {
           name: manager.name,
           email: manager.email,
           course_id: manager.course_id,
-          course_name: manager.golf_courses.name
+          course_name: manager.golf_courses?.name || 'Unknown Course'
         };
         
         localStorage.setItem('courseManager', JSON.stringify(managerData));
         
         toast({
           title: "Welcome back!",
-          description: `Logged in as ${manager.name} for ${manager.golf_courses.name}`,
+          description: `Logged in as ${manager.name} for ${manager.golf_courses?.name || 'Unknown Course'}`,
         });
         
         navigate("/course-dashboard");
@@ -204,7 +204,7 @@ const CourseManagerAuth = () => {
                   <SelectTrigger>
                     <SelectValue placeholder="Select Golf Course" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-white z-50">
                     {golfCourses?.map((course) => (
                       <SelectItem key={course.id} value={course.id}>
                         {course.name} {course.city && `- ${course.city}`}
