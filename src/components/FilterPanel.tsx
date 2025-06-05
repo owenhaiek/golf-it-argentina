@@ -35,6 +35,29 @@ const FilterPanel = ({
     setFilters(currentFilters);
   }, [isOpen, currentFilters]);
 
+  // Prevent body scrolling when filter is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+      document.body.style.height = '100%';
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+      document.body.style.height = '';
+    }
+
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+      document.body.style.height = '';
+    };
+  }, [isOpen]);
+
   const handleApplyFilters = () => {
     onApplyFilters(filters);
     onClose();
@@ -108,7 +131,7 @@ const FilterPanel = ({
     <>
       {/* Backdrop */}
       <div 
-        className={`fixed inset-0 z-[70] bg-black/50 transition-opacity duration-300 ${
+        className={`fixed inset-0 z-[100] bg-black/50 transition-opacity duration-300 ${
           isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
         onClick={onClose}
@@ -117,16 +140,17 @@ const FilterPanel = ({
       {/* Filter Panel */}
       <div 
         ref={panelRef}
-        className={`fixed inset-x-0 bottom-0 z-[80] w-full transform transition-transform duration-500 ease-out ${
+        className={`fixed inset-x-0 bottom-0 z-[110] w-full transform transition-transform duration-500 ease-out ${
           isOpen ? "translate-y-0" : "translate-y-full"
         }`}
         style={{
           transform: `translateY(${isOpen ? dragOffset : 100}%)`,
-          paddingBottom: `env(safe-area-inset-bottom, 0px)`
+          paddingBottom: `env(safe-area-inset-bottom, 0px)`,
+          maxHeight: '85vh'
         }}
       >
-        <Card className="rounded-t-2xl border-b-0 shadow-2xl bg-white w-full">
-          <div className="p-6">
+        <Card className="rounded-t-2xl border-b-0 shadow-2xl bg-white w-full h-full">
+          <div className="p-6 h-full flex flex-col">
             {/* Drag indicator */}
             <div 
               className="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-4 cursor-pointer touch-none"
@@ -143,7 +167,7 @@ const FilterPanel = ({
               </Button>
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-6 flex-1 overflow-y-auto">
               <div className="space-y-3">
                 <Label htmlFor="holes-filter" className="text-sm font-medium">Number of Holes</Label>
                 <RadioGroup 
@@ -202,15 +226,15 @@ const FilterPanel = ({
                   </Label>
                 </div>
               </div>
+            </div>
 
-              <div className="flex space-x-3 pt-4">
-                <Button onClick={handleResetFilters} variant="outline" className="flex-1 h-11">
-                  Reset
-                </Button>
-                <Button onClick={handleApplyFilters} className="flex-1 h-11">
-                  Apply Filters
-                </Button>
-              </div>
+            <div className="flex space-x-3 pt-4 mt-auto">
+              <Button onClick={handleResetFilters} variant="outline" className="flex-1 h-11">
+                Reset
+              </Button>
+              <Button onClick={handleApplyFilters} className="flex-1 h-11">
+                Apply Filters
+              </Button>
             </div>
           </div>
         </Card>
