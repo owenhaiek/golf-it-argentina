@@ -106,6 +106,7 @@
       padding: 0;
       position: fixed;
       -webkit-overflow-scrolling: touch;
+      -webkit-appearance: none;
     }
     
     #root {
@@ -126,7 +127,7 @@
     }
     
     .pb-safe {
-      padding-bottom: max(env(safe-area-inset-bottom), 0px);
+      padding-bottom: max(env(safe-area-inset-bottom), 4px);
     }
     
     .pb-nav {
@@ -162,8 +163,12 @@
       padding-top: 8px;
     }
     
+    .pb-safe {
+      padding-bottom: 4px;
+    }
+    
     .pb-nav {
-      padding-bottom: 96px; /* Increased for better mobile support */
+      padding-bottom: 80px;
     }
     
     .bottom-safe {
@@ -198,13 +203,32 @@
     }
   }
 
-  /* iOS specific fixes for Safari */
+  /* iOS specific fixes for Safari and prevent navigation bar movement */
   @supports (-webkit-appearance: none) {
     @media (max-width: 768px) {
       .pb-nav {
-        padding-bottom: calc(76px + max(env(safe-area-inset-bottom), 20px));
+        padding-bottom: calc(76px + max(env(safe-area-inset-bottom), 8px));
+      }
+      
+      /* Prevent viewport resize on scroll */
+      body {
+        height: 100vh;
+        height: 100dvh;
+        position: fixed;
+        overflow: hidden;
       }
     }
+  }
+  
+  /* Prevent navigation bar movement */
+  .fixed-navigation {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 100 !important;
+    transform: none !important;
+    will-change: auto !important;
   }
 }
 
@@ -270,7 +294,7 @@
   }
 }
 
-/* Fix for iOS Safari viewport height issues */
+/* Fix for iOS Safari viewport height issues and prevent navigation movement */
 :root {
   --app-height: 100vh;
   --app-height: 100dvh;
@@ -280,6 +304,8 @@
   html, body {
     height: -webkit-fill-available;
     height: 100dvh;
+    position: fixed;
+    overflow: hidden;
   }
   
   #root {
@@ -295,4 +321,14 @@ body {
 
 .transition-opacity {
   transition: opacity 0.3s ease-in-out;
+}
+
+/* Prevent scrolling on the body to avoid navigation bar movement */
+@media (max-width: 768px) {
+  body {
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+  }
 }

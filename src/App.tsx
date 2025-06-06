@@ -20,7 +20,6 @@ import CoursesMap from "./pages/CoursesMap";
 import AdminGolfCourseManager from "./pages/AdminGolfCourseManager";
 import CourseManagerAuth from "./pages/CourseManagerAuth";
 import CourseDashboard from "./pages/CourseDashboard";
-import AddGolfCourses from "./pages/AddGolfCourses";
 import AdminPendingManagers from "./pages/AdminPendingManagers";
 import NotFound from "./pages/NotFound";
 
@@ -51,7 +50,6 @@ function App() {
                   <Route path="search-users" element={<SearchUsers />} />
                   <Route path="courses-map" element={<CoursesMap />} />
                   <Route path="admin" element={<AdminGolfCourseManager />} />
-                  <Route path="add-golf-courses" element={<AddGolfCourses />} />
                   <Route path="*" element={<NotFound />} />
                 </Route>
               </Routes>
