@@ -86,6 +86,10 @@
     height: 100%;
     overflow: hidden;
     position: fixed;
+    touch-action: manipulation;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
   }
   
   #root {
@@ -95,9 +99,21 @@
     position: relative;
   }
   
-  /* Enhanced mobile-specific adjustments for modern devices */
+  /* Hide browser UI and ensure full-screen app experience */
   @media only screen and (max-width: 768px) {
-    html, body {
+    html {
+      height: 100vh;
+      height: 100dvh;
+      width: 100vw;
+      overflow: hidden;
+      position: fixed;
+      -webkit-overflow-scrolling: touch;
+      -webkit-appearance: none;
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    
+    body {
       height: 100vh;
       height: 100dvh;
       width: 100vw;
@@ -105,8 +121,9 @@
       margin: 0;
       padding: 0;
       position: fixed;
+      overscroll-behavior: none;
       -webkit-overflow-scrolling: touch;
-      -webkit-appearance: none;
+      touch-action: manipulation;
     }
     
     #root {
@@ -117,6 +134,17 @@
       position: relative;
       padding: 0;
       margin: 0;
+    }
+    
+    /* Force minimal-ui mode to hide browser chrome */
+    @supports (-webkit-touch-callout: none) {
+      html, body {
+        height: -webkit-fill-available;
+      }
+      
+      #root {
+        height: -webkit-fill-available;
+      }
     }
   }
   
@@ -142,7 +170,6 @@
       padding-right: max(env(safe-area-inset-right), 0px);
     }
 
-    /* New utility classes for better mobile support */
     .bottom-safe {
       bottom: env(safe-area-inset-bottom);
     }
@@ -185,7 +212,7 @@
     }
   }
   
-  /* Enhanced PWA mode styles */
+  /* PWA and standalone mode enhancements */
   @media screen and (display-mode: standalone) {
     html, body {
       height: 100vh;
@@ -203,75 +230,25 @@
     }
   }
 
-  /* iOS specific fixes for Safari and prevent navigation bar movement */
+  /* iOS Safari specific optimizations */
   @supports (-webkit-appearance: none) {
     @media (max-width: 768px) {
-      .pb-nav {
-        padding-bottom: calc(76px + env(safe-area-inset-bottom));
+      html {
+        -webkit-text-size-adjust: 100%;
+        height: -webkit-fill-available;
       }
       
-      /* Prevent viewport resize on scroll */
       body {
-        height: 100vh;
-        height: 100dvh;
+        height: -webkit-fill-available;
         position: fixed;
         overflow: hidden;
+        overscroll-behavior: none;
+        -webkit-overflow-scrolling: touch;
       }
-    }
-  }
-  
-  /* Fixed navigation styles - always at the bottom */
-  .fixed-navigation {
-    position: fixed !important;
-    bottom: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    z-index: 9999 !important;
-    transform: none !important;
-    will-change: auto !important;
-    margin: 0 !important;
-  }
-  
-  /* Mobile navigation specific fixes */
-  @media (max-width: 768px) {
-    .fixed-navigation {
-      position: fixed !important;
-      bottom: 0 !important;
-      left: 0 !important;
-      right: 0 !important;
-      z-index: 9999 !important;
-      margin: 0 !important;
-      padding: 0 !important;
-    }
-    
-    /* iOS Safari specific */
-    @supports (-webkit-touch-callout: none) {
-      .fixed-navigation {
-        position: fixed !important;
-        bottom: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-        z-index: 9999 !important;
-        margin: 0 !important;
-        padding-bottom: env(safe-area-inset-bottom) !important;
+      
+      #root {
+        height: -webkit-fill-available;
       }
-    }
-  }
-  
-  /* iPhone specific safe area handling */
-  @media screen and (max-width: 430px) {
-    .fixed-navigation {
-      position: fixed !important;
-      bottom: 0 !important;
-      left: 0 !important;
-      right: 0 !important;
-      z-index: 9999 !important;
-      margin: 0 !important;
-      padding-bottom: env(safe-area-inset-bottom) !important;
-    }
-    
-    .pb-nav {
-      padding-bottom: calc(76px + env(safe-area-inset-bottom)) !important;
     }
   }
 }
@@ -315,6 +292,13 @@
     scrollbar-width: none;
   }
   
+  /* Enhanced smooth scrolling */
+  .smooth-scroll {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: none;
+  }
+  
   /* Animation utilities - Improved */
   .animate-fadeIn {
     animation: fadeIn 0.5s ease-out;
@@ -329,7 +313,6 @@
     animation: fadeIn 0.4s ease-out;
   }
   
-  /* Added animation keyframes for smoother transitions */
   @keyframes float {
     0% { transform: translateY(0px); }
     50% { transform: translateY(-5px); }
@@ -351,41 +334,30 @@
   }
 }
 
-/* Fix for iOS Safari viewport height issues and prevent navigation movement */
-:root {
-  --app-height: 100vh;
-  --app-height: 100dvh;
-}
-
-@supports (-webkit-touch-callout: none) {
-  html, body {
-    height: -webkit-fill-available;
-    height: 100dvh;
-    position: fixed;
-    overflow: hidden;
-  }
-  
-  #root {
-    height: -webkit-fill-available;
-    height: 100dvh;
-  }
-}
-
-/* Add smooth transition for loader */
-body {
-  transition: opacity 0.3s ease-in-out;
-}
-
-.transition-opacity {
-  transition: opacity 0.3s ease-in-out;
-}
-
-/* Prevent scrolling on the body to avoid navigation bar movement */
+/* Prevent scrolling issues and ensure app-like behavior */
 @media (max-width: 768px) {
   body {
     overflow: hidden;
     position: fixed;
     width: 100%;
     height: 100%;
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: touch;
+    touch-action: manipulation;
   }
+  
+  /* Force hide browser chrome on scroll */
+  html {
+    overflow: hidden;
+    -webkit-text-size-adjust: none;
+  }
+}
+
+/* Smooth transition for loader */
+body {
+  transition: opacity 0.3s ease-in-out;
+}
+
+.transition-opacity {
+  transition: opacity 0.3s ease-in-out;
 }

@@ -1,3 +1,4 @@
+
 import { Outlet, useLocation } from "react-router-dom";
 import { Navigation } from "./Navigation";
 import { useState, useRef, useEffect } from "react";
@@ -15,65 +16,74 @@ export const Layout = () => {
   // Scroll to top when route changes
   useEffect(() => {
     if (mainRef.current) {
-      mainRef.current.scrollTo(0, 0);
+      mainRef.current.scrollTo({ top: 0, behavior: 'instant' });
     }
   }, [location.pathname]);
 
-  const handleTouchStart = (e: TouchEvent) => {
-    if (mainRef.current && mainRef.current.scrollTop <= 0) {
-      setStartY(e.touches[0].clientY);
-      setIsPulling(true);
-      setPullDistance(0);
-    }
-  };
+  // Clean up event listeners on component unmount
+  useEffect(() => {
+    const mainElement = mainRef.current;
+    if (!mainElement) return;
 
-  const handleTouchMove = (e: TouchEvent) => {
-    if (!isPulling) return;
-    
-    if (mainRef.current && mainRef.current.scrollTop <= 0) {
-      const currentY = e.touches[0].clientY;
-      const newPullDistance = Math.sqrt(Math.max(0, currentY - startY) * 8);
-      
-      setPullDistance(newPullDistance);
-      
-      if (newPullDistance > 10) {
-        e.preventDefault();
+    const handleTouchStart = (e: TouchEvent) => {
+      if (mainElement.scrollTop <= 0) {
+        setStartY(e.touches[0].clientY);
+        setIsPulling(true);
+        setPullDistance(0);
       }
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (!isPulling) return;
       
-      if (newPullDistance > 100 && !isRefreshing) {
-        if (window.navigator && window.navigator.vibrate) {
-          window.navigator.vibrate(50);
+      if (mainElement.scrollTop <= 0) {
+        const currentY = e.touches[0].clientY;
+        const newPullDistance = Math.sqrt(Math.max(0, currentY - startY) * 8);
+        
+        setPullDistance(newPullDistance);
+        
+        if (newPullDistance > 10) {
+          e.preventDefault();
         }
         
-        setIsRefreshing(true);
-        setTimeout(() => {
-          window.location.reload();
-        }, 300);
+        if (newPullDistance > 100 && !isRefreshing) {
+          if (window.navigator && window.navigator.vibrate) {
+            window.navigator.vibrate(50);
+          }
+          
+          setIsRefreshing(true);
+          setTimeout(() => {
+            window.location.reload();
+          }, 300);
+        }
+      } else {
+        setIsPulling(false);
+        setPullDistance(0);
       }
-    } else {
+    };
+    
+    const handleTouchEnd = () => {
       setIsPulling(false);
       setPullDistance(0);
-    }
-  };
-  
-  const handleTouchEnd = () => {
-    setIsPulling(false);
-    setPullDistance(0);
-    
-    if (pullDistance < 100) {
-      setIsRefreshing(false);
-    }
-  };
+      
+      if (pullDistance < 100) {
+        setIsRefreshing(false);
+      }
+    };
 
-  const mainElement = mainRef.current;
-  if (mainElement) {
     mainElement.addEventListener('touchstart', handleTouchStart, { passive: true });
     mainElement.addEventListener('touchmove', handleTouchMove, { passive: false });
-    mainElement.addEventListener('touchend', handleTouchEnd);
-  }
+    mainElement.addEventListener('touchend', handleTouchEnd, { passive: true });
+
+    return () => {
+      mainElement.removeEventListener('touchstart', handleTouchStart);
+      mainElement.removeEventListener('touchmove', handleTouchMove);
+      mainElement.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [isPulling, startY, pullDistance, isRefreshing]);
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-background h-full w-full overflow-hidden">
+    <div className="fixed inset-0 flex flex-col bg-background h-screen w-screen overflow-hidden">
       {pullDistance > 0 && !isRefreshing && (
         <motion.div 
           className="absolute top-0 left-0 right-0 flex items-center justify-center z-40 pointer-events-none"
@@ -107,13 +117,16 @@ export const Layout = () => {
       
       <main 
         ref={mainRef} 
-        className="flex-1 overflow-y-auto"
+        className="flex-1 w-full overflow-y-auto overflow-x-hidden overscroll-behavior-none"
         style={{
           WebkitOverflowScrolling: 'touch',
+          scrollBehavior: 'smooth',
           position: 'relative',
           zIndex: 1,
           paddingTop: 'env(safe-area-inset-top, 0px)',
-          paddingBottom: 'calc(76px + env(safe-area-inset-bottom, 0px))'
+          paddingBottom: 'calc(76px + env(safe-area-inset-bottom, 0px))',
+          minHeight: '100vh',
+          minHeight: '100dvh'
         }}
       >
         <div className="w-full mx-auto animate-in min-h-full">
