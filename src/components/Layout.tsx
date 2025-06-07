@@ -1,7 +1,6 @@
-
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import { Navigation } from "./Navigation";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import GolfAnimationLoader from "./ui/GolfAnimationLoader";
 import { motion } from "framer-motion";
 
@@ -11,6 +10,14 @@ export const Layout = () => {
   const [pullDistance, setPullDistance] = useState(0);
   const [isPulling, setIsPulling] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
+  const location = useLocation();
+
+  // Scroll to top when route changes
+  useEffect(() => {
+    if (mainRef.current) {
+      mainRef.current.scrollTo(0, 0);
+    }
+  }, [location.pathname]);
 
   const handleTouchStart = (e: TouchEvent) => {
     if (mainRef.current && mainRef.current.scrollTop <= 0) {
