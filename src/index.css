@@ -127,11 +127,11 @@
     }
     
     .pb-safe {
-      padding-bottom: max(env(safe-area-inset-bottom), 0px);
+      padding-bottom: env(safe-area-inset-bottom);
     }
     
     .pb-nav {
-      padding-bottom: calc(76px + max(env(safe-area-inset-bottom), 0px));
+      padding-bottom: calc(76px + env(safe-area-inset-bottom));
     }
     
     .pl-safe {
@@ -144,11 +144,11 @@
 
     /* New utility classes for better mobile support */
     .bottom-safe {
-      bottom: max(env(safe-area-inset-bottom), 0px);
+      bottom: env(safe-area-inset-bottom);
     }
     
     .mb-safe {
-      margin-bottom: max(env(safe-area-inset-bottom), 0px);
+      margin-bottom: env(safe-area-inset-bottom);
     }
     
     .h-safe-screen {
@@ -207,7 +207,7 @@
   @supports (-webkit-appearance: none) {
     @media (max-width: 768px) {
       .pb-nav {
-        padding-bottom: calc(76px + max(env(safe-area-inset-bottom), 0px));
+        padding-bottom: calc(76px + env(safe-area-inset-bottom));
       }
       
       /* Prevent viewport resize on scroll */
@@ -220,7 +220,7 @@
     }
   }
   
-  /* Prevent navigation bar movement */
+  /* Ensure navigation bar is always at the bottom */
   .fixed-navigation {
     position: fixed !important;
     bottom: 0 !important;
@@ -229,6 +229,17 @@
     z-index: 100 !important;
     transform: none !important;
     will-change: auto !important;
+  }
+  
+  /* Specific iPhone fixes */
+  @media screen and (max-width: 430px) and (-webkit-min-device-pixel-ratio: 3) {
+    .pb-nav {
+      padding-bottom: calc(76px + env(safe-area-inset-bottom));
+    }
+    
+    .fixed-navigation {
+      padding-bottom: env(safe-area-inset-bottom);
+    }
   }
 }
 
@@ -243,6 +254,19 @@
     justify-content: center;
     align-items: center;
     cursor: pointer;
+  }
+  
+  /* Mobile course cards - no spacing between them */
+  @media (max-width: 768px) {
+    .mobile-course-card {
+      margin-bottom: 0 !important;
+      border-radius: 0 !important;
+    }
+    
+    .mobile-course-list {
+      gap: 0 !important;
+      space-y: 0 !important;
+    }
   }
 }
 

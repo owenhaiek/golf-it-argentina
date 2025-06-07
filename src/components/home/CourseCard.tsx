@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 import { MapPin, Flag, Clock } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -53,7 +54,7 @@ const CourseCard = ({ course, currentTime }: CourseCardProps) => {
   
   return (
     <Link to={`/course/${course.id}`} className="block w-full">
-      <Card className="overflow-hidden hover:shadow-lg transition-shadow rounded-none border-x-0 w-full md:rounded-lg md:border-x">
+      <Card className="overflow-hidden hover:shadow-lg transition-shadow rounded-none border-x-0 border-b-0 w-full md:rounded-lg md:border-x md:border-b">
         <CardContent className="p-0 w-full">
           <div className="w-full">
             <CourseImageCarousel 

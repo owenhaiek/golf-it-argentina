@@ -8,7 +8,7 @@ export const Navigation = () => {
   const { t } = useLanguage();
   
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-[100] bg-background/95 backdrop-blur-sm border-t border-border/20 shadow-lg">
+    <div className="fixed-navigation bg-background/95 backdrop-blur-sm border-t border-border/20 shadow-lg">
       <div className="pb-safe">
         <nav className="w-full">
           <ul className="flex items-center justify-between max-w-xl mx-auto px-4 py-2">
