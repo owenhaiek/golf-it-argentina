@@ -198,6 +198,10 @@ const FilterPanel = ({
                     <RadioGroupItem value="18" id="holes-18" />
                     <Label htmlFor="holes-18" className="text-sm">18 Holes</Label>
                   </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="27" id="holes-27" />
+                    <Label htmlFor="holes-27" className="text-sm">27 Holes</Label>
+                  </div>
                 </RadioGroup>
               </div>
 

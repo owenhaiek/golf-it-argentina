@@ -19,7 +19,7 @@ const AddRound = () => {
   const { t } = useLanguage();
   const queryClient = useQueryClient();
   const [selectedCourse, setSelectedCourse] = useState<string>("");
-  const [holesPlayed, setHolesPlayed] = useState<"9" | "18">("18");
+  const [holesPlayed, setHolesPlayed] = useState<"9" | "18" | "27">("18");
   const [scores, setScores] = useState<number[]>(Array(18).fill(0));
   const [notes, setNotes] = useState("");
 
@@ -43,10 +43,10 @@ const AddRound = () => {
     setScores(newScores);
   };
 
-  const handleHolesPlayedChange = (value: "9" | "18") => {
+  const handleHolesPlayedChange = (value: "9" | "18" | "27") => {
     setHolesPlayed(value);
     // Reset scores when changing holes played
-    const holesCount = value === "9" ? 9 : (selectedCourseData?.holes || 18);
+    const holesCount = value === "9" ? 9 : value === "18" ? 18 : (selectedCourseData?.holes || 27);
     setScores(Array(holesCount).fill(0));
   };
 
@@ -106,7 +106,7 @@ const AddRound = () => {
     }
 
     // Check if user has added any scores for the holes they played
-    const holesCount = holesPlayed === "9" ? 9 : (selectedCourseData?.holes || 18);
+    const holesCount = holesPlayed === "9" ? 9 : holesPlayed === "18" ? 18 : (selectedCourseData?.holes || 27);
     const hasScores = scores.slice(0, holesCount).some(score => score > 0);
     if (!hasScores) {
       toast({
@@ -137,7 +137,7 @@ const AddRound = () => {
     if (courseId) {
       const course = courses.find(c => c.id === courseId);
       if (course) {
-        const holesCount = holesPlayed === "9" ? 9 : course.holes;
+        const holesCount = holesPlayed === "9" ? 9 : holesPlayed === "18" ? 18 : course.holes;
         setScores(Array(holesCount).fill(0));
       }
     }
@@ -165,7 +165,7 @@ const AddRound = () => {
                 <ToggleGroup 
                   type="single" 
                   value={holesPlayed} 
-                  onValueChange={(value) => value && handleHolesPlayedChange(value as "9" | "18")}
+                  onValueChange={(value) => value && handleHolesPlayedChange(value as "9" | "18" | "27")}
                   className="justify-start"
                 >
                   <ToggleGroupItem value="9" aria-label="9 holes" className="px-6">
@@ -174,6 +174,11 @@ const AddRound = () => {
                   <ToggleGroupItem value="18" aria-label="18 holes" className="px-6">
                     18 Holes
                   </ToggleGroupItem>
+                  {selectedCourseData?.holes === 27 && (
+                    <ToggleGroupItem value="27" aria-label="27 holes" className="px-6">
+                      27 Holes
+                    </ToggleGroupItem>
+                  )}
                 </ToggleGroup>
               </div>
             </div>
@@ -183,7 +188,7 @@ const AddRound = () => {
             <ScoreCard
               selectedCourseData={{
                 ...selectedCourseData,
-                holes: holesPlayed === "9" ? 9 : selectedCourseData.holes
+                holes: holesPlayed === "9" ? 9 : holesPlayed === "18" ? 18 : holesPlayed === "27" ? 27 : selectedCourseData.holes
               }}
               scores={scores}
               onScoreChange={handleScoreChange}
