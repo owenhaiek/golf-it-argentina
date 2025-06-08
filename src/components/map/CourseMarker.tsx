@@ -16,7 +16,7 @@ interface CourseMarkerProps {
     website?: string;
   };
   isOpen: boolean;
-  onClick: () => void;
+  onClick: (e?: any) => void;
 }
 
 export const CourseMarker = ({ course, isOpen, onClick }: CourseMarkerProps) => {
