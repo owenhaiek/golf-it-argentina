@@ -11,6 +11,7 @@ import { toast } from "@/components/ui/use-toast";
 import { CourseMarker } from "@/components/map/CourseMarker";
 import { CoursePopup } from "@/components/map/CoursePopup";
 import { getGolfCourseCoordinates, getCourseStatus } from "@/utils/geocoding";
+import { CourseInfoTab } from "@/components/map/CourseInfoTab";
 
 interface GolfCourse {
   id: string;
@@ -33,7 +34,6 @@ const CoursesMap = () => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<any>(null);
   const markers = useRef<any[]>([]);
-  const popups = useRef<any[]>([]);
   
   const [mapLoaded, setMapLoaded] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -41,6 +41,8 @@ const CoursesMap = () => {
   const [showSearch, setShowSearch] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
   const [scriptLoaded, setScriptLoaded] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState<GolfCourse | null>(null);
+  const [showCourseInfo, setShowCourseInfo] = useState(false);
 
   // Prevent pull-to-refresh behavior
   useEffect(() => {
@@ -211,7 +213,7 @@ const CoursesMap = () => {
     
     const addMarkersToMap = () => {
       try {
-        // Clear existing markers and popups
+        // Clear existing markers
         markers.current.forEach(marker => {
           try {
             marker.remove();
@@ -220,15 +222,6 @@ const CoursesMap = () => {
           }
         });
         markers.current = [];
-        
-        popups.current.forEach(popup => {
-          try {
-            popup.remove();
-          } catch (e) {
-            console.error("Error removing popup:", e);
-          }
-        });
-        popups.current = [];
         
         console.log(`Adding ${courses.length} markers to map`);
         
@@ -267,70 +260,13 @@ const CoursesMap = () => {
               .setLngLat([course.longitude, course.latitude])
               .addTo(mapInstance.current);
             
-            // Create popup with course information
-            const popupContent = document.createElement('div');
-            popupContent.className = 'course-popup-container';
-            popupContent.innerHTML = `
-              <div class="w-80 max-w-[90vw] bg-white rounded-lg shadow-xl overflow-hidden">
-                <div class="relative h-32 bg-gray-100">
-                  <img 
-                    src="${course.image_url || 'https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80'}" 
-                    alt="${course.name}"
-                    class="w-full h-full object-cover"
-                    onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80';"
-                  />
-                  <div class="absolute top-2 right-2">
-                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${isOpen ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
-                      <span class="w-2 h-2 mr-1 rounded-full ${isOpen ? 'bg-green-400' : 'bg-red-400'}"></span>
-                      ${isOpen ? 'Open' : 'Closed'}
-                    </span>
-                  </div>
-                </div>
-                
-                <div class="p-4 space-y-3">
-                  <div>
-                    <h3 class="font-semibold text-lg leading-tight text-gray-900">${course.name}</h3>
-                    <div class="flex items-center gap-2 text-sm text-gray-600 mt-1">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 15s1-1 4-1 5 1 8 0 4-1 4-1V3s-1 1-4 1-5-1-8 0-4 1-4 1z"></path>
-                        <line x1="4" x2="4" y1="22" y2="15"></line>
-                      </svg>
-                      <span>${course.holes} holes</span>
-                      ${course.par ? `<span>• Par ${course.par}</span>` : ''}
-                    </div>
-                  </div>
-                  
-                  <button class="w-full px-4 py-3 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2" onclick="window.open('https://maps.google.com/maps?q=${encodeURIComponent(course.name + ', ' + (course.address || course.city || ''))}&t=&z=15&ie=UTF8&iwloc=&output=embed', '_blank')">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 4m0 13V4m0 0L9 7"></path>
-                    </svg>
-                    Get Directions
-                  </button>
-                </div>
-              </div>
-            `;
-            
-            const popup = new window.mapboxgl.Popup({
-              offset: [0, -15],
-              closeButton: true,
-              closeOnClick: false,
-              className: 'custom-popup',
-              maxWidth: 'none'
-            })
-            .setLngLat([course.longitude, course.latitude])
-            .setDOMContent(popupContent);
-            
             // Add click event to marker
             el.addEventListener('click', (e) => {
               e.preventDefault();
               e.stopPropagation();
               
-              // Close all other popups
-              popups.current.forEach(p => p.remove());
-              popups.current = [];
-              
-              popup.addTo(mapInstance.current);
-              popups.current.push(popup);
+              setSelectedCourse(course);
+              setShowCourseInfo(true);
             });
             
             // Save marker reference
@@ -351,7 +287,7 @@ const CoursesMap = () => {
     
     setTimeout(addMarkersToMap, 200);
     
-  }, [courses, mapLoaded, navigate]);
+  }, [courses, mapLoaded]);
   
   // Apply search filter to markers
   useEffect(() => {
@@ -433,145 +369,131 @@ const CoursesMap = () => {
   }, []);
 
   return (
-    <div className="fixed inset-0 animate-fadeIn flex flex-col">
-      <div className="absolute top-0 left-0 right-0 z-10 bg-background/80 backdrop-blur-sm flex items-center justify-between p-4 pt-safe">
-        <div className="flex items-center">
-          <Map className="text-primary h-6 w-6" />
-          <h1 className="text-2xl font-bold text-primary ml-2">{t("map", "golfCoursesMap")}</h1>
-        </div>
-        
-        <div className="relative">
-          <button 
-            className="p-2 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors"
-            onClick={handleSearchToggle}
-          >
-            <Search className="h-5 w-5 text-primary" />
-          </button>
+    <>
+      <div className="fixed inset-0 animate-fadeIn flex flex-col">
+        {/* Header */}
+        <div className="absolute top-0 left-0 right-0 z-10 bg-background/80 backdrop-blur-sm flex items-center justify-between p-4 pt-safe">
+          <div className="flex items-center">
+            <Map className="text-primary h-6 w-6" />
+            <h1 className="text-2xl font-bold text-primary ml-2">{t("map", "golfCoursesMap")}</h1>
+          </div>
           
-          <AnimatePresence>
-            {showSearch && (
-              <motion.div 
-                className="absolute right-0 top-full mt-2 bg-white rounded-lg shadow-lg overflow-hidden z-20"
-                initial={{ opacity: 0, y: -10, width: 40 }}
-                animate={{ opacity: 1, y: 0, width: 240 }}
-                exit={{ opacity: 0, y: -10, width: 40 }}
-                transition={{ duration: 0.2 }}
-              >
-                <div className="relative p-2">
-                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="course-search-input"
-                    type="text"
-                    placeholder="Search courses"
-                    value={searchQuery}
-                    onChange={handleSearchChange}
-                    className="pl-8 pr-8 h-9 text-sm"
-                  />
-                  {searchQuery && (
-                    <button 
-                      className="absolute right-4 top-1/2 transform -translate-y-1/2" 
-                      onClick={() => setSearchQuery('')}
-                    >
-                      <X className="h-3 w-3 text-muted-foreground" />
-                    </button>
-                  )}
+          <div className="relative">
+            <button 
+              className="p-2 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors"
+              onClick={handleSearchToggle}
+            >
+              <Search className="h-5 w-5 text-primary" />
+            </button>
+            
+            <AnimatePresence>
+              {showSearch && (
+                <motion.div 
+                  className="absolute right-0 top-full mt-2 bg-white rounded-lg shadow-lg overflow-hidden z-20"
+                  initial={{ opacity: 0, y: -10, width: 40 }}
+                  animate={{ opacity: 1, y: 0, width: 240 }}
+                  exit={{ opacity: 0, y: -10, width: 40 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <div className="relative p-2">
+                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="course-search-input"
+                      type="text"
+                      placeholder="Search courses"
+                      value={searchQuery}
+                      onChange={handleSearchChange}
+                      className="pl-8 pr-8 h-9 text-sm"
+                    />
+                    {searchQuery && (
+                      <button 
+                        className="absolute right-4 top-1/2 transform -translate-y-1/2" 
+                        onClick={() => setSearchQuery('')}
+                      >
+                        <X className="h-3 w-3 text-muted-foreground" />
+                      </button>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+        
+        {/* Map container */}
+        <div className="absolute inset-0 pt-16">
+          <div 
+            ref={mapRef} 
+            className="w-full h-full"
+            id="map-container"
+          />
+          
+          {/* Loading state */}
+          {(!mapLoaded || isLoading) && !mapError && (
+            <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-sm">
+              <div className="flex flex-col items-center gap-3">
+                <div className="relative w-12 h-12">
+                  <div className="absolute inset-0 rounded-full border-4 border-primary/20"></div>
+                  <div className="absolute inset-0 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
+                  <Map className="absolute inset-0 w-6 h-6 m-auto text-primary/70" />
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </div>
-      
-      <div className="absolute inset-0 pt-16">
-        <div 
-          ref={mapRef} 
-          className="w-full h-full"
-          id="map-container"
-        />
-        
-        {(!mapLoaded || isLoading) && !mapError && (
-          <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-sm">
-            <div className="flex flex-col items-center gap-3">
-              <div className="relative w-12 h-12">
-                <div className="absolute inset-0 rounded-full border-4 border-primary/20"></div>
-                <div className="absolute inset-0 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
-                <Map className="absolute inset-0 w-6 h-6 m-auto text-primary/70" />
+                <p className="text-sm font-medium">{t("common", "loading")}...</p>
               </div>
-              <p className="text-sm font-medium">{t("common", "loading")}...</p>
             </div>
-          </div>
-        )}
-        
-        {mapError && (
-          <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm">
-            <div className="flex flex-col items-center gap-4 max-w-xs text-center px-6">
-              <Map className="h-12 w-12 text-muted-foreground opacity-50" />
-              <p className="text-lg font-medium text-destructive">{mapError}</p>
-              <Button onClick={handleRetryMap} variant="outline" className="mt-2">
-                Try Again
-              </Button>
+          )}
+          
+          {/* Error state */}
+          {mapError && (
+            <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+              <div className="flex flex-col items-center gap-4 max-w-xs text-center px-6">
+                <Map className="h-12 w-12 text-muted-foreground opacity-50" />
+                <p className="text-lg font-medium text-destructive">{mapError}</p>
+                <Button onClick={handleRetryMap} variant="outline" className="mt-2">
+                  Try Again
+                </Button>
+              </div>
             </div>
+          )}
+          
+          {/* Map attribution */}
+          <div className="absolute bottom-1 right-1 text-[8px] text-muted-foreground bg-white/80 px-1 rounded">
+            © Mapbox © OpenStreetMap
           </div>
-        )}
-        
-        <div className="absolute bottom-1 right-1 text-[8px] text-muted-foreground bg-white/80 px-1 rounded">
-          © Mapbox © OpenStreetMap
         </div>
-      </div>
-      
-      <style>
-        {`
-          .mapboxgl-ctrl-attrib-inner { display: none; }
-          .mapboxgl-popup-content {
-            padding: 0 !important;
-            border-radius: 0.75rem;
-            overflow: hidden;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            border: 1px solid rgba(229, 231, 235, 0.5);
-            background: white;
-          }
-          .mapboxgl-popup-close-button {
-            font-size: 16px;
-            padding: 0 6px;
-            color: #666;
-            top: 8px;
-            right: 8px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.9);
-            width: 24px;
-            height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 10;
-          }
-          .mapboxgl-popup-close-button:hover {
-            background: rgba(229, 231, 235, 1);
-          }
-          .mapboxgl-popup-tip { 
-            border-top-color: white !important;
-            border-bottom-color: white !important;
-          }
-          .custom-popup { z-index: 10; }
-          @media screen and (max-width: 768px) {
-            html, body, #root {
-              height: 100vh !important; 
-              overflow: hidden !important;
-              position: fixed !important;
-              width: 100% !important;
-              margin: 0 !important;
-              padding: 0 !important;
-              -webkit-overflow-scrolling: touch !important;
-              touch-action: none !important;
-              overscroll-behavior: none !important;
+        
+        {/* Course info slide-down tab */}
+        <CourseInfoTab
+          course={selectedCourse}
+          isOpen={showCourseInfo}
+          onClose={() => {
+            setShowCourseInfo(false);
+            setSelectedCourse(null);
+          }}
+        />
+
+        {/* CSS styles */}
+        <style>
+          {`
+            .mapboxgl-ctrl-attrib-inner { display: none; }
+            .custom-popup { z-index: 10; }
+            @media screen and (max-width: 768px) {
+              html, body, #root {
+                height: 100vh !important; 
+                overflow: hidden !important;
+                position: fixed !important;
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                -webkit-overflow-scrolling: touch !important;
+                touch-action: none !important;
+                overscroll-behavior: none !important;
+              }
             }
-          }
-          .mapboxgl-map { touch-action: none !important; }
-          .mapboxgl-popup { max-width: none !important; }
-          .mapboxgl-popup-content { pointer-events: auto !important; }
-        `}
-      </style>
-    </div>
+            .mapboxgl-map { touch-action: none !important; }
+          `}
+        </style>
+      </div>
+    </>
   );
 };
 

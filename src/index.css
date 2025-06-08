@@ -1,363 +1,95 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 47.4% 11.2%;
-
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 47.4% 11.2%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 47.4% 11.2%;
- 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    --ring: 222.2 47.4% 11.2%;
-
-    --radius: 0.5rem;
-  }
-
-  .dark {
-    --background: 0 0% 0%;
-    --foreground: 210 40% 98%;
-
-    --muted: 0 0% 8%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --popover: 0 0% 0%;
-    --popover-foreground: 210 40% 98%;
-
-    --card: 0 0% 3%;
-    --card-foreground: 210 40% 98%;
- 
-    --border: 0 0% 15%;
-    --input: 0 0% 15%;
-
-    --primary: 142 76% 55%;
-    --primary-foreground: 0 0% 0%;
-
-    --secondary: 0 0% 10%;
-    --secondary-foreground: 210 40% 98%;
-
-    --accent: 0 0% 10%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --ring: 0 0% 25%;
-
-    --radius: 0.5rem;
-  }
-}
-
-@layer base {
   * {
-    @apply border-border;
-    box-sizing: border-box;
+    @apply antialiased;
   }
-  
-  html, body {
-    @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    position: fixed;
-    touch-action: manipulation;
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -webkit-tap-highlight-color: transparent;
-  }
-  
-  #root {
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    position: relative;
-  }
-  
-  /* Hide browser UI and ensure full-screen app experience */
-  @media only screen and (max-width: 768px) {
-    html {
-      height: 100vh;
-      height: 100dvh;
-      width: 100vw;
-      overflow: hidden;
-      position: fixed;
-      -webkit-overflow-scrolling: touch;
-      -webkit-appearance: none;
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-    }
-    
-    body {
-      height: 100vh;
-      height: 100dvh;
-      width: 100vw;
-      overflow: hidden;
-      margin: 0;
-      padding: 0;
-      position: fixed;
-      overscroll-behavior: none;
-      -webkit-overflow-scrolling: touch;
-      touch-action: manipulation;
-    }
-    
-    #root {
-      height: 100vh;
-      height: 100dvh;
-      width: 100vw;
-      overflow: hidden;
-      position: relative;
-      padding: 0;
-      margin: 0;
-    }
-    
-    /* Force minimal-ui mode to hide browser chrome */
-    @supports (-webkit-touch-callout: none) {
-      html, body {
-        height: -webkit-fill-available;
-      }
-      
-      #root {
-        height: -webkit-fill-available;
-      }
-    }
-  }
-  
-  /* Enhanced safe area handling for mobile devices */
-  @supports (padding: max(0px)) {
-    .pt-safe {
-      padding-top: max(env(safe-area-inset-top), 8px);
-    }
-    
-    .pb-safe {
-      padding-bottom: env(safe-area-inset-bottom);
-    }
-    
-    .pb-nav {
-      padding-bottom: calc(76px + env(safe-area-inset-bottom));
-    }
-    
-    .pl-safe {
-      padding-left: max(env(safe-area-inset-left), 0px);
-    }
-    
-    .pr-safe {
-      padding-right: max(env(safe-area-inset-right), 0px);
-    }
-
-    .bottom-safe {
-      bottom: env(safe-area-inset-bottom);
-    }
-    
-    .mb-safe {
-      margin-bottom: env(safe-area-inset-bottom);
-    }
-    
-    .h-safe-screen {
-      height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-      height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-    }
-  }
-  
-  /* Enhanced fallback for devices without safe area support */
-  @supports not (padding: max(0px)) {
-    .pt-safe {
-      padding-top: 8px;
-    }
-    
-    .pb-safe {
-      padding-bottom: 0px;
-    }
-    
-    .pb-nav {
-      padding-bottom: 76px;
-    }
-    
-    .bottom-safe {
-      bottom: 0px;
-    }
-    
-    .mb-safe {
-      margin-bottom: 0px;
-    }
-    
-    .h-safe-screen {
-      height: 100vh;
-      height: 100dvh;
-    }
-  }
-  
-  /* PWA and standalone mode enhancements */
-  @media screen and (display-mode: standalone) {
-    html, body {
-      height: 100vh;
-      height: 100dvh;
-      width: 100vw;
-      overflow: hidden;
-      position: fixed;
-    }
-    
-    #root {
-      height: 100vh;
-      height: 100dvh;
-      width: 100vw;
-      overflow: hidden;
-    }
-  }
-
-  /* iOS Safari specific optimizations */
-  @supports (-webkit-appearance: none) {
-    @media (max-width: 768px) {
-      html {
-        -webkit-text-size-adjust: 100%;
-        height: -webkit-fill-available;
-      }
-      
-      body {
-        height: -webkit-fill-available;
-        position: fixed;
-        overflow: hidden;
-        overscroll-behavior: none;
-        -webkit-overflow-scrolling: touch;
-      }
-      
-      #root {
-        height: -webkit-fill-available;
-      }
-    }
-  }
-}
-
-@layer components {
-  .course-marker {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    background-color: #fff;
-    border: 2px solid #007bff;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-  }
-  
-  /* Mobile course cards - no spacing between them */
-  @media (max-width: 768px) {
-    .mobile-course-card {
-      margin-bottom: 0 !important;
-      border-radius: 0 !important;
-    }
-    
-    .mobile-course-list {
-      gap: 0 !important;
-      space-y: 0 !important;
-    }
-  }
-}
-
-@layer utilities {
-  /* Hide scrollbar for Chrome, Safari and Opera */
-  .hide-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
-  
-  /* Hide scrollbar for IE, Edge and Firefox */
-  .hide-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-  
-  /* Enhanced smooth scrolling */
-  .smooth-scroll {
-    scroll-behavior: smooth;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior: none;
-  }
-  
-  /* Animation utilities - Improved */
-  .animate-fadeIn {
-    animation: fadeIn 0.5s ease-out;
-  }
-  
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-  
-  .animate-in {
-    animation: fadeIn 0.4s ease-out;
-  }
-  
-  @keyframes float {
-    0% { transform: translateY(0px); }
-    50% { transform: translateY(-5px); }
-    100% { transform: translateY(0px); }
-  }
-  
-  .animate-float {
-    animation: float 3s ease-in-out infinite;
-  }
-  
-  @keyframes pulse-subtle {
-    0% { opacity: 0.8; }
-    50% { opacity: 1; }
-    100% { opacity: 0.8; }
-  }
-  
-  .animate-pulse-subtle {
-    animation: pulse-subtle 2s ease-in-out infinite;
-  }
-}
-
-/* Prevent scrolling issues and ensure app-like behavior */
-@media (max-width: 768px) {
   body {
-    overflow: hidden;
-    position: fixed;
-    width: 100%;
-    height: 100%;
-    overscroll-behavior: none;
-    -webkit-overflow-scrolling: touch;
-    touch-action: manipulation;
-  }
-  
-  /* Force hide browser chrome on scroll */
-  html {
-    overflow: hidden;
-    -webkit-text-size-adjust: none;
+    @apply bg-background text-foreground;
+    font-feature-settings:
+      "rlig" 1,
+      "calt" 1;
   }
 }
 
-/* Smooth transition for loader */
-body {
-  transition: opacity 0.3s ease-in-out;
+/*
+  The animation utility classes are defined using CSS variables,
+  so that you can easily customize the animation duration and easing function.
+*/
+.animate-in {
+  animation: animate-in 0.6s cubic-bezier(0.5, 0, 0.2, 1);
 }
 
-.transition-opacity {
-  transition: opacity 0.3s ease-in-out;
+.animate-out {
+  animation: animate-out 0.6s cubic-bezier(0.5, 0, 0.2, 1);
+}
+
+.zoom-in {
+  animation: zoom-in 0.6s cubic-bezier(0.5, 0, 0.2, 1);
+}
+
+.zoom-out {
+  animation: zoom-out 0.6s cubic-bezier(0.5, 0, 0.2, 1);
+}
+
+@keyframes animate-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes animate-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+@keyframes zoom-in {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes zoom-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+}
+
+/* Add safe area utilities */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* Ensure no bottom spacing for navigation */
+@supports (padding: max(0px)) {
+  .safe-area-bottom {
+    padding-bottom: max(0px, env(safe-area-inset-bottom));
+  }
 }

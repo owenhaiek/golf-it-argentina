@@ -8,16 +8,10 @@ export const Navigation = () => {
   const { t } = useLanguage();
   
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-[9999] bg-background/95 backdrop-blur-sm border-t border-border/20 shadow-lg" 
-         style={{
-           paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-           margin: 0,
-           position: 'fixed',
-           touchAction: 'none'
-         }}>
+    <div className="fixed bottom-0 left-0 right-0 z-[9999] bg-background/95 backdrop-blur-sm border-t border-border/20 shadow-lg safe-area-bottom">
       <div className="w-full">
-        <nav className="w-full" style={{ touchAction: 'none' }}>
-          <ul className="flex items-center justify-between max-w-xl mx-auto px-4 py-2" style={{ touchAction: 'none' }}>
+        <nav className="w-full">
+          <ul className="flex items-center justify-between max-w-xl mx-auto px-4 py-2">
             <NavItem to="/" icon={<Flag className="transition-all duration-200" size={20} />} label={t("common", "home")} />
             <NavItem to="/search-users" icon={<UserSearch className="transition-all duration-200" size={20} />} label={t("common", "search")} />
             <NavItem 
@@ -61,7 +55,6 @@ const NavItem = ({
         )
       }
       aria-label={label}
-      style={{ touchAction: 'manipulation' }}
     >
       <div className="transition-transform duration-200 group-hover:scale-110">
         {icon}
