@@ -125,7 +125,6 @@ export const Layout = () => {
           zIndex: 1,
           paddingTop: 'env(safe-area-inset-top, 0px)',
           paddingBottom: 'calc(76px + env(safe-area-inset-bottom, 0px))',
-          minHeight: '100vh',
           minHeight: '100dvh'
         }}
       >

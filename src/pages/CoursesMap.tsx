@@ -2,14 +2,16 @@
 import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Flag, Map, Loader, X, Clock, Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Map, Search, X, Loader } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/components/ui/use-toast";
+import { CourseMarker } from "@/components/map/CourseMarker";
+import { CoursePopup } from "@/components/map/CoursePopup";
+import { getGolfCourseCoordinates, getCourseStatus } from "@/utils/geocoding";
 
 interface GolfCourse {
   id: string;
@@ -20,6 +22,8 @@ interface GolfCourse {
   image_url: string | null;
   par: number | null;
   holes: number;
+  phone?: string | null;
+  website?: string | null;
   latitude?: number;
   longitude?: number;
 }
@@ -33,15 +37,13 @@ const CoursesMap = () => {
   const popups = useRef<any[]>([]);
   
   const [mapLoaded, setMapLoaded] = useState(false);
-  const [selectedCourse, setSelectedCourse] = useState<GolfCourse | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [mapInitialized, setMapInitialized] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
   const [scriptLoaded, setScriptLoaded] = useState(false);
-  const [loadRetries, setLoadRetries] = useState(0);
 
-  // Prevent the pull-to-refresh behavior as soon as component mounts
+  // Prevent pull-to-refresh behavior
   useEffect(() => {
     document.body.style.overflow = 'hidden';
     document.body.style.overscrollBehavior = 'none';
@@ -51,7 +53,6 @@ const CoursesMap = () => {
     document.body.style.top = '0';
     document.body.style.left = '0';
     
-    // Set meta viewport to prevent zooming
     const meta = document.querySelector('meta[name="viewport"]');
     if (meta) {
       meta.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover');
@@ -77,7 +78,7 @@ const CoursesMap = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("golf_courses")
-        .select("id, name, address, city, state, image_url, par, holes")
+        .select("id, name, address, city, state, image_url, par, holes, phone, website")
         .order("name");
 
       if (error) {
@@ -85,10 +86,9 @@ const CoursesMap = () => {
         throw error;
       }
 
-      // Generate real Argentina coordinates for golf courses
+      // Assign accurate coordinates to each course
       return data.map(course => {
-        // Set real Argentinian golf course locations
-        let coordinates = getArgentinaGolfCourseLocation(course.name);
+        const coordinates = getGolfCourseCoordinates(course.name, course.address || undefined);
         return {
           ...course,
           latitude: coordinates.lat,
@@ -103,88 +103,20 @@ const CoursesMap = () => {
     course.name.toLowerCase().includes(searchQuery.toLowerCase())
   ) || [];
 
-  // Helper function to return real golf course coordinates in Argentina
-  const getArgentinaGolfCourseLocation = (courseName: string) => {
-    // Map of real golf courses in Argentina with actual coordinates
-    const argentinaGolfCourses = {
-      // Buenos Aires Province
-      "BOULOGNE GOLF CLUB": { lat: -34.4844, lng: -58.5563 }, 
-      "BUENOS AIRES GOLF CLUB": { lat: -34.5446, lng: -58.6741 },
-      "PACHECO GOLF CLUB": { lat: -34.4208, lng: -58.6483 },
-      "Olivos Golf Club": { lat: -34.5104, lng: -58.5220 },
-      "Pilar Golf Club": { lat: -34.4255, lng: -58.8940 },
-      "Jockey Club": { lat: -34.5442, lng: -58.5045 },
-      "Mar del Plata Golf Club": { lat: -38.0160, lng: -57.5327 },
-      "Nordelta Golf Club": { lat: -34.4019, lng: -58.6309 },
-      "Highland Park Country Club": { lat: -34.4701, lng: -58.7528 },
-      "San Andrés Golf Club": { lat: -34.5087, lng: -58.6102 },
-      "Hurlingham Club": { lat: -34.6016, lng: -58.6390 },
-      "Pilará Golf Club": { lat: -34.4322, lng: -58.9603 },
-      "Tortugas Country Club": { lat: -34.4385, lng: -58.8067 },
-      
-      // Interior provinces
-      "Córdoba Golf Club": { lat: -31.4177, lng: -64.2390 },
-      "Chapelco Golf Club": { lat: -40.1564, lng: -71.3051 },
-      "La Cumbre Golf Club": { lat: -30.9709, lng: -64.4949 },
-      "Mendoza Golf Club": { lat: -32.9689, lng: -68.7908 },
-      "Llao Llao Golf Club": { lat: -41.0531, lng: -71.5356 },
-      "Arelauquen Golf Club": { lat: -41.1171, lng: -71.5679 },
-      "Termas de Río Hondo Golf Club": { lat: -27.5016, lng: -64.8575 }
-    };
-    
-    // First check for exact match (case insensitive)
-    const exactMatch = Object.keys(argentinaGolfCourses).find(name => 
-      name.toLowerCase() === courseName.toLowerCase()
-    );
-    
-    if (exactMatch) {
-      return argentinaGolfCourses[exactMatch as keyof typeof argentinaGolfCourses];
-    }
-    
-    // For demo purposes, if the course isn't in our list, give it a reasonable location in Argentina
-    const fallbackLocations = [
-      { lat: -34.6037, lng: -58.3816 }, // Buenos Aires
-      { lat: -31.4201, lng: -64.1888 }, // Cordoba
-      { lat: -32.8908, lng: -68.8272 }, // Mendoza
-      { lat: -38.0055, lng: -57.5426 }, // Mar del Plata
-      { lat: -34.5553, lng: -58.4964 }, // Belgrano
-      { lat: -34.4446, lng: -58.8730 }, // Pilar
-      { lat: -34.4806, lng: -58.5317 }, // San Isidro
-      { lat: -33.2971, lng: -66.3356 }, // San Luis
-    ];
-    
-    // Generate a consistent hash based on course name for predictable "random" location
-    const nameHash = courseName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    const index = nameHash % fallbackLocations.length;
-    const baseLocation = fallbackLocations[index];
-    
-    // Add small variation so points don't overlap
-    const latVariation = ((nameHash % 100) / 5000) * (nameHash % 2 === 0 ? 1 : -1);
-    const lngVariation = ((nameHash * 7 % 100) / 5000) * (nameHash % 3 === 0 ? 1 : -1);
-    
-    return {
-      lat: baseLocation.lat + latVariation,
-      lng: baseLocation.lng + lngVariation
-    };
-  };
-
-  // Load Mapbox scripts separately
+  // Load Mapbox scripts
   useEffect(() => {
     const loadMapboxResources = () => {
-      // Skip if already loaded
       if (window.mapboxgl || document.getElementById('mapbox-script') || scriptLoaded) {
         setScriptLoaded(true);
         return Promise.resolve();
       }
 
-      // Create and load script
       const script = document.createElement('script');
       script.id = 'mapbox-script';
       script.src = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js';
       script.async = true;
       script.defer = true;
       
-      // Create and load CSS
       const link = document.createElement('link');
       link.href = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css';
       link.rel = 'stylesheet';
@@ -210,61 +142,33 @@ const CoursesMap = () => {
     loadMapboxResources().catch(err => {
       console.error('Failed to load Mapbox resources:', err);
       setMapError('Could not load map resources. Please check your connection.');
-      
-      // Auto retry up to 3 times
-      const retryCount = loadRetries + 1;
-      if (retryCount <= 3) {
-        console.log(`Retrying to load Mapbox (attempt ${retryCount})...`);
-        setLoadRetries(retryCount);
-        
-        // Try again after a delay
-        setTimeout(() => {
-          const oldScript = document.getElementById('mapbox-script');
-          if (oldScript) document.head.removeChild(oldScript);
-          
-          loadMapboxResources().catch(e => {
-            console.error(`Retry ${retryCount} failed:`, e);
-            if (retryCount === 3) {
-              setMapError('Could not load map after multiple attempts. Please refresh the page.');
-              toast({
-                title: "Map error",
-                description: "Failed to load the map resources. Please refresh the page.",
-                variant: "destructive"
-              });
-            }
-          });
-        }, 2000);
-      }
     });
-  }, [loadRetries]);
+  }, []);
 
-  // Map initialization with optimized setup - only after script is loaded
+  // Initialize map
   useEffect(() => {
     if (!scriptLoaded || !mapRef.current || mapInitialized || !window.mapboxgl) return;
     
     try {
       console.log("Initializing map with Mapbox GL JS");
       
-      // Set access token
       window.mapboxgl.accessToken = 'pk.eyJ1Ijoib3dlbmhhaWVrIiwiYSI6ImNtYW8zbWZpajAyeGsyaXB3Z2NrOG9yeWsifQ.EutakvlH6R5Hala3cVTEYw';
       
-      // Initialize map centered better on Buenos Aires area golf courses
       mapInstance.current = new window.mapboxgl.Map({
         container: mapRef.current,
         style: 'mapbox://styles/mapbox/light-v11',
-        center: [-58.56, -34.52], // Optimized center for all three specific golf courses
-        zoom: 10.5, // Better zoom level for viewing
+        center: [-58.56, -34.52],
+        zoom: 10.5,
         attributionControl: false,
-        dragRotate: false, // Disable rotation for better mobile experience
+        dragRotate: false,
         touchZoomRotate: {
           around: 'center',
           pinchRotate: false
         },
         renderWorldCopies: false,
-        failIfMajorPerformanceCaveat: false // Allow fallback to lower performance
+        failIfMajorPerformanceCaveat: false
       });
       
-      // Add minimal controls
       mapInstance.current.addControl(
         new window.mapboxgl.NavigationControl({
           showCompass: false,
@@ -273,7 +177,6 @@ const CoursesMap = () => {
         'bottom-right'
       );
       
-      // Add markers when map is loaded
       mapInstance.current.on('load', () => {
         console.log("Map loaded successfully");
         setMapLoaded(true);
@@ -290,7 +193,6 @@ const CoursesMap = () => {
       console.error('Error initializing map:', error);
       setMapError("Could not initialize map. Please try again or refresh the page.");
       
-      // Clean up if initialization fails
       if (mapInstance.current) {
         try {
           mapInstance.current.remove();
@@ -331,13 +233,6 @@ const CoursesMap = () => {
         
         console.log(`Adding ${courses.length} markers to map`);
         
-        // Determine whether a course is "open" or "closed" (randomly for demo)
-        const getRandomStatus = (courseId: string) => {
-          // Use course ID to generate consistent status
-          const hash = courseId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-          return hash % 3 !== 0 ? 'Open' : 'Closed'; // 2/3 chance of being open
-        };
-        
         // Add markers for each course
         courses.forEach(course => {
           if (!course.latitude || !course.longitude) {
@@ -348,90 +243,161 @@ const CoursesMap = () => {
           try {
             console.log(`Adding marker for ${course.name} at ${course.latitude}, ${course.longitude}`);
             
-            // Create custom marker element
+            // Get course status
+            const isOpen = getCourseStatus(course.id);
+            
+            // Create custom marker element using React component
             const el = document.createElement('div');
-            el.className = 'course-marker';
-            el.innerHTML = `<div class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer hover:bg-primary/90 transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flag"><path d="M4 15s1-1 4-1 5 1 8 0 4-1 4-1V3s-1 1-4 1-5-1-8 0-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></svg>
-            </div>`;
             
-            // Create popup for the marker
-            const isOpen = getRandomStatus(course.id);
-            
-            const defaultImageUrl = 'https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=870&q=80';
-            
+            // Create popup content
             const popup = new window.mapboxgl.Popup({
               offset: [0, -15],
               closeButton: true,
               closeOnClick: false,
               className: 'custom-popup',
-              maxWidth: '280px'
-            }).setLngLat([course.longitude, course.latitude])
-              .setHTML(`
-                <div class="p-3 bg-white rounded-lg shadow-sm min-w-[240px] text-sm">
-                  <div class="h-32 w-full mb-3 bg-gray-100 rounded-md overflow-hidden relative">
-                    <img 
-                      src="${course.image_url || defaultImageUrl}" 
-                      alt="${course.name}"
-                      class="w-full h-full object-cover"
-                      onerror="this.onerror=null; this.src='${defaultImageUrl}';"
-                    />
-                  </div>
-                  <div class="font-medium text-lg mb-2">${course.name}</div>
-                  <div class="flex items-center justify-between mb-2">
-                    <div class="flex items-center ${isOpen === 'Open' ? 'text-green-600' : 'text-red-600'}">
-                      <span class="mr-1">●</span>
-                      ${isOpen}
-                    </div>
-                    <div class="text-xs text-muted-foreground">
-                      ${course.holes} hoyos
-                    </div>
-                  </div>
-                  <div class="text-xs text-muted-foreground mb-3 line-clamp-2">
-                    ${course.address ? course.address : ''} 
-                    ${course.city ? course.city + (course.state ? ', ' + course.state : '') : ''}
-                  </div>
-                  <button 
-                    class="course-btn w-full bg-primary text-white py-2 px-3 rounded hover:bg-primary/90 transition-colors text-sm font-medium"
-                    data-id="${course.id}"
-                  >
-                    Ir a la cancha
-                  </button>
-                </div>
-              `);
+              maxWidth: '320px'
+            }).setLngLat([course.longitude, course.latitude]);
             
             // Add marker to map
             const marker = new window.mapboxgl.Marker(el)
               .setLngLat([course.longitude, course.latitude])
               .addTo(mapInstance.current);
             
-            // Add click event to marker
-            el.addEventListener('click', (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              
-              // Close all other popups
-              popups.current.forEach(p => p.remove());
-              popups.current = [];
-              
-              // Add this popup to the map
-              popup.addTo(mapInstance.current);
-              
-              // Add to popups reference for cleanup
-              popups.current.push(popup);
-              
-              // Add navigation to the course page when clicking the button
-              setTimeout(() => {
-                const btn = document.querySelector(`.course-btn[data-id="${course.id}"]`);
-                if (btn) {
-                  btn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    navigate(`/course/${course.id}`);
-                  });
-                }
-              }, 10);
+            // Render marker
+            const markerComponent = CourseMarker({
+              course,
+              isOpen,
+              onClick: (e) => {
+                e?.preventDefault();
+                e?.stopPropagation();
+                
+                // Close all other popups
+                popups.current.forEach(p => p.remove());
+                popups.current = [];
+                
+                // Create popup content HTML
+                const popupContent = document.createElement('div');
+                popupContent.innerHTML = `
+                  <div class="course-popup-content" data-course-id="${course.id}">
+                    <div class="relative h-32 bg-gray-100 rounded-t-lg overflow-hidden">
+                      <img 
+                        src="${course.image_url || 'https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80'}" 
+                        alt="${course.name}"
+                        class="w-full h-full object-cover"
+                        onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80';"
+                      />
+                      <div class="absolute top-2 right-2">
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${isOpen ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                          <span class="w-2 h-2 mr-1 rounded-full ${isOpen ? 'bg-green-400' : 'bg-red-400'}"></span>
+                          ${isOpen ? 'Open' : 'Closed'}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div class="p-4 space-y-3">
+                      <div>
+                        <h3 class="font-semibold text-lg leading-tight">${course.name}</h3>
+                        <div class="flex items-center gap-2 text-sm text-gray-600 mt-1">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 15s1-1 4-1 5 1 8 0 4-1 4-1V3s-1 1-4 1-5-1-8 0-4 1-4 1z"></path>
+                            <line x1="4" x2="4" y1="22" y2="15"></line>
+                          </svg>
+                          <span>${course.holes} holes</span>
+                          ${course.par ? `<span>• Par ${course.par}</span>` : ''}
+                        </div>
+                      </div>
+                      
+                      ${(course.address || course.city) ? `
+                        <div class="flex items-start gap-2 text-sm text-gray-600">
+                          <svg class="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                          </svg>
+                          <span class="line-clamp-2">
+                            ${[course.address, course.city, course.state].filter(Boolean).join(', ')}
+                          </span>
+                        </div>
+                      ` : ''}
+                      
+                      <div class="flex gap-2">
+                        ${course.phone ? `
+                          <button class="course-phone-btn flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 flex items-center justify-center gap-1" data-phone="${course.phone}">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                            </svg>
+                            Call
+                          </button>
+                        ` : ''}
+                        
+                        ${course.website ? `
+                          <button class="course-website-btn flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 flex items-center justify-center gap-1" data-website="${course.website}">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9v-9m0-9v9"></path>
+                            </svg>
+                            Website
+                          </button>
+                        ` : ''}
+                      </div>
+                      
+                      <button class="course-details-btn w-full px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700" data-course-id="${course.id}">
+                        View Course Details
+                      </button>
+                    </div>
+                  </div>
+                `;
+                
+                popup.setDOMContent(popupContent);
+                popup.addTo(mapInstance.current);
+                popups.current.push(popup);
+                
+                // Add event listeners after popup is added
+                setTimeout(() => {
+                  const phoneBtn = popupContent.querySelector('.course-phone-btn');
+                  const websiteBtn = popupContent.querySelector('.course-website-btn');
+                  const detailsBtn = popupContent.querySelector('.course-details-btn');
+                  
+                  if (phoneBtn) {
+                    phoneBtn.addEventListener('click', (e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      window.open(`tel:${course.phone}`, '_blank');
+                    });
+                  }
+                  
+                  if (websiteBtn) {
+                    websiteBtn.addEventListener('click', (e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      window.open(course.website, '_blank');
+                    });
+                  }
+                  
+                  if (detailsBtn) {
+                    detailsBtn.addEventListener('click', (e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      navigate(`/course/${course.id}`);
+                    });
+                  }
+                }, 10);
+              }
             });
+            
+            // Render the marker component to the DOM element
+            el.innerHTML = `
+              <div class="relative cursor-pointer transform transition-transform hover:scale-110 active:scale-95">
+                <div class="w-10 h-10 rounded-full shadow-lg border-2 flex items-center justify-center ${isOpen 
+                  ? 'bg-green-500 border-green-600 text-white' 
+                  : 'bg-red-500 border-red-600 text-white'
+                } hover:shadow-xl transition-all duration-200">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 15s1-1 4-1 5 1 8 0 4-1 4-1V3s-1 1-4 1-5-1-8 0-4 1-4 1z"></path>
+                    <line x1="4" x2="4" y1="22" y2="15"></line>
+                  </svg>
+                </div>
+                <div class="absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-white ${isOpen ? 'bg-green-400' : 'bg-red-400'}"></div>
+              </div>
+            `;
             
             // Save marker reference
             markers.current.push(marker);
@@ -449,7 +415,6 @@ const CoursesMap = () => {
       }
     };
     
-    // Add markers with a small delay to ensure map is fully ready
     setTimeout(addMarkersToMap, 200);
     
   }, [courses, mapLoaded, navigate]);
@@ -458,10 +423,8 @@ const CoursesMap = () => {
   useEffect(() => {
     if (!mapInstance.current || !markers.current.length || !courses) return;
     
-    // Filter courses based on search query
     const filteredIds = filteredCourses.map(course => course.id);
     
-    // Update markers visibility based on filter
     markers.current.forEach((marker, index) => {
       if (index < courses.length) {
         const course = courses[index];
@@ -475,11 +438,9 @@ const CoursesMap = () => {
     
   }, [filteredCourses, searchQuery, courses]);
 
-  // Handle search icon click
   const handleSearchToggle = () => {
     setShowSearch(!showSearch);
     if (!showSearch) {
-      // Focus the input when search is shown
       setTimeout(() => {
         const searchInput = document.getElementById('course-search-input');
         if (searchInput) {
@@ -487,19 +448,15 @@ const CoursesMap = () => {
         }
       }, 100);
     } else {
-      // Clear search when hiding
       setSearchQuery('');
     }
   };
   
-  // Handle search input changes
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
   };
 
-  // Retry mechanism for map if it fails to load
   const handleRetryMap = () => {
-    // Clean up existing map instance
     if (mapInstance.current) {
       try {
         mapInstance.current.remove();
@@ -509,30 +466,22 @@ const CoursesMap = () => {
       mapInstance.current = null;
     }
     
-    // Reset all map-related state
     setMapInitialized(false);
     setMapLoaded(false);
     setMapError(null);
     setScriptLoaded(false);
     
-    // Remove any existing script tag
     const oldScript = document.getElementById('mapbox-script');
     if (oldScript) document.head.removeChild(oldScript);
     
-    // Reset the retry counter
-    setLoadRetries(0);
-    
-    // Toast notification
     toast({
       title: "Retrying",
       description: "Trying to load the map again...",
     });
   };
   
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
-      // Clean up map instance
       if (mapInstance.current) {
         try {
           mapInstance.current.remove();
@@ -542,7 +491,6 @@ const CoursesMap = () => {
         mapInstance.current = null;
       }
       
-      // Clean up script tag
       const mapboxScript = document.getElementById('mapbox-script');
       if (mapboxScript) {
         mapboxScript.remove();
@@ -558,7 +506,6 @@ const CoursesMap = () => {
           <h1 className="text-2xl font-bold text-primary ml-2">{t("map", "golfCoursesMap")}</h1>
         </div>
         
-        {/* Search button and slide-down input */}
         <div className="relative">
           <button 
             className="p-2 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors"
@@ -602,14 +549,12 @@ const CoursesMap = () => {
       </div>
       
       <div className="absolute inset-0 pt-16">
-        {/* Map Container */}
         <div 
           ref={mapRef} 
           className="w-full h-full"
           id="map-container"
         />
         
-        {/* Loading Overlay */}
         {(!mapLoaded || isLoading) && !mapError && (
           <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-sm">
             <div className="flex flex-col items-center gap-3">
@@ -623,7 +568,6 @@ const CoursesMap = () => {
           </div>
         )}
         
-        {/* Error state with retry button */}
         {mapError && (
           <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm">
             <div className="flex flex-col items-center gap-4 max-w-xs text-center px-6">
@@ -636,7 +580,6 @@ const CoursesMap = () => {
           </div>
         )}
         
-        {/* Map Attribution */}
         <div className="absolute bottom-1 right-1 text-[8px] text-muted-foreground bg-white/80 px-1 rounded">
           © Mapbox © OpenStreetMap
         </div>
@@ -644,10 +587,7 @@ const CoursesMap = () => {
       
       <style>
         {`
-          .mapboxgl-ctrl-attrib-inner {
-            display: none;
-          }
-          
+          .mapboxgl-ctrl-attrib-inner { display: none; }
           .mapboxgl-popup-content {
             padding: 0;
             border-radius: 0.75rem;
@@ -655,7 +595,6 @@ const CoursesMap = () => {
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
             border: 1px solid rgba(229, 231, 235, 0.5);
           }
-          
           .mapboxgl-popup-close-button {
             font-size: 16px;
             padding: 0 6px;
@@ -671,23 +610,14 @@ const CoursesMap = () => {
             justify-content: center;
             z-index: 10;
           }
-          
           .mapboxgl-popup-close-button:hover {
             background: rgba(229, 231, 235, 1);
           }
-          
-          .mapboxgl-popup-tip {
-            display: none;
-          }
-
-          .custom-popup {
-            z-index: 10;
-          }
-
-          /* Hide browser navigation tab bar on mobile */
+          .mapboxgl-popup-tip { display: none; }
+          .custom-popup { z-index: 10; }
           @media screen and (max-width: 768px) {
             html, body, #root {
-              height: 100vh; 
+              height: 100vh !important; 
               overflow: hidden !important;
               position: fixed !important;
               width: 100% !important;
@@ -698,19 +628,9 @@ const CoursesMap = () => {
               overscroll-behavior: none !important;
             }
           }
-          
-          .mapboxgl-map {
-            touch-action: none !important;
-          }
-          
-          .mapboxgl-popup {
-            max-width: none !important;
-          }
-          
-          /* Ensure popups are clickable */
-          .mapboxgl-popup-content {
-            pointer-events: auto !important;
-          }
+          .mapboxgl-map { touch-action: none !important; }
+          .mapboxgl-popup { max-width: none !important; }
+          .mapboxgl-popup-content { pointer-events: auto !important; }
         `}
       </style>
     </div>
