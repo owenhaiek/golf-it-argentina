@@ -1,4 +1,5 @@
 
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -12,6 +13,26 @@
     font-feature-settings:
       "rlig" 1,
       "calt" 1;
+  }
+}
+
+@layer components {
+  /* Global border radius utilities */
+  .rounded-default {
+    @apply rounded-xl;
+  }
+  
+  /* Override default rounded classes to use xl radius */
+  .rounded {
+    @apply rounded-xl;
+  }
+  
+  .rounded-md {
+    @apply rounded-xl;
+  }
+  
+  .rounded-lg {
+    @apply rounded-xl;
   }
 }
 
@@ -101,3 +122,4 @@
     min-height: 100dvh;
   }
 }
+
