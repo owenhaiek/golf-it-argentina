@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -246,144 +245,8 @@ const CoursesMap = () => {
             // Get course status
             const isOpen = getCourseStatus(course.id);
             
-            // Create custom marker element using React component
+            // Create custom marker element
             const el = document.createElement('div');
-            
-            // Create popup content
-            const popup = new window.mapboxgl.Popup({
-              offset: [0, -15],
-              closeButton: true,
-              closeOnClick: false,
-              className: 'custom-popup',
-              maxWidth: '320px'
-            }).setLngLat([course.longitude, course.latitude]);
-            
-            // Add marker to map
-            const marker = new window.mapboxgl.Marker(el)
-              .setLngLat([course.longitude, course.latitude])
-              .addTo(mapInstance.current);
-            
-            // Render marker
-            const markerComponent = CourseMarker({
-              course,
-              isOpen,
-              onClick: (e) => {
-                e?.preventDefault();
-                e?.stopPropagation();
-                
-                // Close all other popups
-                popups.current.forEach(p => p.remove());
-                popups.current = [];
-                
-                // Create popup content HTML
-                const popupContent = document.createElement('div');
-                popupContent.innerHTML = `
-                  <div class="course-popup-content" data-course-id="${course.id}">
-                    <div class="relative h-32 bg-gray-100 rounded-t-lg overflow-hidden">
-                      <img 
-                        src="${course.image_url || 'https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80'}" 
-                        alt="${course.name}"
-                        class="w-full h-full object-cover"
-                        onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80';"
-                      />
-                      <div class="absolute top-2 right-2">
-                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${isOpen ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
-                          <span class="w-2 h-2 mr-1 rounded-full ${isOpen ? 'bg-green-400' : 'bg-red-400'}"></span>
-                          ${isOpen ? 'Open' : 'Closed'}
-                        </span>
-                      </div>
-                    </div>
-                    
-                    <div class="p-4 space-y-3">
-                      <div>
-                        <h3 class="font-semibold text-lg leading-tight">${course.name}</h3>
-                        <div class="flex items-center gap-2 text-sm text-gray-600 mt-1">
-                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 15s1-1 4-1 5 1 8 0 4-1 4-1V3s-1 1-4 1-5-1-8 0-4 1-4 1z"></path>
-                            <line x1="4" x2="4" y1="22" y2="15"></line>
-                          </svg>
-                          <span>${course.holes} holes</span>
-                          ${course.par ? `<span>• Par ${course.par}</span>` : ''}
-                        </div>
-                      </div>
-                      
-                      ${(course.address || course.city) ? `
-                        <div class="flex items-start gap-2 text-sm text-gray-600">
-                          <svg class="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                          </svg>
-                          <span class="line-clamp-2">
-                            ${[course.address, course.city, course.state].filter(Boolean).join(', ')}
-                          </span>
-                        </div>
-                      ` : ''}
-                      
-                      <div class="flex gap-2">
-                        ${course.phone ? `
-                          <button class="course-phone-btn flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 flex items-center justify-center gap-1" data-phone="${course.phone}">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
-                            </svg>
-                            Call
-                          </button>
-                        ` : ''}
-                        
-                        ${course.website ? `
-                          <button class="course-website-btn flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 flex items-center justify-center gap-1" data-website="${course.website}">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9v-9m0-9v9"></path>
-                            </svg>
-                            Website
-                          </button>
-                        ` : ''}
-                      </div>
-                      
-                      <button class="course-details-btn w-full px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700" data-course-id="${course.id}">
-                        View Course Details
-                      </button>
-                    </div>
-                  </div>
-                `;
-                
-                popup.setDOMContent(popupContent);
-                popup.addTo(mapInstance.current);
-                popups.current.push(popup);
-                
-                // Add event listeners after popup is added
-                setTimeout(() => {
-                  const phoneBtn = popupContent.querySelector('.course-phone-btn');
-                  const websiteBtn = popupContent.querySelector('.course-website-btn');
-                  const detailsBtn = popupContent.querySelector('.course-details-btn');
-                  
-                  if (phoneBtn) {
-                    phoneBtn.addEventListener('click', (e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      window.open(`tel:${course.phone}`, '_blank');
-                    });
-                  }
-                  
-                  if (websiteBtn) {
-                    websiteBtn.addEventListener('click', (e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      window.open(course.website, '_blank');
-                    });
-                  }
-                  
-                  if (detailsBtn) {
-                    detailsBtn.addEventListener('click', (e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      navigate(`/course/${course.id}`);
-                    });
-                  }
-                }, 10);
-              }
-            });
-            
-            // Render the marker component to the DOM element
             el.innerHTML = `
               <div class="relative cursor-pointer transform transition-transform hover:scale-110 active:scale-95">
                 <div class="w-10 h-10 rounded-full shadow-lg border-2 flex items-center justify-center ${isOpen 
@@ -398,6 +261,77 @@ const CoursesMap = () => {
                 <div class="absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-white ${isOpen ? 'bg-green-400' : 'bg-red-400'}"></div>
               </div>
             `;
+            
+            // Add marker to map
+            const marker = new window.mapboxgl.Marker(el)
+              .setLngLat([course.longitude, course.latitude])
+              .addTo(mapInstance.current);
+            
+            // Create popup with course information
+            const popupContent = document.createElement('div');
+            popupContent.className = 'course-popup-container';
+            popupContent.innerHTML = `
+              <div class="w-80 max-w-[90vw] bg-white rounded-lg shadow-xl overflow-hidden">
+                <div class="relative h-32 bg-gray-100">
+                  <img 
+                    src="${course.image_url || 'https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80'}" 
+                    alt="${course.name}"
+                    class="w-full h-full object-cover"
+                    onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80';"
+                  />
+                  <div class="absolute top-2 right-2">
+                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${isOpen ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                      <span class="w-2 h-2 mr-1 rounded-full ${isOpen ? 'bg-green-400' : 'bg-red-400'}"></span>
+                      ${isOpen ? 'Open' : 'Closed'}
+                    </span>
+                  </div>
+                </div>
+                
+                <div class="p-4 space-y-3">
+                  <div>
+                    <h3 class="font-semibold text-lg leading-tight text-gray-900">${course.name}</h3>
+                    <div class="flex items-center gap-2 text-sm text-gray-600 mt-1">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 15s1-1 4-1 5 1 8 0 4-1 4-1V3s-1 1-4 1-5-1-8 0-4 1-4 1z"></path>
+                        <line x1="4" x2="4" y1="22" y2="15"></line>
+                      </svg>
+                      <span>${course.holes} holes</span>
+                      ${course.par ? `<span>• Par ${course.par}</span>` : ''}
+                    </div>
+                  </div>
+                  
+                  <button class="w-full px-4 py-3 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2" onclick="window.open('https://maps.google.com/maps?q=${encodeURIComponent(course.name + ', ' + (course.address || course.city || ''))}&t=&z=15&ie=UTF8&iwloc=&output=embed', '_blank')">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 4m0 13V4m0 0L9 7"></path>
+                    </svg>
+                    Get Directions
+                  </button>
+                </div>
+              </div>
+            `;
+            
+            const popup = new window.mapboxgl.Popup({
+              offset: [0, -15],
+              closeButton: true,
+              closeOnClick: false,
+              className: 'custom-popup',
+              maxWidth: 'none'
+            })
+            .setLngLat([course.longitude, course.latitude])
+            .setDOMContent(popupContent);
+            
+            // Add click event to marker
+            el.addEventListener('click', (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              
+              // Close all other popups
+              popups.current.forEach(p => p.remove());
+              popups.current = [];
+              
+              popup.addTo(mapInstance.current);
+              popups.current.push(popup);
+            });
             
             // Save marker reference
             markers.current.push(marker);
@@ -589,11 +523,12 @@ const CoursesMap = () => {
         {`
           .mapboxgl-ctrl-attrib-inner { display: none; }
           .mapboxgl-popup-content {
-            padding: 0;
+            padding: 0 !important;
             border-radius: 0.75rem;
             overflow: hidden;
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
             border: 1px solid rgba(229, 231, 235, 0.5);
+            background: white;
           }
           .mapboxgl-popup-close-button {
             font-size: 16px;
@@ -602,7 +537,7 @@ const CoursesMap = () => {
             top: 8px;
             right: 8px;
             border-radius: 50%;
-            background: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.9);
             width: 24px;
             height: 24px;
             display: flex;
@@ -613,7 +548,10 @@ const CoursesMap = () => {
           .mapboxgl-popup-close-button:hover {
             background: rgba(229, 231, 235, 1);
           }
-          .mapboxgl-popup-tip { display: none; }
+          .mapboxgl-popup-tip { 
+            border-top-color: white !important;
+            border-bottom-color: white !important;
+          }
           .custom-popup { z-index: 10; }
           @media screen and (max-width: 768px) {
             html, body, #root {

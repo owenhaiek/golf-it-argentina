@@ -26,6 +26,9 @@ export const Layout = () => {
     if (!mainElement) return;
 
     const handleTouchStart = (e: TouchEvent) => {
+      // Only allow pull to refresh on specific pages, not on map
+      if (location.pathname === '/courses-map') return;
+      
       if (mainElement.scrollTop <= 0) {
         setStartY(e.touches[0].clientY);
         setIsPulling(true);
@@ -34,7 +37,7 @@ export const Layout = () => {
     };
 
     const handleTouchMove = (e: TouchEvent) => {
-      if (!isPulling) return;
+      if (!isPulling || location.pathname === '/courses-map') return;
       
       if (mainElement.scrollTop <= 0) {
         const currentY = e.touches[0].clientY;
@@ -80,11 +83,11 @@ export const Layout = () => {
       mainElement.removeEventListener('touchmove', handleTouchMove);
       mainElement.removeEventListener('touchend', handleTouchEnd);
     };
-  }, [isPulling, startY, pullDistance, isRefreshing]);
+  }, [isPulling, startY, pullDistance, isRefreshing, location.pathname]);
 
   return (
     <div className="fixed inset-0 flex flex-col bg-background h-screen w-screen overflow-hidden">
-      {pullDistance > 0 && !isRefreshing && (
+      {pullDistance > 0 && !isRefreshing && location.pathname !== '/courses-map' && (
         <motion.div 
           className="absolute top-0 left-0 right-0 flex items-center justify-center z-40 pointer-events-none"
           initial={{ opacity: 0 }}

@@ -1,6 +1,7 @@
+
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
-import { Loader2, Trash2, Calendar, Trophy, MapPin, Flag, Plus, Minus, Check } from "lucide-react";
+import { Loader2, Trash2, Calendar, Trophy, Flag, Plus, Minus, Check } from "lucide-react";
 import { motion } from "framer-motion";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -80,22 +81,26 @@ const RoundCard = ({ round, onDeleteRound, isDeleting }: RoundCardProps) => {
       <div className="p-4 flex-grow flex flex-col">
         <div>
           <h3 className="font-semibold text-lg text-primary mb-1">{round.golf_courses.name}</h3>
-          {round.golf_courses.city && (
-            <p className="text-sm text-muted-foreground flex items-center gap-1 mb-2">
-              <MapPin className="h-3 w-3" /> 
-              {[round.golf_courses.address, round.golf_courses.city, round.golf_courses.state].filter(Boolean).join(', ')}
-            </p>
-          )}
+          <div className="flex items-center gap-3 text-sm text-muted-foreground mb-2">
+            <div className="flex items-center gap-1">
+              <Flag className="h-3 w-3" />
+              <span>{round.golf_courses.holes} {t("profile", "holes")}</span>
+            </div>
+            {coursePar > 0 && (
+              <div className="flex items-center gap-1">
+                <Trophy className="h-3 w-3" />
+                <span>Par {coursePar}</span>
+              </div>
+            )}
+          </div>
         </div>
         
         <div className="mt-auto pt-3 flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <Flag className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium">{round.golf_courses.holes} {t("profile", "holes")}</span>
+          <div className="text-sm text-muted-foreground">
+            {t("profile", "totalScore")}
           </div>
           
           <div className="flex flex-col items-end">
-            <div className="text-sm text-muted-foreground mb-1">{t("profile", "totalScore")}</div>
             <div className="text-2xl font-bold text-primary">
               {round.score}
             </div>
