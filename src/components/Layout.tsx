@@ -142,7 +142,7 @@ export const Layout = () => {
           position: 'relative',
           zIndex: 1,
           paddingTop: 'env(safe-area-inset-top, 0px)',
-          paddingBottom: '84px',
+          paddingBottom: 'max(76px, calc(76px + env(safe-area-inset-bottom)))',
           minHeight: '100dvh'
         }}
       >
@@ -150,9 +150,15 @@ export const Layout = () => {
           <Outlet />
         </div>
       </main>
-      <nav ref={navigationRef}>
+      <div 
+        ref={navigationRef} 
+        className="fixed bottom-0 left-0 right-0 z-[9999]"
+        style={{
+          paddingBottom: 'env(safe-area-inset-bottom, 0px)'
+        }}
+      >
         <Navigation />
-      </nav>
+      </div>
     </div>
   );
 };

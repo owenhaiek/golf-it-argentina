@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useToast } from "@/hooks/use-toast";
@@ -33,6 +34,8 @@ interface FormData {
 const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGolfCourseFormProps) => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [imageUrl, setImageUrl] = useState<string>("");
+  const [galleryUrls, setGalleryUrls] = useState<string>("");
   
   const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm<FormData>({
     defaultValues: {
@@ -54,9 +57,9 @@ const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGolfCourse
 
   // Initialize form with existing golf course data if available
   useEffect(() => {
+    console.log('Loading initial course data:', initialCourse);
+    
     if (initialCourse) {
-      console.log('Loading initial course data:', initialCourse);
-      
       // Set basic fields
       setValue("name", initialCourse.name || "");
       setValue("holes", initialCourse.holes || 18);
@@ -67,8 +70,14 @@ const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGolfCourse
       setValue("phone", initialCourse.phone || "");
       setValue("website", initialCourse.website || "");
       setValue("description", initialCourse.description || "");
-      setValue("image_url", initialCourse.image_url || "");
-      setValue("image_gallery", initialCourse.image_gallery || "");
+      
+      // Set images
+      const initialImageUrl = initialCourse.image_url || "";
+      const initialGalleryUrls = initialCourse.image_gallery || "";
+      setValue("image_url", initialImageUrl);
+      setValue("image_gallery", initialGalleryUrls);
+      setImageUrl(initialImageUrl);
+      setGalleryUrls(initialGalleryUrls);
       
       // Set opening hours if available, otherwise set defaults
       if (typeof initialCourse.opening_hours === 'string') {
@@ -87,7 +96,7 @@ const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGolfCourse
         setValue("opening_hours", defaultOpeningHours);
       }
       
-      // Set hole pars - this is crucial for the bug fix
+      // Set hole pars - ensure we have the correct data
       if (initialCourse.hole_pars && Array.isArray(initialCourse.hole_pars) && initialCourse.hole_pars.length > 0) {
         console.log('Setting hole pars from initial course:', initialCourse.hole_pars);
         setValue("hole_pars", initialCourse.hole_pars);
@@ -100,6 +109,8 @@ const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGolfCourse
     } else {
       // Reset form for new course
       setValue("hole_pars", Array(18).fill(4));
+      setImageUrl("");
+      setGalleryUrls("");
     }
   }, [initialCourse, setValue]);
 
@@ -213,20 +224,24 @@ const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGolfCourse
   
   // Handler for image uploads
   const handleMainImageUploaded = (url: string) => {
+    console.log('Main image uploaded:', url);
     setValue("image_url", url);
+    setImageUrl(url);
   };
   
   // Handler for gallery uploads
   const handleGalleryUpdated = (galleryUrlsString: string) => {
+    console.log('Gallery updated:', galleryUrlsString);
     setValue("image_gallery", galleryUrlsString);
+    setGalleryUrls(galleryUrlsString);
   };
 
   // Debug current values
   console.log('Current form values:', {
     hole_pars: watchedHolePars,
     holes: watchedHoles,
-    image_url: watch("image_url"),
-    image_gallery: watch("image_gallery")
+    image_url: imageUrl,
+    image_gallery: galleryUrls
   });
 
   return (
@@ -426,7 +441,7 @@ const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGolfCourse
                   </label>
                   <ImageUploader 
                     onImageUploaded={handleMainImageUploaded}
-                    initialImage={watch("image_url")}
+                    initialImage={imageUrl}
                   />
                   <input
                     type="hidden"
@@ -440,7 +455,7 @@ const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGolfCourse
                   </label>
                   <GalleryUploader
                     onGalleryUpdated={handleGalleryUpdated}
-                    initialGallery={watch("image_gallery")}
+                    initialGallery={galleryUrls}
                   />
                   <input
                     type="hidden"

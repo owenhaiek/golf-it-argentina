@@ -1,8 +1,8 @@
 
 {
-  "name": "GolfReserve",
-  "short_name": "GolfReserve",
-  "description": "Reserve a golf course, track your rounds and improve your game",
+  "name": "GolfIt - Encontrá donde jugar!",
+  "short_name": "GolfIt",
+  "description": "Encontrá donde jugar golf, reservá campos y mejorá tu juego",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#F5F5F0",
