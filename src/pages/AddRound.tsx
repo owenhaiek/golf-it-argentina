@@ -105,8 +105,11 @@ const AddRound = () => {
       return;
     }
 
+    // Get the actual number of holes played based on selection
+    const actualHolesPlayed = parseInt(holesPlayed);
+    const holesCount = actualHolesPlayed;
+    
     // Check if user has added any scores for the holes they played
-    const holesCount = holesPlayed === "9" ? 9 : holesPlayed === "18" ? 18 : (selectedCourseData?.holes || 27);
     const hasScores = scores.slice(0, holesCount).some(score => score > 0);
     if (!hasScores) {
       toast({
@@ -116,6 +119,7 @@ const AddRound = () => {
       return;
     }
 
+    // Calculate total score only for the holes actually played
     const totalScore = scores.slice(0, holesCount).reduce((a, b) => a + b, 0);
     
     try {
@@ -123,7 +127,7 @@ const AddRound = () => {
         user_id: user.id,
         course_id: selectedCourse,
         score: totalScore,
-        notes,
+        notes: `${holesCount} holes played. ${notes}`.trim(),
         date: new Date().toISOString().split('T')[0] // Add today's date
       });
     } catch (error) {
@@ -188,7 +192,7 @@ const AddRound = () => {
             <ScoreCard
               selectedCourseData={{
                 ...selectedCourseData,
-                holes: holesPlayed === "9" ? 9 : holesPlayed === "18" ? 18 : holesPlayed === "27" ? 27 : selectedCourseData.holes
+                holes: parseInt(holesPlayed)
               }}
               scores={scores}
               onScoreChange={handleScoreChange}

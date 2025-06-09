@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useToast } from "@/hooks/use-toast";
@@ -56,6 +55,8 @@ const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGolfCourse
   // Initialize form with existing golf course data if available
   useEffect(() => {
     if (initialCourse) {
+      console.log('Loading initial course data:', initialCourse);
+      
       // Set basic fields
       setValue("name", initialCourse.name || "");
       setValue("holes", initialCourse.holes || 18);
@@ -72,22 +73,33 @@ const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGolfCourse
       // Set opening hours if available, otherwise set defaults
       if (typeof initialCourse.opening_hours === 'string') {
         try {
-          setValue("opening_hours", JSON.parse(initialCourse.opening_hours));
+          const parsedHours = JSON.parse(initialCourse.opening_hours);
+          setValue("opening_hours", parsedHours);
         } catch (e) {
+          console.error('Error parsing opening hours:', e);
           setValue("opening_hours", defaultOpeningHours);
         }
       } else if (Array.isArray(initialCourse.opening_hours)) {
+        setValue("opening_hours", initialCourse.opening_hours);
+      } else if (initialCourse.opening_hours && typeof initialCourse.opening_hours === 'object') {
         setValue("opening_hours", initialCourse.opening_hours);
       } else {
         setValue("opening_hours", defaultOpeningHours);
       }
       
-      // Set hole pars
-      if (initialCourse.hole_pars && Array.isArray(initialCourse.hole_pars)) {
+      // Set hole pars - this is crucial for the bug fix
+      if (initialCourse.hole_pars && Array.isArray(initialCourse.hole_pars) && initialCourse.hole_pars.length > 0) {
+        console.log('Setting hole pars from initial course:', initialCourse.hole_pars);
         setValue("hole_pars", initialCourse.hole_pars);
       } else {
-        setValue("hole_pars", Array(initialCourse.holes || 18).fill(4));
+        // If no hole pars are set, create default array based on course holes
+        const defaultPars = Array(initialCourse.holes || 18).fill(4);
+        console.log('Setting default hole pars:', defaultPars);
+        setValue("hole_pars", defaultPars);
       }
+    } else {
+      // Reset form for new course
+      setValue("hole_pars", Array(18).fill(4));
     }
   }, [initialCourse, setValue]);
 
@@ -208,6 +220,14 @@ const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGolfCourse
   const handleGalleryUpdated = (galleryUrlsString: string) => {
     setValue("image_gallery", galleryUrlsString);
   };
+
+  // Debug current values
+  console.log('Current form values:', {
+    hole_pars: watchedHolePars,
+    holes: watchedHoles,
+    image_url: watch("image_url"),
+    image_gallery: watch("image_gallery")
+  });
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -353,7 +373,7 @@ const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGolfCourse
                       Hoyo {index + 1}
                     </label>
                     <select
-                      value={watchedHolePars[index] || 4}
+                      value={watchedHolePars?.[index] || 4}
                       onChange={(e) => handleHoleParChange(index, parseInt(e.target.value))}
                       className="w-full p-2 border rounded-md text-center"
                     >

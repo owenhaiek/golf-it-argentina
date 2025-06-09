@@ -48,7 +48,7 @@ export const CourseInfoTab = ({ course, isOpen, onClose }: CourseInfoTabProps) =
           
           {/* Slide-down tab */}
           <motion.div
-            className="fixed top-0 left-0 right-0 z-50 bg-background border-b shadow-lg"
+            className="fixed top-0 left-0 right-0 z-50 bg-white border-b shadow-lg"
             initial={{ y: "-100%" }}
             animate={{ y: 0 }}
             exit={{ y: "-100%" }}
@@ -60,9 +60,9 @@ export const CourseInfoTab = ({ course, isOpen, onClose }: CourseInfoTabProps) =
             }}
             style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
           >
-            <div className="max-w-md mx-auto">
+            <div className="max-w-md mx-auto bg-white">
               {/* Header with close button */}
-              <div className="flex justify-end p-2">
+              <div className="flex justify-end p-2 bg-white">
                 <Button
                   variant="ghost"
                   size="sm"
@@ -93,7 +93,7 @@ export const CourseInfoTab = ({ course, isOpen, onClose }: CourseInfoTabProps) =
               </div>
 
               {/* Course info */}
-              <div className="px-4 pb-4 space-y-4">
+              <div className="px-4 pb-4 space-y-4 bg-white">
                 <div>
                   <h2 className="text-xl font-bold text-foreground leading-tight">
                     {course.name}
