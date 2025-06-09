@@ -7,8 +7,28 @@ import { useLanguage } from "@/contexts/LanguageContext";
 export const Navigation = () => {
   const { t } = useLanguage();
   
+  const handleTouchStart = (e: React.TouchEvent) => {
+    e.stopPropagation();
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+  };
+  
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-[9999] bg-white border-t border-gray-200 shadow-lg safe-area-bottom">
+    <div 
+      className="fixed bottom-0 left-0 right-0 z-[9999] bg-white border-t border-gray-200 shadow-lg"
+      style={{
+        paddingBottom: 'max(8px, env(safe-area-inset-bottom))',
+        touchAction: 'none',
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+        WebkitTouchCallout: 'none'
+      }}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+    >
       <div className="w-full">
         <nav className="w-full">
           <ul className="flex items-center justify-between max-w-xl mx-auto px-4 py-2">
@@ -45,7 +65,7 @@ const NavItem = ({
       to={to}
       className={({ isActive }) =>
         cn(
-          "flex flex-col items-center justify-center gap-1 py-2 px-3 transition-all duration-200 min-h-[44px] rounded-xl",
+          "flex flex-col items-center justify-center gap-1 py-2 px-3 transition-all duration-200 min-h-[44px] rounded-md",
           "hover:bg-primary/10 active:scale-95 active:bg-primary/20",
           "transform-gpu will-change-transform",
           isActive 

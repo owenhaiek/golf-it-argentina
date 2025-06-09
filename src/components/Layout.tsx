@@ -11,6 +11,7 @@ export const Layout = () => {
   const [pullDistance, setPullDistance] = useState(0);
   const [isPulling, setIsPulling] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
+  const navigationRef = useRef<HTMLElement>(null);
   const location = useLocation();
 
   // Scroll to top when route changes
@@ -29,6 +30,12 @@ export const Layout = () => {
       // Only allow pull to refresh on specific pages, not on map
       if (location.pathname === '/courses-map') return;
       
+      // Check if touch started on navigation area
+      const navigation = navigationRef.current;
+      if (navigation && navigation.contains(e.target as Node)) {
+        return; // Don't start pull to refresh if touching navigation
+      }
+      
       if (mainElement.scrollTop <= 0) {
         setStartY(e.touches[0].clientY);
         setIsPulling(true);
@@ -38,6 +45,14 @@ export const Layout = () => {
 
     const handleTouchMove = (e: TouchEvent) => {
       if (!isPulling || location.pathname === '/courses-map') return;
+      
+      // Check if touch is on navigation area
+      const navigation = navigationRef.current;
+      if (navigation && navigation.contains(e.target as Node)) {
+        setIsPulling(false);
+        setPullDistance(0);
+        return;
+      }
       
       if (mainElement.scrollTop <= 0) {
         const currentY = e.touches[0].clientY;
@@ -127,7 +142,7 @@ export const Layout = () => {
           position: 'relative',
           zIndex: 1,
           paddingTop: 'env(safe-area-inset-top, 0px)',
-          paddingBottom: '76px',
+          paddingBottom: '84px',
           minHeight: '100dvh'
         }}
       >
@@ -135,7 +150,9 @@ export const Layout = () => {
           <Outlet />
         </div>
       </main>
-      <Navigation />
+      <nav ref={navigationRef}>
+        <Navigation />
+      </nav>
     </div>
   );
 };

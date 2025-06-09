@@ -12,6 +12,8 @@
     font-feature-settings:
       "rlig" 1,
       "calt" 1;
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: touch;
   }
 }
 
@@ -79,15 +81,6 @@
   }
 }
 
-/* Add safe area utilities */
-.safe-area-bottom {
-  padding-bottom: env(safe-area-inset-bottom, 0px);
-}
-
-.pt-safe {
-  padding-top: env(safe-area-inset-top, 0px);
-}
-
 /* Ensure proper bottom positioning for navigation */
 @supports (padding: max(0px)) {
   .safe-area-bottom {
@@ -100,4 +93,20 @@
   .min-h-screen {
     min-height: 100dvh;
   }
+}
+
+/* Prevent navigation from being draggable */
+nav[data-navigation] {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  position: fixed !important;
+  bottom: 0 !important;
+}
+
+/* Prevent pull-to-refresh on the entire app */
+html, body {
+  overscroll-behavior-y: none;
+  -webkit-overflow-scrolling: touch;
 }
