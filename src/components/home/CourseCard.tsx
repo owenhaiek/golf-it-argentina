@@ -54,7 +54,7 @@ const CourseCard = ({ course, currentTime }: CourseCardProps) => {
   
   return (
     <Link to={`/course/${course.id}`} className="block w-full">
-      <Card className="overflow-hidden hover:shadow-lg transition-shadow rounded-none border-x-0 border-b-0 w-full md:rounded-lg md:border-x md:border-b">
+      <Card className="overflow-hidden hover:shadow-lg transition-shadow rounded-lg border w-full">
         <CardContent className="p-0 w-full">
           <div className="w-full">
             <CourseImageCarousel 
