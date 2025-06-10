@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { isCurrentlyOpen, formatOpeningHours } from "@/utils/openingHours";
 import CourseImageCarousel from "./CourseImageCarousel";
+import FavoriteButton from "@/components/ui/FavoriteButton";
 
 interface CourseCardProps {
   course: any;
@@ -57,11 +58,22 @@ const CourseCard = ({ course, currentTime }: CourseCardProps) => {
       <Card className="overflow-hidden hover:shadow-lg transition-shadow rounded-lg border w-full bg-card">
         <CardContent className="p-0 w-full">
           <div className="w-full">
-            <CourseImageCarousel 
-              images={courseImages} 
-              courseName={course.name} 
-              courseId={course.id} 
-            />
+            <div className="relative">
+              <CourseImageCarousel 
+                images={courseImages} 
+                courseName={course.name} 
+                courseId={course.id} 
+              />
+              {/* Favorite Button Overlay */}
+              <div className="absolute top-3 right-3">
+                <FavoriteButton 
+                  courseId={course.id} 
+                  size="sm" 
+                  variant="ghost"
+                  className="bg-white/80 backdrop-blur-sm hover:bg-white/90"
+                />
+              </div>
+            </div>
             
             <div className="p-4 space-y-2 w-full">
               <h2 className="text-xl font-semibold text-foreground">{course.name}</h2>

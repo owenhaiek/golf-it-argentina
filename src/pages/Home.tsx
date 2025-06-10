@@ -13,6 +13,7 @@ type FilterOptions = {
   holes: string;
   location: string;
   isOpen: boolean;
+  favoritesOnly: boolean;
 };
 
 const Home = () => {
@@ -23,7 +24,8 @@ const Home = () => {
   const [filters, setFilters] = useState<FilterOptions>({
     holes: "",
     location: "",
-    isOpen: false
+    isOpen: false,
+    favoritesOnly: false
   });
 
   const { courses, isLoading, currentTime } = useGolfCourses(search, filters);
@@ -36,7 +38,8 @@ const Home = () => {
     setFilters({
       holes: "",
       location: "",
-      isOpen: false
+      isOpen: false,
+      favoritesOnly: false
     });
     setSearch("");
   };

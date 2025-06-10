@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -16,6 +17,7 @@ import CourseWeather from "@/components/course/CourseWeather";
 import CourseLeaderboard from "@/components/course/CourseLeaderboard";
 import CourseStats from "@/components/course/CourseStats";
 import ReservationForm from "@/components/course/ReservationForm";
+import FavoriteButton from "@/components/ui/FavoriteButton";
 import { formatOpeningHoursForDisplay } from "@/utils/openingHours";
 import { format } from "date-fns";
 import AddReviewForm from "@/components/course/AddReviewForm";
@@ -275,6 +277,18 @@ const Course = () => {
           </div>
         ) : (
           <div className="h-64 w-full bg-gradient-to-r from-primary/20 to-secondary/20" />
+        )}
+        
+        {/* Favorite Button in Header */}
+        {id && (
+          <div className="absolute top-4 right-4">
+            <FavoriteButton 
+              courseId={id} 
+              size="lg" 
+              variant="ghost"
+              className="bg-white/80 backdrop-blur-sm hover:bg-white/90"
+            />
+          </div>
         )}
         
         <div className="absolute bottom-0 left-0 p-4 text-white">

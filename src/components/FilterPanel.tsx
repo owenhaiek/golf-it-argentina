@@ -5,12 +5,13 @@ import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { X, Clock } from "lucide-react";
+import { X, Clock, Heart } from "lucide-react";
 
 type FilterOptions = {
   holes: string;
   location: string;
   isOpen: boolean;
+  favoritesOnly: boolean;
 };
 
 interface FilterPanelProps {
@@ -75,7 +76,8 @@ const FilterPanel = ({
     const resetFilters = {
       holes: "",
       location: "",
-      isOpen: false
+      isOpen: false,
+      favoritesOnly: false
     };
     setFilters(resetFilters);
     onApplyFilters(resetFilters);
@@ -176,6 +178,26 @@ const FilterPanel = ({
             </div>
 
             <div className="space-y-6 flex-1 overflow-y-auto">
+              {/* Favorites Filter */}
+              <div className="space-y-3">
+                <div className="flex items-center space-x-3">
+                  <input
+                    type="checkbox"
+                    id="favorites-filter"
+                    checked={filters.favoritesOnly}
+                    onChange={e => setFilters({
+                      ...filters,
+                      favoritesOnly: e.target.checked
+                    })}
+                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                  />
+                  <Label htmlFor="favorites-filter" className="flex items-center gap-2 text-sm font-medium">
+                    <Heart size={16} className="text-red-500" />
+                    Show Favorites Only
+                  </Label>
+                </div>
+              </div>
+
               <div className="space-y-3">
                 <Label htmlFor="holes-filter" className="text-sm font-medium">Number of Holes</Label>
                 <RadioGroup 
