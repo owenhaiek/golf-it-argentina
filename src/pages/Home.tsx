@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Search, Filter } from "lucide-react";
@@ -50,7 +49,7 @@ const Home = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img 
-              src="/lovable-uploads/776dc273-aa3f-4605-abab-2cf9dd63363e.png" 
+              src="/lovable-uploads/1383b29d-4e64-4bb6-8eb3-aa48ada17e76.png" 
               alt="Golf Logo"
               className="w-8 h-8 object-contain"
             />
