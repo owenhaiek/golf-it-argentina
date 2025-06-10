@@ -203,7 +203,7 @@ const ReservationForm = ({ courseId, courseName, courseLocation }: ReservationFo
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-[500px] bg-white max-h-[95vh] flex flex-col">
+        <DialogContent className="sm:max-w-[500px] bg-white max-h-[90vh] flex flex-col">
           <DialogHeader className="flex-shrink-0">
             <DialogTitle>{language === "en" ? "Book a Tee Time" : "Reservar un Horario"}</DialogTitle>
             <DialogDescription>
@@ -213,10 +213,10 @@ const ReservationForm = ({ courseId, courseName, courseLocation }: ReservationFo
             </DialogDescription>
           </DialogHeader>
           
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1 overflow-hidden min-h-0">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="h-full flex flex-col">
-                <div className="space-y-6 pt-2 overflow-y-auto flex-1 px-1">
+                <div className="flex-1 overflow-y-auto space-y-6 pt-2 px-1 pb-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
@@ -345,7 +345,7 @@ const ReservationForm = ({ courseId, courseName, courseLocation }: ReservationFo
                       </h4>
                     </div>
                     
-                    <div className="max-h-80 overflow-y-auto space-y-4 pr-2">
+                    <div className="space-y-4">
                       {playerList.map((player, index) => (
                         <div key={index} className="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 border rounded-lg bg-gray-50">
                           <div className="md:col-span-2">
@@ -394,7 +394,7 @@ const ReservationForm = ({ courseId, courseName, courseLocation }: ReservationFo
                   </div>
                 </div>
 
-                <DialogFooter className="flex-col sm:flex-row gap-2 flex-shrink-0 pt-4 border-t">
+                <DialogFooter className="flex-col sm:flex-row gap-2 flex-shrink-0 pt-4 border-t bg-white">
                   <Button
                     type="button"
                     variant="outline"
