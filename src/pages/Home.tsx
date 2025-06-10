@@ -50,7 +50,7 @@ const Home = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img 
-              src="/lovable-uploads/d5e1d304-1574-47d6-b182-17530a340974.png" 
+              src="/lovable-uploads/776dc273-aa3f-4605-abab-2cf9dd63363e.png" 
               alt="Golf Logo"
               className="w-8 h-8 object-contain"
             />
