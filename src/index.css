@@ -275,11 +275,11 @@ html, body {
 }
 
 .dark .course-card p {
-  @apply text-muted-foreground;
+  color: hsl(215 20.2% 65.1%);
 }
 
 .dark .course-card .course-info {
-  @apply text-muted-foreground;
+  color: hsl(215 20.2% 65.1%);
 }
 
 /* Course detail page text visibility in dark mode */
@@ -288,7 +288,7 @@ html, body {
 }
 
 .dark .course-detail-muted {
-  @apply text-muted-foreground;
+  color: hsl(215 20.2% 65.1%);
 }
 
 /* Fix course card text in dark mode */
@@ -297,5 +297,5 @@ html, body {
 }
 
 .dark .text-muted-foreground {
-  color: hsl(var(--muted-foreground)) !important;
+  color: hsl(215 20.2% 65.1%) !important;
 }
