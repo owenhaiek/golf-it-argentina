@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -9,6 +8,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/lib/supabase";
+import { Plus, ArrowLeft } from "lucide-react";
+import CourseList from "@/components/admin/CourseList";
+import { useNavigate } from "react-router-dom";
 
 export interface GolfCourseTemplate {
   id?: string;
@@ -38,7 +40,7 @@ interface AdminGolfCourseFormProps {
   onSubmitSuccess?: () => void;
 }
 
-const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGolfCourseFormProps) => {
+export const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGolfCourseFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [course, setCourse] = useState<GolfCourseTemplate>({
     name: "",
@@ -72,7 +74,6 @@ const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGolfCourse
     if (initialCourse) {
       console.log('Initial course data:', initialCourse);
       
-      // Parse opening hours if it's a string
       let openingHours = initialCourse.opening_hours;
       if (typeof openingHours === 'string') {
         try {
@@ -369,7 +370,6 @@ const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGolfCourse
         </CardContent>
       </Card>
 
-      {/* Hole Details Section */}
       <Card>
         <CardHeader>
           <CardTitle>Detalles de Hoyos</CardTitle>
@@ -428,4 +428,59 @@ const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGolfCourse
   );
 };
 
-export default AdminGolfCourseForm;
+const AdminGolfCourseManager = () => {
+  const [currentView, setCurrentView] = useState<'list' | 'add'>('list');
+  const navigate = useNavigate();
+
+  const handleEditCourse = (course: GolfCourseTemplate) => {
+    navigate(`/admin/course-edit/${course.id}`);
+  };
+
+  const handleAddCourseSuccess = () => {
+    setCurrentView('list');
+  };
+
+  if (currentView === 'add') {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 py-6">
+          <div className="mb-6 flex items-center gap-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentView('list')}
+              className="flex items-center gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Volver a la Lista
+            </Button>
+            <h1 className="text-2xl font-bold">Agregar Nuevo Campo de Golf</h1>
+          </div>
+          
+          <AdminGolfCourseForm onSubmitSuccess={handleAddCourseSuccess} />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto px-4 py-6">
+        <div className="mb-6 flex items-center justify-between">
+          <h1 className="text-2xl font-bold">Administrar Campos de Golf</h1>
+          <Button
+            onClick={() => setCurrentView('add')}
+            className="flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Agregar Campo
+          </Button>
+        </div>
+        
+        <CourseList onEditCourse={handleEditCourse} />
+      </div>
+    </div>
+  );
+};
+
+export default AdminGolfCourseManager;

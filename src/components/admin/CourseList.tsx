@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -80,7 +79,6 @@ const CourseList = ({ onEditCourse }: CourseListProps) => {
     try {
       console.log(`Attempting to delete course with ID: ${id}`);
       
-      // First verify the course exists
       const { data: existingCourse, error: fetchError } = await supabase
         .from("golf_courses")
         .select('id, name')
@@ -96,7 +94,6 @@ const CourseList = ({ onEditCourse }: CourseListProps) => {
         throw new Error("Course not found");
       }
       
-      // Delete related records first in proper order
       console.log("Deleting related rounds...");
       const { error: deleteRoundsError } = await supabase
         .from("rounds")
@@ -130,7 +127,6 @@ const CourseList = ({ onEditCourse }: CourseListProps) => {
         throw new Error(`Failed to delete related reviews: ${deleteReviewsError.message}`);
       }
       
-      // Finally delete the golf course
       console.log("Deleting golf course...");
       const { error: deleteCourseError } = await supabase
         .from("golf_courses")
@@ -144,7 +140,6 @@ const CourseList = ({ onEditCourse }: CourseListProps) => {
       
       console.log(`Successfully deleted course with ID: ${id}`);
       
-      // Immediately update UI by removing deleted course
       setCourses(prevCourses => prevCourses.filter(course => course.id !== id));
       
       toast({
@@ -152,7 +147,6 @@ const CourseList = ({ onEditCourse }: CourseListProps) => {
         description: `Campo de golf "${existingCourse.name}" eliminado correctamente junto con todos sus registros relacionados`,
       });
       
-      // Refresh the course list to ensure it's up-to-date
       await fetchCourses(currentPage, searchQuery);
       
     } catch (error: any) {
