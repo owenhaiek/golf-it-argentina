@@ -11,6 +11,8 @@ import { supabase } from "@/lib/supabase";
 import { Plus, ArrowLeft } from "lucide-react";
 import CourseList from "@/components/admin/CourseList";
 import { useNavigate } from "react-router-dom";
+import ImageUploader from "@/components/admin/ImageUploader";
+import GalleryUploader from "@/components/admin/GalleryUploader";
 
 export interface GolfCourseTemplate {
   id?: string;
@@ -153,6 +155,14 @@ export const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGol
     setCourse({ ...course, hole_handicaps: newHandicaps });
   };
 
+  const handleImageUploaded = (url: string) => {
+    setCourse({ ...course, image_url: url });
+  };
+
+  const handleGalleryUpdated = (urls: string) => {
+    setCourse({ ...course, image_gallery: urls });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -204,226 +214,256 @@ export const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGol
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 max-w-4xl mx-auto p-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Información del Campo de Golf</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="name">Nombre</Label>
-              <Input
-                type="text"
-                id="name"
-                value={course.name}
-                onChange={(e) => handleInputChange(e, 'name')}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="holes">Número de Hoyos</Label>
-              <Select onValueChange={handleHolesChange} value={course.holes.toString()}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Selecciona el número de hoyos" />
-                </SelectTrigger>
-                <SelectContent>
-                  {[9, 18].map((num) => (
-                    <SelectItem key={num} value={num.toString()}>{num} Hoyos</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="par">Par</Label>
-              <Input
-                type="number"
-                id="par"
-                value={course.par}
-                onChange={(e) => handleInputChange(e, 'par')}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="phone">Teléfono</Label>
-              <Input
-                type="tel"
-                id="phone"
-                value={course.phone || ""}
-                onChange={(e) => handleInputChange(e, 'phone')}
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="website">Sitio Web</Label>
-              <Input
-                type="url"
-                id="website"
-                value={course.website || ""}
-                onChange={(e) => handleInputChange(e, 'website')}
-              />
-            </div>
-            <div>
-              <Label htmlFor="image_url">URL de la Imagen</Label>
-              <Input
-                type="url"
-                id="image_url"
-                value={course.image_url || ""}
-                onChange={(e) => handleInputChange(e, 'image_url')}
-              />
-            </div>
-          </div>
-
-          <div>
-            <Label htmlFor="image_gallery">URL de la Galería de Imágenes (separadas por comas)</Label>
-            <Input
-              type="text"
-              id="image_gallery"
-              value={course.image_gallery || ""}
-              onChange={(e) => handleInputChange(e, 'image_gallery')}
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="description">Descripción</Label>
-            <Textarea
-              id="description"
-              value={course.description || ""}
-              onChange={(e) => handleInputChange(e, 'description')}
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Información de Ubicación</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <Label htmlFor="address">Dirección</Label>
-              <Input
-                type="text"
-                id="address"
-                value={course.address || ""}
-                onChange={(e) => handleInputChange(e, 'address')}
-              />
-            </div>
-            <div>
-              <Label htmlFor="city">Ciudad</Label>
-              <Input
-                type="text"
-                id="city"
-                value={course.city || ""}
-                onChange={(e) => handleInputChange(e, 'city')}
-              />
-            </div>
-            <div>
-              <Label htmlFor="state">Estado</Label>
-              <Input
-                type="text"
-                id="state"
-                value={course.state || ""}
-                onChange={(e) => handleInputChange(e, 'state')}
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Horarios de Apertura</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-4">
-          {Array.from({ length: 7 }).map((_, i) => (
-            <div key={i} className="flex items-center space-x-2">
-              <Label className="w-24">{['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'][i]}</Label>
-              <Checkbox
-                id={`isOpen-${i}`}
-                checked={course.opening_hours?.[i]?.isOpen || false}
-                onCheckedChange={(checked) => handleOpeningHoursChange(i, 'isOpen', checked!)}
-              />
-              <Label htmlFor={`isOpen-${i}`} className="ml-2">Abierto</Label>
-              <Input
-                type="time"
-                value={course.opening_hours?.[i]?.open || "08:00"}
-                onChange={(e) => handleOpeningHoursChange(i, 'open', e.target.value)}
-                disabled={!course.opening_hours?.[i]?.isOpen}
-                className="ml-4"
-              />
-              <Input
-                type="time"
-                value={course.opening_hours?.[i]?.close || "18:00"}
-                onChange={(e) => handleOpeningHoursChange(i, 'close', e.target.value)}
-                disabled={!course.opening_hours?.[i]?.isOpen}
-                className="ml-2"
-              />
-            </div>
-          ))}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Detalles de Hoyos</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {Array.from({ length: course.holes }, (_, i) => (
-              <div key={i} className="border rounded-lg p-4 space-y-2">
-                <h4 className="font-medium">Hoyo {i + 1}</h4>
-                
+    <form onSubmit={handleSubmit} className="space-y-6 max-w-7xl mx-auto p-6">
+      {/* Desktop: Two-column layout, Mobile: Single column */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        {/* Left Column */}
+        <div className="space-y-6">
+          {/* Basic Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Información Básica</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="name">Nombre del Campo</Label>
+                <Input
+                  type="text"
+                  id="name"
+                  value={course.name}
+                  onChange={(e) => handleInputChange(e, 'name')}
+                  required
+                />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1">Par</label>
-                  <input
-                    type="number"
-                    min="3"
-                    max="5"
-                    value={course.hole_pars?.[i] || 4}
-                    onChange={(e) => handleHoleParChange(i, e.target.value)}
-                    className="w-full p-2 border rounded-md"
-                  />
+                  <Label htmlFor="holes">Número de Hoyos</Label>
+                  <Select onValueChange={handleHolesChange} value={course.holes.toString()}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecciona el número de hoyos" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[9, 18].map((num) => (
+                        <SelectItem key={num} value={num.toString()}>{num} Hoyos</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-                
                 <div>
-                  <label className="block text-sm font-medium mb-1">Distancia (yds)</label>
-                  <input
+                  <Label htmlFor="par">Par</Label>
+                  <Input
                     type="number"
-                    min="50"
-                    max="800"
-                    value={course.hole_distances?.[i] || 400}
-                    onChange={(e) => handleHoleDistanceChange(i, e.target.value)}
-                    className="w-full p-2 border rounded-md"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium mb-1">Handicap</label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="18"
-                    value={course.hole_handicaps?.[i] || (i + 1)}
-                    onChange={(e) => handleHoleHandicapChange(i, e.target.value)}
-                    className="w-full p-2 border rounded-md"
+                    id="par"
+                    value={course.par}
+                    onChange={(e) => handleInputChange(e, 'par')}
+                    required
                   />
                 </div>
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
 
-      <Button disabled={isLoading} className="w-full">
-        {isLoading ? "Guardando..." : "Guardar Campo de Golf"}
-      </Button>
+              <div>
+                <Label htmlFor="description">Descripción</Label>
+                <Textarea
+                  id="description"
+                  value={course.description || ""}
+                  onChange={(e) => handleInputChange(e, 'description')}
+                  rows={3}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Location Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Información de Ubicación</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="address">Dirección</Label>
+                <Input
+                  type="text"
+                  id="address"
+                  value={course.address || ""}
+                  onChange={(e) => handleInputChange(e, 'address')}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="city">Ciudad</Label>
+                  <Input
+                    type="text"
+                    id="city"
+                    value={course.city || ""}
+                    onChange={(e) => handleInputChange(e, 'city')}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="state">Estado</Label>
+                  <Input
+                    type="text"
+                    id="state"
+                    value={course.state || ""}
+                    onChange={(e) => handleInputChange(e, 'state')}
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Contact Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Información de Contacto</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="phone">Teléfono</Label>
+                <Input
+                  type="tel"
+                  id="phone"
+                  value={course.phone || ""}
+                  onChange={(e) => handleInputChange(e, 'phone')}
+                />
+              </div>
+              <div>
+                <Label htmlFor="website">Sitio Web</Label>
+                <Input
+                  type="url"
+                  id="website"
+                  value={course.website || ""}
+                  onChange={(e) => handleInputChange(e, 'website')}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Images */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Imágenes</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label>Imagen Principal</Label>
+                <ImageUploader
+                  onImageUploaded={handleImageUploaded}
+                  initialImage={course.image_url}
+                />
+              </div>
+              <div>
+                <Label>Galería de Imágenes</Label>
+                <GalleryUploader
+                  onGalleryUpdated={handleGalleryUpdated}
+                  initialGallery={course.image_gallery}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right Column */}
+        <div className="space-y-6">
+          {/* Opening Hours */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Horarios de Apertura</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {Array.from({ length: 7 }).map((_, i) => (
+                <div key={i} className="flex items-center space-x-2">
+                  <div className="w-20 text-sm">
+                    {['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'][i]}
+                  </div>
+                  <Checkbox
+                    id={`isOpen-${i}`}
+                    checked={course.opening_hours?.[i]?.isOpen || false}
+                    onCheckedChange={(checked) => handleOpeningHoursChange(i, 'isOpen', checked!)}
+                  />
+                  <Input
+                    type="time"
+                    value={course.opening_hours?.[i]?.open || "08:00"}
+                    onChange={(e) => handleOpeningHoursChange(i, 'open', e.target.value)}
+                    disabled={!course.opening_hours?.[i]?.isOpen}
+                    className="w-24"
+                  />
+                  <span className="text-sm">a</span>
+                  <Input
+                    type="time"
+                    value={course.opening_hours?.[i]?.close || "18:00"}
+                    onChange={(e) => handleOpeningHoursChange(i, 'close', e.target.value)}
+                    disabled={!course.opening_hours?.[i]?.isOpen}
+                    className="w-24"
+                  />
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          {/* Hole Details */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Detalles de los Hoyos</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 gap-4 max-h-96 overflow-y-auto">
+                {Array.from({ length: course.holes }, (_, i) => (
+                  <div key={i} className="border rounded-lg p-3 space-y-2">
+                    <h4 className="font-medium text-sm">Hoyo {i + 1}</h4>
+                    
+                    <div className="grid grid-cols-3 gap-2">
+                      <div>
+                        <label className="block text-xs font-medium mb-1">Par</label>
+                        <input
+                          type="number"
+                          min="3"
+                          max="5"
+                          value={course.hole_pars?.[i] || 4}
+                          onChange={(e) => handleHoleParChange(i, e.target.value)}
+                          className="w-full p-1 border rounded text-sm"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-xs font-medium mb-1">Distancia</label>
+                        <input
+                          type="number"
+                          min="50"
+                          max="800"
+                          value={course.hole_distances?.[i] || 400}
+                          onChange={(e) => handleHoleDistanceChange(i, e.target.value)}
+                          className="w-full p-1 border rounded text-sm"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-xs font-medium mb-1">Handicap</label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="18"
+                          value={course.hole_handicaps?.[i] || (i + 1)}
+                          onChange={(e) => handleHoleHandicapChange(i, e.target.value)}
+                          className="w-full p-1 border rounded text-sm"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Submit Button - Full Width */}
+      <div className="col-span-full">
+        <Button disabled={isLoading} className="w-full">
+          {isLoading ? "Guardando..." : "Guardar Campo de Golf"}
+        </Button>
+      </div>
     </form>
   );
 };
