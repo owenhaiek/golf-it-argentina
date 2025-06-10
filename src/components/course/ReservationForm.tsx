@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
@@ -196,7 +195,7 @@ const ReservationForm = ({ courseId, courseName, courseLocation }: ReservationFo
     <>
       <Button 
         onClick={() => setOpen(true)} 
-        className="w-full bg-secondary flex gap-2 items-center justify-center"
+        className="w-full bg-primary hover:bg-primary/90 text-white flex gap-2 items-center justify-center"
       >
         <CalendarIcon size={16} />
         {t("reservations", "bookTeeTime")}
@@ -429,3 +428,5 @@ const ReservationForm = ({ courseId, courseName, courseLocation }: ReservationFo
 };
 
 export default ReservationForm;
+
+}
