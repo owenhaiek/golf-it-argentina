@@ -11,7 +11,7 @@ export const Layout = () => {
   const [pullDistance, setPullDistance] = useState(0);
   const [isPulling, setIsPulling] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
-  const navigationRef = useRef<HTMLElement>(null);
+  const navigationRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
 
   // Scroll to top when route changes
@@ -142,7 +142,7 @@ export const Layout = () => {
           position: 'relative',
           zIndex: 1,
           paddingTop: 'env(safe-area-inset-top, 0px)',
-          paddingBottom: 'max(76px, calc(76px + env(safe-area-inset-bottom)))',
+          paddingBottom: '76px',
           minHeight: '100dvh'
         }}
       >
@@ -152,7 +152,7 @@ export const Layout = () => {
       </main>
       <div 
         ref={navigationRef} 
-        className="fixed bottom-0 left-0 right-0 z-[9999]"
+        className="fixed bottom-0 left-0 right-0 z-[9999] bg-white border-t border-gray-200 shadow-lg"
         style={{
           paddingBottom: 'env(safe-area-inset-bottom, 0px)'
         }}

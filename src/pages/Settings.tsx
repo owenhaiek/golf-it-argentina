@@ -21,13 +21,17 @@ type LanguageType = "en" | "es";
 const Settings = () => {
   const { toast } = useToast();
   const { language, setLanguage, t } = useLanguage();
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem("darkMode") === "true" || 
+             document.documentElement.classList.contains("dark");
+    }
+    return false;
+  });
 
   useEffect(() => {
-    const savedDarkMode = localStorage.getItem("darkMode") === "true";
-    setDarkMode(savedDarkMode);
-    
-    if (savedDarkMode) {
+    // Apply dark mode class immediately when component mounts
+    if (darkMode) {
       document.documentElement.classList.add("dark");
     } else {
       document.documentElement.classList.remove("dark");
@@ -43,22 +47,21 @@ const Settings = () => {
     });
   };
 
-  const handleDarkModeToggle = () => {
-    const newDarkMode = !darkMode;
-    setDarkMode(newDarkMode);
-    localStorage.setItem("darkMode", newDarkMode.toString());
+  const handleDarkModeToggle = (checked: boolean) => {
+    setDarkMode(checked);
+    localStorage.setItem("darkMode", checked.toString());
     
-    if (newDarkMode) {
+    if (checked) {
       document.documentElement.classList.add("dark");
     } else {
       document.documentElement.classList.remove("dark");
     }
     
     toast({
-      title: newDarkMode 
+      title: checked 
         ? (language === "en" ? "Dark mode enabled" : "Modo oscuro activado") 
         : (language === "en" ? "Light mode enabled" : "Modo claro activado"),
-      description: newDarkMode 
+      description: checked 
         ? (language === "en" ? "The app will now use a dark theme" : "La aplicación ahora usará un tema oscuro") 
         : (language === "en" ? "The app will now use a light theme" : "La aplicación ahora usará un tema claro"),
     });
