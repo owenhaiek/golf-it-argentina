@@ -67,7 +67,7 @@ export const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGol
     ],
     hole_pars: Array(18).fill(4),
     hole_distances: Array(18).fill(400),
-    hole_handicaps: Array(18).fill(0), // Changed to 0 as default
+    hole_handicaps: Array(18).fill(0),
   });
 
   const { toast } = useToast();
@@ -104,7 +104,7 @@ export const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGol
       
       setCourse({
         ...initialCourse,
-        par: calculatedPar, // Use calculated par
+        par: calculatedPar,
         opening_hours: openingHours || [
           { isOpen: true, open: "08:00", close: "18:00" },
           { isOpen: true, open: "08:00", close: "18:00" },
@@ -116,7 +116,7 @@ export const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGol
         ],
         hole_pars: holePars,
         hole_distances: initialCourse.hole_distances || Array(initialCourse.holes || 18).fill(400),
-        hole_handicaps: initialCourse.hole_handicaps || Array(initialCourse.holes || 18).fill(0), // Changed to 0
+        hole_handicaps: initialCourse.hole_handicaps || Array(initialCourse.holes || 18).fill(0),
       });
     }
   }, [initialCourse]);
@@ -127,16 +127,18 @@ export const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGol
 
   const handleHolesChange = (value: string) => {
     const newHoles = parseInt(value);
+    if (isNaN(newHoles) || newHoles <= 0) return;
+    
     const newHolePars = Array(newHoles).fill(4);
     const newPar = calculateTotalPar(newHolePars);
     
     setCourse({
       ...course,
       holes: newHoles,
-      par: newPar, // Auto-calculate par
+      par: newPar,
       hole_pars: newHolePars,
       hole_distances: Array(newHoles).fill(400),
-      hole_handicaps: Array(newHoles).fill(0), // Changed to 0
+      hole_handicaps: Array(newHoles).fill(0),
     });
   };
 
@@ -154,13 +156,12 @@ export const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGol
     const newHolePars = [...(course.hole_pars || [])];
     newHolePars[holeIndex] = parseInt(par) || 4;
     
-    // Auto-calculate total par
     const newPar = calculateTotalPar(newHolePars);
     
     setCourse({ 
       ...course, 
       hole_pars: newHolePars,
-      par: newPar // Update total par automatically
+      par: newPar
     });
   };
 
@@ -172,7 +173,7 @@ export const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGol
 
   const handleHoleHandicapChange = (holeIndex: number, handicap: string) => {
     const newHandicaps = [...(course.hole_handicaps || [])];
-    newHandicaps[holeIndex] = parseInt(handicap) || 0; // Default to 0 instead of 1
+    newHandicaps[holeIndex] = parseInt(handicap) || 0;
     setCourse({ ...course, hole_handicaps: newHandicaps });
   };
 
@@ -189,7 +190,6 @@ export const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGol
     setIsLoading(true);
 
     try {
-      // Ensure all data is properly formatted
       const courseData = {
         name: course.name.trim(),
         holes: course.holes,
@@ -244,7 +244,7 @@ export const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGol
       if (onSubmitSuccess) {
         onSubmitSuccess();
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving course:', error);
       toast({
         title: "Error",
@@ -258,12 +258,8 @@ export const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGol
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-w-7xl mx-auto p-6">
-      {/* Desktop: Two-column layout, Mobile: Single column */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
-        {/* Left Column */}
         <div className="space-y-6">
-          {/* Basic Information */}
           <Card>
             <CardHeader>
               <CardTitle>Información Básica</CardTitle>
@@ -319,7 +315,6 @@ export const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGol
             </CardContent>
           </Card>
 
-          {/* Location Information */}
           <Card>
             <CardHeader>
               <CardTitle>Información de Ubicación</CardTitle>
@@ -357,7 +352,6 @@ export const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGol
             </CardContent>
           </Card>
 
-          {/* Contact Information */}
           <Card>
             <CardHeader>
               <CardTitle>Información de Contacto</CardTitle>
@@ -384,7 +378,6 @@ export const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGol
             </CardContent>
           </Card>
 
-          {/* Images */}
           <Card>
             <CardHeader>
               <CardTitle>Imágenes</CardTitle>
@@ -408,9 +401,7 @@ export const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGol
           </Card>
         </div>
 
-        {/* Right Column */}
         <div className="space-y-6">
-          {/* Opening Hours */}
           <Card>
             <CardHeader>
               <CardTitle>Horarios de Apertura</CardTitle>
@@ -446,7 +437,6 @@ export const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGol
             </CardContent>
           </Card>
 
-          {/* Hole Details */}
           <Card>
             <CardHeader>
               <CardTitle>Detalles de los Hoyos</CardTitle>
@@ -503,7 +493,6 @@ export const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGol
         </div>
       </div>
 
-      {/* Submit Button - Full Width */}
       <div className="col-span-full">
         <Button disabled={isLoading} className="w-full">
           {isLoading ? "Guardando..." : "Guardar Campo de Golf"}
