@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
-import AdminGolfCourseForm, { GolfCourseTemplate } from "./AdminGolfCourseManager";
+import { AdminGolfCourseForm, GolfCourseTemplate } from "./AdminGolfCourseManager";
 
 const AdminCourseEdit = () => {
   const { id } = useParams();
