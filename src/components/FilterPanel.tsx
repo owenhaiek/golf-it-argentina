@@ -153,11 +153,11 @@ const FilterPanel = ({
         }`}
         style={{
           transform: `translateY(${isOpen ? dragOffset : 100}%)`,
-          paddingBottom: `calc(72px + env(safe-area-inset-bottom, 0px))`,
+          paddingBottom: '72px',
           maxHeight: 'calc(85vh - 72px)'
         }}
       >
-        <Card className="rounded-t-2xl border-b-0 shadow-2xl bg-white w-full h-full">
+        <Card className="rounded-t-2xl rounded-b-none border-b-0 shadow-2xl bg-white w-full h-full">
           <div className="p-6 h-full flex flex-col">
             {/* Drag indicator */}
             <div 
