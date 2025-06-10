@@ -1,3 +1,4 @@
+
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Loader2, Trash2, Calendar, Trophy, Flag, Plus, Minus, Check } from "lucide-react";
@@ -77,7 +78,7 @@ const RoundCard = ({ round, onDeleteRound, isDeleting }: RoundCardProps) => {
         </div>
       </div>
       
-      <div className="p-4 flex-grow flex flex-col relative">
+      <div className="p-4 flex-grow flex flex-col">
         <div>
           <h3 className="font-semibold text-lg text-primary mb-1">{round.golf_courses.name}</h3>
           <div className="flex items-center gap-3 text-sm text-muted-foreground mb-2">
@@ -111,40 +112,42 @@ const RoundCard = ({ round, onDeleteRound, isDeleting }: RoundCardProps) => {
           </div>
         </div>
         
-        {/* Delete button positioned in bottom right corner with proper spacing */}
-        <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <AlertDialogTrigger asChild>
-            <Button 
-              variant="ghost" 
-              size="icon"
-              className="absolute bottom-3 right-3 h-8 w-8 rounded-full bg-red-50 hover:bg-red-100 text-red-500 hover:text-red-600 transition-colors shadow-sm z-10"
-              disabled={isDeleting}
-            >
-              {isDeleting ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Trash2 className="h-4 w-4" />
-              )}
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>{t("profile", "deleteRound")}</AlertDialogTitle>
-              <AlertDialogDescription>
-                {t("profile", "deleteRoundConfirm")}
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>{t("common", "cancel")}</AlertDialogCancel>
-              <AlertDialogAction 
-                onClick={handleDelete}
-                className="bg-red-500 hover:bg-red-600"
+        {/* Delete button positioned below the score section with proper spacing */}
+        <div className="flex justify-end mt-3 pt-2 border-t border-muted/10">
+          <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <AlertDialogTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="icon"
+                className="h-8 w-8 rounded-full bg-red-50 hover:bg-red-100 text-red-500 hover:text-red-600 transition-colors shadow-sm"
+                disabled={isDeleting}
               >
-                {t("profile", "deleteRound")}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+                {isDeleting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Trash2 className="h-4 w-4" />
+                )}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>{t("profile", "deleteRound")}</AlertDialogTitle>
+                <AlertDialogDescription>
+                  {t("profile", "deleteRoundConfirm")}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>{t("common", "cancel")}</AlertDialogCancel>
+                <AlertDialogAction 
+                  onClick={handleDelete}
+                  className="bg-red-500 hover:bg-red-600"
+                >
+                  {t("profile", "deleteRound")}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
       </div>
     </motion.div>
   );
