@@ -94,6 +94,7 @@ export type Database = {
           city: string | null
           created_at: string | null
           description: string | null
+          hole_handicaps: number[] | null
           hole_pars: number[] | null
           holes: number
           id: string
@@ -112,6 +113,7 @@ export type Database = {
           city?: string | null
           created_at?: string | null
           description?: string | null
+          hole_handicaps?: number[] | null
           hole_pars?: number[] | null
           holes?: number
           id?: string
@@ -130,6 +132,7 @@ export type Database = {
           city?: string | null
           created_at?: string | null
           description?: string | null
+          hole_handicaps?: number[] | null
           hole_pars?: number[] | null
           holes?: number
           id?: string
