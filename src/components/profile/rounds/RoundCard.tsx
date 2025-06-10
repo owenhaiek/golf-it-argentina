@@ -1,4 +1,3 @@
-
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Loader2, Trash2, Calendar, Trophy, Flag, Plus, Minus, Check } from "lucide-react";
@@ -78,7 +77,7 @@ const RoundCard = ({ round, onDeleteRound, isDeleting }: RoundCardProps) => {
         </div>
       </div>
       
-      <div className="p-4 flex-grow flex flex-col relative pb-12">
+      <div className="p-4 flex-grow flex flex-col relative">
         <div>
           <h3 className="font-semibold text-lg text-primary mb-1">{round.golf_courses.name}</h3>
           <div className="flex items-center gap-3 text-sm text-muted-foreground mb-2">
@@ -95,7 +94,7 @@ const RoundCard = ({ round, onDeleteRound, isDeleting }: RoundCardProps) => {
           </div>
         </div>
         
-        <div className="mt-auto pt-3 flex justify-between items-center pr-12">
+        <div className="mt-auto pt-3 flex justify-between items-center">
           <div className="text-sm text-muted-foreground">
             {t("profile", "totalScore")}
           </div>
