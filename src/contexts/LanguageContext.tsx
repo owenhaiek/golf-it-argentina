@@ -61,6 +61,9 @@ const translations: Record<LanguageType, TranslationDictionary> = {
       upcomingReservations: "Upcoming Reservations",
       noReservations: "You don't have any reservations yet.",
       searchCourses: "Search Courses",
+      golfCourses: "Golf Courses",
+      noCoursesFound: "No courses found",
+      resetFilters: "Reset Filters"
     },
     course: {
       holes: "Holes",
@@ -87,6 +90,15 @@ const translations: Record<LanguageType, TranslationDictionary> = {
       noRounds: "You haven't recorded any rounds yet.",
       addRound: "Add Round",
       account: "Account",
+    },
+    addRound: {
+      title: "Add Your Round",
+      selectCourse: "Select Course",
+      saveRound: "Save Round",
+      saving: "Saving...",
+      saveSuccess: "Round saved successfully!",
+      selectCourseError: "Please select a course",
+      loginError: "Please log in to add a round"
     },
     rounds: {
       addRound: "Add Round",
@@ -172,6 +184,9 @@ const translations: Record<LanguageType, TranslationDictionary> = {
       upcomingReservations: "Reservas Próximas",
       noReservations: "Aún no tienes reservaciones.",
       searchCourses: "Buscar Campos",
+      golfCourses: "Campos de Golf",
+      noCoursesFound: "No se encontraron campos",
+      resetFilters: "Restablecer Filtros"
     },
     course: {
       holes: "Hoyos",
@@ -198,6 +213,15 @@ const translations: Record<LanguageType, TranslationDictionary> = {
       noRounds: "Aún no has registrado ninguna ronda.",
       addRound: "Añadir Ronda",
       account: "Cuenta",
+    },
+    addRound: {
+      title: "Agrega tu ronda",
+      selectCourse: "Seleccionar Campo",
+      saveRound: "Guardar Ronda",
+      saving: "Guardando...",
+      saveSuccess: "¡Ronda guardada exitosamente!",
+      selectCourseError: "Por favor selecciona un campo",
+      loginError: "Por favor inicia sesión para agregar una ronda"
     },
     rounds: {
       addRound: "Añadir Ronda",
@@ -285,3 +309,5 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
     </LanguageContext.Provider>
   );
 };
+
+export default LanguageContext;

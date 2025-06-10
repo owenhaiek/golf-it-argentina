@@ -48,7 +48,14 @@ const Home = () => {
     <div className="w-full">
       <div className="px-4 py-4">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">{t("home", "golfCourses")}</h1>
+          <div className="flex items-center gap-3">
+            <img 
+              src="/lovable-uploads/d5e1d304-1574-47d6-b182-17530a340974.png" 
+              alt="Golf Logo"
+              className="w-8 h-8 object-contain"
+            />
+            <h1 className="text-2xl font-bold">GolfIt</h1>
+          </div>
           <div className="flex gap-2">
             <button 
               onClick={() => setIsSearchVisible(!isSearchVisible)} 
