@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -34,7 +33,6 @@ export interface GolfCourseTemplate {
     close: string;
   }>;
   hole_pars?: number[];
-  hole_distances?: number[];
   hole_handicaps?: number[];
 }
 
@@ -67,7 +65,6 @@ export const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGol
       { isOpen: true, open: "08:00", close: "18:00" }
     ],
     hole_pars: Array(18).fill(4),
-    hole_distances: Array(18).fill(400),
     hole_handicaps: Array(18).fill(0),
   });
 
@@ -116,7 +113,6 @@ export const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGol
           { isOpen: true, open: "08:00", close: "18:00" }
         ],
         hole_pars: holePars,
-        hole_distances: initialCourse.hole_distances || Array(initialCourse.holes || 18).fill(400),
         hole_handicaps: initialCourse.hole_handicaps || Array(initialCourse.holes || 18).fill(0),
       });
     }
@@ -138,7 +134,6 @@ export const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGol
       holes: newHoles,
       par: newPar,
       hole_pars: newHolePars,
-      hole_distances: Array(newHoles).fill(400),
       hole_handicaps: Array(newHoles).fill(0),
     });
   };
@@ -164,12 +159,6 @@ export const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGol
       hole_pars: newHolePars,
       par: newPar
     });
-  };
-
-  const handleHoleDistanceChange = (holeIndex: number, distance: string) => {
-    const newDistances = [...(course.hole_distances || [])];
-    newDistances[holeIndex] = parseInt(distance) || 0;
-    setCourse({ ...course, hole_distances: newDistances });
   };
 
   const handleHoleHandicapChange = (holeIndex: number, handicap: string) => {
@@ -205,7 +194,6 @@ export const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGol
         image_gallery: course.image_gallery?.trim() || null,
         opening_hours: course.opening_hours ? JSON.stringify(course.opening_hours) : null,
         hole_pars: course.hole_pars || null,
-        hole_distances: course.hole_distances || null,
         hole_handicaps: course.hole_handicaps || null,
       };
 
@@ -448,7 +436,7 @@ export const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGol
                   <div key={i} className="border rounded-lg p-3 space-y-2">
                     <h4 className="font-medium text-sm">Hoyo {i + 1}</h4>
                     
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-2 gap-2">
                       <div>
                         <label className="block text-xs font-medium mb-1">Par</label>
                         <input
@@ -457,18 +445,6 @@ export const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGol
                           max="5"
                           value={course.hole_pars?.[i] || 4}
                           onChange={(e) => handleHoleParChange(i, e.target.value)}
-                          className="w-full p-1 border rounded text-sm"
-                        />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-xs font-medium mb-1">Distancia</label>
-                        <input
-                          type="number"
-                          min="50"
-                          max="800"
-                          value={course.hole_distances?.[i] || 400}
-                          onChange={(e) => handleHoleDistanceChange(i, e.target.value)}
                           className="w-full p-1 border rounded text-sm"
                         />
                       </div>
