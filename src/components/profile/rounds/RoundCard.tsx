@@ -78,7 +78,7 @@ const RoundCard = ({ round, onDeleteRound, isDeleting }: RoundCardProps) => {
         </div>
       </div>
       
-      <div className="p-4 flex-grow flex flex-col relative">
+      <div className="p-4 flex-grow flex flex-col relative pb-12">
         <div>
           <h3 className="font-semibold text-lg text-primary mb-1">{round.golf_courses.name}</h3>
           <div className="flex items-center gap-3 text-sm text-muted-foreground mb-2">
@@ -95,7 +95,7 @@ const RoundCard = ({ round, onDeleteRound, isDeleting }: RoundCardProps) => {
           </div>
         </div>
         
-        <div className="mt-auto pt-3 flex justify-between items-center">
+        <div className="mt-auto pt-3 flex justify-between items-center pr-12">
           <div className="text-sm text-muted-foreground">
             {t("profile", "totalScore")}
           </div>
@@ -112,13 +112,13 @@ const RoundCard = ({ round, onDeleteRound, isDeleting }: RoundCardProps) => {
           </div>
         </div>
         
-        {/* Delete button positioned in bottom right corner */}
+        {/* Delete button positioned in bottom right corner with proper spacing */}
         <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <AlertDialogTrigger asChild>
             <Button 
               variant="ghost" 
               size="icon"
-              className="absolute bottom-2 right-2 h-8 w-8 rounded-full bg-red-50 hover:bg-red-100 text-red-500 hover:text-red-600 transition-colors shadow-sm"
+              className="absolute bottom-3 right-3 h-8 w-8 rounded-full bg-red-50 hover:bg-red-100 text-red-500 hover:text-red-600 transition-colors shadow-sm z-10"
               disabled={isDeleting}
             >
               {isDeleting ? (
