@@ -67,10 +67,15 @@ export const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGol
     ],
     hole_pars: Array(18).fill(4),
     hole_distances: Array(18).fill(400),
-    hole_handicaps: Array(18).fill(0).map((_, i) => i + 1),
+    hole_handicaps: Array(18).fill(0), // Changed to 0 as default
   });
 
   const { toast } = useToast();
+
+  // Calculate total par from hole pars
+  const calculateTotalPar = (holePars: number[]) => {
+    return holePars.reduce((total, par) => total + (par || 4), 0);
+  };
 
   useEffect(() => {
     if (initialCourse) {
@@ -94,8 +99,12 @@ export const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGol
         }
       }
       
+      const holePars = initialCourse.hole_pars || Array(initialCourse.holes || 18).fill(4);
+      const calculatedPar = calculateTotalPar(holePars);
+      
       setCourse({
         ...initialCourse,
+        par: calculatedPar, // Use calculated par
         opening_hours: openingHours || [
           { isOpen: true, open: "08:00", close: "18:00" },
           { isOpen: true, open: "08:00", close: "18:00" },
@@ -105,9 +114,9 @@ export const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGol
           { isOpen: true, open: "08:00", close: "18:00" },
           { isOpen: true, open: "08:00", close: "18:00" }
         ],
-        hole_pars: initialCourse.hole_pars || Array(initialCourse.holes || 18).fill(4),
+        hole_pars: holePars,
         hole_distances: initialCourse.hole_distances || Array(initialCourse.holes || 18).fill(400),
-        hole_handicaps: initialCourse.hole_handicaps || Array(initialCourse.holes || 18).fill(0).map((_, i) => i + 1),
+        hole_handicaps: initialCourse.hole_handicaps || Array(initialCourse.holes || 18).fill(0), // Changed to 0
       });
     }
   }, [initialCourse]);
@@ -118,12 +127,16 @@ export const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGol
 
   const handleHolesChange = (value: string) => {
     const newHoles = parseInt(value);
+    const newHolePars = Array(newHoles).fill(4);
+    const newPar = calculateTotalPar(newHolePars);
+    
     setCourse({
       ...course,
       holes: newHoles,
-      hole_pars: Array(newHoles).fill(4),
+      par: newPar, // Auto-calculate par
+      hole_pars: newHolePars,
       hole_distances: Array(newHoles).fill(400),
-      hole_handicaps: Array(newHoles).fill(0).map((_, i) => i + 1),
+      hole_handicaps: Array(newHoles).fill(0), // Changed to 0
     });
   };
 
@@ -140,7 +153,15 @@ export const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGol
   const handleHoleParChange = (holeIndex: number, par: string) => {
     const newHolePars = [...(course.hole_pars || [])];
     newHolePars[holeIndex] = parseInt(par) || 4;
-    setCourse({ ...course, hole_pars: newHolePars });
+    
+    // Auto-calculate total par
+    const newPar = calculateTotalPar(newHolePars);
+    
+    setCourse({ 
+      ...course, 
+      hole_pars: newHolePars,
+      par: newPar // Update total par automatically
+    });
   };
 
   const handleHoleDistanceChange = (holeIndex: number, distance: string) => {
@@ -151,7 +172,7 @@ export const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGol
 
   const handleHoleHandicapChange = (holeIndex: number, handicap: string) => {
     const newHandicaps = [...(course.hole_handicaps || [])];
-    newHandicaps[holeIndex] = parseInt(handicap) || 1;
+    newHandicaps[holeIndex] = parseInt(handicap) || 0; // Default to 0 instead of 1
     setCourse({ ...course, hole_handicaps: newHandicaps });
   };
 
@@ -168,12 +189,26 @@ export const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGol
     setIsLoading(true);
 
     try {
+      // Ensure all data is properly formatted
       const courseData = {
-        ...course,
-        opening_hours: JSON.stringify(course.opening_hours),
-        hole_distances: course.hole_distances,
-        hole_handicaps: course.hole_handicaps,
+        name: course.name.trim(),
+        holes: course.holes,
+        par: course.par,
+        address: course.address?.trim() || null,
+        state: course.state?.trim() || null,
+        city: course.city?.trim() || null,
+        description: course.description?.trim() || null,
+        phone: course.phone?.trim() || null,
+        website: course.website?.trim() || null,
+        image_url: course.image_url?.trim() || null,
+        image_gallery: course.image_gallery?.trim() || null,
+        opening_hours: course.opening_hours ? JSON.stringify(course.opening_hours) : null,
+        hole_pars: course.hole_pars || null,
+        hole_distances: course.hole_distances || null,
+        hole_handicaps: course.hole_handicaps || null,
       };
+
+      console.log('Saving course data:', courseData);
 
       if (initialCourse?.id) {
         const { error } = await supabase
@@ -181,7 +216,11 @@ export const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGol
           .update(courseData)
           .eq('id', initialCourse.id);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Update error:', error);
+          throw error;
+        }
+        
         toast({
           title: "Éxito",
           description: "Campo de golf actualizado exitosamente",
@@ -191,7 +230,11 @@ export const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGol
           .from('golf_courses')
           .insert([courseData]);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Insert error:', error);
+          throw error;
+        }
+        
         toast({
           title: "Éxito",
           description: "Campo de golf creado exitosamente",
@@ -205,7 +248,7 @@ export const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGol
       console.error('Error saving course:', error);
       toast({
         title: "Error",
-        description: "Error al guardar el campo de golf",
+        description: `Error al guardar el campo de golf: ${error.message || 'Error desconocido'}`,
         variant: "destructive",
       });
     } finally {
@@ -252,13 +295,14 @@ export const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGol
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="par">Par</Label>
+                  <Label htmlFor="par">Par (Calculado automáticamente)</Label>
                   <Input
                     type="number"
                     id="par"
                     value={course.par}
-                    onChange={(e) => handleInputChange(e, 'par')}
-                    required
+                    readOnly
+                    className="bg-gray-100"
+                    title="El par se calcula automáticamente sumando los pares de cada hoyo"
                   />
                 </div>
               </div>
@@ -442,11 +486,12 @@ export const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGol
                         <label className="block text-xs font-medium mb-1">Handicap</label>
                         <input
                           type="number"
-                          min="1"
+                          min="0"
                           max="18"
-                          value={course.hole_handicaps?.[i] || (i + 1)}
+                          value={course.hole_handicaps?.[i] || 0}
                           onChange={(e) => handleHoleHandicapChange(i, e.target.value)}
                           className="w-full p-1 border rounded text-sm"
+                          placeholder="0"
                         />
                       </div>
                     </div>
@@ -524,3 +569,5 @@ const AdminGolfCourseManager = () => {
 };
 
 export default AdminGolfCourseManager;
+
+}
