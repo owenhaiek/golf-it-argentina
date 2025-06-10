@@ -1,5 +1,5 @@
 
-import { OpeningHours } from "@/lib/supabase";
+import { OpeningHours } from "@/utils/openingHours";
 
 interface FormattedDay {
   day: string;
