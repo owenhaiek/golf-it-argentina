@@ -189,7 +189,7 @@ const ProfileCard = ({
   };
 
   if (profileLoading) {
-    return <Card className="border-0 shadow-md bg-gradient-to-br from-white to-muted h-full">
+    return <Card className="border-0 shadow-md bg-gradient-to-br from-white to-muted dark:bg-black dark:from-black dark:to-gray-900 h-full">
         <CardHeader className="flex items-center justify-center pb-0">
           <div className="w-24 h-24 rounded-full bg-muted animate-pulse" />
         </CardHeader>
@@ -201,13 +201,13 @@ const ProfileCard = ({
       </Card>;
   }
 
-  return <Card className="overflow-hidden border-0 shadow-md bg-gradient-to-br from-white to-muted h-full">
+  return <Card className="overflow-hidden border-0 shadow-md bg-gradient-to-br from-white to-muted dark:bg-black dark:from-black dark:to-gray-900 h-full">
       <CardHeader className="relative pb-0 text-center">
         {!isEditing && <div className="absolute right-4 top-4 flex gap-2">
-            <Button variant="ghost" size="icon" onClick={handleGoToSettings} className="text-primary hover:bg-primary/10 rounded-full">
+            <Button variant="ghost" size="icon" onClick={handleGoToSettings} className="text-black dark:text-white hover:bg-primary/10 rounded-full">
               <Settings className="h-5 w-5" />
             </Button>
-            <Button variant="ghost" size="icon" onClick={handleEditClick} className="text-primary hover:bg-primary/10 rounded-full">
+            <Button variant="ghost" size="icon" onClick={handleEditClick} className="text-black dark:text-white hover:bg-primary/10 rounded-full">
               <Edit3 className="h-5 w-5" />
             </Button>
           </div>}
@@ -244,14 +244,14 @@ const ProfileCard = ({
               <Input id="username" name="username" placeholder={t("profile", "username")} value={formData.username} onChange={handleInputChange} className="border-primary/20 focus:border-primary" />
             </div>
           </form> : <div className="mt-4">
-            <CardTitle className="text-2xl font-bold text-primary">
+            <CardTitle className="text-2xl font-bold text-black dark:text-white">
               {profile?.full_name || t("profile", "anonymous")}
             </CardTitle>
-            {profile?.username && <p className="text-sm text-muted-foreground mb-2">
+            {profile?.username && <p className="text-sm text-black dark:text-white mb-2">
                 @{profile.username}
               </p>}
             <div className="flex items-center justify-center mt-3">
-              <span className="text-sm font-medium inline-flex items-center gap-1 bg-secondary/10 text-primary px-4 py-1.5 rounded-full">
+              <span className="text-sm font-medium inline-flex items-center gap-1 bg-secondary/10 text-black dark:text-white px-4 py-1.5 rounded-full">
                 {profile?.handicap !== null && profile?.handicap !== undefined ? `${t("profile", "handicap")}: ${profile.handicap}` : t("profile", "noHandicapYet")}
               </span>
             </div>

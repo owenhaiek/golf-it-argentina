@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, ReactNode } from "react";
 
 // Define language types
@@ -78,6 +77,7 @@ const translations: Record<LanguageType, TranslationDictionary> = {
       yourRecentRounds: "Your Recent Rounds",
       noRounds: "You haven't recorded any rounds yet.",
       addRound: "Add Round",
+      account: "Account",
     },
     rounds: {
       addRound: "Add Round",
@@ -179,6 +179,7 @@ const translations: Record<LanguageType, TranslationDictionary> = {
       yourRecentRounds: "Tus Rondas Recientes",
       noRounds: "Aún no has registrado ninguna ronda.",
       addRound: "Añadir Ronda",
+      account: "Cuenta",
     },
     rounds: {
       addRound: "Añadir Ronda",

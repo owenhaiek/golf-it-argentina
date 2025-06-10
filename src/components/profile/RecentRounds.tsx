@@ -23,7 +23,7 @@ const RecentRounds = ({
   return (
     <Card className="border-0 shadow-md overflow-hidden h-full">
       <CardHeader className="border-b border-muted/20 pb-4">
-        <CardTitle className="text-xl font-semibold text-primary flex items-center gap-2">
+        <CardTitle className="text-xl font-semibold text-black dark:text-white flex items-center gap-2">
           <Trophy className="h-5 w-5 text-accent" />
           {t("profile", "yourRecentRounds")}
         </CardTitle>
