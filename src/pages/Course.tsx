@@ -259,7 +259,7 @@ const Course = () => {
   };
 
   return (
-    <div className="px-4 md:px-8 lg:px-12 xl:px-16 pb-20">
+    <div className="px-4 md:px-8 lg:px-12 xl:px-16 pb-20 bg-background">
       {/* Back button */}
       <Button variant="ghost" size="sm" onClick={handleBack} className="mb-4">
         <ArrowLeft className="mr-2 h-4 w-4" />
@@ -278,13 +278,13 @@ const Course = () => {
         )}
         
         <div className="absolute bottom-0 left-0 p-4 text-white">
-          <h1 className="text-2xl font-bold">{courseData?.name}</h1>
+          <h1 className="text-2xl font-bold text-white">{courseData?.name}</h1>
           {/* Enhanced address display */}
           {courseData?.city}
           {averageRating > 0 && (
             <div className="flex items-center mt-1">
               <Star className="h-4 w-4 mr-1 text-yellow-400 fill-yellow-400" />
-              <span className="text-sm">{averageRating.toFixed(1)} ({reviews?.length} reviews)</span>
+              <span className="text-sm text-white">{averageRating.toFixed(1)} ({reviews?.length} reviews)</span>
             </div>
           )}
         </div>
@@ -312,9 +312,9 @@ const Course = () => {
       {/* Main content */}
       <div className="space-y-6">
         {/* Course details card with prominently displayed address */}
-        <Card>
+        <Card className="bg-card">
           <CardHeader>
-            <CardTitle className="text-lg">Course Details</CardTitle>
+            <CardTitle className="text-lg text-foreground">Course Details</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Address section - Enhanced */}
@@ -323,8 +323,8 @@ const Course = () => {
                 <div className="flex items-start gap-2">
                   <MapPin className="h-5 w-5 text-primary mt-0.5" />
                   <div>
-                    <h3 className="font-medium">Location</h3>
-                    <p className="text-sm">
+                    <h3 className="font-medium text-foreground">Location</h3>
+                    <p className="text-sm text-muted-foreground">
                       {courseData.address && <span className="block">{courseData.address}</span>}
                       {(courseData.city || courseData.state) && (
                         <span>{[courseData.city, courseData.state].filter(Boolean).join(', ')}</span>
@@ -340,28 +340,28 @@ const Course = () => {
                 <Info className="h-5 w-5 mr-2 text-primary" />
                 <div>
                   <p className="text-sm text-muted-foreground">Type</p>
-                  <p className="font-medium">{courseData?.type || "Standard"}</p>
+                  <p className="font-medium text-foreground">{courseData?.type || "Standard"}</p>
                 </div>
               </div>
               <div className="flex items-center">
                 <Users className="h-5 w-5 mr-2 text-primary" />
                 <div>
                   <p className="text-sm text-muted-foreground">Holes</p>
-                  <p className="font-medium">{courseData?.holes || 18}</p>
+                  <p className="font-medium text-foreground">{courseData?.holes || 18}</p>
                 </div>
               </div>
               <div className="flex items-center">
                 <Calendar className="h-5 w-5 mr-2 text-primary" />
                 <div>
                   <p className="text-sm text-muted-foreground">Established</p>
-                  <p className="font-medium">{courseData?.established_year || "N/A"}</p>
+                  <p className="font-medium text-foreground">{courseData?.established_year || "N/A"}</p>
                 </div>
               </div>
               <div className="flex items-center">
                 <Clock className="h-5 w-5 mr-2 text-primary" />
                 <div>
                   <p className="text-sm text-muted-foreground">Par</p>
-                  <p className="font-medium">{courseData?.par || "72"}</p>
+                  <p className="font-medium text-foreground">{courseData?.par || "72"}</p>
                 </div>
               </div>
             </div>
@@ -369,14 +369,14 @@ const Course = () => {
             {/* Opening hours */}
             {openingHoursData && Array.isArray(openingHoursData) && (
               <div className="mt-4">
-                <h3 className="font-medium mb-2">Opening Hours</h3>
+                <h3 className="font-medium mb-2 text-foreground">Opening Hours</h3>
                 <div className="grid grid-cols-1 gap-1">
                   {openingHoursData.map((day, index) => {
                     const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
                     return (
                       <div key={index} className="flex justify-between text-sm">
-                        <span className="font-medium">{dayNames[index]}</span>
-                        <span>
+                        <span className="font-medium text-foreground">{dayNames[index]}</span>
+                        <span className="text-muted-foreground">
                           {day && day.isOpen ? `${day.open} - ${day.close}` : 'Closed'}
                         </span>
                       </div>
@@ -389,15 +389,15 @@ const Course = () => {
             {/* Description */}
             {courseData?.description && (
               <div className="mt-4">
-                <h3 className="font-medium mb-2">About</h3>
-                <p className="text-sm">{courseData.description}</p>
+                <h3 className="font-medium mb-2 text-foreground">About</h3>
+                <p className="text-sm text-foreground">{courseData.description}</p>
               </div>
             )}
 
             {/* Phone */}
             {courseData?.phone && (
               <div className="mt-4">
-                <h3 className="font-medium mb-2">Contact</h3>
+                <h3 className="font-medium mb-2 text-foreground">Contact</h3>
                 <p className="text-sm flex items-center gap-2">
                   <Phone className="h-4 w-4 text-primary" />
                   <a href={`tel:${courseData.phone}`} className="text-primary underline">
@@ -433,9 +433,9 @@ const Course = () => {
         )}
 
         {/* Reviews - Now with Add Review button */}
-        <Card>
+        <Card className="bg-card">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-lg">Reviews</CardTitle>
+            <CardTitle className="text-lg text-foreground">Reviews</CardTitle>
             {user && !userReview && !showReviewForm && (
               <Button variant="outline" size="sm" onClick={() => setShowReviewForm(true)}>
                 Add Review

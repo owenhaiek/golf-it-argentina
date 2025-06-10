@@ -54,7 +54,7 @@ const CourseCard = ({ course, currentTime }: CourseCardProps) => {
   
   return (
     <Link to={`/course/${course.id}`} className="block w-full">
-      <Card className="overflow-hidden hover:shadow-lg transition-shadow rounded-lg border w-full">
+      <Card className="overflow-hidden hover:shadow-lg transition-shadow rounded-lg border w-full bg-card">
         <CardContent className="p-0 w-full">
           <div className="w-full">
             <CourseImageCarousel 
@@ -64,7 +64,7 @@ const CourseCard = ({ course, currentTime }: CourseCardProps) => {
             />
             
             <div className="p-4 space-y-2 w-full">
-              <h2 className="text-xl font-semibold">{course.name}</h2>
+              <h2 className="text-xl font-semibold text-foreground">{course.name}</h2>
               
               {course.description && <p className="text-muted-foreground line-clamp-2">{course.description}</p>}
               

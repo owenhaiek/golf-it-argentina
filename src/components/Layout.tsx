@@ -1,3 +1,4 @@
+
 import { Outlet, useLocation } from "react-router-dom";
 import { Navigation } from "./Navigation";
 import { useState, useRef, useEffect } from "react";
@@ -100,7 +101,7 @@ export const Layout = () => {
   }, [isPulling, startY, pullDistance, isRefreshing, location.pathname]);
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-white h-screen w-screen overflow-hidden">
+    <div className="fixed inset-0 flex flex-col bg-background h-screen w-screen overflow-hidden">
       {pullDistance > 0 && !isRefreshing && location.pathname !== '/courses-map' && (
         <motion.div 
           className="absolute top-0 left-0 right-0 flex items-center justify-center z-40 pointer-events-none"
@@ -123,7 +124,7 @@ export const Layout = () => {
       
       {isRefreshing && (
         <motion.div 
-          className="fixed inset-0 flex items-center justify-center z-50 bg-white/90 backdrop-blur-md"
+          className="fixed inset-0 flex items-center justify-center z-50 bg-background/90 backdrop-blur-md"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3 }}
@@ -134,7 +135,7 @@ export const Layout = () => {
       
       <main 
         ref={mainRef} 
-        className="flex-1 w-full overflow-y-auto overflow-x-hidden overscroll-behavior-none bg-white"
+        className="flex-1 w-full overflow-y-auto overflow-x-hidden overscroll-behavior-none bg-background"
         style={{
           WebkitOverflowScrolling: 'touch',
           scrollBehavior: 'smooth',
@@ -142,11 +143,10 @@ export const Layout = () => {
           zIndex: 1,
           paddingTop: 'env(safe-area-inset-top, 0px)',
           paddingBottom: '76px',
-          minHeight: '100dvh',
-          backgroundColor: 'white'
+          minHeight: '100dvh'
         }}
       >
-        <div className="w-full mx-auto animate-in min-h-full bg-white">
+        <div className="w-full mx-auto animate-in min-h-full bg-background">
           <Outlet />
         </div>
       </main>
