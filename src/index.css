@@ -265,45 +265,37 @@ html, body {
   --tw-ring-color: var(--primary-custom) !important;
 }
 
-/* Light mode text colors */
-body:not(.dark) .text-foreground {
-  @apply text-gray-900;
+/* Dark mode course card text visibility */
+.dark .course-card {
+  @apply bg-card text-card-foreground;
 }
 
-body:not(.dark) .text-muted-foreground {
-  @apply text-gray-600;
+.dark .course-card h2 {
+  @apply text-card-foreground;
 }
 
-/* Dark mode text colors */
+.dark .course-card p {
+  @apply text-muted-foreground;
+}
+
+.dark .course-card .course-info {
+  @apply text-muted-foreground;
+}
+
+/* Course detail page text visibility in dark mode */
+.dark .course-detail-text {
+  @apply text-card-foreground;
+}
+
+.dark .course-detail-muted {
+  @apply text-muted-foreground;
+}
+
+/* Fix course card text in dark mode */
 .dark .text-foreground {
-  @apply text-white;
+  color: hsl(var(--card-foreground)) !important;
 }
 
 .dark .text-muted-foreground {
-  @apply text-gray-300;
-}
-
-/* Course card styling */
-body:not(.dark) .course-card {
-  @apply bg-white text-gray-900;
-}
-
-.dark .course-card {
-  @apply bg-gray-800 text-white;
-}
-
-body:not(.dark) .course-title {
-  @apply text-gray-900;
-}
-
-.dark .course-title {
-  @apply text-white;
-}
-
-body:not(.dark) .course-subtitle {
-  @apply text-gray-600;
-}
-
-.dark .course-subtitle {
-  @apply text-gray-300;
+  color: hsl(var(--muted-foreground)) !important;
 }
