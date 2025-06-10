@@ -30,7 +30,8 @@ const translations: Record<LanguageType, TranslationDictionary> = {
       done: "Done",
       welcome: "Welcome",
       loading: "Loading...",
-      players: "Players"
+      players: "Players",
+      error: "Error"
     },
     auth: {
       signIn: "Sign In",
@@ -40,9 +41,17 @@ const translations: Record<LanguageType, TranslationDictionary> = {
       forgotPassword: "Forgot Password?",
       alreadyHaveAccount: "Already have an account?",
       dontHaveAccount: "Don't have an account?",
+      haveAccount: "Already have an account? Sign In",
+      createAccount: "Create Account",
       or: "OR",
       continueWithGoogle: "Continue with Google",
       continueWithApple: "Continue with Apple",
+      orContinueWith: "Or continue with",
+      welcomeBack: "Welcome Back",
+      emailSignInDescription: "Enter your email to sign in to your account",
+      emailSignUpDescription: "Enter your email to create your account",
+      checkEmail: "Check your email",
+      confirmationEmailSent: "A confirmation email has been sent"
     },
     home: {
       featuredCourses: "Featured Courses",
@@ -132,7 +141,8 @@ const translations: Record<LanguageType, TranslationDictionary> = {
       done: "Hecho",
       welcome: "Bienvenido",
       loading: "Cargando...",
-      players: "Jugadores"
+      players: "Jugadores",
+      error: "Error"
     },
     auth: {
       signIn: "Iniciar Sesión",
@@ -142,9 +152,17 @@ const translations: Record<LanguageType, TranslationDictionary> = {
       forgotPassword: "¿Olvidaste tu contraseña?",
       alreadyHaveAccount: "¿Ya tienes una cuenta?",
       dontHaveAccount: "¿No tienes una cuenta?",
+      haveAccount: "¿Ya tienes cuenta? Iniciar Sesión",
+      createAccount: "Crear Cuenta",
       or: "O",
       continueWithGoogle: "Continuar con Google",
       continueWithApple: "Continuar con Apple",
+      orContinueWith: "O continuar con",
+      welcomeBack: "Bienvenido de Vuelta",
+      emailSignInDescription: "Ingresa tu correo para iniciar sesión",
+      emailSignUpDescription: "Ingresa tu correo para crear tu cuenta",
+      checkEmail: "Revisa tu correo",
+      confirmationEmailSent: "Se ha enviado un correo de confirmación"
     },
     home: {
       featuredCourses: "Campos Destacados",

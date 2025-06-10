@@ -9,6 +9,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Separator } from "@/components/ui/separator";
 import { FcGoogle } from "react-icons/fc";
+import { AppLogo } from "@/components/ui/AppLogo";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -80,84 +81,94 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-muted">
-      <Card className="w-full max-w-md animate-in">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">
-            {isLogin ? t("auth", "welcomeBack") : t("auth", "createAccount")}
-          </CardTitle>
-          <CardDescription className="text-center">
-            {isLogin
-              ? t("auth", "emailSignInDescription")
-              : t("auth", "emailSignUpDescription")}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Input
-                type="email"
-                placeholder={t("auth", "email")}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-              <Input
-                type="password"
-                placeholder={t("auth", "password")}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+    <div className="min-h-screen flex items-center justify-center p-4 bg-primary">
+      <div className="w-full max-w-md space-y-6">
+        {/* Logo Section */}
+        <div className="flex justify-center mb-8">
+          <AppLogo size="lg" className="drop-shadow-lg" />
+        </div>
+
+        <Card className="animate-in border-0 shadow-xl bg-white">
+          <CardHeader className="space-y-1 text-center pb-6">
+            <CardTitle className="text-2xl font-bold text-gray-900">
+              {isLogin ? t("auth", "welcomeBack") : t("auth", "createAccount")}
+            </CardTitle>
+            <CardDescription className="text-gray-600">
+              {isLogin
+                ? t("auth", "emailSignInDescription")
+                : t("auth", "emailSignUpDescription")}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Input
+                  type="email"
+                  placeholder={t("auth", "email")}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="bg-white border-gray-300 text-gray-900"
+                />
+                <Input
+                  type="password"
+                  placeholder={t("auth", "password")}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="bg-white border-gray-300 text-gray-900"
+                />
+              </div>
+              <Button 
+                type="submit" 
+                className="w-full bg-primary hover:bg-primary/90 text-white"
+                disabled={isLoading}
+              >
+                {isLoading 
+                  ? t("common", "loading") 
+                  : isLogin 
+                    ? t("auth", "signIn") 
+                    : t("auth", "signUp")}
+              </Button>
+            </form>
+            
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <Separator className="w-full" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-white px-2 text-gray-500">
+                  {t("auth", "orContinueWith")}
+                </span>
+              </div>
             </div>
+            
             <Button 
-              type="submit" 
-              className="w-full bg-primary hover:bg-primary-hover"
+              variant="outline" 
+              type="button" 
+              className="w-full border-gray-300 bg-white text-gray-900 hover:bg-gray-50" 
+              onClick={handleGoogleSignIn}
               disabled={isLoading}
             >
-              {isLoading 
-                ? t("common", "loading") 
-                : isLogin 
-                  ? t("auth", "signIn") 
-                  : t("auth", "signUp")}
+              <FcGoogle className="mr-2 h-5 w-5" />
+              Google
             </Button>
-          </form>
-          
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <Separator className="w-full" />
+            
+            <div className="text-center pt-4">
+              <Button
+                variant="default"
+                type="button"
+                onClick={() => setIsLogin(!isLogin)}
+                className="w-full bg-gray-900 hover:bg-gray-800 text-white"
+              >
+                {isLogin 
+                  ? t("auth", "createAccount")
+                  : t("auth", "haveAccount")}
+              </Button>
             </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-muted px-2 text-muted-foreground">
-                {t("auth", "orContinueWith")}
-              </span>
-            </div>
-          </div>
-          
-          <Button 
-            variant="outline" 
-            type="button" 
-            className="w-full" 
-            onClick={handleGoogleSignIn}
-            disabled={isLoading}
-          >
-            <FcGoogle className="mr-2 h-5 w-5" />
-            Google
-          </Button>
-          
-          <div className="text-center text-sm">
-            <button
-              type="button"
-              onClick={() => setIsLogin(!isLogin)}
-              className="text-primary hover:text-primary-hover underline"
-            >
-              {isLogin 
-                ? t("auth", "needAccount") 
-                : t("auth", "haveAccount")}
-            </button>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };

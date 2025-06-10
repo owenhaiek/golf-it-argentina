@@ -29,6 +29,7 @@
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
+    --radius: 0.5rem;
   }
 
   .dark {
@@ -85,6 +86,23 @@
     height: 100%;
     height: 100dvh;
     @apply bg-background;
+  }
+
+  /* Ensure all buttons and inputs have consistent border radius */
+  button, input, select, textarea {
+    border-radius: var(--radius) !important;
+  }
+
+  .rounded-lg {
+    border-radius: var(--radius) !important;
+  }
+
+  .rounded-md {
+    border-radius: calc(var(--radius) - 2px) !important;
+  }
+
+  .rounded-sm {
+    border-radius: calc(var(--radius) - 4px) !important;
   }
 }
 
@@ -219,4 +237,73 @@ html, body {
 
 .profile-text-light {
   @apply text-black;
+}
+
+/* Light mode colors */
+:root {
+  --primary-custom: #1F5020;
+}
+
+.dark {
+  --primary-custom: #1F5020;
+}
+
+/* Override default primary color */
+.bg-primary {
+  background-color: var(--primary-custom) !important;
+}
+
+.text-primary {
+  color: var(--primary-custom) !important;
+}
+
+.border-primary {
+  border-color: var(--primary-custom) !important;
+}
+
+.ring-primary {
+  --tw-ring-color: var(--primary-custom) !important;
+}
+
+/* Light mode text colors */
+body:not(.dark) .text-foreground {
+  @apply text-gray-900;
+}
+
+body:not(.dark) .text-muted-foreground {
+  @apply text-gray-600;
+}
+
+/* Dark mode text colors */
+.dark .text-foreground {
+  @apply text-white;
+}
+
+.dark .text-muted-foreground {
+  @apply text-gray-300;
+}
+
+/* Course card styling */
+body:not(.dark) .course-card {
+  @apply bg-white text-gray-900;
+}
+
+.dark .course-card {
+  @apply bg-gray-800 text-white;
+}
+
+body:not(.dark) .course-title {
+  @apply text-gray-900;
+}
+
+.dark .course-title {
+  @apply text-white;
+}
+
+body:not(.dark) .course-subtitle {
+  @apply text-gray-600;
+}
+
+.dark .course-subtitle {
+  @apply text-gray-300;
 }
