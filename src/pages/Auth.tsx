@@ -83,9 +83,15 @@ const Auth = () => {
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-primary">
       <div className="w-full max-w-md space-y-6">
-        {/* Logo Section */}
+        {/* Logo Section with larger golf flag image */}
         <div className="flex justify-center mb-8">
-          <AppLogo size="lg" className="drop-shadow-lg" />
+          <div className="w-32 h-32 flex items-center justify-center">
+            <img 
+              src="/lovable-uploads/0f8f9459-f386-41e8-a1f0-1466dcce96cc.png" 
+              alt="Golf Flag" 
+              className="w-full h-full object-contain drop-shadow-lg"
+            />
+          </div>
         </div>
 
         <Card className="animate-in border-0 shadow-xl bg-white">

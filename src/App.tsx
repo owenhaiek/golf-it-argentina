@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import { AuthGuard } from "@/components/AuthGuard";
 import { Layout } from "@/components/Layout";
 import Home from "./pages/Home";
 import Profile from "./pages/Profile";
@@ -41,7 +42,11 @@ function App() {
                 <Route path="/course-manager-auth" element={<CourseManagerAuth />} />
                 <Route path="/course-dashboard" element={<CourseDashboard />} />
                 <Route path="/admin-pending-managers" element={<AdminPendingManagers />} />
-                <Route path="/" element={<Layout />}>
+                <Route path="/" element={
+                  <AuthGuard>
+                    <Layout />
+                  </AuthGuard>
+                }>
                   <Route index element={<Home />} />
                   <Route path="profile" element={<Profile />} />
                   <Route path="user/:id" element={<UserProfile />} />
