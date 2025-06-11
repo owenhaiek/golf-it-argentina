@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,11 +12,11 @@ export const useFavorites = () => {
   const [favoriteCourseIds, setFavoriteCourseIds] = useState<string[]>([]);
 
   const { data: favorites, isLoading } = useQuery({
-    queryKey: ['favorites', user?.id],
+    queryKey: ['user_favorites', user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
       const { data, error } = await supabase
-        .from('favorites')
+        .from('user_favorites')
         .select('course_id')
         .eq('user_id', user.id);
 
@@ -38,7 +39,7 @@ export const useFavorites = () => {
     mutationFn: async (courseId: string) => {
       if (!user?.id) throw new Error("User not authenticated");
       const { error } = await supabase
-        .from('favorites')
+        .from('user_favorites')
         .insert([{ user_id: user.id, course_id: courseId }]);
 
       if (error) {
@@ -47,7 +48,7 @@ export const useFavorites = () => {
       }
     },
     onSuccess: (data, courseId) => {
-      queryClient.invalidateQueries({ queryKey: ['favorites', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['user_favorites', user?.id] });
       setFavoriteCourseIds(prev => [...prev, courseId]);
       toast({
         title: "Course added to favorites!",
@@ -67,7 +68,7 @@ export const useFavorites = () => {
     mutationFn: async (courseId: string) => {
       if (!user?.id) throw new Error("User not authenticated");
       const { error } = await supabase
-        .from('favorites')
+        .from('user_favorites')
         .delete()
         .eq('user_id', user.id)
         .eq('course_id', courseId);
@@ -78,7 +79,7 @@ export const useFavorites = () => {
       }
     },
     onSuccess: (data, courseId) => {
-      queryClient.invalidateQueries({ queryKey: ['favorites', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['user_favorites', user?.id] });
       setFavoriteCourseIds(prev => prev.filter(id => id !== courseId));
       toast({
         title: "Course removed from favorites.",

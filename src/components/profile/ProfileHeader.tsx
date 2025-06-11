@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfileQueries } from "@/hooks/useProfileQueries";
@@ -5,14 +6,19 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Edit, User, Trophy, Calendar, Settings, LogOut } from "lucide-react";
+import { Edit, User, Trophy, Calendar, Settings, LogOut, TrendingUp } from "lucide-react";
 import { format } from "date-fns";
 import ProfileEditDialog from "./ProfileEditDialog";
 
 const ProfileHeader = () => {
   const { user } = useAuth();
-  const { profile, totalRounds, averageScore } = useProfileQueries();
+  const { profile, rounds } = useProfileQueries();
   const [open, setOpen] = useState(false);
+
+  const totalRounds = rounds?.length || 0;
+  const averageScore = rounds?.length
+    ? Math.round(rounds.reduce((sum, round) => sum + round.score, 0) / rounds.length)
+    : 0;
 
   return (
     <Card className="bg-card">
@@ -54,7 +60,7 @@ const ProfileHeader = () => {
         <div className="flex items-center gap-2">
           <Trophy className="h-5 w-5 text-muted-foreground" />
           <div>
-            <div className="text-sm font-medium">{totalRounds || 0}</div>
+            <div className="text-sm font-medium">{totalRounds}</div>
             <div className="text-xs text-muted-foreground">Total Rounds</div>
           </div>
         </div>
@@ -62,7 +68,7 @@ const ProfileHeader = () => {
         <div className="flex items-center gap-2">
           <TrendingUp className="h-5 w-5 text-muted-foreground" />
           <div>
-            <div className="text-sm font-medium">{averageScore || 0}</div>
+            <div className="text-sm font-medium">{averageScore}</div>
             <div className="text-xs text-muted-foreground">Avg. Score</div>
           </div>
         </div>

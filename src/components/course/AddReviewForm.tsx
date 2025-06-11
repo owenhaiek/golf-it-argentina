@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
@@ -37,7 +38,7 @@ const AddReviewForm = ({ courseId, onSuccess, onCancel }: AddReviewFormProps) =>
     },
   });
 
-  const { mutate: addReview, isLoading } = useMutation({
+  const { mutate: addReview, isPending } = useMutation({
     mutationFn: async (data: ReviewValues) => {
       if (!user) {
         throw new Error("User not authenticated");
@@ -133,8 +134,8 @@ const AddReviewForm = ({ courseId, onSuccess, onCancel }: AddReviewFormProps) =>
           <Button type="button" variant="outline" onClick={onCancel}>
             Cancel
           </Button>
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? (
+          <Button type="submit" disabled={isPending}>
+            {isPending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Submitting...

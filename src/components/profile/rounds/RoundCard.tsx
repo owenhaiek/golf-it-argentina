@@ -1,3 +1,4 @@
+
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -48,7 +49,7 @@ const RoundCard = ({ round }: RoundCardProps) => {
             ) : vsPar > 0 ? (
               <Badge variant="destructive">+{vsPar}</Badge>
             ) : (
-              <Badge variant="success">{vsPar}</Badge>
+              <Badge variant="outline" className="text-green-600 border-green-600">{vsPar}</Badge>
             )}
           </div>
           <Button

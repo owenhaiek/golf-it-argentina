@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -26,7 +27,13 @@ const RecentRounds = () => {
           *,
           golf_courses (
             name,
-            par
+            par,
+            holes,
+            hole_pars,
+            image_url,
+            address,
+            city,
+            state
           )
         `)
         .eq('user_id', user.id)

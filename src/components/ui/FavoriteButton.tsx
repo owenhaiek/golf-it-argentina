@@ -1,3 +1,4 @@
+
 import { Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useFavorites } from "@/hooks/useFavorites";
@@ -5,14 +6,14 @@ import { cn } from "@/lib/utils";
 
 interface FavoriteButtonProps {
   courseId: string;
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "lg" | "default";
   variant?: "ghost" | "outline" | "default";
   className?: string;
 }
 
 export const FavoriteButton = ({ 
   courseId, 
-  size = "md", 
+  size = "default", 
   variant = "outline",
   className 
 }: FavoriteButtonProps) => {

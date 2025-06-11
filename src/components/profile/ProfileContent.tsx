@@ -1,3 +1,4 @@
+
 import { useProfileQueries } from "@/hooks/useProfileQueries";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -8,7 +9,7 @@ import { useNavigate } from "react-router-dom";
 import RecentRounds from "./RecentRounds";
 
 const ProfileContent = () => {
-  const { profile, rounds, favoriteCourses } = useProfileQueries();
+  const { profile, rounds } = useProfileQueries();
   const navigate = useNavigate();
 
   const totalRoundsPlayed = rounds?.length || 0;
@@ -70,37 +71,6 @@ const ProfileContent = () => {
 
       {/* Recent Rounds */}
       <RecentRounds />
-
-      {/* Favorite Courses */}
-      {favoriteCourses && favoriteCourses.length > 0 && (
-        <Card className="bg-card">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg font-medium">
-              <Star className="h-5 w-5 text-muted-foreground" />
-              Favorite Courses
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {favoriteCourses.map((course) => (
-              <Card key={course.id} className="bg-secondary/30">
-                <CardHeader className="space-x-2">
-                  <CardTitle className="text-sm font-bold">{course.name}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-x-2">
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => navigate(`/course/${course.id}`)}
-                  >
-                    <Eye className="h-4 w-4 mr-2" />
-                    View
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 };
