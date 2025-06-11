@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -161,14 +160,21 @@ const FilterPanel = ({
       >
         <Card className="rounded-t-2xl rounded-b-none border-b-0 shadow-2xl bg-card text-card-foreground w-full h-full">
           <div className="p-6 h-full flex flex-col">
-            {/* Drag indicator */}
+            {/* Larger drag indicator - made bigger and with better touch area */}
             <div 
-              className="w-12 h-1 bg-muted rounded-full mx-auto mb-4 cursor-pointer touch-none"
+              className="w-16 h-2 bg-muted rounded-full mx-auto mb-6 cursor-pointer touch-none relative"
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
               onMouseDown={handleMouseDown}
-            />
+              style={{
+                /* Add padding around the visual indicator for better touch target */
+                padding: '8px 0'
+              }}
+            >
+              {/* Invisible touch area for better mobile interaction */}
+              <div className="absolute inset-0 -top-4 -bottom-4 -left-4 -right-4 touch-none" />
+            </div>
             
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-semibold text-foreground">Filter Courses</h3>
