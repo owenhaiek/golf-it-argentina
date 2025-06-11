@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -64,11 +63,57 @@ const AdminPendingManagers = () => {
 
   const approveMutation = useMutation({
     mutationFn: async (pendingId: string) => {
-      const { data, error } = await supabase
-        .rpc('approve_course_manager', { pending_id: pendingId });
+      console.log("Starting approval process for pending ID:", pendingId);
       
-      if (error) throw error;
-      return data;
+      // Get the pending manager details first
+      const { data: pendingManager, error: fetchError } = await supabase
+        .from('pending_course_managers')
+        .select('*')
+        .eq('id', pendingId)
+        .eq('status', 'pending')
+        .single();
+      
+      if (fetchError || !pendingManager) {
+        console.error("Error fetching pending manager:", fetchError);
+        throw new Error("Pending manager not found");
+      }
+      
+      console.log("Found pending manager:", pendingManager);
+      
+      // Insert into course_managers table directly
+      const { data: newManager, error: insertError } = await supabase
+        .from('course_managers')
+        .insert({
+          course_id: pendingManager.course_id,
+          name: pendingManager.name,
+          email: pendingManager.email,
+          password_hash: pendingManager.password_hash,
+          phone: pendingManager.phone,
+          is_active: true
+        })
+        .select()
+        .single();
+      
+      if (insertError) {
+        console.error("Error creating course manager:", insertError);
+        throw insertError;
+      }
+      
+      console.log("Created course manager:", newManager);
+      
+      // Update the pending record status
+      const { error: updateError } = await supabase
+        .from('pending_course_managers')
+        .update({ status: 'approved' })
+        .eq('id', pendingId);
+      
+      if (updateError) {
+        console.error("Error updating pending status:", updateError);
+        throw updateError;
+      }
+      
+      console.log("Approval process completed successfully");
+      return newManager;
     },
     onSuccess: () => {
       toast({
@@ -78,6 +123,7 @@ const AdminPendingManagers = () => {
       queryClient.invalidateQueries({ queryKey: ['pendingManagers'] });
     },
     onError: (error: any) => {
+      console.error("Approval failed:", error);
       toast({
         variant: "destructive",
         title: "Approval Failed",
