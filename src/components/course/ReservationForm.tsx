@@ -443,3 +443,5 @@ const ReservationForm = ({ courseId, courseName, courseLocation }: ReservationFo
 };
 
 export default ReservationForm;
+
+</edits_to_apply>
