@@ -107,22 +107,22 @@ const ScoreCard = ({ selectedCourseData, scores, onScoreChange }: ScoreCardProps
     const holeImage = getHoleImage(currentPar);
     
     return (
-      <div className="relative w-full h-48 sm:h-56 my-4 rounded-xl overflow-hidden bg-gradient-to-b from-sky-200 to-green-200 dark:from-sky-900 dark:to-green-900">
-        {/* Animated hole image */}
-        <div className="absolute inset-0 flex items-center justify-center p-4">
+      <div className="relative w-full h-64 sm:h-72 my-4 rounded-xl overflow-hidden bg-white border border-gray-200 dark:bg-gray-50 dark:border-gray-300">
+        {/* Larger hole image with white background */}
+        <div className="absolute inset-0 flex items-center justify-center p-6">
           <img 
             src={holeImage}
             alt={`Par ${currentPar} hole layout`}
             className="w-full h-full object-contain transition-all duration-700 ease-in-out transform hover:scale-105"
             style={{
-              filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.2))',
+              filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.15))',
               animation: 'fade-in 0.5s ease-out'
             }}
           />
         </div>
         
         {/* Hole information overlay */}
-        <div className="absolute top-3 left-3 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm px-3 py-2 rounded-lg shadow-lg">
+        <div className="absolute top-3 left-3 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm px-3 py-2 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600">
           <div className="flex items-center gap-2">
             <Flag className="h-4 w-4 text-primary" />
             <span className="font-semibold text-sm">Hole {currentHoleIndex + 1}</span>
@@ -134,12 +134,12 @@ const ScoreCard = ({ selectedCourseData, scores, onScoreChange }: ScoreCardProps
 
         {/* Score status overlay */}
         {currentScore > 0 && (
-          <div className={`absolute top-3 right-3 px-3 py-2 rounded-lg shadow-lg backdrop-blur-sm ${
+          <div className={`absolute top-3 right-3 px-3 py-2 rounded-lg shadow-lg backdrop-blur-sm border ${
             getScoreColor(currentScore, currentPar).includes('green') 
-              ? 'bg-green-100/90 dark:bg-green-900/90' 
+              ? 'bg-green-100/95 dark:bg-green-900/95 border-green-200 dark:border-green-700' 
               : getScoreColor(currentScore, currentPar).includes('blue')
-                ? 'bg-blue-100/90 dark:bg-blue-900/90'
-                : 'bg-red-100/90 dark:bg-red-900/90'
+                ? 'bg-blue-100/95 dark:bg-blue-900/95 border-blue-200 dark:border-blue-700'
+                : 'bg-red-100/95 dark:bg-red-900/95 border-red-200 dark:border-red-700'
           }`}>
             <div className={`text-sm font-semibold ${scoreColor}`}>
               {scoreTerm}
@@ -152,7 +152,7 @@ const ScoreCard = ({ selectedCourseData, scores, onScoreChange }: ScoreCardProps
 
         {/* Animated golf ball indicator */}
         <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
-          <div className="w-3 h-3 bg-white rounded-full shadow-lg animate-bounce" 
+          <div className="w-3 h-3 bg-white rounded-full shadow-lg animate-bounce border border-gray-300" 
                style={{ animationDelay: '0.5s' }} />
         </div>
       </div>
