@@ -1,7 +1,6 @@
 
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
+import { useEffect } from "react";
+import { useProfileQueries } from "@/hooks/useProfileQueries";
 
 interface Profile {
   id: string;

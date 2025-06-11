@@ -1,5 +1,16 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useFavorites } from "@/hooks/useFavorites";
+import { isCurrentlyOpen } from "@/utils/openingHours";
+
+interface FilterOptions {
+  location: string;
+  holes: string;
+  favoritesOnly: boolean;
+  isOpen: boolean;
+}
 
 interface GolfCourse {
   id: string;
@@ -26,7 +37,7 @@ interface GolfCourse {
 
 export const useGolfCourses = (search: string, filters: FilterOptions) => {
   const { user } = useAuth();
-  const { data: favorites = [] } = useFavorites();
+  const { favorites = [] } = useFavorites();
   const currentTime = new Date();
 
   const { data: courses = [], isLoading } = useQuery({
@@ -63,8 +74,7 @@ export const useGolfCourses = (search: string, filters: FilterOptions) => {
 
       // Apply favorites filter
       if (filters.favoritesOnly && user) {
-        const favoriteIds = favorites.map(fav => fav.course_id);
-        filteredCourses = filteredCourses.filter(course => favoriteIds.includes(course.id));
+        filteredCourses = filteredCourses.filter(course => favorites.includes(course.id));
       }
 
       // Apply "currently open" filter

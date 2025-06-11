@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -8,15 +7,34 @@ import { Edit, Trash2, Search, Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
-import { GolfCourseTemplate } from "@/pages/AdminGolfCourseManager";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
+interface GolfCourse {
+  id?: string;
+  name: string;
+  city?: string;
+  state?: string;
+  par?: number;
+  holes: number;
+  description?: string;
+  image_url?: string;
+  address?: string;
+  phone?: string;
+  website?: string;
+  opening_hours?: any;
+  hole_pars?: number[];
+  hole_handicaps?: number[];
+  image_gallery?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
 interface CourseListProps {
-  onEditCourse: (course: GolfCourseTemplate) => void;
+  onEditCourse: (course: GolfCourse) => void;
 }
 
 const CourseList = ({ onEditCourse }: CourseListProps) => {
-  const [courses, setCourses] = useState<GolfCourseTemplate[]>([]);
+  const [courses, setCourses] = useState<GolfCourse[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
@@ -44,7 +62,7 @@ const CourseList = ({ onEditCourse }: CourseListProps) => {
       if (error) throw error;
       
       console.log("Courses fetched:", data);
-      setCourses(data || []);
+      setCourses((data as GolfCourse[]) || []);
       setTotalPages(count ? Math.ceil(count / coursesPerPage) : 1);
     } catch (error: any) {
       console.error("Error fetching courses:", error);

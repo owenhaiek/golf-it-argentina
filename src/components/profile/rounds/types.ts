@@ -1,10 +1,13 @@
 
 export interface Round {
   id: string;
-  score: number;
-  created_at: string;
+  user_id: string;
+  course_id: string;
   date: string;
-  golf_courses: {
+  score: number;
+  notes?: string;
+  created_at: string;
+  golf_courses?: {
     name: string;
     hole_pars: number[];
     holes: number;
@@ -14,12 +17,4 @@ export interface Round {
     state?: string;
     par?: number;
   };
-}
-
-export interface RecentRoundsProps {
-  userId?: string;
-  rounds: Round[] | null;
-  roundsLoading: boolean;
-  onDeleteRound?: (roundId: string) => void;
-  deletingRoundId?: string | null;
 }

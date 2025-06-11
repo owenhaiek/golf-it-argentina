@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { useToast } from "@/hooks/use-toast";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/components/ui/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { Plus, ArrowLeft } from "lucide-react";
 import CourseList from "@/components/admin/CourseList";
 import { useNavigate } from "react-router-dom";
@@ -535,3 +535,5 @@ const AdminGolfCourseManager = () => {
 };
 
 export default AdminGolfCourseManager;
+
+}

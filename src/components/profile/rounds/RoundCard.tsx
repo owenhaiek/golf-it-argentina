@@ -2,7 +2,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, MapPin, Trophy, TrendingUp, TrendingDown, Target, Eye } from "lucide-react";
+import { Calendar, MapPin, Trophy, Eye } from "lucide-react";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { Round } from "./types";
@@ -49,7 +49,7 @@ const RoundCard = ({ round }: RoundCardProps) => {
             ) : vsPar > 0 ? (
               <Badge variant="destructive">+{vsPar}</Badge>
             ) : (
-              <Badge variant="outline" className="text-green-600 border-green-600">{vsPar}</Badge>
+              <Badge variant="success">{vsPar}</Badge>
             )}
           </div>
           <Button
