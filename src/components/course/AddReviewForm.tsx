@@ -1,12 +1,15 @@
-
-import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { Star } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/lib/supabase';
+import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Star, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AddReviewFormProps {
   courseId: string;
@@ -14,135 +17,135 @@ interface AddReviewFormProps {
   onCancel: () => void;
 }
 
-interface FormValues {
-  comment: string;
-}
+const reviewSchema = z.object({
+  rating: z.number().min(1).max(5, { message: "Rating must be between 1 and 5" }),
+  comment: z.string().min(10, { message: "Comment must be at least 10 characters" }),
+});
+
+type ReviewValues = z.infer<typeof reviewSchema>;
 
 const AddReviewForm = ({ courseId, onSuccess, onCancel }: AddReviewFormProps) => {
-  const [rating, setRating] = useState(0);
-  const [hoveredRating, setHoveredRating] = useState(0);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hoveredRating, setHoveredRating] = useState<number | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
 
-  const { register, handleSubmit, formState: { errors } } = useForm<FormValues>();
+  const form = useForm<ReviewValues>({
+    resolver: zodResolver(reviewSchema),
+    defaultValues: {
+      rating: 0,
+      comment: "",
+    },
+  });
 
-  const onSubmit = async (data: FormValues) => {
-    if (!user) {
-      toast({
-        title: "Authentication required",
-        description: "You need to be logged in to submit a review",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (rating === 0) {
-      toast({
-        title: "Rating required",
-        description: "Please select a rating before submitting",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    try {
-      setIsSubmitting(true);
-      
-      console.log('Submitting review:', {
-        courseId,
-        userId: user.id,
-        rating,
-        comment: data.comment
-      });
+  const { mutate: addReview, isLoading } = useMutation({
+    mutationFn: async (data: ReviewValues) => {
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
 
       const { error } = await supabase
-        .from('course_reviews')
+        .from("course_reviews")
         .insert({
           course_id: courseId,
           user_id: user.id,
-          rating,
-          comment: data.comment
+          rating: data.rating,
+          comment: data.comment,
         });
 
       if (error) {
-        console.error('Error submitting review:', error);
         throw error;
       }
-      
-      console.log('Review submitted successfully');
+    },
+    onSuccess: () => {
       toast({
-        title: "Review submitted",
-        description: "Your review has been posted successfully"
+        title: "Review Submitted",
+        description: "Thank you for your feedback!",
       });
       onSuccess();
-    } catch (error) {
-      console.error('Error submitting review:', error);
+    },
+    onError: (error: any) => {
       toast({
+        variant: "destructive",
         title: "Error",
-        description: "Failed to submit your review. Please try again.",
-        variant: "destructive"
+        description: error.message || "Failed to submit review",
       });
-    } finally {
-      setIsSubmitting(false);
-    }
+    },
+  });
+
+  const onSubmit = (data: ReviewValues) => {
+    addReview(data);
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium mb-2">Your Rating</label>
-        <div className="flex gap-1">
-          {[1, 2, 3, 4, 5].map((star) => (
-            <button
-              key={star}
-              type="button"
-              className="focus:outline-none"
-              onClick={() => setRating(star)}
-              onMouseEnter={() => setHoveredRating(star)}
-              onMouseLeave={() => setHoveredRating(0)}
-            >
-              <Star
-                className={`h-8 w-8 transition-all ${
-                  star <= (hoveredRating || rating)
-                    ? "fill-yellow-400 text-yellow-400"
-                    : "text-muted hover:text-yellow-200"
-                }`}
-              />
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div>
-        <label htmlFor="comment" className="block text-sm font-medium mb-2">
-          Your Review
-        </label>
-        <Textarea
-          id="comment"
-          placeholder="Share your experience with this course..."
-          className="min-h-[100px]"
-          {...register("comment", { required: "Please provide some comments" })}
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        {/* Rating */}
+        <FormField
+          control={form.control}
+          name="rating"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Rating</FormLabel>
+              <FormControl>
+                <div className="flex items-center">
+                  {[1, 2, 3, 4, 5].map((index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      className={
+                        `text-yellow-500 hover:text-yellow-600 focus:outline-none ${field.value >= index || hoveredRating >= index ? 'fill-yellow-500' : 'fill-none'}`
+                      }
+                      onMouseEnter={() => setHoveredRating(index)}
+                      onMouseLeave={() => setHoveredRating(null)}
+                      onClick={() => field.onChange(index)}
+                    >
+                      <Star className="h-6 w-6" />
+                    </button>
+                  ))}
+                </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-        {errors.comment && (
-          <p className="text-sm text-destructive mt-1">{errors.comment.message}</p>
-        )}
-      </div>
 
-      <div className="flex justify-end gap-2">
-        <Button 
-          type="button" 
-          variant="outline" 
-          onClick={onCancel}
-          disabled={isSubmitting}
-        >
-          Cancel
-        </Button>
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Submitting..." : "Submit Review"}
-        </Button>
-      </div>
-    </form>
+        {/* Comment */}
+        <FormField
+          control={form.control}
+          name="comment"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Comment</FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder="Write your review here"
+                  className="resize-none"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Actions */}
+        <div className="flex justify-end space-x-2">
+          <Button type="button" variant="outline" onClick={onCancel}>
+            Cancel
+          </Button>
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Submitting...
+              </>
+            ) : (
+              "Submit Review"
+            )}
+          </Button>
+        </div>
+      </form>
+    </Form>
   );
 };
 

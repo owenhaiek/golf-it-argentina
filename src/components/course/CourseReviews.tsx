@@ -1,20 +1,15 @@
-
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Star, MessageSquare } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
-
-interface ReviewProfile {
-  username?: string;
-  avatar_url?: string;
-}
+import { Card, CardContent } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Star, MessageCircle } from "lucide-react";
+import { format } from "date-fns";
 
 export interface Review {
   id: string;
+  course_id: string;
+  user_id: string;
   rating: number;
   comment: string;
   created_at: string;
-  user_id?: string;
-  profiles?: ReviewProfile;
   username?: string;
   avatar_url?: string;
 }
@@ -25,98 +20,51 @@ interface CourseReviewsProps {
   isLoading: boolean;
 }
 
-export const CourseReviews = ({ courseId, reviews, isLoading }: CourseReviewsProps) => {
+const CourseReviews = ({ courseId, reviews, isLoading }: CourseReviewsProps) => {
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-full bg-muted animate-pulse" />
-            <div className="flex-1">
-              <div className="h-4 w-24 bg-muted animate-pulse rounded mb-2" />
-              <div className="h-3 bg-muted animate-pulse rounded mb-1" />
-              <div className="h-3 bg-muted animate-pulse rounded mb-1 w-3/4" />
-            </div>
-          </div>
-        ))}
-      </div>
+      <CardContent className="py-6 flex items-center justify-center">
+        Loading reviews...
+      </CardContent>
     );
   }
 
-  if (reviews.length === 0) {
+  if (!reviews || reviews.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
-        <MessageSquare className="h-12 w-12 mb-2 opacity-20" />
-        <p>No reviews yet for this course</p>
-        <p className="text-sm">Be the first one to leave a review</p>
-      </div>
+      <CardContent className="py-6 text-center text-muted-foreground">
+        No reviews yet. Be the first to add a review!
+      </CardContent>
     );
   }
-
-  // Calculate average rating
-  const averageRating = reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length;
 
   return (
-    <div className="space-y-6">
-      {/* Rating summary */}
-      <div className="flex items-center justify-between p-4 bg-primary/5 rounded-lg">
-        <div className="flex items-baseline gap-2">
-          <span className="text-2xl font-bold">{averageRating.toFixed(1)}</span>
-          <div className="flex">
-            {[...Array(5)].map((_, i) => (
-              <Star 
-                key={i} 
-                size={16} 
-                className={i < Math.round(averageRating) ? "fill-yellow-400 text-yellow-400" : "text-muted"} 
-              />
-            ))}
-          </div>
-        </div>
-        <span className="text-sm text-muted-foreground">
-          {reviews.length} {reviews.length === 1 ? 'review' : 'reviews'}
-        </span>
-      </div>
-
-      {/* All reviews */}
-      <div className="space-y-4">
-        {reviews.map((review) => (
-          <div key={review.id} className="border-b border-border pb-4 last:border-0 last:pb-0">
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                {review.avatar_url ? (
-                  <img 
-                    src={review.avatar_url} 
-                    alt={review.username || "User"} 
-                    className="w-full h-full rounded-full object-cover" 
-                  />
-                ) : (
-                  <span className="text-primary font-bold">
-                    {(review.username || "User")[0].toUpperCase()}
-                  </span>
-                )}
-              </div>
-              <div className="flex-1">
-                <div className="flex justify-between">
-                  <span className="font-medium">{review.username || "Anonymous User"}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {formatDistanceToNow(new Date(review.created_at), { addSuffix: true })}
-                  </span>
+    <div className="space-y-4">
+      {reviews.map((review) => (
+        <Card key={review.id} className="bg-card">
+          <CardContent className="p-4 space-y-2">
+            <div className="flex items-start space-x-4">
+              <Avatar>
+                <AvatarImage src={review.avatar_url || ""} alt={review.username || "User"} />
+                <AvatarFallback>{review.username?.charAt(0).toUpperCase() || "?"}</AvatarFallback>
+              </Avatar>
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm font-medium">{review.username || "Anonymous"}</div>
+                  <div className="flex items-center space-x-1 text-xs text-yellow-500">
+                    <Star className="h-4 w-4" />
+                    <span>{review.rating.toFixed(1)}</span>
+                  </div>
                 </div>
-                <div className="flex my-1">
-                  {[...Array(5)].map((_, i) => (
-                    <Star 
-                      key={i} 
-                      size={14} 
-                      className={i < review.rating ? "fill-yellow-400 text-yellow-400" : "text-muted"} 
-                    />
-                  ))}
+                <p className="text-sm text-muted-foreground">{review.comment}</p>
+                <div className="text-xs text-muted-foreground">
+                  <MessageCircle className="h-3 w-3 inline-block mr-1" />
+                  Posted on {format(new Date(review.created_at), "MMM dd, yyyy")}
                 </div>
-                <p className="text-sm mt-1">{review.comment}</p>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
 };

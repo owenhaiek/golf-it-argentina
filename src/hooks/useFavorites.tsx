@@ -1,133 +1,115 @@
-
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 
 export const useFavorites = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [favoriteCourseIds, setFavoriteCourseIds] = useState<string[]>([]);
 
-  return useQuery({
+  const { data: favorites, isLoading } = useQuery({
     queryKey: ['favorites', user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
-      
       const { data, error } = await supabase
-        .from('user_favorites')
-        .select(`
-          id,
-          course_id,
-          created_at,
-          golf_courses (
-            id,
-            name,
-            city,
-            state,
-            holes,
-            par,
-            image_url,
-            description,
-            address,
-            opening_hours
-          )
-        `)
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+        .from('favorites')
+        .select('course_id')
+        .eq('user_id', user.id);
 
       if (error) {
         console.error("Error fetching favorites:", error);
-        toast({
-          title: "Error loading favorites",
-          description: "Could not load your favorite courses",
-          variant: "destructive"
-        });
         throw error;
       }
-
-      return data || [];
+      return data.map(fav => fav.course_id);
     },
-    enabled: !!user?.id
+    enabled: !!user?.id,
   });
-};
 
-export const useToggleFavorite = () => {
-  const { user } = useAuth();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
+  useEffect(() => {
+    if (favorites) {
+      setFavoriteCourseIds(favorites);
+    }
+  }, [favorites]);
 
-  return useMutation({
-    mutationFn: async ({ courseId, isFavorite }: { courseId: string; isFavorite: boolean }) => {
-      if (!user?.id) {
-        throw new Error("User not authenticated");
-      }
+  const addFavoriteMutation = useMutation({
+    mutationFn: async (courseId: string) => {
+      if (!user?.id) throw new Error("User not authenticated");
+      const { error } = await supabase
+        .from('favorites')
+        .insert([{ user_id: user.id, course_id: courseId }]);
 
-      if (isFavorite) {
-        // Remove from favorites
-        const { error } = await supabase
-          .from('user_favorites')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('course_id', courseId);
-
-        if (error) throw error;
-        return { action: 'removed', courseId };
-      } else {
-        // Add to favorites
-        const { error } = await supabase
-          .from('user_favorites')
-          .insert({
-            user_id: user.id,
-            course_id: courseId
-          });
-
-        if (error) throw error;
-        return { action: 'added', courseId };
+      if (error) {
+        console.error("Error adding favorite:", error);
+        throw error;
       }
     },
-    onSuccess: (data) => {
-      // Invalidate and refetch favorites
+    onSuccess: (data, courseId) => {
       queryClient.invalidateQueries({ queryKey: ['favorites', user?.id] });
-      queryClient.invalidateQueries({ queryKey: ['courseIsFavorite'] });
-      
+      setFavoriteCourseIds(prev => [...prev, courseId]);
       toast({
-        title: data.action === 'added' ? "Added to favorites" : "Removed from favorites",
-        description: data.action === 'added' ? "Course saved to your favorites" : "Course removed from favorites"
+        title: "Course added to favorites!",
       });
     },
-    onError: (error) => {
-      console.error("Error toggling favorite:", error);
+    onError: (error: any, courseId) => {
+      console.error("Error adding favorite:", error);
       toast({
-        title: "Error",
-        description: "Could not update favorites",
-        variant: "destructive"
+        title: "Failed to add course to favorites.",
+        description: error.message,
+        variant: "destructive",
       });
     }
   });
-};
 
-export const useIsFavorite = (courseId: string) => {
-  const { user } = useAuth();
-
-  return useQuery({
-    queryKey: ['courseIsFavorite', courseId, user?.id],
-    queryFn: async () => {
-      if (!user?.id || !courseId) return false;
-      
-      const { data, error } = await supabase
-        .from('user_favorites')
-        .select('id')
+  const removeFavoriteMutation = useMutation({
+    mutationFn: async (courseId: string) => {
+      if (!user?.id) throw new Error("User not authenticated");
+      const { error } = await supabase
+        .from('favorites')
+        .delete()
         .eq('user_id', user.id)
-        .eq('course_id', courseId)
-        .maybeSingle();
+        .eq('course_id', courseId);
 
       if (error) {
-        console.error("Error checking favorite status:", error);
-        return false;
+        console.error("Error removing favorite:", error);
+        throw error;
       }
-
-      return !!data;
     },
-    enabled: !!user?.id && !!courseId
+    onSuccess: (data, courseId) => {
+      queryClient.invalidateQueries({ queryKey: ['favorites', user?.id] });
+      setFavoriteCourseIds(prev => prev.filter(id => id !== courseId));
+      toast({
+        title: "Course removed from favorites.",
+      });
+    },
+    onError: (error: any, courseId) => {
+      console.error("Error removing favorite:", error);
+      toast({
+        title: "Failed to remove course from favorites.",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   });
+
+  const isFavorite = (courseId: string) => favoriteCourseIds.includes(courseId);
+
+  const toggleFavorite = (courseId: string) => {
+    if (isFavorite(courseId)) {
+      removeFavoriteMutation.mutate(courseId);
+    } else {
+      addFavoriteMutation.mutate(courseId);
+    }
+  };
+
+  return {
+    favorites: favoriteCourseIds,
+    isLoading,
+    isFavorite,
+    toggleFavorite,
+    addFavorite: addFavoriteMutation.mutate,
+    removeFavorite: removeFavoriteMutation.mutate,
+  };
 };

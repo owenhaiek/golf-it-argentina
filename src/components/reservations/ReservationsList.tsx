@@ -1,10 +1,9 @@
-
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, Users, MapPin, Loader2 } from "lucide-react";
+import { Calendar, Clock, Users, MapPin, Loader2, Trash2, X } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { 
   AlertDialog,

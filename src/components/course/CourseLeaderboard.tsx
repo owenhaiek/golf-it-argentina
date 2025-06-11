@@ -1,25 +1,27 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Trophy } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Trophy, Medal, Award, User } from "lucide-react";
+import { format } from "date-fns";
 
-interface LeaderboardRound {
+interface Round {
   id: string;
   score: number;
-  created_at: string;
-  profiles: {
-    username?: string;
-    avatar_url?: string;
-  };
+  date: string;
+  user_id: string;
+  profiles?: {
+    username: string | null;
+    avatar_url: string | null;
+  } | null;
 }
 
 interface CourseLeaderboardProps {
-  rounds: LeaderboardRound[];
+  rounds: Round[];
   isLoading: boolean;
-  coursePar?: number | null;
+  coursePar?: number;
 }
 
-export const CourseLeaderboard = ({ rounds, isLoading, coursePar = 72 }: CourseLeaderboardProps) => {
+const CourseLeaderboard = ({ rounds, isLoading, coursePar = 72 }: CourseLeaderboardProps) => {
   if (isLoading) {
     return (
       <Card>
@@ -77,15 +79,15 @@ export const CourseLeaderboard = ({ rounds, isLoading, coursePar = 72 }: CourseL
               <div key={round.id} className="flex items-center gap-3">
                 <div className="w-6 text-center text-muted-foreground">{index + 1}</div>
                 <Avatar className="h-10 w-10">
-                  <AvatarImage src={round.profiles.avatar_url} />
+                  <AvatarImage src={round.profiles?.avatar_url} />
                   <AvatarFallback className="bg-primary/10 text-primary">
-                    {(round.profiles.username || "U")[0].toUpperCase()}
+                    {(round.profiles?.username || "U")[0].toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
-                  <p className="font-medium">{round.profiles.username || "Anonymous"}</p>
+                  <p className="font-medium">{round.profiles?.username || "Anonymous"}</p>
                   <p className="text-xs text-muted-foreground">
-                    {new Date(round.created_at).toLocaleDateString()}
+                    {format(new Date(round.date), "MM/dd/yyyy")}
                   </p>
                 </div>
                 <div className="text-right">

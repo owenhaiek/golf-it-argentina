@@ -1,49 +1,71 @@
-
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Trophy } from "lucide-react";
-import { AnimatePresence } from "framer-motion";
-import { useLanguage } from "@/contexts/LanguageContext";
+import { Badge } from "@/components/ui/badge";
+import { format } from "date-fns";
+import { Trophy, Calendar, MapPin, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 import RoundCard from "./rounds/RoundCard";
-import EmptyRoundsList from "./rounds/EmptyRoundsList";
 import LoadingRoundsList from "./rounds/LoadingRoundsList";
-import { RecentRoundsProps } from "./rounds/types";
+import EmptyRoundsList from "./rounds/EmptyRoundsList";
 
-const RecentRounds = ({
-  rounds,
-  roundsLoading,
-  onDeleteRound,
-  deletingRoundId
-}: RecentRoundsProps) => {
-  const { t } = useLanguage();
+const RecentRounds = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
-  if (roundsLoading) {
+  const { data: rounds, isLoading } = useQuery({
+    queryKey: ['rounds', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+
+      const { data, error } = await supabase
+        .from('rounds')
+        .select(`
+          *,
+          golf_courses (
+            name,
+            par
+          )
+        `)
+        .eq('user_id', user.id)
+        .order('date', { ascending: false })
+        .limit(5);
+
+      if (error) {
+        console.error("Rounds fetch error:", error);
+        throw error;
+      }
+
+      return data || [];
+    },
+    enabled: !!user?.id,
+  });
+
+  if (isLoading) {
     return <LoadingRoundsList />;
   }
 
+  if (!rounds || rounds.length === 0) {
+    return <EmptyRoundsList />;
+  }
+
   return (
-    <Card className="border-0 shadow-md overflow-hidden h-full">
-      <CardHeader className="border-b border-muted/20 pb-4">
-        <CardTitle className="text-xl font-semibold text-black dark:text-white flex items-center gap-2">
-          <Trophy className="h-5 w-5 text-accent" />
-          {t("profile", "yourRecentRounds")}
-        </CardTitle>
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg">Recent Rounds</CardTitle>
       </CardHeader>
-      <CardContent className="pt-4 py-[6px]">
-        {rounds && rounds.length > 0 ? (
-          <div className="grid grid-cols-1 gap-6 max-w-3xl mx-auto">
-            <AnimatePresence>
-              {rounds.map(round => (
-                <RoundCard 
-                  key={round.id} 
-                  round={round}
-                  onDeleteRound={onDeleteRound || (() => {})}
-                  isDeleting={deletingRoundId === round.id}
-                />
-              ))}
-            </AnimatePresence>
+      <CardContent className="p-0">
+        <ul className="divide-y">
+          {rounds.map((round) => (
+            <RoundCard key={round.id} round={round} />
+          ))}
+        </ul>
+        {rounds.length > 5 && (
+          <div className="p-4">
+            <Button variant="link">View All Rounds</Button>
           </div>
-        ) : (
-          <EmptyRoundsList />
         )}
       </CardContent>
     </Card>

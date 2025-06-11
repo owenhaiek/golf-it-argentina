@@ -1,10 +1,18 @@
-
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Cloud, Sun } from "lucide-react";
+import { Cloud, Sun, CloudRain, Wind, Thermometer, Droplets } from "lucide-react";
+
+interface WeatherData {
+  temperature: number;
+  description: string;
+  humidity: number;
+  windSpeed: number;
+  icon: string;
+}
 
 interface CourseWeatherProps {
-  latitude?: number | null;
-  longitude?: number | null;
+  latitude: number;
+  longitude: number;
 }
 
 export const CourseWeather = ({ latitude, longitude }: CourseWeatherProps) => {

@@ -1,16 +1,28 @@
-
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
-import { useFavorites } from "@/hooks/useFavorites";
-import { useAuth } from "@/contexts/AuthContext";
-import { isCurrentlyOpen } from "@/utils/openingHours";
+import { supabase } from "@/integrations/supabase/client";
 
-type FilterOptions = {
-  holes: string;
-  location: string;
-  isOpen: boolean;
-  favoritesOnly: boolean;
-};
+interface GolfCourse {
+  id: string;
+  name: string;
+  city?: string;
+  state?: string;
+  par?: number;
+  holes: number;
+  description?: string;
+  image_url?: string;
+  latitude?: number;
+  longitude?: number;
+  address?: string;
+  phone?: string;
+  website?: string;
+  opening_hours?: any;
+  hole_pars?: number[];
+  hole_distances?: number[];
+  hole_handicaps?: number[];
+  image_gallery?: string;
+  established_year?: number;
+  type?: string;
+}
 
 export const useGolfCourses = (search: string, filters: FilterOptions) => {
   const { user } = useAuth();
