@@ -44,7 +44,7 @@ const CourseManagerAuth = () => {
     try {
       console.log("Attempting course manager login with email:", email);
       
-      // First, let's try to find the manager directly and verify password
+      // First, let's check if there are any active managers with this email
       const { data: managers, error: fetchError } = await supabase
         .from('course_managers')
         .select(`
@@ -58,7 +58,7 @@ const CourseManagerAuth = () => {
             name
           )
         `)
-        .eq('email', email)
+        .eq('email', email.toLowerCase().trim())
         .eq('is_active', true);
 
       if (fetchError) {
@@ -69,21 +69,41 @@ const CourseManagerAuth = () => {
       console.log("Found managers:", managers);
 
       if (!managers || managers.length === 0) {
+        console.log("No managers found with email:", email);
         toast({
           variant: "destructive",
           title: "Authentication Failed",
-          description: "Invalid email or password. Please try again.",
+          description: "No active course manager account found with this email. Please check your email or contact admin for approval.",
         });
         return;
       }
 
       const manager = managers[0];
+      console.log("Manager found:", {
+        id: manager.id,
+        email: manager.email,
+        hasPasswordHash: !!manager.password_hash,
+        passwordHashLength: manager.password_hash?.length
+      });
       
-      // Simple password verification (base64 encoded)
-      const expectedHash = btoa(password);
-      console.log("Password hash comparison:", { provided: expectedHash, stored: manager.password_hash });
+      // Try multiple password verification methods to ensure compatibility
+      const providedPassword = password.trim();
+      const storedHash = manager.password_hash;
       
-      if (manager.password_hash === expectedHash) {
+      console.log("Password verification:", {
+        providedPassword: providedPassword,
+        storedHash: storedHash,
+        base64Match: btoa(providedPassword) === storedHash,
+        directMatch: providedPassword === storedHash
+      });
+      
+      // Check multiple possible hash formats for compatibility
+      const isValidPassword = 
+        btoa(providedPassword) === storedHash || // Base64 encoded
+        providedPassword === storedHash || // Direct match (for any unhashed passwords)
+        btoa(providedPassword.toLowerCase()) === storedHash; // Case insensitive base64
+      
+      if (isValidPassword) {
         const managerData = {
           manager_id: manager.id,
           name: manager.name,
@@ -92,6 +112,7 @@ const CourseManagerAuth = () => {
           course_name: (manager.golf_courses as any)?.name || 'Unknown Course'
         };
         
+        console.log("Login successful, storing manager data:", managerData);
         localStorage.setItem('courseManager', JSON.stringify(managerData));
         
         toast({
@@ -101,10 +122,11 @@ const CourseManagerAuth = () => {
         
         navigate("/course-dashboard");
       } else {
+        console.log("Password verification failed");
         toast({
           variant: "destructive",
           title: "Authentication Failed",
-          description: "Invalid email or password. Please try again.",
+          description: "Invalid password. Please check your password and try again.",
         });
       }
     } catch (error: any) {
@@ -125,16 +147,16 @@ const CourseManagerAuth = () => {
 
     try {
       // Simple password hashing for demo purposes (in production, use proper bcrypt)
-      const passwordHash = btoa(password); // Base64 encoding as simple hash
+      const passwordHash = btoa(password.trim()); // Base64 encoding as simple hash
       
       const { error } = await supabase
         .from('pending_course_managers')
         .insert({
           course_id: selectedCourseId,
-          name,
-          email,
+          name: name.trim(),
+          email: email.toLowerCase().trim(),
           password_hash: passwordHash,
-          phone: phone || null
+          phone: phone?.trim() || null
         });
 
       if (error) throw error;
@@ -152,6 +174,7 @@ const CourseManagerAuth = () => {
       setSelectedCourseId("");
       setIsLogin(true);
     } catch (error: any) {
+      console.error("Registration error:", error);
       toast({
         variant: "destructive",
         title: "Registration Failed",
