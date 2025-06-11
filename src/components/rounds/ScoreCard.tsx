@@ -88,27 +88,72 @@ const ScoreCard = ({ selectedCourseData, scores, onScoreChange }: ScoreCardProps
   const scoreTerm = getScoreTerm(currentScore, currentPar);
   const scoreColor = getScoreColor(currentScore, currentPar);
 
-  // Generate a simple visualization of the hole
-  const renderHoleMap = () => {
+  // Get the appropriate hole image based on par
+  const getHoleImage = (par: number): string => {
+    switch (par) {
+      case 3:
+        return '/lovable-uploads/4e7e6b36-dca0-45f9-a403-d638850c65de.png';
+      case 4:
+        return '/lovable-uploads/733e8b06-d1ae-4521-8b31-d2525ba9bd35.png';
+      case 5:
+        return '/lovable-uploads/b49a1695-b905-4fe8-a00e-25b798e36009.png';
+      default:
+        return '/lovable-uploads/733e8b06-d1ae-4521-8b31-d2525ba9bd35.png'; // Default to par 4
+    }
+  };
+
+  // Enhanced hole visualization with custom images and animations
+  const renderHoleVisualization = () => {
+    const holeImage = getHoleImage(currentPar);
+    
     return (
-      <div className="relative w-full h-20 sm:h-28 my-3 sm:my-4 bg-green-100 dark:bg-green-900/30 rounded-lg overflow-hidden">
-        {/* Tee box */}
-        <div className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-6 sm:h-6 bg-blue-500 rounded-full" />
+      <div className="relative w-full h-48 sm:h-56 my-4 rounded-xl overflow-hidden bg-gradient-to-b from-sky-200 to-green-200 dark:from-sky-900 dark:to-green-900">
+        {/* Animated hole image */}
+        <div className="absolute inset-0 flex items-center justify-center p-4">
+          <img 
+            src={holeImage}
+            alt={`Par ${currentPar} hole layout`}
+            className="w-full h-full object-contain transition-all duration-700 ease-in-out transform hover:scale-105"
+            style={{
+              filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.2))',
+              animation: 'fade-in 0.5s ease-out'
+            }}
+          />
+        </div>
         
-        {/* Fairway */}
-        <div className="absolute left-8 sm:left-12 top-1/2 -translate-y-1/2 h-2 sm:h-3 bg-green-300 dark:bg-green-700"
-             style={{ width: `calc(100% - 64px)` }} />
-        
-        {/* Hole/Flag */}
-        <div className="absolute right-4 sm:right-8 top-1/2 -translate-y-1/2 w-6 h-6 sm:w-8 sm:h-8 bg-green-400 dark:bg-green-600 rounded-full flex items-center justify-center">
-          <div className="w-0.5 sm:w-1 h-6 sm:h-10 bg-black relative">
-            <div className="absolute top-0 right-0 w-3 h-2 sm:w-4 sm:h-3 bg-red-500" />
+        {/* Hole information overlay */}
+        <div className="absolute top-3 left-3 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm px-3 py-2 rounded-lg shadow-lg">
+          <div className="flex items-center gap-2">
+            <Flag className="h-4 w-4 text-primary" />
+            <span className="font-semibold text-sm">Hole {currentHoleIndex + 1}</span>
+          </div>
+          <div className="text-xs text-muted-foreground mt-1">
+            Par {currentPar}
           </div>
         </div>
 
-        {/* Par indicator */}
-        <div className="absolute bottom-1 sm:bottom-2 left-1 sm:left-2 text-xs font-semibold bg-white dark:bg-gray-800 px-2 py-1 rounded-full">
-          Par {currentPar}
+        {/* Score status overlay */}
+        {currentScore > 0 && (
+          <div className={`absolute top-3 right-3 px-3 py-2 rounded-lg shadow-lg backdrop-blur-sm ${
+            getScoreColor(currentScore, currentPar).includes('green') 
+              ? 'bg-green-100/90 dark:bg-green-900/90' 
+              : getScoreColor(currentScore, currentPar).includes('blue')
+                ? 'bg-blue-100/90 dark:bg-blue-900/90'
+                : 'bg-red-100/90 dark:bg-red-900/90'
+          }`}>
+            <div className={`text-sm font-semibold ${scoreColor}`}>
+              {scoreTerm}
+            </div>
+            <div className={`text-xs ${scoreColor}`}>
+              {currentScore - currentPar > 0 ? `+${currentScore - currentPar}` : currentScore - currentPar}
+            </div>
+          </div>
+        )}
+
+        {/* Animated golf ball indicator */}
+        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
+          <div className="w-3 h-3 bg-white rounded-full shadow-lg animate-bounce" 
+               style={{ animationDelay: '0.5s' }} />
         </div>
       </div>
     );
@@ -166,83 +211,78 @@ const ScoreCard = ({ selectedCourseData, scores, onScoreChange }: ScoreCardProps
           </div>
         </div>
 
-        {/* Current Hole Interface */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 sm:p-6">
-          <div className="text-xl sm:text-2xl font-bold text-center mb-3 sm:mb-4 flex items-center justify-center">
-            <h2>Hole {currentHoleIndex + 1}</h2>
-            <span className="ml-2 px-2 sm:px-3 py-1 text-sm rounded-full bg-primary/10 text-primary">
-              Par {currentPar}
-            </span>
-          </div>
+        {/* Enhanced Hole Interface with Custom Images */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+          {/* Beautiful hole visualization */}
+          {renderHoleVisualization()}
           
-          {/* Hole visualization */}
-          {renderHoleMap()}
-          
-          {/* Score input */}
-          <div className="flex flex-col items-center mt-4 sm:mt-6">
-            <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Your Score</h3>
-            
-            <div className="flex items-center justify-center w-full">
-              <Button 
-                variant="ghost"
-                size="icon"
-                onClick={decrementScore}
-                disabled={currentScore === 0}
-                className="h-12 w-12 sm:h-16 sm:w-16 rounded-full"
-              >
-                <MinusCircle className="h-6 w-6 sm:h-8 sm:w-8" />
-              </Button>
+          {/* Score input section */}
+          <div className="p-4 sm:p-6">
+            <div className="flex flex-col items-center">
+              <h3 className="text-base sm:text-lg font-semibold mb-4">Your Score</h3>
               
-              <div className={`text-4xl sm:text-6xl font-bold mx-6 sm:mx-8 min-w-[80px] sm:min-w-[120px] text-center ${scoreColor}`}>
-                {currentScore || '-'}
+              <div className="flex items-center justify-center w-full">
+                <Button 
+                  variant="ghost"
+                  size="icon"
+                  onClick={decrementScore}
+                  disabled={currentScore === 0}
+                  className="h-12 w-12 sm:h-16 sm:w-16 rounded-full"
+                >
+                  <MinusCircle className="h-6 w-6 sm:h-8 sm:w-8" />
+                </Button>
+                
+                <div className={`text-4xl sm:text-6xl font-bold mx-6 sm:mx-8 min-w-[80px] sm:min-w-[120px] text-center ${scoreColor}`}>
+                  {currentScore || '-'}
+                </div>
+                
+                <Button 
+                  variant="ghost"
+                  size="icon"
+                  onClick={incrementScore}
+                  className="h-12 w-12 sm:h-16 sm:w-16 rounded-full"
+                >
+                  <PlusCircle className="h-6 w-6 sm:h-8 sm:w-8" />
+                </Button>
               </div>
               
-              <Button 
-                variant="ghost"
-                size="icon"
-                onClick={incrementScore}
-                className="h-12 w-12 sm:h-16 sm:w-16 rounded-full"
-              >
-                <PlusCircle className="h-6 w-6 sm:h-8 sm:w-8" />
-              </Button>
+              {scoreTerm && (
+                <div className={`mt-2 font-medium text-base sm:text-lg ${scoreColor}`}>
+                  {scoreTerm}
+                </div>
+              )}
             </div>
             
-            {scoreTerm && (
-              <div className={`mt-2 font-medium text-base sm:text-lg ${scoreColor}`}>
-                {scoreTerm}
-              </div>
-            )}
-          </div>
-          
-          {/* Navigation buttons */}
-          <div className="flex gap-3 mt-6 sm:mt-8">
-            <Button
-              variant="outline"
-              onClick={goToPreviousHole}
-              disabled={currentHoleIndex === 0}
-              className="flex-1 h-12 text-sm sm:text-base"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Previous
-            </Button>
-            
-            <Button
-              onClick={goToNextHole}
-              disabled={!currentScore}
-              className="flex-1 h-12 text-sm sm:text-base"
-            >
-              {currentHoleIndex < numberOfHoles - 1 ? (
-                <>
-                  Next
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </>
-              ) : (
-                <>
-                  Complete
-                  <Check className="ml-2 h-4 w-4" />
-                </>
-              )}
-            </Button>
+            {/* Navigation buttons */}
+            <div className="flex gap-3 mt-6 sm:mt-8">
+              <Button
+                variant="outline"
+                onClick={goToPreviousHole}
+                disabled={currentHoleIndex === 0}
+                className="flex-1 h-12 text-sm sm:text-base"
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Previous
+              </Button>
+              
+              <Button
+                onClick={goToNextHole}
+                disabled={!currentScore}
+                className="flex-1 h-12 text-sm sm:text-base"
+              >
+                {currentHoleIndex < numberOfHoles - 1 ? (
+                  <>
+                    Next
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </>
+                ) : (
+                  <>
+                    Complete
+                    <Check className="ml-2 h-4 w-4" />
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         </div>
 
