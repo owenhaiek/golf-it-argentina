@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -37,7 +36,7 @@ const Auth = () => {
           email,
           password,
           options: {
-            emailRedirectTo: window.location.origin,
+            emailRedirectTo: `${window.location.origin}/auth?confirmed=true`,
           },
         });
         if (error) throw error;
@@ -63,7 +62,7 @@ const Auth = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin
+          redirectTo: `${window.location.origin}/auth?provider=google`
         }
       });
       
@@ -79,6 +78,33 @@ const Auth = () => {
       setIsLoading(false);
     }
   };
+
+  // Check for auth confirmation or OAuth callback
+  React.useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const confirmed = urlParams.get('confirmed');
+    const provider = urlParams.get('provider');
+    
+    if (confirmed === 'true') {
+      toast({
+        title: t("auth", "emailConfirmed") || "Email Confirmed",
+        description: t("auth", "accountConfirmed") || "Your account has been confirmed. You can now sign in.",
+      });
+      // Clear the URL parameter
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+    
+    if (provider === 'google') {
+      // Handle Google OAuth callback
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+          navigate("/");
+        }
+      });
+      // Clear the URL parameter
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, [navigate, toast, t]);
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-primary">

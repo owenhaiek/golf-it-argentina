@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
@@ -100,9 +99,13 @@ const ReservationForm = ({ courseId, courseName, courseLocation }: ReservationFo
   // Create reservation mutation
   const reservation = useMutation({
     mutationFn: async (data: FormValues) => {
-      if (!user) throw new Error("User not authenticated");
+      if (!user) {
+        console.error("User not authenticated");
+        throw new Error("User not authenticated");
+      }
       
       console.log("Creating reservation with data:", data);
+      console.log("User ID:", user.id);
       
       const reservationData = {
         course_id: courseId,
@@ -120,12 +123,24 @@ const ReservationForm = ({ courseId, courseName, courseLocation }: ReservationFo
       
       console.log("Inserting reservation data:", reservationData);
       
-      const { error } = await supabase.from("reservations").insert(reservationData);
+      const { data: insertedData, error } = await supabase
+        .from("reservations")
+        .insert(reservationData)
+        .select()
+        .single();
       
       if (error) {
         console.error("Reservation creation error:", error);
+        console.error("Error details:", {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        });
         throw error;
       }
+      
+      console.log("Reservation created successfully:", insertedData);
       return data;
     },
     onSuccess: (data) => {
@@ -146,13 +161,13 @@ const ReservationForm = ({ courseId, courseName, courseLocation }: ReservationFo
         playerList: [{ name: "", license: "" }],
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error("Error creating reservation:", error);
       toast({
         title: language === "en" ? "Error" : "Error",
         description: language === "en" 
-          ? "There was an error submitting your reservation. Please try again." 
-          : "Hubo un error al enviar tu reserva. Por favor intenta de nuevo.",
+          ? `There was an error submitting your reservation: ${error.message}. Please try again.` 
+          : `Hubo un error al enviar tu reserva: ${error.message}. Por favor intenta de nuevo.`,
         variant: "destructive"
       });
     }
