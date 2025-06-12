@@ -77,21 +77,28 @@ export const useGolfCourses = (search: string, filters: FilterOptions) => {
         filteredCourses = filteredCourses.filter(course => favorites.includes(course.id));
       }
 
-      // Apply "currently open" filter
+      // Apply "currently open" filter - this was the missing logic
       if (filters.isOpen) {
         filteredCourses = filteredCourses.filter(course => {
-          if (!course.opening_hours) return false;
+          if (!course.opening_hours) {
+            console.log(`Course ${course.name} has no opening hours`);
+            return false;
+          }
           try {
             const openingHours = typeof course.opening_hours === 'string' 
               ? JSON.parse(course.opening_hours) 
               : course.opening_hours;
-            return isCurrentlyOpen(openingHours);
-          } catch {
+            const isOpen = isCurrentlyOpen(openingHours);
+            console.log(`Course ${course.name} is ${isOpen ? 'open' : 'closed'}`);
+            return isOpen;
+          } catch (error) {
+            console.error(`Error parsing opening hours for ${course.name}:`, error);
             return false;
           }
         });
       }
 
+      console.log(`Filtered courses count: ${filteredCourses.length}`);
       return filteredCourses;
     }
   });
