@@ -35,8 +35,8 @@ const AddReservation = () => {
 
   return (
     <div className="h-screen flex flex-col">
-      <div className="flex-shrink-0 p-4 bg-white border-b">
-        <h1 className="text-2xl font-bold">
+      <div className="flex-shrink-0 p-4 bg-background border-b border-border">
+        <h1 className="text-2xl font-bold text-foreground">
           {language === "en" ? "Book Tee Time" : "Reservar Horario"}
         </h1>
         <p className="text-muted-foreground text-sm mt-1">

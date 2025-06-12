@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
@@ -218,10 +219,10 @@ const ReservationForm = ({ courseId, courseName, courseLocation }: ReservationFo
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-[500px] bg-white h-[90vh] flex flex-col">
+        <DialogContent className="sm:max-w-[500px] bg-background border border-border h-[90vh] flex flex-col">
           <DialogHeader className="flex-shrink-0">
-            <DialogTitle>{language === "en" ? "Book a Tee Time" : "Reservar un Horario"}</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-foreground">{language === "en" ? "Book a Tee Time" : "Reservar un Horario"}</DialogTitle>
+            <DialogDescription className="text-muted-foreground">
               {language === "en" 
                 ? `Reserve your tee time at ${courseName}. Fill in the details below.` 
                 : `Reserva tu horario en ${courseName}. Completa los detalles a continuación.`}
@@ -237,14 +238,14 @@ const ReservationForm = ({ courseId, courseName, courseLocation }: ReservationFo
                     name="date"
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
-                        <FormLabel>{language === "en" ? "Date" : "Fecha"}</FormLabel>
+                        <FormLabel className="text-foreground">{language === "en" ? "Date" : "Fecha"}</FormLabel>
                         <Popover>
                           <PopoverTrigger asChild>
                             <FormControl>
                               <Button
                                 variant="outline"
                                 className={cn(
-                                  "w-full pl-3 text-left font-normal",
+                                  "w-full pl-3 text-left font-normal bg-background border-border hover:bg-accent text-foreground",
                                   !field.value && "text-muted-foreground"
                                 )}
                               >
@@ -257,7 +258,7 @@ const ReservationForm = ({ courseId, courseName, courseLocation }: ReservationFo
                               </Button>
                             </FormControl>
                           </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0 bg-white z-50" align="start">
+                          <PopoverContent className="w-auto p-0 bg-background border border-border z-50" align="start">
                             <Calendar
                               mode="single"
                               selected={field.value}
@@ -270,7 +271,7 @@ const ReservationForm = ({ courseId, courseName, courseLocation }: ReservationFo
                                 return date < today || date > thirtyDaysFromNow;
                               }}
                               initialFocus
-                              className="bg-white pointer-events-auto"
+                              className="bg-background pointer-events-auto"
                             />
                           </PopoverContent>
                         </Popover>
@@ -284,14 +285,14 @@ const ReservationForm = ({ courseId, courseName, courseLocation }: ReservationFo
                     name="time"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{language === "en" ? "Time" : "Hora"}</FormLabel>
+                        <FormLabel className="text-foreground">{language === "en" ? "Time" : "Hora"}</FormLabel>
                         <Popover>
                           <PopoverTrigger asChild>
                             <FormControl>
                               <Button
                                 variant="outline"
                                 className={cn(
-                                  "w-full pl-3 text-left font-normal",
+                                  "w-full pl-3 text-left font-normal bg-background border-border hover:bg-accent text-foreground",
                                   !field.value && "text-muted-foreground"
                                 )}
                               >
@@ -300,8 +301,8 @@ const ReservationForm = ({ courseId, courseName, courseLocation }: ReservationFo
                               </Button>
                             </FormControl>
                           </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0 bg-white z-50" align="start">
-                            <ScrollArea className="h-64 bg-white p-2">
+                          <PopoverContent className="w-auto p-0 bg-background border border-border z-50" align="start">
+                            <ScrollArea className="h-64 bg-background p-2">
                               <div className="grid grid-cols-3 gap-2">
                                 {timeSlots.map((time) => (
                                   <Button
@@ -329,7 +330,7 @@ const ReservationForm = ({ courseId, courseName, courseLocation }: ReservationFo
                   name="players"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{language === "en" ? "Number of players" : "Número de jugadores"}</FormLabel>
+                      <FormLabel className="text-foreground">{language === "en" ? "Number of players" : "Número de jugadores"}</FormLabel>
                       <div className="flex gap-2">
                         {[1, 2, 3, 4].map((num) => (
                           <Button
@@ -354,16 +355,16 @@ const ReservationForm = ({ courseId, courseName, courseLocation }: ReservationFo
                 {/* Player Details */}
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <h4 className="font-medium">
+                    <h4 className="font-medium text-foreground">
                       {language === "en" ? "Player Details" : "Detalles de Jugadores"}
                     </h4>
                   </div>
                   
                   <div className="space-y-4">
                     {playerList.map((player, index) => (
-                      <div key={index} className="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 border rounded-lg bg-gray-50">
+                      <div key={index} className="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 border border-border rounded-lg bg-accent/20">
                         <div className="md:col-span-2">
-                          <h5 className="text-sm font-medium mb-2">
+                          <h5 className="text-sm font-medium mb-2 text-foreground">
                             {language === "en" ? `Player ${index + 1}` : `Jugador ${index + 1}`}
                             {index === 0 && (
                               <span className="text-xs text-muted-foreground ml-2">
@@ -373,7 +374,7 @@ const ReservationForm = ({ courseId, courseName, courseLocation }: ReservationFo
                           </h5>
                         </div>
                         <div>
-                          <FormLabel className="text-xs">
+                          <FormLabel className="text-xs text-foreground">
                             {language === "en" ? "Name" : "Nombre"}
                           </FormLabel>
                           <Input
@@ -384,11 +385,11 @@ const ReservationForm = ({ courseId, courseName, courseLocation }: ReservationFo
                               newList[index].name = e.target.value;
                               form.setValue("playerList", newList);
                             }}
-                            className="mt-1"
+                            className="mt-1 bg-background border-border text-foreground"
                           />
                         </div>
                         <div>
-                          <FormLabel className="text-xs">
+                          <FormLabel className="text-xs text-foreground">
                             {language === "en" ? "License/Matricula" : "Licencia/Matrícula"}
                           </FormLabel>
                           <Input
@@ -399,7 +400,7 @@ const ReservationForm = ({ courseId, courseName, courseLocation }: ReservationFo
                               newList[index].license = e.target.value;
                               form.setValue("playerList", newList);
                             }}
-                            className="mt-1"
+                            className="mt-1 bg-background border-border text-foreground"
                           />
                         </div>
                       </div>
@@ -410,7 +411,7 @@ const ReservationForm = ({ courseId, courseName, courseLocation }: ReservationFo
             </Form>
           </ScrollArea>
 
-          <DialogFooter className="flex-col sm:flex-row gap-2 flex-shrink-0 pt-4 border-t bg-white">
+          <DialogFooter className="flex-col sm:flex-row gap-2 flex-shrink-0 pt-4 border-t border-border bg-background">
             <Button
               type="button"
               variant="outline"

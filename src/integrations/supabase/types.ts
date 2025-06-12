@@ -94,17 +94,21 @@ export type Database = {
           city: string | null
           created_at: string | null
           description: string | null
+          established_year: number | null
           hole_handicaps: number[] | null
           hole_pars: number[] | null
           holes: number
           id: string
           image_gallery: string | null
           image_url: string | null
+          latitude: number | null
+          longitude: number | null
           name: string
           opening_hours: Json | null
           par: number | null
           phone: string | null
           state: string | null
+          type: string | null
           updated_at: string | null
           website: string | null
         }
@@ -113,17 +117,21 @@ export type Database = {
           city?: string | null
           created_at?: string | null
           description?: string | null
+          established_year?: number | null
           hole_handicaps?: number[] | null
           hole_pars?: number[] | null
           holes?: number
           id?: string
           image_gallery?: string | null
           image_url?: string | null
+          latitude?: number | null
+          longitude?: number | null
           name: string
           opening_hours?: Json | null
           par?: number | null
           phone?: string | null
           state?: string | null
+          type?: string | null
           updated_at?: string | null
           website?: string | null
         }
@@ -132,17 +140,21 @@ export type Database = {
           city?: string | null
           created_at?: string | null
           description?: string | null
+          established_year?: number | null
           hole_handicaps?: number[] | null
           hole_pars?: number[] | null
           holes?: number
           id?: string
           image_gallery?: string | null
           image_url?: string | null
+          latitude?: number | null
+          longitude?: number | null
           name?: string
           opening_hours?: Json | null
           par?: number | null
           phone?: string | null
           state?: string | null
+          type?: string | null
           updated_at?: string | null
           website?: string | null
         }
