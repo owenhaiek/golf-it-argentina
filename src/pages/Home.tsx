@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,8 +7,9 @@ import CourseList from "@/components/home/CourseList";
 import SearchBar from "@/components/home/SearchBar";
 import FilterPanel from "@/components/FilterPanel";
 import ActiveFilterBadges from "@/components/home/ActiveFilterBadges";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Filter } from "lucide-react";
+import { MapPin, Calendar, Trophy, Filter, X } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface GolfCourse {
@@ -28,6 +28,7 @@ interface GolfCourse {
   website?: string;
   opening_hours?: any;
   hole_pars?: number[];
+  hole_distances?: number[];
   hole_handicaps?: number[];
   image_gallery?: string;
   established_year?: number;
@@ -37,12 +38,9 @@ interface GolfCourse {
 const Home = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [courses, setCourses] = useState<GolfCourse[]>([]);
-  const [activeFilters, setActiveFilters] = useState({
-    holes: '',
-    location: '',
-    isOpen: false,
-    favoritesOnly: false
-  });
+  const [activeFilters, setActiveFilters] = useState<{ [key: string]: string }>({});
+  const filterPanelRef = useRef<HTMLDivElement>(null);
+  const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
   const { user } = useAuth();
 
   const { data: allCourses, isLoading } = useQuery({
@@ -67,29 +65,22 @@ const Home = () => {
     setSearchTerm(term);
   };
 
-  const handleFilterChange = (filters: typeof activeFilters) => {
-    setActiveFilters(filters);
-  };
-
-  const handleClearFilter = (filterName: string) => {
+  const handleFilterChange = (filterName: string, filterValue: string) => {
     setActiveFilters(prevFilters => ({
       ...prevFilters,
-      [filterName]: filterName === 'holes' ? '' : filterName === 'location' ? '' : false
+      [filterName]: filterValue
     }));
   };
 
-  const handleResetFilters = () => {
-    setActiveFilters({
-      holes: '',
-      location: '',
-      isOpen: false,
-      favoritesOnly: false
-    });
+  const handleClearFilter = (filterName: string) => {
+    const newFilters = { ...activeFilters };
+    delete newFilters[filterName];
+    setActiveFilters(newFilters);
   };
 
   const filteredCourses = courses?.filter(course => {
     const searchTermMatch = course.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const cityMatch = !activeFilters.location || course.city === activeFilters.location;
+    const cityMatch = !activeFilters.city || course.city === activeFilters.city;
     const holesMatch = !activeFilters.holes || course.holes === parseInt(activeFilters.holes);
     return searchTermMatch && cityMatch && holesMatch;
   });
@@ -101,7 +92,7 @@ const Home = () => {
       </div>
       
       <div className="p-4 space-y-4">
-        <SearchBar search={searchTerm} onSearchChange={handleSearch} />
+        <SearchBar onSearch={handleSearch} />
 
         <Collapsible>
           <div className="flex items-center justify-between">
@@ -112,29 +103,19 @@ const Home = () => {
               </Button>
             </CollapsibleTrigger>
             <ActiveFilterBadges
-              filters={activeFilters}
-              onRemoveFilter={handleClearFilter}
+              activeFilters={activeFilters}
+              onClearFilter={handleClearFilter}
             />
           </div>
           <CollapsibleContent className="pl-4 mt-2">
-            <FilterPanel 
-              isOpen={true}
-              onClose={() => {}}
-              onApplyFilters={handleFilterChange}
-              currentFilters={activeFilters}
-            />
+            <FilterPanel onFilterChange={handleFilterChange} />
           </CollapsibleContent>
         </Collapsible>
       </div>
 
       <ScrollArea className="flex-1">
         <div className="p-4 pb-28">
-          <CourseList 
-            courses={filteredCourses} 
-            isLoading={isLoading}
-            currentTime={new Date()}
-            handleResetFilters={handleResetFilters}
-          />
+          <CourseList courses={filteredCourses} isLoading={isLoading} />
         </div>
       </ScrollArea>
     </div>

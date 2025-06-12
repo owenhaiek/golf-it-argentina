@@ -32,7 +32,7 @@ export const Navigation = () => {
       <div className="w-full">
         <nav className="w-full">
           <ul className="flex items-center justify-between max-w-xl mx-auto px-4 py-2">
-            <NavItem to="/home" icon={<Flag className="transition-all duration-200" size={20} />} label={t("common", "home")} />
+            <NavItem to="/" icon={<Flag className="transition-all duration-200" size={20} />} label={t("common", "home")} />
             <NavItem to="/search-users" icon={<UserSearch className="transition-all duration-200" size={20} />} label={t("common", "search")} />
             <li>
               <AddMenu />
