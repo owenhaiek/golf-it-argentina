@@ -37,7 +37,12 @@ interface GolfCourse {
 const Home = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [courses, setCourses] = useState<GolfCourse[]>([]);
-  const [activeFilters, setActiveFilters] = useState<{ [key: string]: string }>({});
+  const [activeFilters, setActiveFilters] = useState({
+    holes: '',
+    location: '',
+    isOpen: false,
+    favoritesOnly: false
+  });
   const { user } = useAuth();
 
   const { data: allCourses, isLoading } = useQuery({
@@ -62,26 +67,29 @@ const Home = () => {
     setSearchTerm(term);
   };
 
-  const handleFilterChange = (filterName: string, filterValue: string) => {
-    setActiveFilters(prevFilters => ({
-      ...prevFilters,
-      [filterName]: filterValue
-    }));
+  const handleFilterChange = (filters: typeof activeFilters) => {
+    setActiveFilters(filters);
   };
 
   const handleClearFilter = (filterName: string) => {
-    const newFilters = { ...activeFilters };
-    delete newFilters[filterName];
-    setActiveFilters(newFilters);
+    setActiveFilters(prevFilters => ({
+      ...prevFilters,
+      [filterName]: filterName === 'holes' ? '' : filterName === 'location' ? '' : false
+    }));
   };
 
   const handleResetFilters = () => {
-    setActiveFilters({});
+    setActiveFilters({
+      holes: '',
+      location: '',
+      isOpen: false,
+      favoritesOnly: false
+    });
   };
 
   const filteredCourses = courses?.filter(course => {
     const searchTermMatch = course.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const cityMatch = !activeFilters.city || course.city === activeFilters.city;
+    const cityMatch = !activeFilters.location || course.city === activeFilters.location;
     const holesMatch = !activeFilters.holes || course.holes === parseInt(activeFilters.holes);
     return searchTermMatch && cityMatch && holesMatch;
   });

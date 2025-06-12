@@ -93,8 +93,8 @@ const CoursesMap = () => {
     <LoadScript googleMapsApiKey={apiKey}>
       <GoogleMap
         mapContainerStyle={mapContainerStyle}
-        defaultCenter={center}
-        defaultZoom={10}
+        center={center}
+        zoom={10}
         options={mapOptions}
       >
         {courses.map((course) => (
