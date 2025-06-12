@@ -214,9 +214,8 @@ const Course = () => {
         <Tabs defaultValue="overview" className="w-full">
           <TabsList className="grid w-full grid-cols-4 md:grid-cols-6">
             <TabsTrigger value="overview">{t("course", "overview")}</TabsTrigger>
-            <TabsTrigger value="details">{t("course", "details")}</TabsTrigger>
+            <TabsTrigger value="holes">Holes</TabsTrigger>
             <TabsTrigger value="photos">{t("course", "photos")}</TabsTrigger>
-            <TabsTrigger value="reviews">{t("course", "reviews")}</TabsTrigger>
             <TabsTrigger value="book" className="hidden md:block">{t("course", "book")}</TabsTrigger>
             <TabsTrigger value="stats" className="hidden md:block">{t("course", "stats")}</TabsTrigger>
           </TabsList>
@@ -296,6 +295,30 @@ const Course = () => {
                 longitude={course.longitude}
               />
 
+              {/* Reviews Section */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>{t("course", "reviews")}</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {user && !showReviewForm && (
+                    <Button onClick={() => setShowReviewForm(true)} className="w-full">
+                      {t("course", "writeReview")}
+                    </Button>
+                  )}
+                  
+                  {showReviewForm && (
+                    <AddReviewForm 
+                      courseId={course.id} 
+                      onSuccess={handleReviewSuccess}
+                      onCancel={() => setShowReviewForm(false)}
+                    />
+                  )}
+                  
+                  <CourseReviews reviews={reviews || []} isLoading={false} />
+                </CardContent>
+              </Card>
+
               {/* Map */}
               {course.latitude && course.longitude && (
                 <Card>
@@ -313,7 +336,7 @@ const Course = () => {
               )}
             </TabsContent>
 
-            <TabsContent value="details" className="space-y-6">
+            <TabsContent value="holes" className="space-y-6">
               <CourseHoleDetails 
                 holePars={course.hole_pars} 
                 holeHandicaps={course.hole_handicaps} 
@@ -321,29 +344,11 @@ const Course = () => {
             </TabsContent>
 
             <TabsContent value="photos" className="space-y-6">
-              <CoursePhotos courseId={course.id} />
-            </TabsContent>
-
-            <TabsContent value="reviews" className="space-y-6">
-              {user && !showReviewForm && (
-                <Card>
-                  <CardContent className="pt-6">
-                    <Button onClick={() => setShowReviewForm(true)} className="w-full">
-                      {t("course", "writeReview")}
-                    </Button>
-                  </CardContent>
-                </Card>
-              )}
-              
-              {showReviewForm && (
-                <AddReviewForm 
-                  courseId={course.id} 
-                  onSuccess={handleReviewSuccess}
-                  onCancel={() => setShowReviewForm(false)}
-                />
-              )}
-              
-              <CourseReviews reviews={reviews || []} isLoading={false} />
+              <CoursePhotos 
+                courseId={course.id} 
+                imageUrl={course.image_url}
+                imageGallery={course.image_gallery}
+              />
             </TabsContent>
 
             <TabsContent value="book" className="space-y-6">
