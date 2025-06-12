@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ArrowLeft, MapPin, Phone, Globe, Calendar, Flag, Trophy, Camera, Clock, Users } from "lucide-react";
+import { ArrowLeft, MapPin, Phone, Globe, Calendar, Flag, Trophy, Clock } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { isCurrentlyOpen, formatOpeningHours } from "@/utils/openingHours";
 import CourseHoleDetails from "@/components/course/CourseHoleDetails";

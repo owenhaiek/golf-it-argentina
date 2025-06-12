@@ -8,10 +8,8 @@ import CourseList from "@/components/home/CourseList";
 import SearchBar from "@/components/home/SearchBar";
 import FilterPanel from "@/components/FilterPanel";
 import ActiveFilterBadges from "@/components/home/ActiveFilterBadges";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MapPin, Calendar, Trophy, Filter, X, Search } from "lucide-react";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Filter, Search } from "lucide-react";
 import { AppLogo } from "@/components/ui/AppLogo";
 
 interface GolfCourse {
@@ -52,7 +50,6 @@ const Home = () => {
     favoritesOnly: false,
     isOpen: false
   });
-  const filterPanelRef = useRef<HTMLDivElement>(null);
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
   const { user } = useAuth();
   const currentTime = new Date();
@@ -126,28 +123,11 @@ const Home = () => {
       
       <div className="p-4 space-y-4">
         <SearchBar search={searchTerm} setSearch={setSearchTerm} isVisible={true} />
-
-        <Collapsible>
-          <div className="flex items-center justify-between">
-            <CollapsibleTrigger asChild>
-              <Button variant="outline" size="lg" className="rounded-full h-20 w-20 p-0">
-                <Filter className="h-8 w-8" />
-              </Button>
-            </CollapsibleTrigger>
-            <ActiveFilterBadges
-              filters={activeFilters}
-              handleResetFilters={handleResetFilters}
-            />
-          </div>
-          <CollapsibleContent className="pl-4 mt-2">
-            <FilterPanel 
-              isOpen={true}
-              onClose={() => {}}
-              onApplyFilters={handleFilterChange}
-              currentFilters={activeFilters}
-            />
-          </CollapsibleContent>
-        </Collapsible>
+        
+        <ActiveFilterBadges
+          filters={activeFilters}
+          handleResetFilters={handleResetFilters}
+        />
       </div>
 
       <ScrollArea className="flex-1">
@@ -160,6 +140,25 @@ const Home = () => {
           />
         </div>
       </ScrollArea>
+
+      {/* Floating Filter Button */}
+      <div className="fixed bottom-20 right-4 z-50">
+        <Button 
+          onClick={() => setIsFilterPanelOpen(true)}
+          className="rounded-full h-14 w-14 shadow-lg"
+          size="icon"
+        >
+          <Filter className="h-6 w-6" />
+        </Button>
+      </div>
+
+      {/* Filter Panel */}
+      <FilterPanel 
+        isOpen={isFilterPanelOpen}
+        onClose={() => setIsFilterPanelOpen(false)}
+        onApplyFilters={handleFilterChange}
+        currentFilters={activeFilters}
+      />
     </div>
   );
 };

@@ -3,6 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useProfileData } from "@/hooks/useProfileData";
 import ProfileCard from "@/components/profile/ProfileCard";
+import RecentRounds from "@/components/profile/RecentRounds";
 
 const Profile = () => {
   const { user, loading } = useAuth();
@@ -39,6 +40,7 @@ const Profile = () => {
             profile={profile || {}} 
             profileLoading={profileLoading} 
           />
+          <RecentRounds />
         </div>
       </ScrollArea>
     </div>
