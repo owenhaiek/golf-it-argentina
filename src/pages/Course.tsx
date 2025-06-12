@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ArrowLeft, MapPin, Phone, Globe, Calendar, Flag, Trophy, Clock, ChevronDown } from "lucide-react";
+import { ArrowLeft, MapPin, Phone, Globe, Calendar, Flag, Trophy, Clock, ChevronDown, CalendarDays } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { isCurrentlyOpen, formatOpeningHours, getDayName, getCurrentDayIndex } from "@/utils/openingHours";
 import CourseHoleDetails from "@/components/course/CourseHoleDetails";
@@ -178,6 +178,11 @@ const Course = () => {
     }
   };
 
+  const handleBookTeeTime = () => {
+    // Navigate to reservation page or show booking modal
+    navigate(`/add-reservation?courseId=${course.id}`);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
@@ -200,11 +205,7 @@ const Course = () => {
           </div>
           
           <div className="text-white">
-            <h1 className="text-3xl md:text-4xl font-bold mb-2">{course.name}</h1>
-            <div className="flex items-center gap-2 text-lg mb-2">
-              <MapPin className="h-5 w-5" />
-              <span>{[course.address, course.city, course.state].filter(Boolean).join(', ')}</span>
-            </div>
+            <h1 className="text-3xl md:text-4xl font-bold mb-4">{course.name}</h1>
             <div className="flex items-center gap-4">
               <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
                 <Flag className="mr-1 h-4 w-4" />
@@ -228,16 +229,28 @@ const Course = () => {
       {/* Content Tabs */}
       <div className="container mx-auto px-4 py-6 pb-28">
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 md:grid-cols-6">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="overview">{t("course", "overview")}</TabsTrigger>
             <TabsTrigger value="holes">Holes</TabsTrigger>
             <TabsTrigger value="photos">{t("course", "photos")}</TabsTrigger>
-            <TabsTrigger value="book" className="hidden md:block">{t("course", "book")}</TabsTrigger>
-            <TabsTrigger value="stats" className="hidden md:block">{t("course", "stats")}</TabsTrigger>
           </TabsList>
 
           <ScrollArea className="h-[calc(100vh-300px)] mt-6">
             <TabsContent value="overview" className="space-y-6">
+              {/* Book Tee Time Button */}
+              <Card>
+                <CardContent className="p-4">
+                  <Button 
+                    onClick={handleBookTeeTime}
+                    className="w-full"
+                    size="lg"
+                  >
+                    <CalendarDays className="mr-2 h-5 w-5" />
+                    {t("course", "bookTeeTime") || "Book Tee Time"}
+                  </Button>
+                </CardContent>
+              </Card>
+
               {/* Course Description */}
               {course.description && (
                 <Card>
@@ -376,6 +389,12 @@ const Course = () => {
                 </CardContent>
               </Card>
 
+              {/* Course Stats */}
+              <CourseStats rounds={rounds || []} isLoading={false} coursePar={course.par} />
+
+              {/* Course Leaderboard */}
+              <CourseLeaderboard rounds={rounds || []} isLoading={false} coursePar={course.par} />
+
               {/* Map */}
               {course.latitude && course.longitude && (
                 <Card>
@@ -406,15 +425,6 @@ const Course = () => {
                 imageUrl={course.image_url}
                 imageGallery={course.image_gallery}
               />
-            </TabsContent>
-
-            <TabsContent value="book" className="space-y-6">
-              <ReservationCalendar reservations={reservations || []} />
-            </TabsContent>
-
-            <TabsContent value="stats" className="space-y-6">
-              <CourseStats rounds={rounds || []} isLoading={false} />
-              <CourseLeaderboard rounds={rounds || []} isLoading={false} />
             </TabsContent>
           </ScrollArea>
         </Tabs>
