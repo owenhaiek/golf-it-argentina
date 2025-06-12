@@ -8,9 +8,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ArrowLeft, MapPin, Phone, Globe, Calendar, Flag, Trophy, Clock } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { ArrowLeft, MapPin, Phone, Globe, Calendar, Flag, Trophy, Clock, ChevronDown } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { isCurrentlyOpen, formatOpeningHours } from "@/utils/openingHours";
+import { isCurrentlyOpen, formatOpeningHours, getDayName, getCurrentDayIndex } from "@/utils/openingHours";
 import CourseHoleDetails from "@/components/course/CourseHoleDetails";
 import CourseMap from "@/components/course/CourseMap";
 import CoursePhotos from "@/components/course/CoursePhotos";
@@ -28,6 +29,7 @@ const Course = () => {
   const { user } = useAuth();
   const { t } = useLanguage();
   const [showReviewForm, setShowReviewForm] = useState(false);
+  const [isHoursOpen, setIsHoursOpen] = useState(false);
 
   const { data: course, isLoading } = useQuery({
     queryKey: ['course', id],
@@ -162,6 +164,20 @@ const Course = () => {
     refetchReviews();
   };
 
+  const handlePhoneClick = () => {
+    if (course.phone) {
+      window.open(`tel:${course.phone}`, '_self');
+    }
+  };
+
+  const handleLocationClick = () => {
+    const address = [course.address, course.city, course.state].filter(Boolean).join(', ');
+    if (address) {
+      const encodedAddress = encodeURIComponent(address);
+      window.open(`https://maps.google.com/maps?q=${encodedAddress}`, '_blank');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
@@ -242,11 +258,14 @@ const Course = () => {
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {course.phone && (
-                      <div className="flex items-center gap-3">
+                      <div 
+                        className="flex items-center gap-3 cursor-pointer hover:bg-muted/50 p-2 rounded-lg transition-colors"
+                        onClick={handlePhoneClick}
+                      >
                         <Phone className="h-5 w-5 text-muted-foreground" />
                         <div>
                           <p className="font-medium">{t("course", "phone")}</p>
-                          <p className="text-muted-foreground">{course.phone}</p>
+                          <p className="text-muted-foreground text-primary hover:underline">{course.phone}</p>
                         </div>
                       </div>
                     )}
@@ -270,9 +289,31 @@ const Course = () => {
                     
                     <div className="flex items-center gap-3">
                       <Clock className="h-5 w-5 text-muted-foreground" />
-                      <div>
+                      <div className="flex-1">
                         <p className="font-medium">{t("course", "hours")}</p>
-                        <p className="text-muted-foreground">{formattedHours}</p>
+                        <Collapsible open={isHoursOpen} onOpenChange={setIsHoursOpen}>
+                          <CollapsibleTrigger className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
+                            <span>{formattedHours}</span>
+                            <ChevronDown className={`h-4 w-4 transition-transform ${isHoursOpen ? 'rotate-180' : ''}`} />
+                          </CollapsibleTrigger>
+                          <CollapsibleContent className="mt-2">
+                            {openingHoursData && Array.isArray(openingHoursData) && (
+                              <div className="space-y-1 text-sm">
+                                {openingHoursData.map((day, index) => {
+                                  const isToday = index === getCurrentDayIndex();
+                                  return (
+                                    <div key={index} className={`flex justify-between ${isToday ? 'font-medium text-primary' : 'text-muted-foreground'}`}>
+                                      <span>{getDayName(index)}</span>
+                                      <span>
+                                        {day && day.isOpen ? `${day.open} - ${day.close}` : 'Closed'}
+                                      </span>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </CollapsibleContent>
+                        </Collapsible>
                       </div>
                     </div>
                     
@@ -286,6 +327,22 @@ const Course = () => {
                       </div>
                     )}
                   </div>
+                  
+                  {/* Location */}
+                  {(course.address || course.city || course.state) && (
+                    <div 
+                      className="flex items-center gap-3 cursor-pointer hover:bg-muted/50 p-2 rounded-lg transition-colors"
+                      onClick={handleLocationClick}
+                    >
+                      <MapPin className="h-5 w-5 text-muted-foreground" />
+                      <div>
+                        <p className="font-medium">Location</p>
+                        <p className="text-muted-foreground text-primary hover:underline">
+                          {[course.address, course.city, course.state].filter(Boolean).join(', ')}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
