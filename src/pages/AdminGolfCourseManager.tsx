@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,6 +27,10 @@ export interface GolfCourseTemplate {
   website?: string;
   image_url?: string;
   image_gallery?: string;
+  latitude?: number;
+  longitude?: number;
+  type?: string;
+  established_year?: number;
   opening_hours?: Array<{
     isOpen: boolean;
     open: string;
@@ -35,6 +38,7 @@ export interface GolfCourseTemplate {
   }>;
   hole_pars?: number[];
   hole_handicaps?: number[];
+  hole_distances?: number[];
 }
 
 interface AdminGolfCourseFormProps {
@@ -56,6 +60,10 @@ export const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGol
     website: "",
     image_url: "",
     image_gallery: "",
+    latitude: undefined,
+    longitude: undefined,
+    type: "Standard",
+    established_year: undefined,
     opening_hours: [
       { isOpen: true, open: "08:00", close: "18:00" },
       { isOpen: true, open: "08:00", close: "18:00" },
@@ -67,6 +75,7 @@ export const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGol
     ],
     hole_pars: Array(18).fill(4),
     hole_handicaps: Array(18).fill(0),
+    hole_distances: Array(18).fill(400),
   });
 
   const { toast } = useToast();
@@ -115,6 +124,7 @@ export const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGol
         ],
         hole_pars: holePars,
         hole_handicaps: initialCourse.hole_handicaps || Array(initialCourse.holes || 18).fill(0),
+        hole_distances: initialCourse.hole_distances || Array(initialCourse.holes || 18).fill(400),
       });
     }
   }, [initialCourse]);
@@ -136,6 +146,7 @@ export const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGol
       par: newPar,
       hole_pars: newHolePars,
       hole_handicaps: Array(newHoles).fill(0),
+      hole_distances: Array(newHoles).fill(400),
     });
   };
 
@@ -168,6 +179,12 @@ export const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGol
     setCourse({ ...course, hole_handicaps: newHandicaps });
   };
 
+  const handleHoleDistanceChange = (holeIndex: number, distance: string) => {
+    const newDistances = [...(course.hole_distances || [])];
+    newDistances[holeIndex] = parseInt(distance) || 400;
+    setCourse({ ...course, hole_distances: newDistances });
+  };
+
   const handleImageUploaded = (url: string) => {
     setCourse({ ...course, image_url: url });
   };
@@ -193,9 +210,14 @@ export const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGol
         website: course.website?.trim() || null,
         image_url: course.image_url?.trim() || null,
         image_gallery: course.image_gallery?.trim() || null,
+        latitude: course.latitude || null,
+        longitude: course.longitude || null,
+        type: course.type?.trim() || null,
+        established_year: course.established_year || null,
         opening_hours: course.opening_hours ? JSON.stringify(course.opening_hours) : null,
         hole_pars: course.hole_pars || null,
         hole_handicaps: course.hole_handicaps || null,
+        hole_distances: course.hole_distances || null,
       };
 
       console.log('Saving course data:', courseData);
@@ -293,6 +315,29 @@ export const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGol
                 </div>
               </div>
 
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="type">Tipo de Campo</Label>
+                  <Input
+                    type="text"
+                    id="type"
+                    value={course.type || ""}
+                    onChange={(e) => handleInputChange(e, 'type')}
+                    placeholder="Standard"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="established_year">Año de Fundación</Label>
+                  <Input
+                    type="number"
+                    id="established_year"
+                    value={course.established_year || ""}
+                    onChange={(e) => handleInputChange(e, 'established_year')}
+                    placeholder="2000"
+                  />
+                </div>
+              </div>
+
               <div>
                 <Label htmlFor="description">Descripción</Label>
                 <Textarea
@@ -336,6 +381,30 @@ export const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGol
                     id="state"
                     value={course.state || ""}
                     onChange={(e) => handleInputChange(e, 'state')}
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="latitude">Latitud</Label>
+                  <Input
+                    type="number"
+                    step="any"
+                    id="latitude"
+                    value={course.latitude || ""}
+                    onChange={(e) => handleInputChange(e, 'latitude')}
+                    placeholder="-34.6037"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="longitude">Longitud</Label>
+                  <Input
+                    type="number"
+                    step="any"
+                    id="longitude"
+                    value={course.longitude || ""}
+                    onChange={(e) => handleInputChange(e, 'longitude')}
+                    placeholder="-58.3816"
                   />
                 </div>
               </div>
@@ -437,7 +506,7 @@ export const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGol
                   <div key={i} className="border rounded-lg p-3 space-y-2">
                     <h4 className="font-medium text-sm">Hoyo {i + 1}</h4>
                     
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-3 gap-2">
                       <div>
                         <label className="block text-xs font-medium mb-1">Par</label>
                         <input
@@ -460,6 +529,19 @@ export const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGol
                           onChange={(e) => handleHoleHandicapChange(i, e.target.value)}
                           className="w-full p-1 border rounded text-sm"
                           placeholder="0"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-xs font-medium mb-1">Distancia</label>
+                        <input
+                          type="number"
+                          min="50"
+                          max="800"
+                          value={course.hole_distances?.[i] || 400}
+                          onChange={(e) => handleHoleDistanceChange(i, e.target.value)}
+                          className="w-full p-1 border rounded text-sm"
+                          placeholder="400"
                         />
                       </div>
                     </div>

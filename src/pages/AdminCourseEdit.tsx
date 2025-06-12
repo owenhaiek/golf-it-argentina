@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,7 +26,30 @@ const AdminCourseEdit = () => {
           .single();
 
         if (error) throw error;
-        setCourse(data);
+        
+        // Parse opening_hours if it's a string
+        let parsedOpeningHours = data.opening_hours;
+        if (typeof data.opening_hours === 'string') {
+          try {
+            parsedOpeningHours = JSON.parse(data.opening_hours);
+          } catch (e) {
+            console.error('Error parsing opening hours:', e);
+            parsedOpeningHours = [
+              { isOpen: true, open: "08:00", close: "18:00" },
+              { isOpen: true, open: "08:00", close: "18:00" },
+              { isOpen: true, open: "08:00", close: "18:00" },
+              { isOpen: true, open: "08:00", close: "18:00" },
+              { isOpen: true, open: "08:00", close: "18:00" },
+              { isOpen: true, open: "08:00", close: "18:00" },
+              { isOpen: true, open: "08:00", close: "18:00" }
+            ];
+          }
+        }
+        
+        setCourse({
+          ...data,
+          opening_hours: parsedOpeningHours
+        } as GolfCourseTemplate);
       } catch (error) {
         console.error('Error fetching course:', error);
         toast({
