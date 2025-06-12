@@ -36,10 +36,22 @@ interface GolfCourse {
   type?: string;
 }
 
+type FilterOptions = {
+  holes: string;
+  location: string;
+  isOpen: boolean;
+  favoritesOnly: boolean;
+};
+
 const Home = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [courses, setCourses] = useState<GolfCourse[]>([]);
-  const [activeFilters, setActiveFilters] = useState<{ [key: string]: string }>({});
+  const [activeFilters, setActiveFilters] = useState<FilterOptions>({
+    holes: "",
+    location: "",
+    isOpen: false,
+    favoritesOnly: false
+  });
   const filterPanelRef = useRef<HTMLDivElement>(null);
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
   const { user } = useAuth();
@@ -67,27 +79,32 @@ const Home = () => {
     setSearchTerm(term);
   };
 
-  const handleFilterChange = (filterName: string, filterValue: string) => {
-    setActiveFilters(prevFilters => ({
-      ...prevFilters,
-      [filterName]: filterValue
-    }));
+  const handleFilterChange = (filters: FilterOptions) => {
+    setActiveFilters(filters);
   };
 
   const handleClearFilter = (filterName: string) => {
     const newFilters = { ...activeFilters };
-    delete newFilters[filterName];
+    if (filterName === 'holes') newFilters.holes = "";
+    if (filterName === 'location') newFilters.location = "";
+    if (filterName === 'isOpen') newFilters.isOpen = false;
+    if (filterName === 'favoritesOnly') newFilters.favoritesOnly = false;
     setActiveFilters(newFilters);
   };
 
   const handleResetFilters = () => {
-    setActiveFilters({});
+    setActiveFilters({
+      holes: "",
+      location: "",
+      isOpen: false,
+      favoritesOnly: false
+    });
     setSearchTerm("");
   };
 
   const filteredCourses = courses?.filter(course => {
     const searchTermMatch = course.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const cityMatch = !activeFilters.city || course.city === activeFilters.city;
+    const cityMatch = !activeFilters.location || course.city === activeFilters.location;
     const holesMatch = !activeFilters.holes || course.holes === parseInt(activeFilters.holes);
     return searchTermMatch && cityMatch && holesMatch;
   });
@@ -111,7 +128,7 @@ const Home = () => {
             </CollapsibleTrigger>
             <ActiveFilterBadges
               filters={activeFilters}
-              onRemoveFilter={handleClearFilter}
+              handleResetFilters={handleResetFilters}
             />
           </div>
           <CollapsibleContent className="pl-4 mt-2">

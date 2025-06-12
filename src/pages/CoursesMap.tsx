@@ -1,10 +1,11 @@
+
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import CourseInfoTab from "@/components/map/CourseInfoTab";
-import CourseMarker from "@/components/map/CourseMarker";
+import { CourseInfoTab } from "@/components/map/CourseInfoTab";
+import { CourseMarker } from "@/components/map/CourseMarker";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MapPin, List, Loader2 } from "lucide-react";
 

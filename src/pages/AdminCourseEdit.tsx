@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,7 +26,16 @@ const AdminCourseEdit = () => {
           .single();
 
         if (error) throw error;
-        setCourse(data);
+        
+        // Parse opening_hours if it's a string
+        const parsedCourse = {
+          ...data,
+          opening_hours: typeof data.opening_hours === 'string' 
+            ? JSON.parse(data.opening_hours) 
+            : data.opening_hours || []
+        };
+        
+        setCourse(parsedCourse as GolfCourseTemplate);
       } catch (error) {
         console.error('Error fetching course:', error);
         toast({

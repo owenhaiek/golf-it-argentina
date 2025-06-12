@@ -3,23 +3,18 @@ import { Input } from "@/components/ui/input";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface SearchBarProps {
-  search: string;
-  setSearch: (value: string) => void;
-  isVisible: boolean;
+  onSearch: (value: string) => void;
 }
 
-const SearchBar = ({ search, setSearch, isVisible }: SearchBarProps) => {
+const SearchBar = ({ onSearch }: SearchBarProps) => {
   const { t } = useLanguage();
   
-  if (!isVisible) return null;
-  
   return (
-    <div className="animate-in slide-in-from-top duration-300 px-4">
+    <div className="w-full">
       <Input 
         type="text" 
         placeholder={t("common", "search")} 
-        value={search} 
-        onChange={e => setSearch(e.target.value)} 
+        onChange={e => onSearch(e.target.value)} 
         className="w-full" 
       />
     </div>
