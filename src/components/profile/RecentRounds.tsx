@@ -76,7 +76,7 @@ const RecentRounds = () => {
           return (
             <Card key={round.id} className="relative overflow-hidden">
               {round.golf_courses?.image_url && (
-                <div className="h-24 bg-cover bg-center relative">
+                <div className="h-32 bg-cover bg-center relative">
                   <img 
                     src={round.golf_courses.image_url} 
                     alt={round.golf_courses.name}

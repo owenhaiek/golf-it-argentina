@@ -1,6 +1,5 @@
+
 import { useState, useRef, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import CourseList from "@/components/home/CourseList";
@@ -9,36 +8,17 @@ import FilterPanel from "@/components/FilterPanel";
 import ActiveFilterBadges from "@/components/home/ActiveFilterBadges";
 import { Button } from "@/components/ui/button";
 import { Filter, Search } from "lucide-react";
-interface GolfCourse {
-  id: string;
-  name: string;
-  city?: string;
-  state?: string;
-  par?: number;
-  holes: number;
-  description?: string;
-  image_url?: string;
-  latitude?: number;
-  longitude?: number;
-  address?: string;
-  phone?: string;
-  website?: string;
-  opening_hours?: any;
-  hole_pars?: number[];
-  hole_handicaps?: number[];
-  image_gallery?: string;
-  established_year?: number;
-  type?: string;
-}
+import { useGolfCourses } from "@/hooks/useGolfCourses";
+
 interface FilterOptions {
   location: string;
   holes: string;
   favoritesOnly: boolean;
   isOpen: boolean;
 }
+
 const Home = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [courses, setCourses] = useState<GolfCourse[]>([]);
   const [activeFilters, setActiveFilters] = useState<FilterOptions>({
     location: "",
     holes: "",
@@ -47,35 +27,19 @@ const Home = () => {
   });
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
   const [isSearchVisible, setIsSearchVisible] = useState(false);
-  const {
-    user
-  } = useAuth();
-  const currentTime = new Date();
-  const {
-    data: allCourses,
-    isLoading
-  } = useQuery({
-    queryKey: ['courses'],
-    queryFn: async () => {
-      const {
-        data,
-        error
-      } = await supabase.from('golf_courses').select('*').order('name');
-      if (error) throw error;
-      return data || [];
-    }
-  });
-  useEffect(() => {
-    if (allCourses) {
-      setCourses(allCourses);
-    }
-  }, [allCourses]);
+  const { user } = useAuth();
+
+  // Use the useGolfCourses hook instead of local filtering
+  const { courses, isLoading, currentTime } = useGolfCourses(searchTerm, activeFilters);
+
   const handleSearch = (term: string) => {
     setSearchTerm(term);
   };
+
   const handleFilterChange = (filters: FilterOptions) => {
     setActiveFilters(filters);
   };
+
   const handleClearFilter = (filterName: string) => {
     const newFilters = {
       ...activeFilters
@@ -86,6 +50,7 @@ const Home = () => {
     if (filterName === 'isOpen') newFilters.isOpen = false;
     setActiveFilters(newFilters);
   };
+
   const handleResetFilters = () => {
     setActiveFilters({
       location: "",
@@ -95,12 +60,7 @@ const Home = () => {
     });
     setSearchTerm("");
   };
-  const filteredCourses = courses?.filter(course => {
-    const searchTermMatch = course.name.toLowerCase().includes(searchTerm.toLowerCase()) || course.city?.toLowerCase().includes(searchTerm.toLowerCase()) || course.state?.toLowerCase().includes(searchTerm.toLowerCase()) || course.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    const cityMatch = !activeFilters.location || course.city?.toLowerCase().includes(activeFilters.location.toLowerCase());
-    const holesMatch = !activeFilters.holes || course.holes === parseInt(activeFilters.holes);
-    return searchTermMatch && cityMatch && holesMatch;
-  });
+
   return <div className="h-screen flex flex-col">
       {/* Sticky Header with logo, title and search */}
       <div className="flex-shrink-0 p-4 bg-background border-b sticky top-0 z-40">
@@ -127,11 +87,11 @@ const Home = () => {
 
       <ScrollArea className="flex-1">
         <div className="p-4 pb-28">
-          <CourseList courses={filteredCourses} isLoading={isLoading} currentTime={currentTime} handleResetFilters={handleResetFilters} />
+          <CourseList courses={courses} isLoading={isLoading} currentTime={currentTime} handleResetFilters={handleResetFilters} />
         </div>
       </ScrollArea>
 
-      {/* Floating Filter Button */}
+      {/* Floating Filter Button with full rounded radius */}
       <div className="fixed bottom-20 right-4 z-50">
         <Button onClick={() => setIsFilterPanelOpen(true)} size="icon" className="rounded-full h-14 w-14 shadow-lg">
           <Filter className="h-6 w-6" />
@@ -142,4 +102,5 @@ const Home = () => {
       <FilterPanel isOpen={isFilterPanelOpen} onClose={() => setIsFilterPanelOpen(false)} onApplyFilters={handleFilterChange} currentFilters={activeFilters} />
     </div>;
 };
+
 export default Home;
