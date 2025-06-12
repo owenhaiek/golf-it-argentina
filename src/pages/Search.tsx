@@ -1,169 +1,196 @@
+
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { Input } from "@/components/ui/input";
+import { useSearchParams } from "react-router-dom";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search as SearchIcon, MapPin, Star, Filter, X } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Search as SearchIcon, Filter, MapPin, Users, Star, Clock, Calendar as CalendarIcon } from "lucide-react";
+import { useGolfCourses } from "@/hooks/useGolfCourses";
+import CourseCard from "@/components/home/CourseCard";
 import FilterPanel from "@/components/FilterPanel";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
-interface GolfCourse {
-  id: string;
-  name: string;
-  city?: string;
-  state?: string;
-  par?: number;
-  holes: number;
-  description?: string;
-  image_url?: string;
-  latitude?: number;
-  longitude?: number;
-  address?: string;
-  phone?: string;
-  website?: string;
-  opening_hours?: any;
-  hole_pars?: number[];
-  hole_distances?: number[];
-  hole_handicaps?: number[];
-  image_gallery?: string;
-  established_year?: number;
-  type?: string;
+interface FilterOptions {
+  location: string;
+  holes: string;
+  favoritesOnly: boolean;
+  isOpen: boolean;
 }
 
 const Search = () => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const navigate = useNavigate();
-
-  const { data: courses = [], isLoading } = useQuery({
-    queryKey: ['courses', searchTerm],
-    queryFn: async () => {
-      let query = supabase
-        .from('golf_courses')
-        .select('*');
-
-      if (searchTerm) {
-        query = query.ilike('name', `%${searchTerm}%`);
-      }
-
-      const { data, error } = await query;
-
-      if (error) {
-        console.error("Course fetch error:", error);
-        throw error;
-      }
-      return data || [];
-    },
+  const [searchParams] = useSearchParams();
+  const initialQuery = searchParams.get('q') || '';
+  
+  const [search, setSearch] = useState(initialQuery);
+  const [filters, setFilters] = useState<FilterOptions>({
+    location: "",
+    holes: "",
+    favoritesOnly: false,
+    isOpen: false
   });
+  const [selectedDate, setSelectedDate] = useState<Date>();
+  const [showFilters, setShowFilters] = useState(false);
 
-  const handleCourseClick = (courseId: string) => {
-    navigate(`/course/${courseId}`);
+  const { courses, isLoading, currentTime } = useGolfCourses(search, filters);
+
+  const handleFilterChange = (newFilters: FilterOptions) => {
+    setFilters(newFilters);
   };
 
+  const handleClearFilters = () => {
+    setFilters({
+      location: "",
+      holes: "",
+      favoritesOnly: false,
+      isOpen: false
+    });
+    setSelectedDate(undefined);
+  };
+
+  const activeFilterCount = Object.values(filters).filter(value => 
+    typeof value === 'boolean' ? value : value !== ""
+  ).length + (selectedDate ? 1 : 0);
+
   return (
-    <div className="container py-8">
-      <div className="flex flex-col md:flex-row gap-4">
-        {/* Search and Filter Section */}
-        <div className="w-full md:w-1/4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <SearchIcon size={20} />
-                Search Courses
-              </CardTitle>
-              <CardDescription>
-                Find your next golf adventure
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Input
-                type="text"
-                placeholder="Search by course name..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+    <div className="h-screen flex flex-col">
+      <div className="flex-shrink-0 p-4 bg-background border-b border-border">
+        <h1 className="text-2xl font-bold text-foreground mb-4">Search Golf Courses</h1>
+        
+        <div className="space-y-4">
+          <div className="relative">
+            <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Search courses, cities, or descriptions..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-10 bg-background border-border text-foreground"
+            />
+          </div>
+
+          <div className="flex flex-wrap gap-2 items-center">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowFilters(!showFilters)}
+              className="flex items-center gap-2"
+            >
+              <Filter className="h-4 w-4" />
+              Filters
+              {activeFilterCount > 0 && (
+                <Badge variant="secondary" className="ml-1">
+                  {activeFilterCount}
+                </Badge>
+              )}
+            </Button>
+
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className={cn(
+                    "justify-start text-left font-normal",
+                    !selectedDate && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {selectedDate ? format(selectedDate, "PPP") : "Select date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={setSelectedDate}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+
+            {activeFilterCount > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleClearFilters}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                Clear all
+              </Button>
+            )}
+          </div>
+
+          {showFilters && (
+            <div className="border border-border rounded-lg p-4 bg-muted/30">
+              <FilterPanel
+                isOpen={true}
+                onClose={() => setShowFilters(false)}
+                onApplyFilters={handleFilterChange}
+                currentFilters={filters}
               />
-
-              <Collapsible>
-                <CollapsibleTrigger asChild>
-                  <Button variant="outline" size="sm" className="w-full justify-between">
-                    <div className="flex items-center gap-2">
-                      <Filter className="h-4 w-4" />
-                      Filter
-                    </div>
-                    <Filter className="h-4 w-4" />
-                  </Button>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="pt-4">
-                  <FilterPanel />
-                </CollapsibleContent>
-              </Collapsible>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Results Section */}
-        <div className="w-full md:w-3/4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">
-                Results
-              </CardTitle>
-              <CardDescription>
-                {courses.length} courses found
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-0">
-              <ScrollArea className="h-[500px]">
-                {isLoading ? (
-                  <div className="p-4 text-center">Loading courses...</div>
-                ) : courses.length > 0 ? (
-                  <div className="divide-y">
-                    {courses.map((course) => (
-                      <div
-                        key={course.id}
-                        className="p-4 hover:bg-secondary/50 cursor-pointer"
-                        onClick={() => handleCourseClick(course.id)}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h3 className="font-semibold">{course.name}</h3>
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              {course.city && course.state && (
-                                <>
-                                  <MapPin className="h-4 w-4" />
-                                  {course.city}, {course.state}
-                                </>
-                              )}
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            {course.par && (
-                              <Badge variant="secondary">
-                                <Star className="h-4 w-4 mr-1" />
-                                Par {course.par}
-                              </Badge>
-                            )}
-                            <Badge>
-                              <Calendar className="h-4 w-4 mr-1" />
-                              {course.holes} Holes
-                            </Badge>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="p-4 text-center">No courses found.</div>
-                )}
-              </ScrollArea>
-            </CardContent>
-          </Card>
+            </div>
+          )}
         </div>
       </div>
+
+      <ScrollArea className="flex-1">
+        <div className="p-4 pb-28">
+          {isLoading ? (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {[...Array(6)].map((_, i) => (
+                <Card key={i} className="animate-pulse">
+                  <div className="h-48 bg-muted rounded-t-lg"></div>
+                  <CardContent className="p-4">
+                    <div className="h-4 bg-muted rounded mb-2"></div>
+                    <div className="h-3 bg-muted rounded w-2/3"></div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : courses.length === 0 ? (
+            <Card className="max-w-md mx-auto">
+              <CardContent className="text-center py-12">
+                <SearchIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-muted-foreground mb-2">No courses found</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Try adjusting your search terms or filters to find what you're looking for.
+                </p>
+                <Button variant="outline" onClick={handleClearFilters}>
+                  Clear filters
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-sm text-muted-foreground">
+                  Found {courses.length} course{courses.length !== 1 ? 's' : ''}
+                </p>
+              </div>
+              
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {courses.map((course) => (
+                  <CourseCard
+                    key={course.id}
+                    course={course}
+                    currentTime={currentTime}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </ScrollArea>
     </div>
   );
 };
