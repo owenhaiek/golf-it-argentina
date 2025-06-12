@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -472,7 +473,7 @@ const Course = () => {
         {courseData?.hole_pars && (
           <CourseHoleDetails 
             holePars={courseData.hole_pars} 
-            holeDistances={courseData.hole_distances || []} 
+            holeDistances={courseData.hole_distances} 
             holeHandicaps={courseData.hole_handicaps} 
           />
         )}

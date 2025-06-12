@@ -1,4 +1,5 @@
-import { supabase } from "@/integrations/supabase/client";
+
+import { supabase } from "@/lib/supabase";
 
 // Function to add a golf course to the database
 export async function addGolfCourse(course: {

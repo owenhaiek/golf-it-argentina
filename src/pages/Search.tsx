@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Search as SearchIcon, MapPin, Star, Filter, CalendarDays } from "lucide-react";
+import { Search as SearchIcon, MapPin, Star, Filter, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import FilterPanel from "@/components/FilterPanel";
@@ -35,22 +34,9 @@ interface GolfCourse {
   type?: string;
 }
 
-type FilterOptions = {
-  holes: string;
-  location: string;
-  isOpen: boolean;
-  favoritesOnly: boolean;
-};
-
 const Search = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [filters, setFilters] = useState<FilterOptions>({
-    holes: "",
-    location: "",
-    isOpen: false,
-    favoritesOnly: false
-  });
   const navigate = useNavigate();
 
   const { data: courses = [], isLoading } = useQuery({
@@ -76,10 +62,6 @@ const Search = () => {
 
   const handleCourseClick = (courseId: string) => {
     navigate(`/course/${courseId}`);
-  };
-
-  const handleFilterChange = (newFilters: FilterOptions) => {
-    setFilters(newFilters);
   };
 
   return (
@@ -116,12 +98,7 @@ const Search = () => {
                   </Button>
                 </CollapsibleTrigger>
                 <CollapsibleContent className="pt-4">
-                  <FilterPanel 
-                    isOpen={true}
-                    onClose={() => setIsFilterOpen(false)}
-                    onApplyFilters={handleFilterChange}
-                    currentFilters={filters}
-                  />
+                  <FilterPanel />
                 </CollapsibleContent>
               </Collapsible>
             </CardContent>
@@ -171,7 +148,7 @@ const Search = () => {
                               </Badge>
                             )}
                             <Badge>
-                              <CalendarDays className="h-4 w-4 mr-1" />
+                              <Calendar className="h-4 w-4 mr-1" />
                               {course.holes} Holes
                             </Badge>
                           </div>

@@ -188,10 +188,7 @@ const CourseDashboard = () => {
   const parseAdditionalPlayers = (additionalPlayersJson: string | null) => {
     if (!additionalPlayersJson) return [];
     try {
-      const parsed = typeof additionalPlayersJson === 'string' 
-        ? JSON.parse(additionalPlayersJson) 
-        : additionalPlayersJson;
-      return Array.isArray(parsed) ? parsed : [];
+      return JSON.parse(additionalPlayersJson);
     } catch {
       return [];
     }
