@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -110,6 +111,7 @@ const CoursesMap = () => {
         {selectedCourse && (
           <CourseInfoTab
             course={selectedCourse}
+            isOpen={true}
             onClose={handleCloseInfoTab}
           />
         )}
