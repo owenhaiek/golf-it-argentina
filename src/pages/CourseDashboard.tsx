@@ -6,9 +6,14 @@ import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Clock, MapPin, Phone, Globe, Star, Users, Calendar, CheckCircle, XCircle, MessageSquare } from "lucide-react";
 import { format } from "date-fns";
+import { formatOpeningHours } from "@/utils/formatOpeningHours";
 
 interface Reservation {
   id: string;
@@ -31,7 +36,7 @@ interface Review {
   profiles?: {
     full_name?: string;
     username?: string;
-  } | null;
+  };
 }
 
 interface Course {
@@ -117,16 +122,8 @@ const CourseDashboard = () => {
       const { data, error } = await supabase
         .from('course_reviews')
         .select(`
-          id,
-          rating,
-          comment,
-          created_at,
-          user_id,
-          course_id,
-          profiles (
-            full_name,
-            username
-          )
+          *,
+          profiles!inner(full_name, username)
         `)
         .eq('course_id', courseId)
         .order('created_at', { ascending: false });
@@ -135,8 +132,6 @@ const CourseDashboard = () => {
       setReviews(data || []);
     } catch (error) {
       console.error('Error fetching reviews:', error);
-      // Set empty array if there's an error to prevent crashes
-      setReviews([]);
     }
   };
 
@@ -239,29 +234,6 @@ const CourseDashboard = () => {
       </CardContent>
     </Card>
   );
-
-  const formatOpeningHours = (openingHours: any) => {
-    if (!openingHours) return "No disponible";
-    
-    const days = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
-    
-    if (Array.isArray(openingHours)) {
-      return (
-        <div className="space-y-1">
-          {openingHours.map((day: any, index: number) => (
-            <div key={index} className="flex justify-between">
-              <span>{days[index]}</span>
-              <span>
-                {day.isOpen ? `${day.open} - ${day.close}` : 'Cerrado'}
-              </span>
-            </div>
-          ))}
-        </div>
-      );
-    }
-    
-    return "Formato no válido";
-  };
 
   if (isLoading) {
     return (

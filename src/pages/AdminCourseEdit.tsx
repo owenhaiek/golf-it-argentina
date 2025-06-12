@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -27,19 +26,11 @@ const AdminCourseEdit = () => {
 
         if (error) throw error;
         
-        // Parse opening_hours properly with better type handling
-        let parsedOpeningHours: { isOpen: boolean; open: string; close: string; }[];
-        
-        if (data.opening_hours) {
+        // Parse opening_hours if it's a string
+        let parsedOpeningHours = data.opening_hours;
+        if (typeof data.opening_hours === 'string') {
           try {
-            if (typeof data.opening_hours === 'string') {
-              parsedOpeningHours = JSON.parse(data.opening_hours);
-            } else if (Array.isArray(data.opening_hours)) {
-              parsedOpeningHours = data.opening_hours as { isOpen: boolean; open: string; close: string; }[];
-            } else {
-              // If it's an object, assume it's already in the correct format
-              parsedOpeningHours = data.opening_hours as { isOpen: boolean; open: string; close: string; }[];
-            }
+            parsedOpeningHours = JSON.parse(data.opening_hours);
           } catch (e) {
             console.error('Error parsing opening hours:', e);
             parsedOpeningHours = [
@@ -52,16 +43,6 @@ const AdminCourseEdit = () => {
               { isOpen: true, open: "08:00", close: "18:00" }
             ];
           }
-        } else {
-          parsedOpeningHours = [
-            { isOpen: true, open: "08:00", close: "18:00" },
-            { isOpen: true, open: "08:00", close: "18:00" },
-            { isOpen: true, open: "08:00", close: "18:00" },
-            { isOpen: true, open: "08:00", close: "18:00" },
-            { isOpen: true, open: "08:00", close: "18:00" },
-            { isOpen: true, open: "08:00", close: "18:00" },
-            { isOpen: true, open: "08:00", close: "18:00" }
-          ];
         }
         
         // Safely cast the data with proper type handling
@@ -82,7 +63,15 @@ const AdminCourseEdit = () => {
           longitude: data.longitude || undefined,
           type: data.type || "Standard",
           established_year: data.established_year || undefined,
-          opening_hours: parsedOpeningHours,
+          opening_hours: parsedOpeningHours || [
+            { isOpen: true, open: "08:00", close: "18:00" },
+            { isOpen: true, open: "08:00", close: "18:00" },
+            { isOpen: true, open: "08:00", close: "18:00" },
+            { isOpen: true, open: "08:00", close: "18:00" },
+            { isOpen: true, open: "08:00", close: "18:00" },
+            { isOpen: true, open: "08:00", close: "18:00" },
+            { isOpen: true, open: "08:00", close: "18:00" }
+          ],
           hole_pars: data.hole_pars || Array(data.holes || 18).fill(4),
           hole_handicaps: data.hole_handicaps || Array(data.holes || 18).fill(0),
           hole_distances: data.hole_distances || Array(data.holes || 18).fill(400),

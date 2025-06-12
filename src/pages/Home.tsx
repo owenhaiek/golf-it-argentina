@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -79,19 +78,12 @@ const Home = () => {
     setActiveFilters(newFilters);
   };
 
-  const handleResetFilters = () => {
-    setActiveFilters({});
-    setSearchTerm("");
-  };
-
   const filteredCourses = courses?.filter(course => {
     const searchTermMatch = course.name.toLowerCase().includes(searchTerm.toLowerCase());
     const cityMatch = !activeFilters.city || course.city === activeFilters.city;
     const holesMatch = !activeFilters.holes || course.holes === parseInt(activeFilters.holes);
     return searchTermMatch && cityMatch && holesMatch;
   });
-
-  const currentTime = new Date().toISOString();
 
   return (
     <div className="h-screen flex flex-col">
@@ -100,7 +92,7 @@ const Home = () => {
       </div>
       
       <div className="p-4 space-y-4">
-        <SearchBar search={searchTerm} setSearch={setSearchTerm} />
+        <SearchBar onSearch={handleSearch} />
 
         <Collapsible>
           <div className="flex items-center justify-between">
@@ -111,29 +103,19 @@ const Home = () => {
               </Button>
             </CollapsibleTrigger>
             <ActiveFilterBadges
-              filters={activeFilters}
-              onRemoveFilter={handleClearFilter}
+              activeFilters={activeFilters}
+              onClearFilter={handleClearFilter}
             />
           </div>
           <CollapsibleContent className="pl-4 mt-2">
-            <FilterPanel 
-              isOpen={true}
-              onClose={() => {}}
-              onApplyFilters={handleFilterChange}
-              currentFilters={activeFilters}
-            />
+            <FilterPanel onFilterChange={handleFilterChange} />
           </CollapsibleContent>
         </Collapsible>
       </div>
 
       <ScrollArea className="flex-1">
         <div className="p-4 pb-28">
-          <CourseList 
-            courses={filteredCourses} 
-            isLoading={isLoading}
-            currentTime={currentTime}
-            handleResetFilters={handleResetFilters}
-          />
+          <CourseList courses={filteredCourses} isLoading={isLoading} />
         </div>
       </ScrollArea>
     </div>
