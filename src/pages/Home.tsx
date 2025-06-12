@@ -10,7 +10,6 @@ import FilterPanel from "@/components/FilterPanel";
 import ActiveFilterBadges from "@/components/home/ActiveFilterBadges";
 import { Button } from "@/components/ui/button";
 import { Filter, Search } from "lucide-react";
-import { AppLogo } from "@/components/ui/AppLogo";
 
 interface GolfCourse {
   id: string;
@@ -51,6 +50,7 @@ const Home = () => {
     isOpen: false
   });
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
+  const [isSearchVisible, setIsSearchVisible] = useState(false);
   const { user } = useAuth();
   const currentTime = new Date();
 
@@ -108,21 +108,31 @@ const Home = () => {
 
   return (
     <div className="h-screen flex flex-col">
-      {/* Header with logo, title and search */}
-      <div className="flex-shrink-0 p-4 bg-background border-b">
+      {/* Sticky Header with logo, title and search */}
+      <div className="flex-shrink-0 p-4 bg-background border-b sticky top-0 z-40">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <AppLogo size="md" />
+            <div className="w-12 h-12 relative">
+              <img
+                src="/lovable-uploads/419a6f14-cf7f-486d-b411-be08939987f8.png"
+                alt="Golf App Logo"
+                className="w-full h-full object-contain rounded-full"
+              />
+            </div>
             <h1 className="text-2xl font-bold text-foreground">GolfIt</h1>
           </div>
-          <Button variant="ghost" size="icon">
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={() => setIsSearchVisible(!isSearchVisible)}
+          >
             <Search className="h-5 w-5" />
           </Button>
         </div>
       </div>
       
       <div className="p-4 space-y-4">
-        <SearchBar search={searchTerm} setSearch={setSearchTerm} isVisible={true} />
+        <SearchBar search={searchTerm} setSearch={setSearchTerm} isVisible={isSearchVisible} />
         
         <ActiveFilterBadges
           filters={activeFilters}

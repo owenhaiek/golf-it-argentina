@@ -85,8 +85,8 @@ const CoursesMap = () => {
                     No courses found.
                   </CardContent>
                 </Card>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         )}
       </div>
