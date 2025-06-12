@@ -9,7 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import CourseSearch from "@/components/rounds/CourseSearch";
+import CourseSelector from "@/components/course/CourseSelector";
 import ScoreCard from "@/components/rounds/ScoreCard";
 
 const AddRound = () => {
@@ -149,17 +149,18 @@ const AddRound = () => {
 
   return (
     <div className="h-screen flex flex-col">
-      <div className="flex-shrink-0 p-4 bg-white border-b">
-        <h1 className="text-2xl font-bold">{t("addRound", "title")}</h1>
+      <div className="flex-shrink-0 p-4 bg-background border-b">
+        <h1 className="text-2xl font-bold text-foreground">{t("addRound", "title")}</h1>
       </div>
       
       <ScrollArea className="flex-1">
         <div className="p-4 space-y-6 pb-28">
-          <CourseSearch 
+          <CourseSelector
             courses={courses}
             isLoading={isLoadingCourses}
             selectedCourse={selectedCourse}
             onSelectCourse={handleSelectCourse}
+            placeholder="Select golf course to add round..."
           />
 
           {selectedCourse && (

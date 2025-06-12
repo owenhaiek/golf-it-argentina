@@ -99,7 +99,7 @@ const Home = () => {
       </div>
       
       <div className="p-4 space-y-4">
-        <SearchBar search={searchTerm} onSearchChange={handleSearch} />
+        <SearchBar onSearch={handleSearch} />
 
         <Collapsible>
           <div className="flex items-center justify-between">

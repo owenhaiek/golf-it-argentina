@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import CourseSearch from "@/components/rounds/CourseSearch";
+import CourseSelector from "@/components/course/CourseSelector";
 import ReservationForm from "@/components/course/ReservationForm";
 import ReservationsList from "@/components/reservations/ReservationsList";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -59,11 +59,12 @@ const AddReservation = () => {
             </TabsList>
 
             <TabsContent value="book" className="space-y-6 mt-2">
-              <CourseSearch 
+              <CourseSelector
                 courses={courses}
                 isLoading={isLoadingCourses}
                 selectedCourse={selectedCourse}
                 onSelectCourse={handleSelectCourse}
+                placeholder={language === "en" ? "Select a golf course to book..." : "Selecciona un campo de golf para reservar..."}
               />
 
               {selectedCourseData && (
