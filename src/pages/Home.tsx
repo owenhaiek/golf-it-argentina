@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,9 +8,8 @@ import CourseList from "@/components/home/CourseList";
 import SearchBar from "@/components/home/SearchBar";
 import FilterPanel from "@/components/FilterPanel";
 import ActiveFilterBadges from "@/components/home/ActiveFilterBadges";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MapPin, Calendar, Trophy, Filter, X } from "lucide-react";
+import { Filter } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface GolfCourse {
@@ -28,7 +28,6 @@ interface GolfCourse {
   website?: string;
   opening_hours?: any;
   hole_pars?: number[];
-  hole_distances?: number[];
   hole_handicaps?: number[];
   image_gallery?: string;
   established_year?: number;
@@ -39,8 +38,6 @@ const Home = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [courses, setCourses] = useState<GolfCourse[]>([]);
   const [activeFilters, setActiveFilters] = useState<{ [key: string]: string }>({});
-  const filterPanelRef = useRef<HTMLDivElement>(null);
-  const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
   const { user } = useAuth();
 
   const { data: allCourses, isLoading } = useQuery({
@@ -78,6 +75,10 @@ const Home = () => {
     setActiveFilters(newFilters);
   };
 
+  const handleResetFilters = () => {
+    setActiveFilters({});
+  };
+
   const filteredCourses = courses?.filter(course => {
     const searchTermMatch = course.name.toLowerCase().includes(searchTerm.toLowerCase());
     const cityMatch = !activeFilters.city || course.city === activeFilters.city;
@@ -92,7 +93,7 @@ const Home = () => {
       </div>
       
       <div className="p-4 space-y-4">
-        <SearchBar onSearch={handleSearch} />
+        <SearchBar search={searchTerm} onSearchChange={handleSearch} />
 
         <Collapsible>
           <div className="flex items-center justify-between">
@@ -103,19 +104,29 @@ const Home = () => {
               </Button>
             </CollapsibleTrigger>
             <ActiveFilterBadges
-              activeFilters={activeFilters}
-              onClearFilter={handleClearFilter}
+              filters={activeFilters}
+              onRemoveFilter={handleClearFilter}
             />
           </div>
           <CollapsibleContent className="pl-4 mt-2">
-            <FilterPanel onFilterChange={handleFilterChange} />
+            <FilterPanel 
+              isOpen={true}
+              onClose={() => {}}
+              onApplyFilters={handleFilterChange}
+              currentFilters={activeFilters}
+            />
           </CollapsibleContent>
         </Collapsible>
       </div>
 
       <ScrollArea className="flex-1">
         <div className="p-4 pb-28">
-          <CourseList courses={filteredCourses} isLoading={isLoading} />
+          <CourseList 
+            courses={filteredCourses} 
+            isLoading={isLoading}
+            currentTime={new Date()}
+            handleResetFilters={handleResetFilters}
+          />
         </div>
       </ScrollArea>
     </div>

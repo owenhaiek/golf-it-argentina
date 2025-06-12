@@ -6,14 +6,9 @@ import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Clock, MapPin, Phone, Globe, Star, Users, Calendar, CheckCircle, XCircle, MessageSquare } from "lucide-react";
 import { format } from "date-fns";
-import { formatOpeningHours } from "@/utils/formatOpeningHours";
 
 interface Reservation {
   id: string;
@@ -57,7 +52,6 @@ interface Course {
   latitude?: number;
   longitude?: number;
   hole_pars?: number[];
-  hole_distances?: number[];
   hole_handicaps?: number[];
 }
 
@@ -121,10 +115,7 @@ const CourseDashboard = () => {
     try {
       const { data, error } = await supabase
         .from('course_reviews')
-        .select(`
-          *,
-          profiles!inner(full_name, username)
-        `)
+        .select('*')
         .eq('course_id', courseId)
         .order('created_at', { ascending: false });
 
@@ -141,8 +132,6 @@ const CourseDashboard = () => {
       
       if (newStatus === 'confirmed') {
         updateData.confirmed_at = new Date().toISOString();
-        // Note: In a real implementation, you'd get the manager ID from authentication
-        // updateData.confirmed_by = managerId;
       }
 
       const { error } = await supabase
@@ -165,6 +154,32 @@ const CourseDashboard = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const formatOpeningHours = (openingHours: any) => {
+    if (!openingHours) return "No disponible";
+    
+    const days = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+    
+    try {
+      let hoursArray = openingHours;
+      if (typeof openingHours === 'string') {
+        hoursArray = JSON.parse(openingHours);
+      }
+      
+      if (Array.isArray(hoursArray)) {
+        return hoursArray.map((day: any, index: number) => (
+          <div key={index} className="text-sm">
+            <span className="font-medium">{days[index]}:</span>{' '}
+            {day.isOpen ? `${day.open} - ${day.close}` : 'Cerrado'}
+          </div>
+        ));
+      }
+    } catch (error) {
+      console.error('Error parsing opening hours:', error);
+    }
+    
+    return "Error al cargar horarios";
   };
 
   const renderReservationCard = (reservation: Reservation) => (
@@ -395,9 +410,7 @@ const CourseDashboard = () => {
                       <div key={review.id} className="border-b pb-4 last:border-b-0">
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-2">
-                            <span className="font-medium">
-                              {review.profiles?.full_name || review.profiles?.username || 'Usuario anónimo'}
-                            </span>
+                            <span className="font-medium">Usuario anónimo</span>
                             <div className="flex">
                               {[...Array(5)].map((_, i) => (
                                 <Star

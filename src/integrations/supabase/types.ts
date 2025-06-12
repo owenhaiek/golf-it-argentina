@@ -95,7 +95,6 @@ export type Database = {
           created_at: string | null
           description: string | null
           established_year: number | null
-          hole_distances: number[] | null
           hole_handicaps: number[] | null
           hole_pars: number[] | null
           holes: number
@@ -119,7 +118,6 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           established_year?: number | null
-          hole_distances?: number[] | null
           hole_handicaps?: number[] | null
           hole_pars?: number[] | null
           holes?: number
@@ -143,7 +141,6 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           established_year?: number | null
-          hole_distances?: number[] | null
           hole_handicaps?: number[] | null
           hole_pars?: number[] | null
           holes?: number

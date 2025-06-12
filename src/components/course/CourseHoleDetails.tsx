@@ -1,16 +1,13 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Flag } from "lucide-react";
 
 interface CourseHoleDetailsProps {
   holePars?: number[] | null;
-  holeDistances?: number[] | null;
   holeHandicaps?: number[] | null;
 }
 
 export const CourseHoleDetails = ({ 
   holePars, 
-  holeDistances, 
   holeHandicaps 
 }: CourseHoleDetailsProps) => {
   if (!holePars || holePars.length === 0) {
@@ -43,17 +40,6 @@ export const CourseHoleDetails = ({
                 {holePars.reduce((sum, par) => sum + par, 0)}
               </td>
             </tr>
-            {holeDistances && holeDistances.length > 0 && (
-              <tr className="border-b">
-                <td className="px-2 py-2 font-medium">Distance (yds)</td>
-                {holeDistances.map((distance, i) => (
-                  <td key={i} className="px-2 py-2 text-center">{distance}</td>
-                ))}
-                <td className="px-2 py-2 text-center font-medium">
-                  {holeDistances.reduce((sum, distance) => sum + distance, 0)}
-                </td>
-              </tr>
-            )}
             {holeHandicaps && holeHandicaps.length > 0 && (
               <tr>
                 <td className="px-2 py-2 font-medium">Handicap</td>
