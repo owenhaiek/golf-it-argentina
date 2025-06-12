@@ -2,9 +2,9 @@
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { ChevronLeft, ChevronRight, Image, GalleryHorizontal } from "lucide-react";
+import { GalleryHorizontal, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 export interface CoursePhotosProps {
   courseId: string;
@@ -15,7 +15,7 @@ export interface CoursePhotosProps {
 
 const CoursePhotos = ({ imageUrl, imageGallery = [] }: CoursePhotosProps) => {
   const { t } = useLanguage();
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   
   // Parse the gallery if it's a string
   const parseGallery = (): string[] => {
@@ -35,14 +35,6 @@ const CoursePhotos = ({ imageUrl, imageGallery = [] }: CoursePhotosProps) => {
   // Combine single image and gallery
   const parsedGallery = parseGallery();
   const allImages = [imageUrl, ...parsedGallery].filter(Boolean) as string[];
-  
-  const handlePrev = () => {
-    setCurrentIndex((prev) => (prev > 0 ? prev - 1 : allImages.length - 1));
-  };
-  
-  const handleNext = () => {
-    setCurrentIndex((prev) => (prev < allImages.length - 1 ? prev + 1 : 0));
-  };
 
   if (allImages.length === 0) {
     return (
@@ -58,56 +50,56 @@ const CoursePhotos = ({ imageUrl, imageGallery = [] }: CoursePhotosProps) => {
   }
 
   return (
-    <Card className="overflow-hidden">
-      <CardContent className="p-0 relative">
-        <div className="relative w-full aspect-video overflow-hidden bg-muted">
-          <img
-            src={allImages[currentIndex]}
-            alt="Course photo"
-            className="w-full h-full object-cover"
-            onError={(e) => {
-              (e.target as HTMLImageElement).src = 'https://placehold.co/600x400?text=Image+Error';
-            }}
-          />
-          
-          {allImages.length > 1 && (
-            <>
-              <Button
-                size="icon"
-                variant="ghost"
-                className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white rounded-full h-8 w-8 z-10"
-                onClick={handlePrev}
+    <>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {allImages.map((image, index) => (
+          <Card key={index} className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow">
+            <CardContent className="p-0">
+              <div 
+                className="relative w-full aspect-video overflow-hidden bg-muted"
+                onClick={() => setSelectedImage(image)}
               >
-                <ChevronLeft className="h-5 w-5" />
-              </Button>
-              
-              <Button
-                size="icon"
-                variant="ghost"
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white rounded-full h-8 w-8 z-10"
-                onClick={handleNext}
-              >
-                <ChevronRight className="h-5 w-5" />
-              </Button>
-              
-              <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1.5 z-10">
-                {allImages.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setCurrentIndex(index)}
-                    className={cn(
-                      "w-2 h-2 rounded-full transition-all",
-                      index === currentIndex ? "bg-white scale-125" : "bg-white/40"
-                    )}
-                    aria-label={`Go to image ${index + 1}`}
-                  />
-                ))}
+                <img
+                  src={image}
+                  alt={`Course photo ${index + 1}`}
+                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = 'https://placehold.co/600x400?text=Image+Error';
+                  }}
+                />
               </div>
-            </>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Full-width image modal */}
+      <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
+        <DialogContent className="max-w-screen-lg w-full h-[90vh] p-0">
+          <div className="relative w-full h-full bg-black">
+            <Button
+              size="icon"
+              variant="ghost"
+              className="absolute top-4 right-4 z-10 bg-black/40 hover:bg-black/60 text-white rounded-full"
+              onClick={() => setSelectedImage(null)}
+            >
+              <X className="h-5 w-5" />
+            </Button>
+            
+            {selectedImage && (
+              <img
+                src={selectedImage}
+                alt="Course photo full view"
+                className="w-full h-full object-contain"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = 'https://placehold.co/600x400?text=Image+Error';
+                }}
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
