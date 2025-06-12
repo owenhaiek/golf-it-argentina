@@ -252,8 +252,7 @@ const Course = () => {
               {/* Weather */}
               <CourseWeather 
                 latitude={course.latitude} 
-                longitude={course.longitude} 
-                courseName={course.name} 
+                longitude={course.longitude}
               />
 
               {/* Map */}
@@ -266,7 +265,7 @@ const Course = () => {
                     <CourseMap 
                       latitude={course.latitude} 
                       longitude={course.longitude} 
-                      courseName={course.name} 
+                      name={course.name} 
                     />
                   </CardContent>
                 </Card>
@@ -303,16 +302,16 @@ const Course = () => {
                 />
               )}
               
-              <CourseReviews reviews={reviews || []} />
+              <CourseReviews reviews={reviews || []} isLoading={false} />
             </TabsContent>
 
             <TabsContent value="book" className="space-y-6">
-              <ReservationCalendar courseId={course.id} />
+              <ReservationCalendar />
             </TabsContent>
 
             <TabsContent value="stats" className="space-y-6">
-              <CourseStats course={course} />
-              <CourseLeaderboard course={course} />
+              <CourseStats />
+              <CourseLeaderboard />
             </TabsContent>
           </ScrollArea>
         </Tabs>

@@ -77,7 +77,7 @@ const CoursesMap = () => {
             ) : (
               <div className="h-full w-full">
                 {courses && courses.length > 0 ? (
-                  <CourseMarker course={courses[0]} onMarkerClick={handleMarkerClick} />
+                  <CourseMarker course={courses[0]} onClick={handleMarkerClick} />
                 ) : (
                   <Card className="max-w-md mx-auto mt-10">
                     <CardContent className="text-center">

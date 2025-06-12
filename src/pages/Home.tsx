@@ -120,8 +120,8 @@ const Home = () => {
         <Collapsible>
           <div className="flex items-center justify-between">
             <CollapsibleTrigger asChild>
-              <Button variant="outline" size="lg" className="rounded-full h-16 w-16 p-0">
-                <Filter className="h-6 w-6" />
+              <Button variant="outline" size="lg" className="rounded-full h-20 w-20 p-0">
+                <Filter className="h-8 w-8" />
               </Button>
             </CollapsibleTrigger>
             <ActiveFilterBadges
