@@ -80,6 +80,48 @@ const Course = () => {
     enabled: !!id,
   });
 
+  const { data: rounds } = useQuery({
+    queryKey: ['course-rounds', id],
+    queryFn: async () => {
+      if (!id) return [];
+      
+      const { data, error } = await supabase
+        .from('rounds')
+        .select('*')
+        .eq('course_id', id)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error("Error fetching rounds:", error);
+        return [];
+      }
+      
+      return data || [];
+    },
+    enabled: !!id,
+  });
+
+  const { data: reservations } = useQuery({
+    queryKey: ['course-reservations', id],
+    queryFn: async () => {
+      if (!id) return [];
+      
+      const { data, error } = await supabase
+        .from('reservations')
+        .select('*')
+        .eq('course_id', id)
+        .order('date', { ascending: true });
+
+      if (error) {
+        console.error("Error fetching reservations:", error);
+        return [];
+      }
+      
+      return data || [];
+    },
+    enabled: !!id,
+  });
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -306,12 +348,12 @@ const Course = () => {
             </TabsContent>
 
             <TabsContent value="book" className="space-y-6">
-              <ReservationCalendar />
+              <ReservationCalendar reservations={reservations || []} />
             </TabsContent>
 
             <TabsContent value="stats" className="space-y-6">
-              <CourseStats />
-              <CourseLeaderboard />
+              <CourseStats rounds={rounds || []} isLoading={false} />
+              <CourseLeaderboard rounds={rounds || []} isLoading={false} />
             </TabsContent>
           </ScrollArea>
         </Tabs>

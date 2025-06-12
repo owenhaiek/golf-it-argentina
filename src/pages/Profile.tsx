@@ -1,13 +1,14 @@
 
 import { useAuth } from "@/contexts/AuthContext";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import ProfileHeader from "@/components/profile/ProfileHeader";
-import ProfileContent from "@/components/profile/ProfileContent";
+import { useProfileData } from "@/hooks/useProfileData";
+import ProfileCard from "@/components/profile/ProfileCard";
 
 const Profile = () => {
   const { user, loading } = useAuth();
+  const { profile, profileLoading } = useProfileData();
 
-  if (loading) {
+  if (loading || profileLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
@@ -33,8 +34,11 @@ const Profile = () => {
       
       <ScrollArea className="flex-1">
         <div className="p-4 space-y-6 pb-28">
-          <ProfileHeader />
-          <ProfileContent />
+          <ProfileCard 
+            user={user} 
+            profile={profile || {}} 
+            profileLoading={profileLoading} 
+          />
         </div>
       </ScrollArea>
     </div>

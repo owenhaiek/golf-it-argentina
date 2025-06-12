@@ -10,8 +10,9 @@ import FilterPanel from "@/components/FilterPanel";
 import ActiveFilterBadges from "@/components/home/ActiveFilterBadges";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MapPin, Calendar, Trophy, Filter, X } from "lucide-react";
+import { MapPin, Calendar, Trophy, Filter, X, Search } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { AppLogo } from "@/components/ui/AppLogo";
 
 interface GolfCourse {
   id: string;
@@ -110,8 +111,17 @@ const Home = () => {
 
   return (
     <div className="h-screen flex flex-col">
+      {/* Header with logo, title and search */}
       <div className="flex-shrink-0 p-4 bg-background border-b">
-        <h1 className="text-2xl font-bold text-foreground">Golf Courses</h1>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <AppLogo size="md" />
+            <h1 className="text-2xl font-bold text-foreground">GolfIt</h1>
+          </div>
+          <Button variant="ghost" size="icon">
+            <Search className="h-5 w-5" />
+          </Button>
+        </div>
       </div>
       
       <div className="p-4 space-y-4">
