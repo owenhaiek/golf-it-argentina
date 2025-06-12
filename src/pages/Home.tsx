@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,7 +9,6 @@ import FilterPanel from "@/components/FilterPanel";
 import ActiveFilterBadges from "@/components/home/ActiveFilterBadges";
 import { Button } from "@/components/ui/button";
 import { Filter, Search } from "lucide-react";
-
 interface GolfCourse {
   id: string;
   name: string;
@@ -32,14 +30,12 @@ interface GolfCourse {
   established_year?: number;
   type?: string;
 }
-
 interface FilterOptions {
   location: string;
   holes: string;
   favoritesOnly: boolean;
   isOpen: boolean;
 }
-
 const Home = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [courses, setCourses] = useState<GolfCourse[]>([]);
@@ -51,44 +47,45 @@ const Home = () => {
   });
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
   const [isSearchVisible, setIsSearchVisible] = useState(false);
-  const { user } = useAuth();
+  const {
+    user
+  } = useAuth();
   const currentTime = new Date();
-
-  const { data: allCourses, isLoading } = useQuery({
+  const {
+    data: allCourses,
+    isLoading
+  } = useQuery({
     queryKey: ['courses'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('golf_courses')
-        .select('*')
-        .order('name');
+      const {
+        data,
+        error
+      } = await supabase.from('golf_courses').select('*').order('name');
       if (error) throw error;
       return data || [];
     }
   });
-
   useEffect(() => {
     if (allCourses) {
       setCourses(allCourses);
     }
   }, [allCourses]);
-
   const handleSearch = (term: string) => {
     setSearchTerm(term);
   };
-
   const handleFilterChange = (filters: FilterOptions) => {
     setActiveFilters(filters);
   };
-
   const handleClearFilter = (filterName: string) => {
-    const newFilters = { ...activeFilters };
+    const newFilters = {
+      ...activeFilters
+    };
     if (filterName === 'location') newFilters.location = "";
     if (filterName === 'holes') newFilters.holes = "";
     if (filterName === 'favoritesOnly') newFilters.favoritesOnly = false;
     if (filterName === 'isOpen') newFilters.isOpen = false;
     setActiveFilters(newFilters);
   };
-
   const handleResetFilters = () => {
     setActiveFilters({
       location: "",
@@ -98,90 +95,51 @@ const Home = () => {
     });
     setSearchTerm("");
   };
-
   const filteredCourses = courses?.filter(course => {
-    const searchTermMatch = course.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           course.city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           course.state?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           course.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    const searchTermMatch = course.name.toLowerCase().includes(searchTerm.toLowerCase()) || course.city?.toLowerCase().includes(searchTerm.toLowerCase()) || course.state?.toLowerCase().includes(searchTerm.toLowerCase()) || course.description?.toLowerCase().includes(searchTerm.toLowerCase());
     const cityMatch = !activeFilters.location || course.city?.toLowerCase().includes(activeFilters.location.toLowerCase());
     const holesMatch = !activeFilters.holes || course.holes === parseInt(activeFilters.holes);
     return searchTermMatch && cityMatch && holesMatch;
   });
-
-  return (
-    <div className="h-screen flex flex-col">
+  return <div className="h-screen flex flex-col">
       {/* Sticky Header with logo, title and search */}
       <div className="flex-shrink-0 p-4 bg-background border-b sticky top-0 z-40">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 relative">
-              <img 
-                src="/lovable-uploads/419a6f14-cf7f-486d-b411-be08939987f8.png" 
-                alt="Golf App Logo" 
-                className="w-full h-full object-contain rounded-full" 
-              />
+              <img src="/lovable-uploads/419a6f14-cf7f-486d-b411-be08939987f8.png" alt="Golf App Logo" className="w-full h-full object-contain rounded-full" />
             </div>
             <h1 className="text-2xl font-bold text-foreground">GolfIt</h1>
           </div>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={() => setIsSearchVisible(!isSearchVisible)}
-          >
+          <Button variant="ghost" size="icon" onClick={() => setIsSearchVisible(!isSearchVisible)}>
             <Search className="h-5 w-5" />
           </Button>
         </div>
         
         {/* Search Bar - conditionally rendered */}
-        {isSearchVisible && (
-          <div className="mt-4">
-            <SearchBar 
-              search={searchTerm} 
-              setSearch={handleSearch} 
-              isVisible={isSearchVisible} 
-            />
-          </div>
-        )}
+        {isSearchVisible && <div className="mt-4">
+            <SearchBar search={searchTerm} setSearch={handleSearch} isVisible={isSearchVisible} />
+          </div>}
         
         {/* Active Filter Badges */}
-        <ActiveFilterBadges 
-          filters={activeFilters} 
-          handleResetFilters={handleResetFilters} 
-        />
+        <ActiveFilterBadges filters={activeFilters} handleResetFilters={handleResetFilters} />
       </div>
 
       <ScrollArea className="flex-1">
         <div className="p-4 pb-28">
-          <CourseList 
-            courses={filteredCourses} 
-            isLoading={isLoading} 
-            currentTime={currentTime} 
-            handleResetFilters={handleResetFilters} 
-          />
+          <CourseList courses={filteredCourses} isLoading={isLoading} currentTime={currentTime} handleResetFilters={handleResetFilters} />
         </div>
       </ScrollArea>
 
       {/* Floating Filter Button */}
       <div className="fixed bottom-20 right-4 z-50">
-        <Button 
-          onClick={() => setIsFilterPanelOpen(true)} 
-          className="rounded-full h-14 w-14 shadow-lg" 
-          size="icon"
-        >
+        <Button onClick={() => setIsFilterPanelOpen(true)} size="icon" className="rounded-full h-14 w-14 shadow-lg">
           <Filter className="h-6 w-6" />
         </Button>
       </div>
 
       {/* Filter Panel */}
-      <FilterPanel 
-        isOpen={isFilterPanelOpen} 
-        onClose={() => setIsFilterPanelOpen(false)} 
-        onApplyFilters={handleFilterChange} 
-        currentFilters={activeFilters} 
-      />
-    </div>
-  );
+      <FilterPanel isOpen={isFilterPanelOpen} onClose={() => setIsFilterPanelOpen(false)} onApplyFilters={handleFilterChange} currentFilters={activeFilters} />
+    </div>;
 };
-
 export default Home;
