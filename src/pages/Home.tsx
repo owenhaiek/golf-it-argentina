@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -42,6 +43,7 @@ const Home = () => {
   const filterPanelRef = useRef<HTMLDivElement>(null);
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
   const { user } = useAuth();
+  const currentTime = new Date();
 
   const { data: allCourses, isLoading } = useQuery({
     queryKey: ['courses'],
@@ -78,6 +80,11 @@ const Home = () => {
     setActiveFilters(newFilters);
   };
 
+  const handleResetFilters = () => {
+    setActiveFilters({});
+    setSearchTerm("");
+  };
+
   const filteredCourses = courses?.filter(course => {
     const searchTermMatch = course.name.toLowerCase().includes(searchTerm.toLowerCase());
     const cityMatch = !activeFilters.city || course.city === activeFilters.city;
@@ -87,12 +94,12 @@ const Home = () => {
 
   return (
     <div className="h-screen flex flex-col">
-      <div className="flex-shrink-0 p-4 bg-white border-b">
-        <h1 className="text-2xl font-bold">Golf Courses</h1>
+      <div className="flex-shrink-0 p-4 bg-background border-b">
+        <h1 className="text-2xl font-bold text-foreground">Golf Courses</h1>
       </div>
       
       <div className="p-4 space-y-4">
-        <SearchBar onSearch={handleSearch} />
+        <SearchBar search={searchTerm} onSearchChange={handleSearch} />
 
         <Collapsible>
           <div className="flex items-center justify-between">
@@ -103,19 +110,29 @@ const Home = () => {
               </Button>
             </CollapsibleTrigger>
             <ActiveFilterBadges
-              activeFilters={activeFilters}
-              onClearFilter={handleClearFilter}
+              filters={activeFilters}
+              onRemoveFilter={handleClearFilter}
             />
           </div>
           <CollapsibleContent className="pl-4 mt-2">
-            <FilterPanel onFilterChange={handleFilterChange} />
+            <FilterPanel 
+              isOpen={true}
+              onClose={() => {}}
+              onApplyFilters={handleFilterChange}
+              currentFilters={activeFilters}
+            />
           </CollapsibleContent>
         </Collapsible>
       </div>
 
       <ScrollArea className="flex-1">
         <div className="p-4 pb-28">
-          <CourseList courses={filteredCourses} isLoading={isLoading} />
+          <CourseList 
+            courses={filteredCourses} 
+            isLoading={isLoading} 
+            currentTime={currentTime}
+            handleResetFilters={handleResetFilters}
+          />
         </div>
       </ScrollArea>
     </div>

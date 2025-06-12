@@ -31,9 +31,9 @@ const CourseList = ({ courses, isLoading, currentTime, handleResetFilters }: Cou
   }
 
   return (
-    <div className="mobile-course-list md:grid md:grid-cols-2 md:gap-6 md:space-y-0">
+    <div className="space-y-4 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-6">
       {courses.map(course => (
-        <div key={course.id} className="mobile-course-card">
+        <div key={course.id} className="w-full">
           <CourseCard course={course} currentTime={currentTime} />
         </div>
       ))}
