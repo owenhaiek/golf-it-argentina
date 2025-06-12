@@ -4,74 +4,51 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, MapPin, Phone, Globe, Calendar, Trophy, Camera, Star, Users, Clock } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import ReservationForm from "@/components/course/ReservationForm";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { ArrowLeft, MapPin, Phone, Globe, Calendar, Flag, Trophy, Camera, Clock, Users } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { isCurrentlyOpen, formatOpeningHours } from "@/utils/openingHours";
+import CourseHoleDetails from "@/components/course/CourseHoleDetails";
+import CourseMap from "@/components/course/CourseMap";
+import CoursePhotos from "@/components/course/CoursePhotos";
+import CourseWeather from "@/components/course/CourseWeather";
 import AddReviewForm from "@/components/course/AddReviewForm";
 import CourseReviews from "@/components/course/CourseReviews";
-import CoursePhotos from "@/components/course/CoursePhotos";
-import { CourseHoleDetails } from "@/components/course/CourseHoleDetails";
 import CourseStats from "@/components/course/CourseStats";
 import CourseLeaderboard from "@/components/course/CourseLeaderboard";
-import CourseWeather from "@/components/course/CourseWeather";
-import CourseMap from "@/components/course/CourseMap";
-import { FavoriteButton } from "@/components/ui/FavoriteButton";
-import { formatOpeningHours } from "@/utils/formatOpeningHours";
-import { isCurrentlyOpen } from "@/utils/openingHours";
-
-interface GolfCourse {
-  id: string;
-  name: string;
-  city?: string;
-  state?: string;
-  par?: number;
-  holes: number;
-  description?: string;
-  image_url?: string;
-  latitude?: number;
-  longitude?: number;
-  address?: string;
-  phone?: string;
-  website?: string;
-  opening_hours?: any;
-  hole_pars?: number[];
-  hole_handicaps?: number[];
-  image_gallery?: string;
-  established_year?: number;
-  type?: string;
-}
+import ReservationCalendar from "@/components/course/ReservationCalendar";
+import FavoriteButton from "@/components/ui/FavoriteButton";
 
 const Course = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { toast } = useToast();
-  const [selectedTab, setSelectedTab] = useState("overview");
+  const { t } = useLanguage();
+  const [showReviewForm, setShowReviewForm] = useState(false);
 
   const { data: course, isLoading } = useQuery({
     queryKey: ['course', id],
     queryFn: async () => {
-      if (!id) throw new Error('Course ID is required');
+      if (!id) throw new Error("Course ID is required");
       
       const { data, error } = await supabase
         .from('golf_courses')
         .select('*')
         .eq('id', id)
         .single();
-      
+
       if (error) throw error;
       return data;
     },
     enabled: !!id,
   });
 
-  const { data: reviews = [] } = useQuery({
-    queryKey: ['course-reviews', id],
+  const { data: reviews, refetch: refetchReviews } = useQuery({
+    queryKey: ['reviews', id],
     queryFn: async () => {
       if (!id) return [];
       
@@ -82,287 +59,263 @@ const Course = () => {
           rating,
           comment,
           created_at,
-          profiles (
+          course_id,
+          user_id,
+          profiles!course_reviews_user_id_fkey (
+            username,
             full_name,
             avatar_url
           )
         `)
         .eq('course_id', id)
         .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error("Error fetching reviews:", error);
+        return [];
+      }
       
-      if (error) throw error;
       return data || [];
     },
     enabled: !!id,
   });
 
-  const averageRating = reviews.length > 0 
-    ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length 
-    : 0;
-
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Loading course details...</div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
       </div>
     );
   }
 
   if (!course) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Course not found</div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-4">{t("course", "courseNotFound")}</h2>
+          <Button onClick={() => navigate('/')}>{t("common", "goHome")}</Button>
+        </div>
       </div>
     );
   }
 
-  const currentTime = new Date();
-  let openingHours;
-  let isOpen = false;
-  
-  try {
-    openingHours = course.opening_hours ? 
-      (typeof course.opening_hours === 'string' ? 
-        JSON.parse(course.opening_hours) : course.opening_hours) : null;
-    isOpen = openingHours ? isCurrentlyOpen(openingHours) : false;
-  } catch (error) {
-    console.error('Error parsing opening hours:', error);
-    openingHours = null;
-  }
+  // Parse opening_hours safely
+  const parseOpeningHours = () => {
+    try {
+      if (typeof course.opening_hours === 'string') {
+        return JSON.parse(course.opening_hours);
+      }
+      return course.opening_hours;
+    } catch (error) {
+      console.error("Error parsing opening hours:", error);
+      return null;
+    }
+  };
 
-  const formattedHours = openingHours ? formatOpeningHours(openingHours) : null;
+  const openingHoursData = parseOpeningHours();
+  const isOpen = isCurrentlyOpen(openingHoursData);
+  const formattedHours = formatOpeningHours(openingHoursData);
+
+  const handleReviewSuccess = () => {
+    setShowReviewForm(false);
+    refetchReviews();
+  };
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="relative">
-        {course.image_url && (
-          <div className="h-64 md:h-96 relative overflow-hidden">
-            <img
-              src={course.image_url}
-              alt={course.name}
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.style.display = 'none';
-              }}
-            />
-            <div className="absolute inset-0 bg-black bg-opacity-40" />
-            <div className="absolute top-4 left-4 z-10">
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => navigate(-1)}
-                className="bg-white/90 hover:bg-white text-black"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back
-              </Button>
+      {/* Hero Section */}
+      <div className="relative h-80 bg-cover bg-center" style={{
+        backgroundImage: course.image_url ? `url(${course.image_url})` : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+      }}>
+        <div className="absolute inset-0 bg-black/40" />
+        <div className="relative z-10 p-4 h-full flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate(-1)}
+              className="text-white hover:bg-white/20 backdrop-blur-sm"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              {t("common", "back")}
+            </Button>
+            <FavoriteButton courseId={course.id} size="sm" variant="ghost" className="text-white hover:bg-white/20 backdrop-blur-sm" />
+          </div>
+          
+          <div className="text-white">
+            <h1 className="text-3xl md:text-4xl font-bold mb-2">{course.name}</h1>
+            <div className="flex items-center gap-2 text-lg mb-2">
+              <MapPin className="h-5 w-5" />
+              <span>{[course.address, course.city, course.state].filter(Boolean).join(', ')}</span>
             </div>
-            <div className="absolute top-4 right-4 z-10">
-              <FavoriteButton courseId={course.id} />
+            <div className="flex items-center gap-4">
+              <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+                <Flag className="mr-1 h-4 w-4" />
+                {course.holes} {t("profile", "holes")}
+              </Badge>
+              {course.par && (
+                <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+                  <Trophy className="mr-1 h-4 w-4" />
+                  {t("course", "par")} {course.par}
+                </Badge>
+              )}
+              <Badge variant="secondary" className={`${isOpen ? 'bg-green-500/20 text-green-100 border-green-300/30' : 'bg-amber-500/20 text-amber-100 border-amber-300/30'}`}>
+                <Clock className="mr-1 h-4 w-4" />
+                {isOpen ? t("home", "openNow") : t("home", "closed")}
+              </Badge>
             </div>
           </div>
-        )}
+        </div>
+      </div>
 
-        {!course.image_url && (
-          <div className="h-32 bg-muted relative">
-            <div className="absolute top-4 left-4 z-10">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigate(-1)}
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back
-              </Button>
-            </div>
-            <div className="absolute top-4 right-4 z-10">
-              <FavoriteButton courseId={course.id} />
-            </div>
-          </div>
-        )}
+      {/* Content Tabs */}
+      <div className="container mx-auto px-4 py-6 pb-28">
+        <Tabs defaultValue="overview" className="w-full">
+          <TabsList className="grid w-full grid-cols-4 md:grid-cols-6">
+            <TabsTrigger value="overview">{t("course", "overview")}</TabsTrigger>
+            <TabsTrigger value="details">{t("course", "details")}</TabsTrigger>
+            <TabsTrigger value="photos">{t("course", "photos")}</TabsTrigger>
+            <TabsTrigger value="reviews">{t("course", "reviews")}</TabsTrigger>
+            <TabsTrigger value="book" className="hidden md:block">{t("course", "book")}</TabsTrigger>
+            <TabsTrigger value="stats" className="hidden md:block">{t("course", "stats")}</TabsTrigger>
+          </TabsList>
 
-        <div className="container mx-auto px-4 py-6">
-          <div className="relative -mt-20 md:-mt-32 z-10">
-            <Card className="bg-background border-border shadow-lg">
-              <CardHeader className="pb-4">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                  <div className="flex-1">
-                    <CardTitle className="text-2xl md:text-3xl text-foreground">{course.name}</CardTitle>
-                    <CardDescription className="text-lg mt-2">
-                      {course.city && course.state && (
-                        <span className="flex items-center text-muted-foreground">
-                          <MapPin className="h-4 w-4 mr-1" />
-                          {course.city}, {course.state}
-                        </span>
-                      )}
-                    </CardDescription>
-                  </div>
-                  
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <div className="flex items-center gap-2">
-                      {averageRating > 0 && (
-                        <div className="flex items-center gap-1">
-                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                          <span className="font-medium">{averageRating.toFixed(1)}</span>
-                          <span className="text-muted-foreground">({reviews.length})</span>
+          <ScrollArea className="h-[calc(100vh-300px)] mt-6">
+            <TabsContent value="overview" className="space-y-6">
+              {/* Course Description */}
+              {course.description && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>{t("course", "about")}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-muted-foreground leading-relaxed">{course.description}</p>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Quick Info */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>{t("course", "quickInfo")}</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {course.phone && (
+                      <div className="flex items-center gap-3">
+                        <Phone className="h-5 w-5 text-muted-foreground" />
+                        <div>
+                          <p className="font-medium">{t("course", "phone")}</p>
+                          <p className="text-muted-foreground">{course.phone}</p>
                         </div>
-                      )}
-                      <Badge variant={isOpen ? "default" : "secondary"} className="ml-2">
-                        {isOpen ? "Open" : "Closed"}
-                      </Badge>
-                    </div>
-                    
-                    {user && (
-                      <ReservationForm
-                        courseId={course.id}
-                        courseName={course.name}
-                        courseLocation={`${course.city}, ${course.state}`}
-                      />
+                      </div>
                     )}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-                  <div className="text-center p-3 bg-muted rounded-lg">
-                    <div className="text-2xl font-bold text-foreground">{course.holes}</div>
-                    <div className="text-sm text-muted-foreground">Holes</div>
-                  </div>
-                  {course.par && (
-                    <div className="text-center p-3 bg-muted rounded-lg">
-                      <div className="text-2xl font-bold text-foreground">{course.par}</div>
-                      <div className="text-sm text-muted-foreground">Par</div>
-                    </div>
-                  )}
-                  {course.established_year && (
-                    <div className="text-center p-3 bg-muted rounded-lg">
-                      <div className="text-2xl font-bold text-foreground">{course.established_year}</div>
-                      <div className="text-sm text-muted-foreground">Established</div>
-                    </div>
-                  )}
-                  {course.type && (
-                    <div className="text-center p-3 bg-muted rounded-lg">
-                      <div className="text-lg font-bold text-foreground">{course.type}</div>
-                      <div className="text-sm text-muted-foreground">Type</div>
-                    </div>
-                  )}
-                </div>
-              </CardHeader>
-            </Card>
-          </div>
-
-          <div className="mt-6">
-            <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-7 mb-6">
-                <TabsTrigger value="overview">Overview</TabsTrigger>
-                <TabsTrigger value="details">Details</TabsTrigger>
-                <TabsTrigger value="stats">Stats</TabsTrigger>
-                <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
-                <TabsTrigger value="weather">Weather</TabsTrigger>
-                <TabsTrigger value="photos">Photos</TabsTrigger>
-                <TabsTrigger value="reviews">Reviews</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="overview" className="space-y-6">
-                <div className="grid gap-6 md:grid-cols-2">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>About</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-muted-foreground">
-                        {course.description || "A beautiful golf course with challenging holes and stunning views."}
-                      </p>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Course Information</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      {course.address && (
-                        <div className="flex items-center">
-                          <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
-                          <span className="text-sm">{course.address}</span>
-                        </div>
-                      )}
-                      {course.phone && (
-                        <div className="flex items-center">
-                          <Phone className="h-4 w-4 mr-2 text-muted-foreground" />
-                          <span className="text-sm">{course.phone}</span>
-                        </div>
-                      )}
-                      {course.website && (
-                        <div className="flex items-center">
-                          <Globe className="h-4 w-4 mr-2 text-muted-foreground" />
+                    
+                    {course.website && (
+                      <div className="flex items-center gap-3">
+                        <Globe className="h-5 w-5 text-muted-foreground" />
+                        <div>
+                          <p className="font-medium">{t("course", "website")}</p>
                           <a 
                             href={course.website} 
                             target="_blank" 
                             rel="noopener noreferrer"
-                            className="text-sm text-primary hover:underline"
+                            className="text-primary hover:underline"
                           >
-                            Visit Website
+                            {t("course", "visitWebsite")}
                           </a>
                         </div>
-                      )}
-                      {formattedHours && (
-                        <div className="flex items-start">
-                          <Clock className="h-4 w-4 mr-2 text-muted-foreground mt-0.5" />
-                          <div className="text-sm">
-                            <div className="font-medium mb-1">Opening Hours:</div>
-                            <div className="space-y-0.5">
-                              {formattedHours.map((day, index) => (
-                                <div key={index} className="flex justify-between">
-                                  <span>{day.day}:</span>
-                                  <span className="text-muted-foreground">{day.hours}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
+                      </div>
+                    )}
+                    
+                    <div className="flex items-center gap-3">
+                      <Clock className="h-5 w-5 text-muted-foreground" />
+                      <div>
+                        <p className="font-medium">{t("course", "hours")}</p>
+                        <p className="text-muted-foreground">{formattedHours}</p>
+                      </div>
+                    </div>
+                    
+                    {course.established_year && (
+                      <div className="flex items-center gap-3">
+                        <Calendar className="h-5 w-5 text-muted-foreground" />
+                        <div>
+                          <p className="font-medium">{t("course", "established")}</p>
+                          <p className="text-muted-foreground">{course.established_year}</p>
                         </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                </div>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
 
-                {course.latitude && course.longitude && (
-                  <CourseMap latitude={course.latitude} longitude={course.longitude} name={course.name} />
-                )}
-              </TabsContent>
+              {/* Weather */}
+              <CourseWeather 
+                latitude={course.latitude} 
+                longitude={course.longitude} 
+                courseName={course.name} 
+              />
 
-              <TabsContent value="details">
-                <CourseHoleDetails
-                  holePars={course.hole_pars}
-                  holeHandicaps={course.hole_handicaps}
+              {/* Map */}
+              {course.latitude && course.longitude && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>{t("course", "location")}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <CourseMap 
+                      latitude={course.latitude} 
+                      longitude={course.longitude} 
+                      courseName={course.name} 
+                    />
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
+
+            <TabsContent value="details" className="space-y-6">
+              <CourseHoleDetails 
+                holePars={course.hole_pars} 
+                holeHandicaps={course.hole_handicaps} 
+              />
+            </TabsContent>
+
+            <TabsContent value="photos" className="space-y-6">
+              <CoursePhotos courseId={course.id} />
+            </TabsContent>
+
+            <TabsContent value="reviews" className="space-y-6">
+              {user && !showReviewForm && (
+                <Card>
+                  <CardContent className="pt-6">
+                    <Button onClick={() => setShowReviewForm(true)} className="w-full">
+                      {t("course", "writeReview")}
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+              
+              {showReviewForm && (
+                <AddReviewForm 
+                  courseId={course.id} 
+                  onSuccess={handleReviewSuccess}
+                  onCancel={() => setShowReviewForm(false)}
                 />
-              </TabsContent>
+              )}
+              
+              <CourseReviews reviews={reviews || []} />
+            </TabsContent>
 
-              <TabsContent value="stats">
-                <CourseStats courseId={course.id} />
-              </TabsContent>
+            <TabsContent value="book" className="space-y-6">
+              <ReservationCalendar courseId={course.id} />
+            </TabsContent>
 
-              <TabsContent value="leaderboard">
-                <CourseLeaderboard courseId={course.id} />
-              </TabsContent>
-
-              <TabsContent value="weather">
-                <CourseWeather latitude={course.latitude} longitude={course.longitude} />
-              </TabsContent>
-
-              <TabsContent value="photos">
-                <CoursePhotos course={course} />
-              </TabsContent>
-
-              <TabsContent value="reviews" className="space-y-6">
-                {user && (
-                  <AddReviewForm courseId={course.id} />
-                )}
-                <CourseReviews reviews={reviews} />
-              </TabsContent>
-            </Tabs>
-          </div>
-        </div>
+            <TabsContent value="stats" className="space-y-6">
+              <CourseStats course={course} />
+              <CourseLeaderboard course={course} />
+            </TabsContent>
+          </ScrollArea>
+        </Tabs>
       </div>
     </div>
   );

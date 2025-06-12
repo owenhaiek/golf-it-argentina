@@ -25,7 +25,6 @@ interface GolfCourse {
   website?: string;
   opening_hours?: any;
   hole_pars?: number[];
-  hole_distances?: number[];
   hole_handicaps?: number[];
   image_gallery?: string;
   established_year?: number;
@@ -78,7 +77,7 @@ const CoursesMap = () => {
             ) : (
               <div className="h-full w-full">
                 {courses && courses.length > 0 ? (
-                  <CourseMarker courses={courses} onMarkerClick={handleMarkerClick} />
+                  <CourseMarker course={courses[0]} onMarkerClick={handleMarkerClick} />
                 ) : (
                   <Card className="max-w-md mx-auto mt-10">
                     <CardContent className="text-center">
@@ -122,7 +121,11 @@ const CoursesMap = () => {
       </Tabs>
 
       {selectedCourse && (
-        <CourseInfoTab course={selectedCourse} onClose={() => setSelectedCourse(null)} />
+        <CourseInfoTab 
+          course={selectedCourse} 
+          onClose={() => setSelectedCourse(null)} 
+          isOpen={!!selectedCourse} 
+        />
       )}
     </div>
   );
