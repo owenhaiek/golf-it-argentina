@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -46,10 +45,37 @@ const AdminCourseEdit = () => {
           }
         }
         
+        // Safely cast the data with proper type handling
         setCourse({
-          ...data,
-          opening_hours: parsedOpeningHours
-        } as GolfCourseTemplate);
+          id: data.id,
+          name: data.name,
+          holes: data.holes,
+          par: data.par || 72,
+          address: data.address || "",
+          state: data.state || "",
+          city: data.city || "",
+          description: data.description || "",
+          phone: data.phone || "",
+          website: data.website || "",
+          image_url: data.image_url || "",
+          image_gallery: data.image_gallery || "",
+          latitude: data.latitude || undefined,
+          longitude: data.longitude || undefined,
+          type: data.type || "Standard",
+          established_year: data.established_year || undefined,
+          opening_hours: parsedOpeningHours || [
+            { isOpen: true, open: "08:00", close: "18:00" },
+            { isOpen: true, open: "08:00", close: "18:00" },
+            { isOpen: true, open: "08:00", close: "18:00" },
+            { isOpen: true, open: "08:00", close: "18:00" },
+            { isOpen: true, open: "08:00", close: "18:00" },
+            { isOpen: true, open: "08:00", close: "18:00" },
+            { isOpen: true, open: "08:00", close: "18:00" }
+          ],
+          hole_pars: data.hole_pars || Array(data.holes || 18).fill(4),
+          hole_handicaps: data.hole_handicaps || Array(data.holes || 18).fill(0),
+          hole_distances: data.hole_distances || Array(data.holes || 18).fill(400),
+        });
       } catch (error) {
         console.error('Error fetching course:', error);
         toast({
