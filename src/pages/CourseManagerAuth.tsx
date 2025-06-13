@@ -120,7 +120,8 @@ const CourseManagerAuth = () => {
           description: `Logged in as ${manager.name} for ${(manager.golf_courses as any)?.name || 'Unknown Course'}`,
         });
         
-        navigate("/course-dashboard");
+        // Fixed redirect: navigate to the specific course dashboard
+        navigate(`/course-dashboard/${manager.course_id}`);
       } else {
         console.log("Password verification failed");
         toast({

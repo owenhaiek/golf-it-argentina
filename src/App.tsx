@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { LanguageProvider } from "./contexts/LanguageContext";
 import { AuthGuard } from "./components/AuthGuard";
+import { AdminGuard } from "./components/security/AdminGuard";
 import { Layout } from "./components/Layout";
 import Index from "./pages/Index";
 import Home from "./pages/Home";
@@ -23,10 +24,8 @@ import Search from "./pages/Search";
 import NotFound from "./pages/NotFound";
 import CourseManagerAuth from "./pages/CourseManagerAuth";
 import CourseDashboard from "./pages/CourseDashboard";
-import AdminGolfCourseManager from "./pages/AdminGolfCourseManager";
 import AdminCourseEdit from "./pages/AdminCourseEdit";
 import AdminCourseEditList from "./pages/AdminCourseEditList";
-import AdminCsvUpload from "./pages/AdminCsvUpload";
 import AdminPendingManagers from "./pages/AdminPendingManagers";
 
 const queryClient = new QueryClient();
@@ -44,11 +43,21 @@ function App() {
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/course-manager-auth" element={<CourseManagerAuth />} />
-                <Route path="/admin/golf-courses" element={<AdminGolfCourseManager />} />
-                <Route path="/admin/course-edit/:id" element={<AdminCourseEdit />} />
-                <Route path="/admin/course-edit-list" element={<AdminCourseEditList />} />
-                <Route path="/admin/csv-upload" element={<AdminCsvUpload />} />
-                <Route path="/admin/pending-managers" element={<AdminPendingManagers />} />
+                <Route path="/admin/course-edit/:id" element={
+                  <AdminGuard>
+                    <AdminCourseEdit />
+                  </AdminGuard>
+                } />
+                <Route path="/admin/course-edit-list" element={
+                  <AdminGuard>
+                    <AdminCourseEditList />
+                  </AdminGuard>
+                } />
+                <Route path="/admin/pending-managers" element={
+                  <AdminGuard>
+                    <AdminPendingManagers />
+                  </AdminGuard>
+                } />
                 <Route path="/course-dashboard/:courseId" element={<CourseDashboard />} />
                 <Route path="/*" element={
                   <AuthGuard>

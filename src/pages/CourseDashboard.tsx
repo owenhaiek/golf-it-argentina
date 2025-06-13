@@ -4,7 +4,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,18 +14,17 @@ import {
   Phone, 
   Globe, 
   Calendar, 
-  Trophy, 
-  Camera, 
-  Star, 
-  Users, 
   Clock,
-  CheckCircle,
-  XCircle,
-  AlertCircle
+  TrendingUp,
+  DollarSign,
+  Users,
+  BarChart3
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { formatOpeningHours } from "@/utils/formatOpeningHours";
 import { isCurrentlyOpen } from "@/utils/openingHours";
+import { ReservationCalendar } from "@/components/course/ReservationCalendar";
+import { ReservationManagement } from "@/components/course/ReservationManagement";
 
 interface Reservation {
   id: string;
@@ -46,34 +44,35 @@ interface Reservation {
 }
 
 const CourseDashboard = () => {
-  const { id } = useParams();
+  const { courseId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [selectedTab, setSelectedTab] = useState("reservations");
+  const [selectedTab, setSelectedTab] = useState("overview");
+  const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
 
   const { data: course, isLoading: courseLoading } = useQuery({
-    queryKey: ['course', id],
+    queryKey: ['course', courseId],
     queryFn: async () => {
-      if (!id) throw new Error('Course ID is required');
+      if (!courseId) throw new Error('Course ID is required');
       
       const { data, error } = await supabase
         .from('golf_courses')
         .select('*')
-        .eq('id', id)
+        .eq('id', courseId)
         .single();
       
       if (error) throw error;
       return data;
     },
-    enabled: !!id,
+    enabled: !!courseId,
   });
 
   const { data: reservations = [], isLoading: reservationsLoading } = useQuery({
-    queryKey: ['course-reservations', id],
+    queryKey: ['course-reservations', courseId],
     queryFn: async () => {
-      if (!id) return [];
+      if (!courseId) return [];
       
       const { data, error } = await supabase
         .from('reservations')
@@ -84,14 +83,14 @@ const CourseDashboard = () => {
             avatar_url
           )
         `)
-        .eq('course_id', id)
+        .eq('course_id', courseId)
         .order('date', { ascending: true })
         .order('time', { ascending: true });
       
       if (error) throw error;
       return data || [];
     },
-    enabled: !!id,
+    enabled: !!courseId,
   });
 
   const updateReservationMutation = useMutation({
@@ -121,7 +120,7 @@ const CourseDashboard = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['course-reservations', id] });
+      queryClient.invalidateQueries({ queryKey: ['course-reservations', courseId] });
       toast({
         title: "Success",
         description: "Reservation status updated successfully",
@@ -141,10 +140,18 @@ const CourseDashboard = () => {
     updateReservationMutation.mutate({ reservationId, status: action });
   };
 
+  const handleReservationClick = (reservation: Reservation) => {
+    setSelectedReservation(reservation);
+    setSelectedTab("reservations");
+  };
+
   if (courseLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Loading course dashboard...</div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-2 text-muted-foreground">Loading course dashboard...</p>
+        </div>
       </div>
     );
   }
@@ -173,35 +180,14 @@ const CourseDashboard = () => {
 
   const formattedHours = openingHours ? formatOpeningHours(openingHours) : null;
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'confirmed':
-        return <Badge className="bg-green-100 text-green-800">Confirmed</Badge>;
-      case 'cancelled':
-        return <Badge variant="destructive">Cancelled</Badge>;
-      case 'pending':
-        return <Badge variant="secondary">Pending</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'confirmed':
-        return <CheckCircle className="h-4 w-4 text-green-600" />;
-      case 'cancelled':
-        return <XCircle className="h-4 w-4 text-red-600" />;
-      case 'pending':
-        return <AlertCircle className="h-4 w-4 text-yellow-600" />;
-      default:
-        return <Clock className="h-4 w-4 text-gray-600" />;
-    }
-  };
-
   const pendingReservations = reservations.filter(r => r.status === 'pending');
   const confirmedReservations = reservations.filter(r => r.status === 'confirmed');
   const cancelledReservations = reservations.filter(r => r.status === 'cancelled');
+
+  // Calculate today's stats
+  const today = new Date().toISOString().split('T')[0];
+  const todayReservations = reservations.filter(r => r.date === today);
+  const todayRevenue = todayReservations.filter(r => r.status === 'confirmed').length * 50; // Assume $50 per reservation
 
   return (
     <div className="min-h-screen bg-background">
@@ -270,138 +256,61 @@ const CourseDashboard = () => {
                     </Badge>
                   </div>
                 </div>
-
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-                  <div className="text-center p-3 bg-blue-50 rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600">{pendingReservations.length}</div>
-                    <div className="text-sm text-blue-600">Pending</div>
-                  </div>
-                  <div className="text-center p-3 bg-green-50 rounded-lg">
-                    <div className="text-2xl font-bold text-green-600">{confirmedReservations.length}</div>
-                    <div className="text-sm text-green-600">Confirmed</div>
-                  </div>
-                  <div className="text-center p-3 bg-red-50 rounded-lg">
-                    <div className="text-2xl font-bold text-red-600">{cancelledReservations.length}</div>
-                    <div className="text-sm text-red-600">Cancelled</div>
-                  </div>
-                  <div className="text-center p-3 bg-gray-50 rounded-lg">
-                    <div className="text-2xl font-bold text-gray-600">{reservations.length}</div>
-                    <div className="text-sm text-gray-600">Total</div>
-                  </div>
-                </div>
               </CardHeader>
             </Card>
           </div>
 
           <div className="mt-6">
             <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6">
+              <TabsList className="grid w-full grid-cols-4 mb-6">
+                <TabsTrigger value="overview">Overview</TabsTrigger>
+                <TabsTrigger value="calendar">Calendar</TabsTrigger>
                 <TabsTrigger value="reservations">Reservations</TabsTrigger>
-                <TabsTrigger value="info">Course Info</TabsTrigger>
+                <TabsTrigger value="analytics">Analytics</TabsTrigger>
               </TabsList>
 
-              <TabsContent value="reservations" className="space-y-6">
-                <div className="space-y-4">
-                  {reservationsLoading ? (
-                    <div className="text-center py-8">
-                      <div className="text-lg">Loading reservations...</div>
-                    </div>
-                  ) : reservations.length === 0 ? (
-                    <Card>
-                      <CardContent className="text-center py-8">
-                        <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                        <h3 className="text-lg font-medium text-muted-foreground mb-2">No reservations yet</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Reservations will appear here when customers book tee times.
-                        </p>
-                      </CardContent>
-                    </Card>
-                  ) : (
-                    reservations.map((reservation) => (
-                      <Card key={reservation.id}>
-                        <CardHeader className="pb-3">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              {getStatusIcon(reservation.status)}
-                              <div>
-                                <CardTitle className="text-lg">
-                                  {reservation.player_name || 'Unknown Player'}
-                                </CardTitle>
-                                <CardDescription>
-                                  License: {reservation.license || 'N/A'}
-                                </CardDescription>
-                              </div>
-                            </div>
-                            {getStatusBadge(reservation.status)}
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                            <div>
-                              <div className="text-sm font-medium text-foreground">Date & Time</div>
-                              <div className="text-sm text-muted-foreground">
-                                {new Date(reservation.date).toLocaleDateString()} at {reservation.time}
-                              </div>
-                            </div>
-                            <div>
-                              <div className="text-sm font-medium text-foreground">Players</div>
-                              <div className="text-sm text-muted-foreground">{reservation.players}</div>
-                            </div>
-                            <div>
-                              <div className="text-sm font-medium text-foreground">Created</div>
-                              <div className="text-sm text-muted-foreground">
-                                {new Date(reservation.created_at).toLocaleDateString()}
-                              </div>
-                            </div>
-                          </div>
-
-                          {reservation.additional_players && (
-                            <div className="mb-4">
-                              <div className="text-sm font-medium text-foreground mb-2">Additional Players</div>
-                              <div className="text-sm text-muted-foreground">
-                                {typeof reservation.additional_players === 'string' 
-                                  ? reservation.additional_players 
-                                  : JSON.stringify(reservation.additional_players)}
-                              </div>
-                            </div>
-                          )}
-
-                          {reservation.course_notes && (
-                            <div className="mb-4">
-                              <div className="text-sm font-medium text-foreground mb-2">Course Notes</div>
-                              <div className="text-sm text-muted-foreground">{reservation.course_notes}</div>
-                            </div>
-                          )}
-
-                          {reservation.status === 'pending' && (
-                            <div className="flex gap-2">
-                              <Button
-                                size="sm"
-                                onClick={() => handleReservationAction(reservation.id, 'confirmed')}
-                                disabled={updateReservationMutation.isPending}
-                              >
-                                <CheckCircle className="h-4 w-4 mr-1" />
-                                Confirm
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                onClick={() => handleReservationAction(reservation.id, 'cancelled')}
-                                disabled={updateReservationMutation.isPending}
-                              >
-                                <XCircle className="h-4 w-4 mr-1" />
-                                Cancel
-                              </Button>
-                            </div>
-                          )}
-                        </CardContent>
-                      </Card>
-                    ))
-                  )}
+              <TabsContent value="overview" className="space-y-6">
+                {/* Quick Stats */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <Card>
+                    <CardContent className="flex items-center p-4">
+                      <Clock className="h-8 w-8 text-yellow-500 mr-3" />
+                      <div>
+                        <p className="text-2xl font-bold text-foreground">{pendingReservations.length}</p>
+                        <p className="text-sm text-muted-foreground">Pending</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="flex items-center p-4">
+                      <Calendar className="h-8 w-8 text-green-500 mr-3" />
+                      <div>
+                        <p className="text-2xl font-bold text-foreground">{confirmedReservations.length}</p>
+                        <p className="text-sm text-muted-foreground">Confirmed</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="flex items-center p-4">
+                      <Users className="h-8 w-8 text-blue-500 mr-3" />
+                      <div>
+                        <p className="text-2xl font-bold text-foreground">{todayReservations.length}</p>
+                        <p className="text-sm text-muted-foreground">Today</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="flex items-center p-4">
+                      <DollarSign className="h-8 w-8 text-purple-500 mr-3" />
+                      <div>
+                        <p className="text-2xl font-bold text-foreground">${todayRevenue}</p>
+                        <p className="text-sm text-muted-foreground">Today Revenue</p>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
-              </TabsContent>
 
-              <TabsContent value="info" className="space-y-6">
+                {/* Course Information */}
                 <div className="grid gap-6 md:grid-cols-2">
                   <Card>
                     <CardHeader>
@@ -460,6 +369,87 @@ const CourseDashboard = () => {
                           </div>
                         </div>
                       )}
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="calendar" className="space-y-6">
+                <ReservationCalendar 
+                  reservations={reservations}
+                  onReservationClick={handleReservationClick}
+                />
+              </TabsContent>
+
+              <TabsContent value="reservations" className="space-y-6">
+                <ReservationManagement
+                  reservations={reservations}
+                  onUpdateReservation={handleReservationAction}
+                  isUpdating={updateReservationMutation.isPending}
+                />
+              </TabsContent>
+
+              <TabsContent value="analytics" className="space-y-6">
+                <div className="grid gap-6 md:grid-cols-2">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <BarChart3 className="h-5 w-5" />
+                        Monthly Overview
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground">Total Reservations</span>
+                          <span className="font-medium">{reservations.length}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground">Confirmed</span>
+                          <span className="font-medium text-green-600">{confirmedReservations.length}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground">Pending</span>
+                          <span className="font-medium text-yellow-600">{pendingReservations.length}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground">Cancelled</span>
+                          <span className="font-medium text-red-600">{cancelledReservations.length}</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <TrendingUp className="h-5 w-5" />
+                        Performance Metrics
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground">Confirmation Rate</span>
+                          <span className="font-medium">
+                            {reservations.length > 0 
+                              ? Math.round((confirmedReservations.length / reservations.length) * 100)
+                              : 0}%
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground">Average Players</span>
+                          <span className="font-medium">
+                            {reservations.length > 0 
+                              ? Math.round(reservations.reduce((acc, r) => acc + r.players, 0) / reservations.length)
+                              : 0}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground">Monthly Revenue</span>
+                          <span className="font-medium">${confirmedReservations.length * 50}</span>
+                        </div>
+                      </div>
                     </CardContent>
                   </Card>
                 </div>
