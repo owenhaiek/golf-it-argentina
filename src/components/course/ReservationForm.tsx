@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
@@ -107,6 +106,7 @@ const ReservationForm = ({ courseId, courseName, courseLocation }: ReservationFo
       
       console.log("Creating reservation with data:", data);
       console.log("User ID:", user.id);
+      console.log("User email:", user.email);
       
       const reservationData = {
         course_id: courseId,
@@ -146,6 +146,7 @@ const ReservationForm = ({ courseId, courseName, courseLocation }: ReservationFo
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["reservations", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['course-reservations', courseId] });
       
       const formattedDate = format(data.date, "PPPP");
       

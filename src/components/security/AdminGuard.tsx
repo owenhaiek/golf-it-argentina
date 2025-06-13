@@ -21,15 +21,22 @@ export const AdminGuard = ({ children }: AdminGuardProps) => {
   useEffect(() => {
     const checkAdminRole = async () => {
       if (!user) {
+        console.log("No user found, denying admin access");
         setIsAdmin(false);
         setCheckingRole(false);
         return;
       }
 
       try {
+        console.log("Checking admin role for user:", user.email);
+        
         // Updated admin emails list to include your email
         const adminEmails = ['admin@golfapp.com', 'admin@example.com', 'owenhaiek11@gmail.com'];
         const isUserAdmin = adminEmails.includes(user.email || '');
+        
+        console.log("User email:", user.email);
+        console.log("Is admin:", isUserAdmin);
+        console.log("Admin emails:", adminEmails);
         
         setIsAdmin(isUserAdmin);
       } catch (error) {
@@ -60,15 +67,21 @@ export const AdminGuard = ({ children }: AdminGuardProps) => {
 
   // If user is not authenticated or not admin, show access denied
   if (!user || !isAdmin) {
+    console.log("Access denied. User:", user?.email, "Is admin:", isAdmin);
     return (
       <div className="min-h-screen flex items-center justify-center bg-muted/50 p-4">
         <Card className="max-w-md w-full">
           <CardContent className="text-center p-6">
             <Shield className="h-16 w-16 mx-auto mb-4 text-red-500" />
             <h1 className="text-2xl font-bold text-foreground mb-2">Access Denied</h1>
-            <p className="text-muted-foreground mb-6">
+            <p className="text-muted-foreground mb-4">
               You don't have permission to access this page. Administrator privileges are required.
             </p>
+            {user && (
+              <p className="text-sm text-muted-foreground mb-6">
+                Current user: {user.email}
+              </p>
+            )}
             <Button onClick={handleGoBack} className="w-full">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Return to Home
@@ -79,5 +92,6 @@ export const AdminGuard = ({ children }: AdminGuardProps) => {
     );
   }
 
+  console.log("Admin access granted for user:", user.email);
   return <>{children}</>;
 };
