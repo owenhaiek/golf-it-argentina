@@ -1,3 +1,4 @@
+
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,6 +19,7 @@ import CourseReviews from "@/components/course/CourseReviews";
 import ReservationForm from "@/components/course/ReservationForm";
 import { isCurrentlyOpen, formatOpeningHours } from "@/utils/openingHours";
 import FavoriteButton from "@/components/ui/FavoriteButton";
+import { cn } from "@/lib/utils";
 
 const Course = () => {
   const { id } = useParams();
@@ -151,7 +153,7 @@ const Course = () => {
         <div className="pb-28">
           {/* Course Images */}
           <div className="w-full h-64 sm:h-80 relative">
-            <CoursePhotos images={courseImages} courseName={course.name} />
+            <CoursePhotos images={courseImages} />
           </div>
 
           <div className="p-4 space-y-6">
@@ -272,34 +274,28 @@ const Course = () => {
               </TabsList>
 
               <TabsContent value="overview" className="space-y-4 mt-4">
-                <CourseStats course={course} />
+                <CourseStats />
                 {course.latitude && course.longitude && (
                   <CourseMap
                     latitude={course.latitude}
                     longitude={course.longitude}
-                    courseName={course.name}
                   />
                 )}
               </TabsContent>
 
               <TabsContent value="holes" className="mt-4">
-                <CourseHoleDetails
-                  holes={course.holes}
-                  holePars={course.hole_pars}
-                  holeHandicaps={course.hole_handicaps}
-                />
+                <CourseHoleDetails />
               </TabsContent>
 
               <TabsContent value="weather" className="mt-4">
                 <CourseWeather
                   latitude={course.latitude}
                   longitude={course.longitude}
-                  courseName={course.name}
                 />
               </TabsContent>
 
               <TabsContent value="reviews" className="space-y-4 mt-4">
-                <AddReviewForm courseId={course.id} onReviewAdded={refetchReviews} />
+                <AddReviewForm courseId={course.id} />
                 <CourseReviews
                   courseId={course.id}
                   reviews={reviews}

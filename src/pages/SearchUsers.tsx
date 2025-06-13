@@ -96,134 +96,141 @@ const SearchUsers = () => {
   };
 
   return (
-    <div className="container p-4 max-w-xl mx-auto space-y-6 pb-20">
-      <h1 className="text-2xl font-bold">{t("searchUsers", "findPlayers")}</h1>
-      
-      <div className="relative">
-        <Input
-          placeholder={t("searchUsers", "searchByNameOrUsername")}
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10"
-        />
-        <UserSearch className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+    <div className="h-screen flex flex-col">
+      {/* Header */}
+      <div className="flex-shrink-0 p-4 bg-background border-b border-border">
+        <h1 className="text-2xl font-bold">{t("searchUsers", "findPlayers")}</h1>
       </div>
-      
-      {/* Recent Searches Section */}
-      {!searchQuery.trim() && recentSearches.length > 0 && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-muted-foreground" />
-              <h2 className="text-lg font-semibold">Recent Searches</h2>
-            </div>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={clearAllRecentSearches}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              Clear All
-            </Button>
+
+      <div className="flex-1 overflow-auto">
+        <div className="container p-4 max-w-xl mx-auto space-y-6 pb-20">
+          <div className="relative">
+            <Input
+              placeholder={t("searchUsers", "searchByNameOrUsername")}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+            <UserSearch className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
           </div>
           
-          <div className="space-y-2">
-            {recentSearches.map((profile) => (
-              <Card 
-                key={profile.id} 
-                className="cursor-pointer hover:bg-accent/50 transition-colors"
-              >
-                <CardContent className="p-4 flex items-center justify-between">
-                  <div 
-                    className="flex items-center gap-4 flex-1"
-                    onClick={() => handleRecentProfileClick(profile)}
+          {/* Recent Searches Section */}
+          {!searchQuery.trim() && recentSearches.length > 0 && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-muted-foreground" />
+                  <h2 className="text-lg font-semibold">Recent Searches</h2>
+                </div>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={clearAllRecentSearches}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  Clear All
+                </Button>
+              </div>
+              
+              <div className="space-y-2">
+                {recentSearches.map((profile) => (
+                  <Card 
+                    key={profile.id} 
+                    className="cursor-pointer hover:bg-accent/50 transition-colors"
                   >
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage src={profile.avatar_url} alt={profile.username || profile.full_name} />
-                      <AvatarFallback>
-                        {(profile.username?.charAt(0) || profile.full_name?.charAt(0) || "U").toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="font-medium text-sm">{profile.full_name}</p>
-                      <p className="text-xs text-muted-foreground">@{profile.username || "user"}</p>
+                    <CardContent className="p-4 flex items-center justify-between">
+                      <div 
+                        className="flex items-center gap-4 flex-1"
+                        onClick={() => handleRecentProfileClick(profile)}
+                      >
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src={profile.avatar_url} alt={profile.username || profile.full_name} />
+                          <AvatarFallback>
+                            {(profile.username?.charAt(0) || profile.full_name?.charAt(0) || "U").toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-medium text-sm">{profile.full_name}</p>
+                          <p className="text-xs text-muted-foreground">@{profile.username || "user"}</p>
+                        </div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeFromRecentSearches(profile.id);
+                        }}
+                        className="h-8 w-8 p-0"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {/* Search Results Section */}
+          {searchQuery.trim() && (
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold">Search Results</h2>
+              
+              {isLoading ? (
+                Array(5).fill(0).map((_, i) => (
+                  <div key={i} className="flex items-center gap-4 p-3">
+                    <Skeleton className="h-12 w-12 rounded-full" />
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-[200px]" />
+                      <Skeleton className="h-4 w-[150px]" />
                     </div>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      removeFromRecentSearches(profile.id);
-                    }}
-                    className="h-8 w-8 p-0"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      )}
-      
-      {/* Search Results Section */}
-      {searchQuery.trim() && (
-        <div className="space-y-4">
-          <h2 className="text-lg font-semibold">Search Results</h2>
-          
-          {isLoading ? (
-            Array(5).fill(0).map((_, i) => (
-              <div key={i} className="flex items-center gap-4 p-3">
-                <Skeleton className="h-12 w-12 rounded-full" />
-                <div className="space-y-2">
-                  <Skeleton className="h-4 w-[200px]" />
-                  <Skeleton className="h-4 w-[150px]" />
+                ))
+              ) : profiles?.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <p>{t("searchUsers", "noUsersFound")}</p>
                 </div>
-              </div>
-            ))
-          ) : profiles?.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <p>{t("searchUsers", "noUsersFound")}</p>
+              ) : (
+                profiles?.map((profile) => (
+                  <Card 
+                    key={profile.id} 
+                    className="cursor-pointer hover:bg-accent/50 transition-colors"
+                    onClick={() => handleViewProfile(profile)}
+                  >
+                    <CardContent className="p-4 flex items-center gap-4">
+                      <Avatar className="h-12 w-12">
+                        <AvatarImage src={profile.avatar_url} alt={profile.username || profile.full_name} />
+                        <AvatarFallback>
+                          {(profile.username?.charAt(0) || profile.full_name?.charAt(0) || "U").toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="font-medium">{profile.full_name}</p>
+                        <p className="text-sm text-muted-foreground">@{profile.username || "user"}</p>
+                        {profile.handicap !== null && (
+                          <p className="text-xs mt-1">
+                            {t("profile", "handicap")}: <span className="font-semibold">{profile.handicap}</span>
+                          </p>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
             </div>
-          ) : (
-            profiles?.map((profile) => (
-              <Card 
-                key={profile.id} 
-                className="cursor-pointer hover:bg-accent/50 transition-colors"
-                onClick={() => handleViewProfile(profile)}
-              >
-                <CardContent className="p-4 flex items-center gap-4">
-                  <Avatar className="h-12 w-12">
-                    <AvatarImage src={profile.avatar_url} alt={profile.username || profile.full_name} />
-                    <AvatarFallback>
-                      {(profile.username?.charAt(0) || profile.full_name?.charAt(0) || "U").toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-medium">{profile.full_name}</p>
-                    <p className="text-sm text-muted-foreground">@{profile.username || "user"}</p>
-                    {profile.handicap !== null && (
-                      <p className="text-xs mt-1">
-                        {t("profile", "handicap")}: <span className="font-semibold">{profile.handicap}</span>
-                      </p>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))
+          )}
+          
+          {/* Empty State */}
+          {!searchQuery.trim() && recentSearches.length === 0 && (
+            <div className="text-center py-12 text-muted-foreground">
+              <UserSearch className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p className="text-lg">Start typing to search for players</p>
+              <p className="text-sm">Enter a name or username to find other golfers</p>
+            </div>
           )}
         </div>
-      )}
-      
-      {/* Empty State */}
-      {!searchQuery.trim() && recentSearches.length === 0 && (
-        <div className="text-center py-12 text-muted-foreground">
-          <UserSearch className="h-12 w-12 mx-auto mb-4 opacity-50" />
-          <p className="text-lg">Start typing to search for players</p>
-          <p className="text-sm">Enter a name or username to find other golfers</p>
-        </div>
-      )}
+      </div>
     </div>
   );
 };
