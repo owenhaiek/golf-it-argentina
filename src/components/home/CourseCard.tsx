@@ -53,8 +53,8 @@ const CourseCard = ({ course, currentTime }: CourseCardProps) => {
   return (
     <Link to={`/course/${course.id}`} className="block w-full">
       <div className="w-full bg-background hover:bg-accent/50 transition-colors duration-200 border-b md:border md:rounded-lg md:overflow-hidden md:shadow-sm last:border-b-0 md:last:border-b">
-        {/* Image Section - Full Width */}
-        <div className="w-full h-48 sm:h-56 relative">
+        {/* Image Section - Full Width with bottom spacing */}
+        <div className="w-full h-48 sm:h-56 relative mb-4">
           <CourseImageCarousel 
             images={courseImages} 
             courseName={course.name} 
@@ -90,14 +90,14 @@ const CourseCard = ({ course, currentTime }: CourseCardProps) => {
               </div>
             )}
             
-            {/* Course Info - Mobile: 3-column grid, Desktop: inline */}
+            {/* Course Info - Mobile: 3-column grid with single line, Desktop: inline */}
             <div className="grid grid-cols-3 gap-2 md:flex md:flex-col md:gap-3 lg:flex-row lg:items-center lg:gap-6">
               {/* Holes - Column 1 */}
               <div className="flex flex-col items-center md:flex-row md:items-center gap-1 md:gap-2 text-primary">
                 <Flag size={16} className="flex-shrink-0" />
                 <div className="text-center md:text-left">
                   <div className="font-medium text-xs md:text-sm lg:text-base">{course.holes} {t("profile", "holes")}</div>
-                  {course.par && <div className="text-xs md:text-sm text-muted-foreground md:inline lg:inline">
+                  {course.par && <div className="text-xs text-muted-foreground md:inline lg:inline">
                     <span className="hidden md:inline">• </span>{t("course", "par")} {course.par}
                   </div>}
                 </div>
