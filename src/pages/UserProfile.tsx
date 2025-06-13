@@ -52,7 +52,7 @@ const UserProfile = () => {
           )
         `)
         .eq("user_id", userId)
-        .order("date", { ascending: false })
+        .order("created_at", { ascending: false })
         .limit(10);
 
       if (error) {
@@ -95,8 +95,8 @@ const UserProfile = () => {
     : 0;
 
   const lastPlayedCourse = recentRounds?.[0]?.golf_courses?.name || "N/A";
-  const lastPlayedDate = recentRounds?.[0]?.date
-    ? new Date(recentRounds[0].date).toLocaleDateString()
+  const lastPlayedDate = recentRounds?.[0]?.created_at
+    ? new Date(recentRounds[0].created_at).toLocaleDateString()
     : "N/A";
 
   return (
@@ -225,7 +225,7 @@ const UserProfile = () => {
                         <div>
                           <p className="font-medium">{round.golf_courses?.name || "Unknown Course"}</p>
                           <p className="text-sm text-muted-foreground">
-                            {new Date(round.date).toLocaleDateString()}
+                            {new Date(round.created_at).toLocaleDateString()}
                           </p>
                         </div>
                         <div className="text-right">
