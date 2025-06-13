@@ -61,6 +61,21 @@ const CourseCard = ({ course, currentTime }: CourseCardProps) => {
             courseName={course.name} 
             courseId={course.id} 
           />
+          
+          {/* Top-left Status Badge */}
+          <div className="absolute top-2 left-2">
+            <div className={`px-3 py-1 rounded-full text-xs font-medium backdrop-blur-sm border transition-all duration-200 ${
+              isOpen 
+                ? "bg-green-500/90 text-white border-green-400/50 shadow-lg" 
+                : "bg-amber-500/90 text-white border-amber-400/50 shadow-lg"
+            }`}>
+              <div className="flex items-center gap-1.5">
+                <div className={`w-1.5 h-1.5 rounded-full ${isOpen ? "bg-green-200" : "bg-amber-200"} animate-pulse`} />
+                <span>{isOpen ? t("home", "openNow") : t("home", "closed")}</span>
+              </div>
+            </div>
+          </div>
+          
           {/* Favorite Button Overlay */}
           <div className="absolute top-2 right-2">
             <FavoriteButton 
@@ -99,34 +114,21 @@ const CourseCard = ({ course, currentTime }: CourseCardProps) => {
               </div>
             </div>
             
-            {/* Course Info - Mobile: 3-column grid, Desktop: inline */}
-            <div className="grid grid-cols-3 gap-2 md:flex md:flex-col md:gap-3 lg:flex-row lg:items-center lg:gap-6">
-              {/* Holes - Column 1 */}
-              <div className="flex items-center gap-2 md:gap-2 text-primary">
-                <Flag size={16} className="flex-shrink-0" />
-                <div className="text-left">
+            {/* Course Info - Holes and Par closer together */}
+            <div className="flex items-center gap-6">
+              {/* Holes and Par grouped together */}
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 text-primary">
+                  <Flag size={16} className="flex-shrink-0" />
                   <span className="font-medium text-xs md:text-sm lg:text-base">{course.holes} {t("profile", "holes")}</span>
                 </div>
-              </div>
-              
-              {/* Par - Column 2 */}
-              {course.par && (
-                <div className="flex items-center gap-2 md:gap-2 text-muted-foreground">
-                  <Flag size={16} className="flex-shrink-0" />
-                  <div className="text-left">
+                
+                {course.par && (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Flag size={16} className="flex-shrink-0" />
                     <span className="font-medium text-xs md:text-sm lg:text-base">{t("course", "par")} {course.par}</span>
                   </div>
-                </div>
-              )}
-              
-              {/* Open/Closed Status - Column 3 */}
-              <div className="flex items-center gap-2 md:gap-2">
-                <div className={`w-2 h-2 rounded-full ${isOpen ? "bg-green-600" : "bg-amber-600"} flex-shrink-0`} />
-                <div className="text-left">
-                  <span className={`font-medium text-xs md:text-sm lg:text-base ${isOpen ? "text-green-600" : "text-amber-600"}`}>
-                    {isOpen ? t("home", "openNow") : t("home", "closed")}
-                  </span>
-                </div>
+                )}
               </div>
             </div>
           </div>

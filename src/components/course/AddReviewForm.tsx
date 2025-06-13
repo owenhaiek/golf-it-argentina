@@ -19,14 +19,14 @@ interface AddReviewFormProps {
 }
 
 const reviewSchema = z.object({
-  rating: z.number().min(1).max(5, { message: "Rating must be between 1 and 5" }),
+  rating: z.number().min(1, { message: "Please select a rating" }).max(5, { message: "Rating must be between 1 and 5" }),
   comment: z.string().min(10, { message: "Comment must be at least 10 characters" }),
 });
 
 type ReviewValues = z.infer<typeof reviewSchema>;
 
 const AddReviewForm = ({ courseId, onSuccess, onCancel }: AddReviewFormProps) => {
-  const [hoveredRating, setHoveredRating] = useState<number | null>(null);
+  const [hoveredRating, setHoveredRating] = useState<number>(0);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -38,33 +38,42 @@ const AddReviewForm = ({ courseId, onSuccess, onCancel }: AddReviewFormProps) =>
     },
   });
 
+  const currentRating = form.watch("rating");
+
   const { mutate: addReview, isPending } = useMutation({
     mutationFn: async (data: ReviewValues) => {
       if (!user) {
         throw new Error("User not authenticated");
       }
 
-      const { error } = await supabase
+      const { data: reviewData, error } = await supabase
         .from("course_reviews")
         .insert({
           course_id: courseId,
           user_id: user.id,
           rating: data.rating,
           comment: data.comment,
-        });
+        })
+        .select()
+        .single();
 
       if (error) {
+        console.error("Error adding review:", error);
         throw error;
       }
+
+      return reviewData;
     },
     onSuccess: () => {
       toast({
         title: "Review Submitted",
         description: "Thank you for your feedback!",
       });
+      form.reset();
       onSuccess();
     },
     onError: (error: any) => {
+      console.error("Review submission error:", error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -74,7 +83,13 @@ const AddReviewForm = ({ courseId, onSuccess, onCancel }: AddReviewFormProps) =>
   });
 
   const onSubmit = (data: ReviewValues) => {
+    console.log("Submitting review:", data);
     addReview(data);
+  };
+
+  const getStarDisplay = (index: number) => {
+    const displayRating = hoveredRating || currentRating;
+    return index <= displayRating;
   };
 
   return (
@@ -88,21 +103,30 @@ const AddReviewForm = ({ courseId, onSuccess, onCancel }: AddReviewFormProps) =>
             <FormItem>
               <FormLabel>Rating</FormLabel>
               <FormControl>
-                <div className="flex items-center">
+                <div className="flex items-center gap-1">
                   {[1, 2, 3, 4, 5].map((index) => (
                     <button
                       key={index}
                       type="button"
-                      className={
-                        `text-yellow-500 hover:text-yellow-600 focus:outline-none ${field.value >= index || hoveredRating >= index ? 'fill-yellow-500' : 'fill-none'}`
-                      }
+                      className="p-1 transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
                       onMouseEnter={() => setHoveredRating(index)}
-                      onMouseLeave={() => setHoveredRating(null)}
+                      onMouseLeave={() => setHoveredRating(0)}
                       onClick={() => field.onChange(index)}
                     >
-                      <Star className="h-6 w-6" />
+                      <Star 
+                        className={`h-8 w-8 transition-all duration-200 ${
+                          getStarDisplay(index)
+                            ? 'text-yellow-500 fill-yellow-500 scale-110' 
+                            : 'text-gray-300 hover:text-yellow-400'
+                        }`}
+                      />
                     </button>
                   ))}
+                  {currentRating > 0 && (
+                    <span className="ml-2 text-sm text-muted-foreground">
+                      {currentRating} out of 5 stars
+                    </span>
+                  )}
                 </div>
               </FormControl>
               <FormMessage />
@@ -119,8 +143,8 @@ const AddReviewForm = ({ courseId, onSuccess, onCancel }: AddReviewFormProps) =>
               <FormLabel>Comment</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="Write your review here"
-                  className="resize-none"
+                  placeholder="Write your review here..."
+                  className="resize-none min-h-[100px]"
                   {...field}
                 />
               </FormControl>
@@ -134,7 +158,7 @@ const AddReviewForm = ({ courseId, onSuccess, onCancel }: AddReviewFormProps) =>
           <Button type="button" variant="outline" onClick={onCancel}>
             Cancel
           </Button>
-          <Button type="submit" disabled={isPending}>
+          <Button type="submit" disabled={isPending || currentRating === 0}>
             {isPending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
