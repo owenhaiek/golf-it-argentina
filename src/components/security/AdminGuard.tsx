@@ -1,0 +1,92 @@
+
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Shield, ArrowLeft } from 'lucide-react';
+import GolfAnimationLoader from '@/components/ui/GolfAnimationLoader';
+
+interface AdminGuardProps {
+  children: React.ReactNode;
+}
+
+export const AdminGuard = ({ children }: AdminGuardProps) => {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  const [checkingRole, setCheckingRole] = useState(true);
+
+  useEffect(() => {
+    const checkAdminRole = async () => {
+      if (!user) {
+        setIsAdmin(false);
+        setCheckingRole(false);
+        return;
+      }
+
+      try {
+        // Check if user has admin role
+        const { data, error } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+          .eq('role', 'admin')
+          .maybeSingle();
+
+        if (error) {
+          console.error('Error checking admin role:', error);
+          setIsAdmin(false);
+        } else {
+          setIsAdmin(!!data);
+        }
+      } catch (error) {
+        console.error('Error checking admin role:', error);
+        setIsAdmin(false);
+      } finally {
+        setCheckingRole(false);
+      }
+    };
+
+    if (!loading) {
+      checkAdminRole();
+    }
+  }, [user, loading]);
+
+  const handleGoBack = () => {
+    navigate('/');
+  };
+
+  // Show loading while checking authentication and role
+  if (loading || checkingRole) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-background z-50">
+        <GolfAnimationLoader />
+      </div>
+    );
+  }
+
+  // If user is not authenticated or not admin, show access denied
+  if (!user || !isAdmin) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-muted/50 p-4">
+        <Card className="max-w-md w-full">
+          <CardContent className="text-center p-6">
+            <Shield className="h-16 w-16 mx-auto mb-4 text-red-500" />
+            <h1 className="text-2xl font-bold text-foreground mb-2">Access Denied</h1>
+            <p className="text-muted-foreground mb-6">
+              You don't have permission to access this page. Administrator privileges are required.
+            </p>
+            <Button onClick={handleGoBack} className="w-full">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Return to Home
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return <>{children}</>;
+};

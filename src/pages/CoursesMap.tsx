@@ -120,7 +120,7 @@ const CoursesMap = () => {
     setMarkers([]);
 
     const newMarkers: any[] = [];
-    const bounds = new window.mapboxgl.LngLatBounds();
+    const bounds = new (window as any).mapboxgl.LngLatBounds();
 
     courses.forEach((course) => {
       if (!course.latitude || !course.longitude) return;
@@ -148,7 +148,7 @@ const CoursesMap = () => {
       });
 
       // Create marker
-      const marker = new window.mapboxgl.Marker({
+      const marker = new (window as any).mapboxgl.Marker({
         element: markerElement,
         anchor: 'center',
       })
@@ -231,7 +231,7 @@ const CoursesMap = () => {
       )}
 
       {/* Custom styles for markers */}
-      <style jsx>{`
+      <style>{`
         .golf-marker:hover {
           transform: scale(1.1);
         }
