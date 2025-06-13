@@ -58,8 +58,8 @@ const CourseCard = ({ course, currentTime }: CourseCardProps) => {
       <Card className="overflow-hidden hover:shadow-lg transition-shadow rounded-lg border w-full bg-card">
         <CardContent className="p-0 w-full">
           <div className="flex w-full">
-            {/* Image Section */}
-            <div className="w-32 h-32 md:w-40 md:h-40 flex-shrink-0 relative">
+            {/* Image Section - Full Width */}
+            <div className="w-full h-32 md:w-40 md:h-40 flex-shrink-0 relative">
               <CourseImageCarousel 
                 images={courseImages} 
                 courseName={course.name} 
