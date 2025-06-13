@@ -27,20 +27,12 @@ export const AdminGuard = ({ children }: AdminGuardProps) => {
       }
 
       try {
-        // Check if user has admin role
-        const { data, error } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', user.id)
-          .eq('role', 'admin')
-          .maybeSingle();
-
-        if (error) {
-          console.error('Error checking admin role:', error);
-          setIsAdmin(false);
-        } else {
-          setIsAdmin(!!data);
-        }
+        // For now, we'll use a simple email-based admin check
+        // You can modify this to use your preferred admin identification method
+        const adminEmails = ['admin@golfapp.com', 'admin@example.com'];
+        const isUserAdmin = adminEmails.includes(user.email || '');
+        
+        setIsAdmin(isUserAdmin);
       } catch (error) {
         console.error('Error checking admin role:', error);
         setIsAdmin(false);
