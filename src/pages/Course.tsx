@@ -71,6 +71,23 @@ const Course = () => {
     enabled: !!id,
   });
 
+  const { data: rounds = [], isLoading: isLoadingRounds } = useQuery({
+    queryKey: ['course-rounds', id],
+    queryFn: async () => {
+      if (!id) return [];
+      
+      const { data, error } = await supabase
+        .from('rounds')
+        .select('*')
+        .eq('course_id', id)
+        .order('date', { ascending: false });
+      
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!id,
+  });
+
   if (isLoadingCourse) {
     return (
       <div className="h-screen flex items-center justify-center">
@@ -131,137 +148,151 @@ const Course = () => {
 
   return (
     <div className="h-screen flex flex-col">
-      {/* Header */}
-      <div className="flex-shrink-0 p-4 bg-background border-b border-border">
-        <div className="flex items-center justify-between">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate(-1)}
-            className="text-muted-foreground hover:text-foreground"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            {language === "en" ? "Back" : "Volver"}
-          </Button>
-          <div className="flex items-center gap-2">
-            <FavoriteButton courseId={course.id} size="sm" />
-          </div>
-        </div>
-      </div>
-
       <ScrollArea className="flex-1">
         <div className="pb-28">
-          {/* Course Images */}
-          <div className="w-full h-64 sm:h-80 relative">
-            <CoursePhotos images={courseImages} />
+          {/* Hero Section with Course Image */}
+          <div className="relative w-full h-64 sm:h-80">
+            {courseImages.length > 0 ? (
+              <img
+                src={courseImages[0]}
+                alt={course.name}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = 'https://placehold.co/600x400?text=Golf+Course';
+                }}
+              />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center">
+                <Flag className="h-16 w-16 text-white opacity-50" />
+              </div>
+            )}
+            
+            {/* Header Controls Overlay */}
+            <div className="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/50 to-transparent">
+              <div className="flex items-center justify-between">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate(-1)}
+                  className="text-white hover:bg-white/20"
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  {language === "en" ? "Back" : "Volver"}
+                </Button>
+                <div className="flex items-center gap-2">
+                  <FavoriteButton courseId={course.id} size="sm" />
+                </div>
+              </div>
+            </div>
+
+            {/* Course Title Overlay */}
+            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent">
+              <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">{course.name}</h1>
+              <div className="flex items-center gap-4 text-white/90">
+                {course.address && (
+                  <div className="flex items-center gap-1 text-sm">
+                    <MapPin size={16} />
+                    <span>{course.city}, {course.state}</span>
+                  </div>
+                )}
+                <Badge 
+                  variant={isOpen ? "default" : "secondary"}
+                  className={cn(
+                    "text-xs font-medium",
+                    isOpen ? "bg-green-500 hover:bg-green-600" : "bg-amber-500 hover:bg-amber-600"
+                  )}
+                >
+                  {isOpen ? t("home", "openNow") : t("home", "closed")}
+                </Badge>
+              </div>
+            </div>
           </div>
 
           <div className="p-4 space-y-6">
-            {/* Course Header */}
-            <div className="space-y-4">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">{course.name}</h1>
-                  
-                  {course.description && (
-                    <p className="text-muted-foreground text-sm sm:text-base mb-3">{course.description}</p>
-                  )}
+            {/* Course Description */}
+            {course.description && (
+              <p className="text-muted-foreground text-sm sm:text-base">{course.description}</p>
+            )}
 
-                  {/* Status Badge */}
-                  <div className="mb-3">
-                    <Badge 
-                      variant={isOpen ? "default" : "secondary"}
-                      className={cn(
-                        "text-xs font-medium",
-                        isOpen ? "bg-green-500 hover:bg-green-600" : "bg-amber-500 hover:bg-amber-600"
-                      )}
-                    >
-                      {isOpen ? t("home", "openNow") : t("home", "closed")}
-                    </Badge>
-                  </div>
-
-                  {/* Course Info Grid */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                    {course.address && (
-                      <div className="flex items-start gap-2 text-muted-foreground">
-                        <MapPin size={16} className="mt-0.5 flex-shrink-0" />
-                        <span>{[course.address, course.city, course.state].filter(Boolean).join(', ')}</span>
-                      </div>
-                    )}
-
-                    {formattedHours && (
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Calendar size={16} className="flex-shrink-0" />
-                        <span>{formattedHours}</span>
-                      </div>
-                    )}
-
-                    {course.phone && (
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Phone size={16} className="flex-shrink-0" />
-                        <span>{course.phone}</span>
-                      </div>
-                    )}
-
-                    {course.website && (
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Globe size={16} className="flex-shrink-0" />
-                        <a href={course.website} target="_blank" rel="noopener noreferrer" className="hover:text-primary truncate">
-                          {t("course", "website")}
-                        </a>
-                      </div>
-                    )}
-                  </div>
+            {/* Quick Stats */}
+            <div className="grid grid-cols-3 gap-4 p-4 bg-accent/20 rounded-lg">
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-1 text-primary mb-1">
+                  <Flag size={16} />
+                  <span className="font-semibold">{course.holes}</span>
                 </div>
+                <p className="text-xs text-muted-foreground">{t("profile", "holes")}</p>
               </div>
-
-              {/* Quick Stats */}
-              <div className="grid grid-cols-3 gap-4 p-4 bg-accent/20 rounded-lg">
+              
+              {course.par && (
                 <div className="text-center">
                   <div className="flex items-center justify-center gap-1 text-primary mb-1">
                     <Flag size={16} />
-                    <span className="font-semibold">{course.holes}</span>
+                    <span className="font-semibold">{course.par}</span>
                   </div>
-                  <p className="text-xs text-muted-foreground">{t("profile", "holes")}</p>
+                  <p className="text-xs text-muted-foreground">{t("course", "par")}</p>
                 </div>
-                
-                {course.par && (
-                  <div className="text-center">
-                    <div className="flex items-center justify-center gap-1 text-primary mb-1">
-                      <Flag size={16} />
-                      <span className="font-semibold">{course.par}</span>
-                    </div>
-                    <p className="text-xs text-muted-foreground">{t("course", "par")}</p>
-                  </div>
-                )}
-                
-                <div className="text-center">
-                  <div className="flex items-center justify-center gap-1 text-primary mb-1">
-                    <Star size={16} />
-                    <span className="font-semibold">
-                      {averageRating > 0 ? averageRating.toFixed(1) : '--'}
-                    </span>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    {reviews.length} {language === "en" ? "review" + (reviews.length !== 1 ? "s" : "") : "reseña" + (reviews.length !== 1 ? "s" : "")}
-                  </p>
+              )}
+              
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-1 text-primary mb-1">
+                  <Star size={16} />
+                  <span className="font-semibold">
+                    {averageRating > 0 ? averageRating.toFixed(1) : '--'}
+                  </span>
                 </div>
+                <p className="text-xs text-muted-foreground">
+                  {reviews.length} {language === "en" ? "review" + (reviews.length !== 1 ? "s" : "") : "reseña" + (reviews.length !== 1 ? "s" : "")}
+                </p>
               </div>
+            </div>
 
-              {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-3">
-                <ReservationForm
-                  courseId={course.id}
-                  courseName={course.name}
-                  courseLocation={`${course.city}, ${course.state}`}
-                />
-                <Link to={`/add-round`} className="flex-1">
-                  <Button variant="outline" className="w-full flex gap-2 items-center">
-                    <Users size={16} />
-                    {language === "en" ? "Add Round" : "Agregar Ronda"}
-                  </Button>
-                </Link>
-              </div>
+            {/* Course Info Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+              {course.address && (
+                <div className="flex items-start gap-2 text-muted-foreground">
+                  <MapPin size={16} className="mt-0.5 flex-shrink-0" />
+                  <span>{[course.address, course.city, course.state].filter(Boolean).join(', ')}</span>
+                </div>
+              )}
+
+              {formattedHours && (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Calendar size={16} className="flex-shrink-0" />
+                  <span>{formattedHours}</span>
+                </div>
+              )}
+
+              {course.phone && (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Phone size={16} className="flex-shrink-0" />
+                  <span>{course.phone}</span>
+                </div>
+              )}
+
+              {course.website && (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Globe size={16} className="flex-shrink-0" />
+                  <a href={course.website} target="_blank" rel="noopener noreferrer" className="hover:text-primary truncate">
+                    {t("course", "website")}
+                  </a>
+                </div>
+              )}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-3">
+              <ReservationForm
+                courseId={course.id}
+                courseName={course.name}
+                courseLocation={`${course.city}, ${course.state}`}
+              />
+              <Link to={`/add-round`} className="flex-1">
+                <Button variant="outline" className="w-full flex gap-2 items-center">
+                  <Users size={16} />
+                  {language === "en" ? "Add Round" : "Agregar Ronda"}
+                </Button>
+              </Link>
             </div>
 
             {/* Tabs Content */}
@@ -274,7 +305,7 @@ const Course = () => {
               </TabsList>
 
               <TabsContent value="overview" className="space-y-4 mt-4">
-                <CourseStats />
+                <CourseStats rounds={rounds} isLoading={isLoadingRounds} coursePar={course.par} />
                 {course.latitude && course.longitude && (
                   <CourseMap
                     latitude={course.latitude}
@@ -295,7 +326,11 @@ const Course = () => {
               </TabsContent>
 
               <TabsContent value="reviews" className="space-y-4 mt-4">
-                <AddReviewForm courseId={course.id} />
+                <AddReviewForm 
+                  courseId={course.id} 
+                  onSuccess={() => refetchReviews()}
+                  onCancel={() => {}}
+                />
                 <CourseReviews
                   courseId={course.id}
                   reviews={reviews}
