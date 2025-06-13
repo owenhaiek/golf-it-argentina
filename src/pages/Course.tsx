@@ -17,6 +17,7 @@ import CourseMap from "@/components/course/CourseMap";
 import AddReviewForm from "@/components/course/AddReviewForm";
 import CourseReviews from "@/components/course/CourseReviews";
 import ReservationForm from "@/components/course/ReservationForm";
+import OpeningHoursDisplay from "@/components/course/OpeningHoursDisplay";
 import { isCurrentlyOpen, formatOpeningHours } from "@/utils/openingHours";
 import FavoriteButton from "@/components/ui/FavoriteButton";
 import { cn } from "@/lib/utils";
@@ -129,7 +130,6 @@ const Course = () => {
 
   const openingHoursData = parseOpeningHours();
   const isOpen = isCurrentlyOpen(openingHoursData);
-  const formattedHours = formatOpeningHours(openingHoursData);
 
   const averageRating = reviews.length > 0 
     ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length 
@@ -168,8 +168,17 @@ const Course = () => {
 
   const handleWebsiteClick = () => {
     if (course.website) {
-      window.open(course.website, '_blank', 'noopener,noreferrer');
+      // Ensure the URL has a protocol
+      let url = course.website;
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        url = `https://${url}`;
+      }
+      window.open(url, '_blank', 'noopener,noreferrer');
     }
+  };
+
+  const handleReviewSuccess = () => {
+    refetchReviews();
   };
 
   return (
@@ -339,16 +348,7 @@ const Course = () => {
             </div>
 
             {/* Opening Hours Display */}
-            {formattedHours && (
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Calendar size={16} className="flex-shrink-0" />
-                    <span className="text-sm">{formattedHours}</span>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+            <OpeningHoursDisplay openingHours={openingHoursData} />
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-3">
@@ -398,7 +398,7 @@ const Course = () => {
               <TabsContent value="reviews" className="space-y-4 mt-4">
                 <AddReviewForm 
                   courseId={course.id} 
-                  onSuccess={() => refetchReviews()}
+                  onSuccess={handleReviewSuccess}
                   onCancel={() => {}}
                 />
                 <CourseReviews
