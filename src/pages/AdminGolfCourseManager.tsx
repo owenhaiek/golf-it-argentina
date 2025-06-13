@@ -82,6 +82,8 @@ export const AdminGolfCourseForm: React.FC<AdminGolfCourseFormProps> = ({
   const holes = watch("holes");
   const holePars = watch("hole_pars") || [];
   const holeHandicaps = watch("hole_handicaps") || [];
+  const imageUrl = watch("image_url");
+  const imageGallery = watch("image_gallery");
 
   useEffect(() => {
     if (holes !== holePars.length) {
@@ -169,297 +171,357 @@ export const AdminGolfCourseForm: React.FC<AdminGolfCourseFormProps> = ({
     }
   };
 
+  const getGalleryImages = () => {
+    if (!imageGallery) return [];
+    return imageGallery.split(',').map(url => url.trim()).filter(Boolean);
+  };
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Información Básica</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="name">Nombre del Campo*</Label>
-              <Input
-                id="name"
-                {...register("name", { required: "El nombre es requerido" })}
-                placeholder="Nombre del campo de golf"
-              />
-              {errors.name && (
-                <p className="text-sm text-red-500 mt-1">{errors.name.message}</p>
-              )}
-            </div>
-
-            <div>
-              <Label htmlFor="type">Tipo de Campo</Label>
-              <Input
-                id="type"
-                {...register("type")}
-                placeholder="Standard, Championship, Executive, etc."
-              />
-            </div>
-          </div>
-
-          <div>
-            <Label htmlFor="description">Descripción</Label>
-            <Textarea
-              id="description"
-              {...register("description")}
-              placeholder="Descripción del campo de golf"
-              rows={3}
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="established_year">Año de Establecimiento</Label>
-              <Input
-                id="established_year"
-                type="number"
-                {...register("established_year", { 
-                  valueAsNumber: true,
-                  min: 1800,
-                  max: new Date().getFullYear()
-                })}
-                placeholder="1995"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="holes">Número de Hoyos*</Label>
-              <Input
-                id="holes"
-                type="number"
-                {...register("holes", { 
-                  required: "El número de hoyos es requerido",
-                  valueAsNumber: true,
-                  min: 1,
-                  max: 36
-                })}
-                placeholder="18"
-              />
-              {errors.holes && (
-                <p className="text-sm text-red-500 mt-1">{errors.holes.message}</p>
-              )}
-            </div>
-          </div>
-
-          <div>
-            <Label htmlFor="par">Par Total</Label>
-            <Input
-              id="par"
-              type="number"
-              {...register("par", { valueAsNumber: true, min: 27, max: 144 })}
-              placeholder="72"
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Ubicación</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <Label htmlFor="address">Dirección</Label>
-            <Input
-              id="address"
-              {...register("address")}
-              placeholder="Dirección completa del campo"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="city">Ciudad</Label>
-              <Input
-                id="city"
-                {...register("city")}
-                placeholder="Ciudad"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="state">Estado/Provincia</Label>
-              <Input
-                id="state"
-                {...register("state")}
-                placeholder="Estado o provincia"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="latitude">Latitud</Label>
-              <Input
-                id="latitude"
-                type="number"
-                step="any"
-                {...register("latitude", { valueAsNumber: true })}
-                placeholder="-34.6118"
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                Coordenada de latitud (ejemplo: -34.6118)
-              </p>
-            </div>
-
-            <div>
-              <Label htmlFor="longitude">Longitud</Label>
-              <Input
-                id="longitude"
-                type="number"
-                step="any"
-                {...register("longitude", { valueAsNumber: true })}
-                placeholder="-58.3816"
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                Coordenada de longitud (ejemplo: -58.3816)
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Contacto</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="phone">Teléfono</Label>
-              <Input
-                id="phone"
-                {...register("phone")}
-                placeholder="+54 11 1234-5678"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="website">Sitio Web</Label>
-              <Input
-                id="website"
-                {...register("website")}
-                placeholder="https://www.campo.com"
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Imágenes</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <Label htmlFor="image_url">Imagen Principal (URL)</Label>
-            <Input
-              id="image_url"
-              {...register("image_url")}
-              placeholder="https://ejemplo.com/imagen.jpg"
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="image_gallery">Galería de Imágenes (URLs separadas por comas)</Label>
-            <Textarea
-              id="image_gallery"
-              {...register("image_gallery")}
-              placeholder="https://ejemplo.com/img1.jpg,https://ejemplo.com/img2.jpg"
-              rows={3}
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Horarios de Apertura</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {daysOfWeek.map((day, index) => (
-              <div key={index} className="flex items-center space-x-4 p-3 border rounded-lg">
-                <div className="w-20 font-medium">{day}</div>
-                <Switch
-                  checked={openingHours[index]?.isOpen || false}
-                  onCheckedChange={(checked) => updateOpeningHours(index, "isOpen", checked)}
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Left Column - Form */}
+      <div className="space-y-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Información Básica</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="name">Nombre del Campo*</Label>
+                <Input
+                  id="name"
+                  {...register("name", { required: "El nombre es requerido" })}
+                  placeholder="Nombre del campo de golf"
                 />
-                {openingHours[index]?.isOpen && (
-                  <>
-                    <Input
-                      type="time"
-                      value={openingHours[index]?.open || ""}
-                      onChange={(e) => updateOpeningHours(index, "open", e.target.value)}
-                      className="w-32"
-                    />
-                    <span>-</span>
-                    <Input
-                      type="time"
-                      value={openingHours[index]?.close || ""}
-                      onChange={(e) => updateOpeningHours(index, "close", e.target.value)}
-                      className="w-32"
-                    />
-                  </>
+                {errors.name && (
+                  <p className="text-sm text-red-500 mt-1">{errors.name.message}</p>
                 )}
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Configuración de Hoyos</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {Array.from({ length: holes }, (_, i) => (
-              <div key={i} className="p-3 border rounded-lg space-y-2">
-                <div className="font-medium text-center">Hoyo {i + 1}</div>
+              <div>
+                <Label htmlFor="type">Tipo de Campo</Label>
+                <Input
+                  id="type"
+                  {...register("type")}
+                  placeholder="Standard, Championship, Executive, etc."
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="description">Descripción</Label>
+                <Textarea
+                  id="description"
+                  {...register("description")}
+                  placeholder="Descripción del campo de golf"
+                  rows={3}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-xs">Par</Label>
+                  <Label htmlFor="established_year">Año de Establecimiento</Label>
                   <Input
+                    id="established_year"
                     type="number"
-                    min="3"
-                    max="6"
-                    value={holePars[i] || 4}
-                    onChange={(e) => updateHolePar(i, parseInt(e.target.value) || 4)}
-                    className="text-center"
+                    {...register("established_year", { 
+                      valueAsNumber: true,
+                      min: 1800,
+                      max: new Date().getFullYear()
+                    })}
+                    placeholder="1995"
                   />
                 </div>
+
                 <div>
-                  <Label className="text-xs">Handicap</Label>
+                  <Label htmlFor="holes">Número de Hoyos*</Label>
                   <Input
+                    id="holes"
                     type="number"
-                    min="1"
-                    max={holes}
-                    value={holeHandicaps[i] || 1}
-                    onChange={(e) => updateHoleHandicap(i, parseInt(e.target.value) || 1)}
-                    className="text-center"
+                    {...register("holes", { 
+                      required: "El número de hoyos es requerido",
+                      valueAsNumber: true,
+                      min: 1,
+                      max: 36
+                    })}
+                    placeholder="18"
+                  />
+                  {errors.holes && (
+                    <p className="text-sm text-red-500 mt-1">{errors.holes.message}</p>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="par">Par Total</Label>
+                <Input
+                  id="par"
+                  type="number"
+                  {...register("par", { valueAsNumber: true, min: 27, max: 144 })}
+                  placeholder="72"
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Ubicación</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="address">Dirección</Label>
+                <Input
+                  id="address"
+                  {...register("address")}
+                  placeholder="Dirección completa del campo"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="city">Ciudad</Label>
+                  <Input
+                    id="city"
+                    {...register("city")}
+                    placeholder="Ciudad"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="state">Estado/Provincia</Label>
+                  <Input
+                    id="state"
+                    {...register("state")}
+                    placeholder="Estado o provincia"
                   />
                 </div>
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
 
-      <div className="flex justify-end space-x-2">
-        <Button type="submit" disabled={isSubmitting} className="min-w-32">
-          {isSubmitting ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Guardando...
-            </>
-          ) : (
-            <>Guardar Campo</>
-          )}
-        </Button>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="latitude">Latitud</Label>
+                  <Input
+                    id="latitude"
+                    type="number"
+                    step="any"
+                    {...register("latitude", { valueAsNumber: true })}
+                    placeholder="-34.6118"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Coordenada de latitud (ejemplo: -34.6118)
+                  </p>
+                </div>
+
+                <div>
+                  <Label htmlFor="longitude">Longitud</Label>
+                  <Input
+                    id="longitude"
+                    type="number"
+                    step="any"
+                    {...register("longitude", { valueAsNumber: true })}
+                    placeholder="-58.3816"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Coordenada de longitud (ejemplo: -58.3816)
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Contacto</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="phone">Teléfono</Label>
+                <Input
+                  id="phone"
+                  {...register("phone")}
+                  placeholder="+54 11 1234-5678"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="website">Sitio Web</Label>
+                <Input
+                  id="website"
+                  {...register("website")}
+                  placeholder="https://www.campo.com"
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Imágenes</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="image_url">Imagen Principal (URL)</Label>
+                <Input
+                  id="image_url"
+                  {...register("image_url")}
+                  placeholder="https://ejemplo.com/imagen.jpg"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="image_gallery">Galería de Imágenes (URLs separadas por comas)</Label>
+                <Textarea
+                  id="image_gallery"
+                  {...register("image_gallery")}
+                  placeholder="https://ejemplo.com/img1.jpg,https://ejemplo.com/img2.jpg"
+                  rows={3}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Horarios de Apertura</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {daysOfWeek.map((day, index) => (
+                  <div key={index} className="flex items-center space-x-4 p-3 border rounded-lg">
+                    <div className="w-20 font-medium">{day}</div>
+                    <Switch
+                      checked={openingHours[index]?.isOpen || false}
+                      onCheckedChange={(checked) => updateOpeningHours(index, "isOpen", checked)}
+                    />
+                    {openingHours[index]?.isOpen && (
+                      <>
+                        <Input
+                          type="time"
+                          value={openingHours[index]?.open || ""}
+                          onChange={(e) => updateOpeningHours(index, "open", e.target.value)}
+                          className="w-32"
+                        />
+                        <span>-</span>
+                        <Input
+                          type="time"
+                          value={openingHours[index]?.close || ""}
+                          onChange={(e) => updateOpeningHours(index, "close", e.target.value)}
+                          className="w-32"
+                        />
+                      </>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Configuración de Hoyos</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {Array.from({ length: holes }, (_, i) => (
+                  <div key={i} className="p-3 border rounded-lg space-y-2">
+                    <div className="font-medium text-center">Hoyo {i + 1}</div>
+                    <div>
+                      <Label className="text-xs">Par</Label>
+                      <Input
+                        type="number"
+                        min="3"
+                        max="6"
+                        value={holePars[i] || 4}
+                        onChange={(e) => updateHolePar(i, parseInt(e.target.value) || 4)}
+                        className="text-center"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs">Handicap</Label>
+                      <Input
+                        type="number"
+                        min="1"
+                        max={holes}
+                        value={holeHandicaps[i] || 1}
+                        onChange={(e) => updateHoleHandicap(i, parseInt(e.target.value) || 1)}
+                        className="text-center"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="flex justify-end space-x-2">
+            <Button type="submit" disabled={isSubmitting} className="min-w-32">
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Guardando...
+                </>
+              ) : (
+                <>Guardar Campo</>
+              )}
+            </Button>
+          </div>
+        </form>
       </div>
-    </form>
+
+      {/* Right Column - Image Preview */}
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Vista Previa de Imágenes</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Main Image Preview */}
+            {imageUrl && (
+              <div>
+                <Label className="text-sm font-medium">Imagen Principal</Label>
+                <div className="mt-2 border rounded-lg overflow-hidden">
+                  <img
+                    src={imageUrl}
+                    alt="Imagen principal del campo"
+                    className="w-full h-48 object-cover"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Gallery Images Preview */}
+            {imageGallery && getGalleryImages().length > 0 && (
+              <div>
+                <Label className="text-sm font-medium">Galería de Imágenes</Label>
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  {getGalleryImages().map((url, index) => (
+                    <div key={index} className="border rounded-lg overflow-hidden">
+                      <img
+                        src={url}
+                        alt={`Imagen de galería ${index + 1}`}
+                        className="w-full h-24 object-cover"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {!imageUrl && !imageGallery && (
+              <div className="text-center text-muted-foreground py-8">
+                <p>Las imágenes aparecerán aquí cuando agregues URLs válidas</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   );
 };
 
