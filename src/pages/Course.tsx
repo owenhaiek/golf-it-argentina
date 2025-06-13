@@ -78,9 +78,15 @@ const Course = () => {
       
       const { data, error } = await supabase
         .from('rounds')
-        .select('*')
+        .select(`
+          *,
+          profiles:user_id (
+            username,
+            avatar_url
+          )
+        `)
         .eq('course_id', id)
-        .order('date', { ascending: false });
+        .order('score', { ascending: true });
       
       if (error) throw error;
       return data || [];
@@ -315,7 +321,7 @@ const Course = () => {
               </TabsContent>
 
               <TabsContent value="holes" className="mt-4">
-                <CourseHoleDetails />
+                <CourseHoleDetails coursePar={course.par} holes={course.holes} />
               </TabsContent>
 
               <TabsContent value="weather" className="mt-4">
