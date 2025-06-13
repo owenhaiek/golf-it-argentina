@@ -367,9 +367,10 @@ const Course = () => {
 
             {/* Tabs Content */}
             <Tabs defaultValue="overview" className="w-full">
-              <TabsList className="grid w-full grid-cols-4 text-xs">
+              <TabsList className="grid w-full grid-cols-5 text-xs">
                 <TabsTrigger value="overview">{language === "en" ? "Overview" : "Resumen"}</TabsTrigger>
                 <TabsTrigger value="holes">{language === "en" ? "Holes" : "Hoyos"}</TabsTrigger>
+                <TabsTrigger value="images">{language === "en" ? "Images" : "Imágenes"}</TabsTrigger>
                 <TabsTrigger value="weather">{language === "en" ? "Weather" : "Clima"}</TabsTrigger>
                 <TabsTrigger value="reviews">{language === "en" ? "Reviews" : "Reseñas"}</TabsTrigger>
               </TabsList>
@@ -386,6 +387,15 @@ const Course = () => {
 
               <TabsContent value="holes" className="mt-4">
                 <CourseHoleDetails coursePar={course.par} holes={course.holes} />
+              </TabsContent>
+
+              <TabsContent value="images" className="mt-4">
+                <CoursePhotos
+                  courseId={course.id}
+                  courseName={course.name}
+                  imageUrl={course.image_url}
+                  imageGallery={course.image_gallery}
+                />
               </TabsContent>
 
               <TabsContent value="weather" className="mt-4">
