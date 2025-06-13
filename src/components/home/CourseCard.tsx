@@ -91,19 +91,16 @@ const CourseCard = ({ course, currentTime }: CourseCardProps) => {
               </div>
             )}
             
-            {/* Opening Hours with Par - Now below address */}
+            {/* Opening Hours - Now below address */}
             <div className="flex items-center gap-2 text-muted-foreground">
               <Clock size={16} className="flex-shrink-0" />
               <div className="text-left">
                 <span className="text-xs md:text-sm lg:text-base font-medium">{formattedHours}</span>
-                {course.par && <span className="text-xs text-muted-foreground ml-1">
-                  • {t("course", "par")} {course.par}
-                </span>}
               </div>
             </div>
             
-            {/* Course Info - Mobile: 2-column grid, Desktop: inline */}
-            <div className="grid grid-cols-2 gap-2 md:flex md:flex-col md:gap-3 lg:flex-row lg:items-center lg:gap-6">
+            {/* Course Info - Mobile: 3-column grid, Desktop: inline */}
+            <div className="grid grid-cols-3 gap-2 md:flex md:flex-col md:gap-3 lg:flex-row lg:items-center lg:gap-6">
               {/* Holes - Column 1 */}
               <div className="flex items-center gap-2 md:gap-2 text-primary">
                 <Flag size={16} className="flex-shrink-0" />
@@ -112,7 +109,17 @@ const CourseCard = ({ course, currentTime }: CourseCardProps) => {
                 </div>
               </div>
               
-              {/* Open/Closed Status - Column 2 */}
+              {/* Par - Column 2 */}
+              {course.par && (
+                <div className="flex items-center gap-2 md:gap-2 text-muted-foreground">
+                  <Flag size={16} className="flex-shrink-0" />
+                  <div className="text-left">
+                    <span className="font-medium text-xs md:text-sm lg:text-base">{t("course", "par")} {course.par}</span>
+                  </div>
+                </div>
+              )}
+              
+              {/* Open/Closed Status - Column 3 */}
               <div className="flex items-center gap-2 md:gap-2">
                 <div className={`w-2 h-2 rounded-full ${isOpen ? "bg-green-600" : "bg-amber-600"} flex-shrink-0`} />
                 <div className="text-left">
