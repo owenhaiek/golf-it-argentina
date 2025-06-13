@@ -40,7 +40,7 @@ interface Reservation {
   profiles?: {
     full_name: string;
     avatar_url?: string;
-  };
+  } | null;
 }
 
 const CourseDashboard = () => {
@@ -88,7 +88,12 @@ const CourseDashboard = () => {
         .order('time', { ascending: true });
       
       if (error) throw error;
-      return data || [];
+      
+      // Transform the data to match our Reservation interface
+      return (data || []).map(reservation => ({
+        ...reservation,
+        profiles: reservation.profiles || null
+      })) as Reservation[];
     },
     enabled: !!courseId,
   });

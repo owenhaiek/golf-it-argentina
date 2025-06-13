@@ -27,9 +27,8 @@ export const AdminGuard = ({ children }: AdminGuardProps) => {
       }
 
       try {
-        // For now, we'll use a simple email-based admin check
-        // You can modify this to use your preferred admin identification method
-        const adminEmails = ['admin@golfapp.com', 'admin@example.com'];
+        // Updated admin emails list to include your email
+        const adminEmails = ['admin@golfapp.com', 'admin@example.com', 'owenhaiek11@gmail.com'];
         const isUserAdmin = adminEmails.includes(user.email || '');
         
         setIsAdmin(isUserAdmin);
