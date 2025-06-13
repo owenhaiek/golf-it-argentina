@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MapPin, Phone, Globe, Calendar, Users, Flag, Star, ArrowLeft, Navigation } from "lucide-react";
+import { MapPin, Phone, Globe, Calendar, Users, Flag, Star, ArrowLeft, Navigation, Plus, ExternalLink } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import CoursePhotos from "@/components/course/CoursePhotos";
@@ -152,12 +152,32 @@ const Course = () => {
 
   const courseImages = getCourseImages(course);
 
+  // Handle click actions for CTAs
+  const handleLocationClick = () => {
+    if (course.address) {
+      const query = encodeURIComponent([course.address, course.city, course.state].filter(Boolean).join(', '));
+      window.open(`https://maps.google.com?q=${query}`, '_blank');
+    }
+  };
+
+  const handlePhoneClick = () => {
+    if (course.phone) {
+      window.open(`tel:${course.phone}`, '_self');
+    }
+  };
+
+  const handleWebsiteClick = () => {
+    if (course.website) {
+      window.open(course.website, '_blank', 'noopener,noreferrer');
+    }
+  };
+
   return (
     <div className="h-screen flex flex-col">
       <ScrollArea className="flex-1">
         <div className="pb-28">
-          {/* Hero Section with Course Image */}
-          <div className="relative w-full h-64 sm:h-80">
+          {/* Hero Section with Course Image - Increased Height */}
+          <div className="relative w-full h-80 sm:h-96 md:h-[28rem]">
             {courseImages.length > 0 ? (
               <img
                 src={courseImages[0]}
@@ -253,38 +273,82 @@ const Course = () => {
               </div>
             </div>
 
-            {/* Course Info Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+            {/* Call to Action Boxes */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {course.address && (
-                <div className="flex items-start gap-2 text-muted-foreground">
-                  <MapPin size={16} className="mt-0.5 flex-shrink-0" />
-                  <span>{[course.address, course.city, course.state].filter(Boolean).join(', ')}</span>
-                </div>
-              )}
-
-              {formattedHours && (
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Calendar size={16} className="flex-shrink-0" />
-                  <span>{formattedHours}</span>
-                </div>
+                <Card 
+                  className="cursor-pointer hover:shadow-md transition-all duration-200 hover:bg-accent/10 border-2 hover:border-primary/20"
+                  onClick={handleLocationClick}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                        <MapPin className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm mb-1">{language === "en" ? "Get Directions" : "Obtener Direcciones"}</p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {[course.address, course.city, course.state].filter(Boolean).join(', ')}
+                        </p>
+                      </div>
+                      <ExternalLink className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  </CardContent>
+                </Card>
               )}
 
               {course.phone && (
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Phone size={16} className="flex-shrink-0" />
-                  <span>{course.phone}</span>
-                </div>
+                <Card 
+                  className="cursor-pointer hover:shadow-md transition-all duration-200 hover:bg-accent/10 border-2 hover:border-primary/20"
+                  onClick={handlePhoneClick}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
+                        <Phone className="h-5 w-5 text-green-600 dark:text-green-400" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm mb-1">{language === "en" ? "Call Course" : "Llamar"}</p>
+                        <p className="text-xs text-muted-foreground">{course.phone}</p>
+                      </div>
+                      <ExternalLink className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  </CardContent>
+                </Card>
               )}
 
               {course.website && (
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Globe size={16} className="flex-shrink-0" />
-                  <a href={course.website} target="_blank" rel="noopener noreferrer" className="hover:text-primary truncate">
-                    {t("course", "website")}
-                  </a>
-                </div>
+                <Card 
+                  className="cursor-pointer hover:shadow-md transition-all duration-200 hover:bg-accent/10 border-2 hover:border-primary/20"
+                  onClick={handleWebsiteClick}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg">
+                        <Globe className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm mb-1">{language === "en" ? "Visit Website" : "Visitar Web"}</p>
+                        <p className="text-xs text-muted-foreground truncate">{t("course", "website")}</p>
+                      </div>
+                      <ExternalLink className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  </CardContent>
+                </Card>
               )}
             </div>
+
+            {/* Opening Hours Display */}
+            {formattedHours && (
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Calendar size={16} className="flex-shrink-0" />
+                    <span className="text-sm">{formattedHours}</span>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-3">
@@ -295,7 +359,7 @@ const Course = () => {
               />
               <Link to={`/add-round`} className="flex-1">
                 <Button variant="outline" className="w-full flex gap-2 items-center">
-                  <Users size={16} />
+                  <Plus size={16} />
                   {language === "en" ? "Add Round" : "Agregar Ronda"}
                 </Button>
               </Link>
