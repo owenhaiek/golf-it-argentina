@@ -31,7 +31,8 @@ const CourseList = ({ courses, isLoading, currentTime, handleResetFilters }: Cou
 
   return (
     <div className="w-full">
-      <div className="bg-background border border-border rounded-lg overflow-hidden">
+      {/* Desktop: 3 column grid, Mobile: single column full width */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-0 md:gap-4">
         {courses.map(course => (
           <CourseCard key={course.id} course={course} currentTime={currentTime} />
         ))}

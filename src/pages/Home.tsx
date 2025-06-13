@@ -61,7 +61,8 @@ const Home = () => {
     setSearchTerm("");
   };
 
-  return <div className="h-screen flex flex-col">
+  return (
+    <div className="h-screen flex flex-col">
       {/* Sticky Header with logo, title and search */}
       <div className="flex-shrink-0 p-4 bg-background border-b sticky top-0 z-40">
         <div className="flex items-center justify-between">
@@ -77,16 +78,19 @@ const Home = () => {
         </div>
         
         {/* Search Bar - conditionally rendered */}
-        {isSearchVisible && <div className="mt-4">
+        {isSearchVisible && (
+          <div className="mt-4">
             <SearchBar search={searchTerm} setSearch={handleSearch} isVisible={isSearchVisible} />
-          </div>}
+          </div>
+        )}
         
         {/* Active Filter Badges */}
         <ActiveFilterBadges filters={activeFilters} handleResetFilters={handleResetFilters} />
       </div>
 
       <ScrollArea className="flex-1">
-        <div className="p-4 pb-28">
+        {/* Mobile: no padding left/right, Desktop: normal padding */}
+        <div className="py-4 px-0 md:p-4 pb-28">
           <CourseList courses={courses} isLoading={isLoading} currentTime={currentTime} handleResetFilters={handleResetFilters} />
         </div>
       </ScrollArea>
@@ -100,7 +104,8 @@ const Home = () => {
 
       {/* Filter Panel */}
       <FilterPanel isOpen={isFilterPanelOpen} onClose={() => setIsFilterPanelOpen(false)} onApplyFilters={handleFilterChange} currentFilters={activeFilters} />
-    </div>;
+    </div>
+  );
 };
 
 export default Home;
