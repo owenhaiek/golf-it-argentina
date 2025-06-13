@@ -29,8 +29,8 @@ const Profile = () => {
 
   return (
     <div className="h-screen flex flex-col">
-      <div className="flex-shrink-0 p-4 bg-white border-b">
-        <h1 className="text-2xl font-bold">Profile</h1>
+      <div className="flex-shrink-0 p-4 bg-background border-b border-border">
+        <h1 className="text-2xl font-bold text-foreground">Profile</h1>
       </div>
       
       <ScrollArea className="flex-1">

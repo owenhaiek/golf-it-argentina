@@ -19,7 +19,7 @@ export const Navigation = () => {
   
   return (
     <div 
-      className="bg-white border-t border-gray-200 shadow-lg w-full"
+      className="bg-background border-t border-border shadow-lg w-full"
       style={{
         touchAction: 'none',
         userSelect: 'none',
