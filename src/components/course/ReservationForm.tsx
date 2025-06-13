@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
@@ -100,13 +101,10 @@ const ReservationForm = ({ courseId, courseName, courseLocation }: ReservationFo
   const reservation = useMutation({
     mutationFn: async (data: FormValues) => {
       if (!user) {
-        console.error("User not authenticated");
         throw new Error("User not authenticated");
       }
       
       console.log("Creating reservation with data:", data);
-      console.log("User ID:", user.id);
-      console.log("User email:", user.email);
       
       const reservationData = {
         course_id: courseId,
@@ -132,12 +130,6 @@ const ReservationForm = ({ courseId, courseName, courseLocation }: ReservationFo
       
       if (error) {
         console.error("Reservation creation error:", error);
-        console.error("Error details:", {
-          code: error.code,
-          message: error.message,
-          details: error.details,
-          hint: error.hint
-        });
         throw error;
       }
       
