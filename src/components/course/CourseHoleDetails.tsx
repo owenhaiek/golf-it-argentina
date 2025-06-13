@@ -32,10 +32,7 @@ const CourseHoleDetails = ({ coursePar = 72, holes = 18 }: CourseHoleDetailsProp
       holeData.push({
         hole: i,
         par: par,
-        handicap: handicap > 18 ? handicap - 18 : handicap,
-        yardage: par === 3 ? 120 + Math.floor(Math.random() * 80) : 
-                 par === 4 ? 300 + Math.floor(Math.random() * 150) :
-                 480 + Math.floor(Math.random() * 100)
+        handicap: handicap > 18 ? handicap - 18 : handicap
       });
     }
     
@@ -48,14 +45,11 @@ const CourseHoleDetails = ({ coursePar = 72, holes = 18 }: CourseHoleDetailsProp
   
   const frontNinePar = frontNine.reduce((sum, hole) => sum + hole.par, 0);
   const backNinePar = backNine.reduce((sum, hole) => sum + hole.par, 0);
-  const frontNineYardage = frontNine.reduce((sum, hole) => sum + hole.yardage, 0);
-  const backNineYardage = backNine.reduce((sum, hole) => sum + hole.yardage, 0);
 
-  const HoleTable = ({ holes, title, totalPar, totalYardage }: {
+  const HoleTable = ({ holes, title, totalPar }: {
     holes: any[], 
     title: string, 
-    totalPar: number, 
-    totalYardage: number
+    totalPar: number
   }) => (
     <Card className="w-full">
       <CardHeader className="pb-3">
@@ -98,15 +92,6 @@ const CourseHoleDetails = ({ coursePar = 72, holes = 18 }: CourseHoleDetailsProp
               ))}
               <TableCell className="text-center text-muted-foreground bg-primary/5">-</TableCell>
             </TableRow>
-            <TableRow className="hover:bg-muted/50">
-              <TableCell className="font-medium">Yardage</TableCell>
-              {holes.map((hole) => (
-                <TableCell key={hole.hole} className="text-center text-sm">
-                  {hole.yardage}
-                </TableCell>
-              ))}
-              <TableCell className="text-center font-bold bg-primary/5">{totalYardage}</TableCell>
-            </TableRow>
           </TableBody>
         </Table>
       </CardContent>
@@ -116,7 +101,7 @@ const CourseHoleDetails = ({ coursePar = 72, holes = 18 }: CourseHoleDetailsProp
   return (
     <div className="space-y-6">
       {/* Course Summary Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
@@ -140,18 +125,6 @@ const CourseHoleDetails = ({ coursePar = 72, holes = 18 }: CourseHoleDetailsProp
             </div>
           </CardContent>
         </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <TrendingUp className="h-5 w-5 text-primary" />
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Yardage</p>
-                <p className="text-2xl font-bold">{frontNineYardage + backNineYardage}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Front Nine */}
@@ -159,7 +132,6 @@ const CourseHoleDetails = ({ coursePar = 72, holes = 18 }: CourseHoleDetailsProp
         holes={frontNine} 
         title="Front Nine" 
         totalPar={frontNinePar}
-        totalYardage={frontNineYardage}
       />
 
       {/* Back Nine */}
@@ -168,7 +140,6 @@ const CourseHoleDetails = ({ coursePar = 72, holes = 18 }: CourseHoleDetailsProp
           holes={backNine} 
           title="Back Nine" 
           totalPar={backNinePar}
-          totalYardage={backNineYardage}
         />
       )}
 
@@ -181,7 +152,7 @@ const CourseHoleDetails = ({ coursePar = 72, holes = 18 }: CourseHoleDetailsProp
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div className="text-center">
               <p className="text-sm text-muted-foreground">Par 3 Holes</p>
               <p className="text-xl font-bold">{holeData.filter(h => h.par === 3).length}</p>
@@ -193,10 +164,6 @@ const CourseHoleDetails = ({ coursePar = 72, holes = 18 }: CourseHoleDetailsProp
             <div className="text-center">
               <p className="text-sm text-muted-foreground">Par 5 Holes</p>
               <p className="text-xl font-bold">{holeData.filter(h => h.par === 5).length}</p>
-            </div>
-            <div className="text-center">
-              <p className="text-sm text-muted-foreground">Total Yardage</p>
-              <p className="text-xl font-bold">{frontNineYardage + backNineYardage}</p>
             </div>
           </div>
         </CardContent>

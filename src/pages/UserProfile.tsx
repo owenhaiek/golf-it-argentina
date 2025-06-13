@@ -40,6 +40,8 @@ const UserProfile = () => {
     queryFn: async () => {
       if (!userId) return [];
       
+      console.log("Fetching rounds for user:", userId);
+      
       const { data, error } = await supabase
         .from("rounds")
         .select(`
@@ -51,13 +53,14 @@ const UserProfile = () => {
         `)
         .eq("user_id", userId)
         .order("date", { ascending: false })
-        .limit(5);
+        .limit(10);
 
       if (error) {
         console.error("Error fetching rounds:", error);
         throw error;
       }
 
+      console.log("Fetched rounds:", data);
       return data || [];
     },
     enabled: !!userId,
@@ -87,7 +90,7 @@ const UserProfile = () => {
   }
 
   const totalRoundsPlayed = recentRounds?.length || 0;
-  const averageScore = recentRounds?.length
+  const averageScore = recentRounds?.length && recentRounds.length > 0
     ? recentRounds.reduce((sum, round) => sum + round.score, 0) / recentRounds.length
     : 0;
 
@@ -191,7 +194,7 @@ const UserProfile = () => {
             <CardContent className="space-y-4">
               {roundsLoading ? (
                 <p>{t("common", "loading")}...</p>
-              ) : recentRounds.length === 0 ? (
+              ) : !recentRounds || recentRounds.length === 0 ? (
                 <p className="text-muted-foreground">{t("profile", "noRoundsYet")}</p>
               ) : (
                 recentRounds.map((round) => {

@@ -95,8 +95,8 @@ const Home = () => {
         </div>
       </ScrollArea>
 
-      {/* Floating Filter Button with full rounded radius */}
-      <div className="fixed bottom-20 right-4 z-50">
+      {/* Floating Filter Button with full rounded radius positioned above navigation */}
+      <div className="fixed bottom-24 right-4 z-50">
         <Button onClick={() => setIsFilterPanelOpen(true)} size="icon" className="rounded-full h-14 w-14 shadow-lg">
           <Filter className="h-6 w-6" />
         </Button>
