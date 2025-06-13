@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { MapPin, Flag, Clock } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -14,7 +13,6 @@ interface CourseCardProps {
 const CourseCard = ({ course, currentTime }: CourseCardProps) => {
   const { t } = useLanguage();
 
-  // Helper function to get all images for a course
   const getCourseImages = (course: any): string[] => {
     const images: string[] = [];
     
@@ -92,28 +90,36 @@ const CourseCard = ({ course, currentTime }: CourseCardProps) => {
               </div>
             )}
             
-            {/* Course Info */}
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">
-              <div className="flex items-center gap-2 text-primary">
-                <Flag size={16} />
-                <span className="font-medium">{course.holes} {t("profile", "holes")}</span>
-                {course.par && <span>• {t("course", "par")} {course.par}</span>}
+            {/* Course Info - Mobile: 3-column grid, Desktop: inline */}
+            <div className="grid grid-cols-3 gap-2 md:flex md:flex-col md:gap-3 lg:flex-row lg:items-center lg:gap-6">
+              {/* Holes - Column 1 */}
+              <div className="flex flex-col items-center md:flex-row md:items-center gap-1 md:gap-2 text-primary">
+                <Flag size={16} className="flex-shrink-0" />
+                <div className="text-center md:text-left">
+                  <div className="font-medium text-xs md:text-sm lg:text-base">{course.holes} {t("profile", "holes")}</div>
+                  {course.par && <div className="text-xs md:text-sm text-muted-foreground md:inline lg:inline">
+                    <span className="hidden md:inline">• </span>{t("course", "par")} {course.par}
+                  </div>}
+                </div>
               </div>
               
-              <div className="flex items-center gap-2">
-                <Clock size={16} className={isOpen ? "text-green-600" : "text-amber-600"} />
-                <span className={`font-medium ${isOpen ? "text-green-600" : "text-amber-600"}`}>
-                  {isOpen ? t("home", "openNow") : t("home", "closed")}
-                </span>
-                <span className="text-muted-foreground hidden sm:inline">
-                  • {formattedHours}
-                </span>
+              {/* Opening Hours - Column 2 */}
+              <div className="flex flex-col items-center md:flex-row md:items-center gap-1 md:gap-2 text-muted-foreground">
+                <Clock size={16} className="flex-shrink-0" />
+                <div className="text-center md:text-left">
+                  <div className="text-xs md:text-sm lg:text-base font-medium">{formattedHours}</div>
+                </div>
               </div>
-            </div>
-            
-            {/* Mobile-only hours display */}
-            <div className="sm:hidden text-muted-foreground text-xs">
-              {formattedHours}
+              
+              {/* Open/Closed Status - Column 3 */}
+              <div className="flex flex-col items-center md:flex-row md:items-center gap-1 md:gap-2">
+                <div className={`w-2 h-2 rounded-full ${isOpen ? "bg-green-600" : "bg-amber-600"} flex-shrink-0`} />
+                <div className="text-center md:text-left">
+                  <span className={`font-medium text-xs md:text-sm lg:text-base ${isOpen ? "text-green-600" : "text-amber-600"}`}>
+                    {isOpen ? t("home", "openNow") : t("home", "closed")}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
