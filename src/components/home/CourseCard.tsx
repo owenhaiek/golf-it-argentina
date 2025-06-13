@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 import { MapPin, Flag, Clock } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -90,31 +91,31 @@ const CourseCard = ({ course, currentTime }: CourseCardProps) => {
               </div>
             )}
             
-            {/* Course Info - Mobile: 3-column grid with single line, Desktop: inline */}
+            {/* Course Info - Mobile: 3-column grid with icons left, text right, Desktop: inline */}
             <div className="grid grid-cols-3 gap-2 md:flex md:flex-col md:gap-3 lg:flex-row lg:items-center lg:gap-6">
               {/* Holes - Column 1 */}
-              <div className="flex flex-col items-center md:flex-row md:items-center gap-1 md:gap-2 text-primary">
+              <div className="flex items-center gap-2 md:gap-2 text-primary">
                 <Flag size={16} className="flex-shrink-0" />
-                <div className="text-center md:text-left">
-                  <div className="font-medium text-xs md:text-sm lg:text-base">{course.holes} {t("profile", "holes")}</div>
-                  {course.par && <div className="text-xs text-muted-foreground md:inline lg:inline">
+                <div className="text-left">
+                  <span className="font-medium text-xs md:text-sm lg:text-base">{course.holes} {t("profile", "holes")}</span>
+                  {course.par && <span className="text-xs text-muted-foreground md:inline lg:inline ml-1">
                     <span className="hidden md:inline">• </span>{t("course", "par")} {course.par}
-                  </div>}
+                  </span>}
                 </div>
               </div>
               
               {/* Opening Hours - Column 2 */}
-              <div className="flex flex-col items-center md:flex-row md:items-center gap-1 md:gap-2 text-muted-foreground">
+              <div className="flex items-center gap-2 md:gap-2 text-muted-foreground">
                 <Clock size={16} className="flex-shrink-0" />
-                <div className="text-center md:text-left">
-                  <div className="text-xs md:text-sm lg:text-base font-medium">{formattedHours}</div>
+                <div className="text-left">
+                  <span className="text-xs md:text-sm lg:text-base font-medium">{formattedHours}</span>
                 </div>
               </div>
               
               {/* Open/Closed Status - Column 3 */}
-              <div className="flex flex-col items-center md:flex-row md:items-center gap-1 md:gap-2">
+              <div className="flex items-center gap-2 md:gap-2">
                 <div className={`w-2 h-2 rounded-full ${isOpen ? "bg-green-600" : "bg-amber-600"} flex-shrink-0`} />
-                <div className="text-center md:text-left">
+                <div className="text-left">
                   <span className={`font-medium text-xs md:text-sm lg:text-base ${isOpen ? "text-green-600" : "text-amber-600"}`}>
                     {isOpen ? t("home", "openNow") : t("home", "closed")}
                   </span>
