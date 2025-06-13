@@ -37,10 +37,13 @@ interface Reservation {
   created_at: string;
   additional_players?: any;
   course_notes?: string;
-  profiles?: {
-    full_name: string;
-    avatar_url?: string;
-  } | null;
+  user_id: string;
+  course_id: string;
+  course_name: string;
+  course_location?: string;
+  confirmed_at?: string;
+  confirmed_by?: string;
+  updated_at?: string;
 }
 
 const CourseDashboard = () => {
@@ -76,24 +79,13 @@ const CourseDashboard = () => {
       
       const { data, error } = await supabase
         .from('reservations')
-        .select(`
-          *,
-          profiles (
-            full_name,
-            avatar_url
-          )
-        `)
+        .select('*')
         .eq('course_id', courseId)
         .order('date', { ascending: true })
         .order('time', { ascending: true });
       
       if (error) throw error;
-      
-      // Transform the data to match our Reservation interface
-      return (data || []).map(reservation => ({
-        ...reservation,
-        profiles: reservation.profiles || null
-      })) as Reservation[];
+      return data as Reservation[] || [];
     },
     enabled: !!courseId,
   });
