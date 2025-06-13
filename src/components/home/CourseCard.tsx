@@ -1,7 +1,6 @@
 
 import { Link } from "react-router-dom";
 import { MapPin, Flag, Clock } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { isCurrentlyOpen, formatOpeningHours } from "@/utils/openingHours";
 import CourseImageCarousel from "./CourseImageCarousel";
@@ -55,63 +54,70 @@ const CourseCard = ({ course, currentTime }: CourseCardProps) => {
   
   return (
     <Link to={`/course/${course.id}`} className="block w-full">
-      <Card className="overflow-hidden hover:shadow-lg transition-shadow rounded-lg border w-full bg-card">
-        <CardContent className="p-0 w-full">
-          {/* Image Section - Full Width */}
-          <div className="w-full h-48 relative">
-            <CourseImageCarousel 
-              images={courseImages} 
-              courseName={course.name} 
+      <div className="w-full bg-background hover:bg-accent/50 transition-colors duration-200 border-b border-border last:border-b-0">
+        {/* Image Section - Full Width */}
+        <div className="w-full h-48 sm:h-56 relative">
+          <CourseImageCarousel 
+            images={courseImages} 
+            courseName={course.name} 
+            courseId={course.id} 
+          />
+          {/* Favorite Button Overlay */}
+          <div className="absolute top-2 right-2">
+            <FavoriteButton 
               courseId={course.id} 
+              size="sm" 
+              variant="ghost"
+              className="bg-white/80 backdrop-blur-sm hover:bg-white/90"
             />
-            {/* Favorite Button Overlay */}
-            <div className="absolute top-2 right-2">
-              <FavoriteButton 
-                courseId={course.id} 
-                size="sm" 
-                variant="ghost"
-                className="bg-white/80 backdrop-blur-sm hover:bg-white/90"
-              />
-            </div>
           </div>
-          
-          {/* Content Section */}
-          <div className="p-4 space-y-2">
-            <h2 className="text-lg md:text-xl font-semibold text-foreground line-clamp-1">{course.name}</h2>
+        </div>
+        
+        {/* Content Section */}
+        <div className="p-4 sm:p-6 space-y-3">
+          <div className="space-y-2">
+            <h2 className="text-xl sm:text-2xl font-semibold text-foreground line-clamp-1">{course.name}</h2>
             
             {course.description && (
-              <p className="text-muted-foreground text-sm line-clamp-2">{course.description}</p>
+              <p className="text-muted-foreground text-sm sm:text-base line-clamp-2">{course.description}</p>
+            )}
+          </div>
+          
+          <div className="space-y-3 text-sm sm:text-base">
+            {/* Address */}
+            {course.address && (
+              <div className="flex items-start gap-2 text-muted-foreground">
+                <MapPin size={16} className="mt-0.5 flex-shrink-0" />
+                <span className="line-clamp-2">{[course.address, course.city, course.state].filter(Boolean).join(', ')}</span>
+              </div>
             )}
             
-            <div className="space-y-1 text-sm text-muted-foreground">
-              {course.address && (
-                <div className="flex items-center gap-2">
-                  <MapPin size={14} />
-                  <span className="line-clamp-1">{[course.address, course.city, course.state].filter(Boolean).join(', ')}</span>
-                </div>
-              )}
+            {/* Course Info */}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">
+              <div className="flex items-center gap-2 text-primary">
+                <Flag size={16} />
+                <span className="font-medium">{course.holes} {t("profile", "holes")}</span>
+                {course.par && <span>• {t("course", "par")} {course.par}</span>}
+              </div>
               
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2 text-primary">
-                  <Flag size={14} />
-                  <span>{course.holes} {t("profile", "holes")}</span>
-                  {course.par && <span>• {t("course", "par")} {course.par}</span>}
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <Clock size={14} className={isOpen ? "text-green-600" : "text-amber-600"} />
-                  <span className={isOpen ? "text-green-600 font-medium" : "text-amber-600"}>
-                    {isOpen ? t("home", "openNow") : t("home", "closed")}
-                  </span>
-                  <span className="text-muted-foreground hidden md:inline">
-                    • {formattedHours}
-                  </span>
-                </div>
+              <div className="flex items-center gap-2">
+                <Clock size={16} className={isOpen ? "text-green-600" : "text-amber-600"} />
+                <span className={`font-medium ${isOpen ? "text-green-600" : "text-amber-600"}`}>
+                  {isOpen ? t("home", "openNow") : t("home", "closed")}
+                </span>
+                <span className="text-muted-foreground hidden sm:inline">
+                  • {formattedHours}
+                </span>
               </div>
             </div>
+            
+            {/* Mobile-only hours display */}
+            <div className="sm:hidden text-muted-foreground text-xs">
+              {formattedHours}
+            </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </Link>
   );
 };

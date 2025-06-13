@@ -1,7 +1,6 @@
 
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import CourseCard from "./CourseCard";
 import GolfAnimationLoader from "@/components/ui/GolfAnimationLoader";
 
@@ -31,12 +30,12 @@ const CourseList = ({ courses, isLoading, currentTime, handleResetFilters }: Cou
   }
 
   return (
-    <div className="space-y-4">
-      {courses.map(course => (
-        <div key={course.id} className="w-full">
-          <CourseCard course={course} currentTime={currentTime} />
-        </div>
-      ))}
+    <div className="w-full">
+      <div className="bg-background border border-border rounded-lg overflow-hidden">
+        {courses.map(course => (
+          <CourseCard key={course.id} course={course} currentTime={currentTime} />
+        ))}
+      </div>
     </div>
   );
 };
