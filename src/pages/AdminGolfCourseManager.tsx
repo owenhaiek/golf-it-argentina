@@ -1,33 +1,33 @@
 
 import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useForm } from "react-hook-form";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, ArrowLeft } from "lucide-react";
-import CourseList from "@/components/admin/CourseList";
-import { useNavigate } from "react-router-dom";
-import ImageUploader from "@/components/admin/ImageUploader";
-import GalleryUploader from "@/components/admin/GalleryUploader";
+import { useToast } from "@/hooks/use-toast";
+import { Loader2, Plus, Trash2 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 
 export interface GolfCourseTemplate {
   id?: string;
   name: string;
-  holes: number;
-  par: number;
-  address?: string;
-  state?: string;
-  city?: string;
   description?: string;
+  address?: string;
+  city?: string;
+  state?: string;
   phone?: string;
   website?: string;
+  holes: number;
+  par?: number;
   image_url?: string;
   image_gallery?: string;
+  established_year?: number;
+  type?: string;
+  latitude?: number;
+  longitude?: number;
   opening_hours?: Array<{
     isOpen: boolean;
     open: string;
@@ -42,438 +42,421 @@ interface AdminGolfCourseFormProps {
   onSubmitSuccess?: () => void;
 }
 
-export const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGolfCourseFormProps) => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [course, setCourse] = useState<GolfCourseTemplate>({
-    name: "",
-    holes: 18,
-    par: 72,
-    address: "",
-    state: "",
-    city: "",
-    description: "",
-    phone: "",
-    website: "",
-    image_url: "",
-    image_gallery: "",
-    opening_hours: [
-      { isOpen: true, open: "08:00", close: "18:00" },
-      { isOpen: true, open: "08:00", close: "18:00" },
-      { isOpen: true, open: "08:00", close: "18:00" },
-      { isOpen: true, open: "08:00", close: "18:00" },
-      { isOpen: true, open: "08:00", close: "18:00" },
-      { isOpen: true, open: "08:00", close: "18:00" },
-      { isOpen: true, open: "08:00", close: "18:00" }
-    ],
-    hole_pars: Array(18).fill(4),
-    hole_handicaps: Array(18).fill(0),
+export const AdminGolfCourseForm: React.FC<AdminGolfCourseFormProps> = ({
+  initialCourse,
+  onSubmitSuccess,
+}) => {
+  const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [openingHours, setOpeningHours] = useState<Array<{
+    isOpen: boolean;
+    open: string;
+    close: string;
+  }>>(
+    initialCourse?.opening_hours || 
+    Array(7).fill({ isOpen: false, open: "", close: "" })
+  );
+
+  const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<GolfCourseTemplate>({
+    defaultValues: initialCourse || {
+      name: "",
+      description: "",
+      address: "",
+      city: "",
+      state: "",
+      phone: "",
+      website: "",
+      holes: 18,
+      par: 72,
+      image_url: "",
+      image_gallery: "",
+      established_year: new Date().getFullYear(),
+      type: "Standard",
+      latitude: undefined,
+      longitude: undefined,
+      hole_pars: Array(18).fill(4),
+      hole_handicaps: Array(18).fill(1),
+    },
   });
 
-  const { toast } = useToast();
-
-  // Calculate total par from hole pars
-  const calculateTotalPar = (holePars: number[]) => {
-    return holePars.reduce((total, par) => total + (par || 4), 0);
-  };
+  const holes = watch("holes");
+  const holePars = watch("hole_pars") || [];
+  const holeHandicaps = watch("hole_handicaps") || [];
 
   useEffect(() => {
-    if (initialCourse) {
-      console.log('Initial course data:', initialCourse);
+    if (holes !== holePars.length) {
+      const newHolePars = Array(holes).fill(4);
+      const newHoleHandicaps = Array(holes).fill(1);
       
-      let openingHours = initialCourse.opening_hours;
-      if (typeof openingHours === 'string') {
-        try {
-          openingHours = JSON.parse(openingHours);
-        } catch (e) {
-          console.error('Error parsing opening hours:', e);
-          openingHours = [
-            { isOpen: true, open: "08:00", close: "18:00" },
-            { isOpen: true, open: "08:00", close: "18:00" },
-            { isOpen: true, open: "08:00", close: "18:00" },
-            { isOpen: true, open: "08:00", close: "18:00" },
-            { isOpen: true, open: "08:00", close: "18:00" },
-            { isOpen: true, open: "08:00", close: "18:00" },
-            { isOpen: true, open: "08:00", close: "18:00" }
-          ];
-        }
+      for (let i = 0; i < Math.min(holes, holePars.length); i++) {
+        newHolePars[i] = holePars[i] || 4;
       }
       
-      const holePars = initialCourse.hole_pars || Array(initialCourse.holes || 18).fill(4);
-      const calculatedPar = calculateTotalPar(holePars);
+      for (let i = 0; i < Math.min(holes, holeHandicaps.length); i++) {
+        newHoleHandicaps[i] = holeHandicaps[i] || 1;
+      }
       
-      setCourse({
-        ...initialCourse,
-        par: calculatedPar,
-        opening_hours: openingHours || [
-          { isOpen: true, open: "08:00", close: "18:00" },
-          { isOpen: true, open: "08:00", close: "18:00" },
-          { isOpen: true, open: "08:00", close: "18:00" },
-          { isOpen: true, open: "08:00", close: "18:00" },
-          { isOpen: true, open: "08:00", close: "18:00" },
-          { isOpen: true, open: "08:00", close: "18:00" },
-          { isOpen: true, open: "08:00", close: "18:00" }
-        ],
-        hole_pars: holePars,
-        hole_handicaps: initialCourse.hole_handicaps || Array(initialCourse.holes || 18).fill(0),
-      });
+      setValue("hole_pars", newHolePars);
+      setValue("hole_handicaps", newHoleHandicaps);
     }
-  }, [initialCourse]);
+  }, [holes, holePars.length, holeHandicaps.length, setValue]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, field: keyof GolfCourseTemplate) => {
-    setCourse({ ...course, [field]: e.target.value });
+  const daysOfWeek = [
+    "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"
+  ];
+
+  const updateOpeningHours = (dayIndex: number, field: string, value: any) => {
+    const newOpeningHours = [...openingHours];
+    newOpeningHours[dayIndex] = { ...newOpeningHours[dayIndex], [field]: value };
+    setOpeningHours(newOpeningHours);
   };
 
-  const handleHolesChange = (value: string) => {
-    const newHoles = parseInt(value);
-    if (isNaN(newHoles) || newHoles <= 0) return;
-    
-    const newHolePars = Array(newHoles).fill(4);
-    const newPar = calculateTotalPar(newHolePars);
-    
-    setCourse({
-      ...course,
-      holes: newHoles,
-      par: newPar,
-      hole_pars: newHolePars,
-      hole_handicaps: Array(newHoles).fill(0),
-    });
+  const updateHolePar = (holeIndex: number, par: number) => {
+    const newHolePars = [...holePars];
+    newHolePars[holeIndex] = par;
+    setValue("hole_pars", newHolePars);
   };
 
-  const handleOpeningHoursChange = (dayIndex: number, field: string, value: string | boolean) => {
-    const newOpeningHours = [...(course.opening_hours || [])];
-    if (typeof value === 'boolean') {
-      newOpeningHours[dayIndex].isOpen = value;
-    } else {
-      (newOpeningHours[dayIndex] as any)[field] = value;
-    }
-    setCourse({ ...course, opening_hours: newOpeningHours });
+  const updateHoleHandicap = (holeIndex: number, handicap: number) => {
+    const newHoleHandicaps = [...holeHandicaps];
+    newHoleHandicaps[holeIndex] = handicap;
+    setValue("hole_handicaps", newHoleHandicaps);
   };
 
-  const handleHoleParChange = (holeIndex: number, par: string) => {
-    const newHolePars = [...(course.hole_pars || [])];
-    newHolePars[holeIndex] = parseInt(par) || 4;
-    
-    const newPar = calculateTotalPar(newHolePars);
-    
-    setCourse({ 
-      ...course, 
-      hole_pars: newHolePars,
-      par: newPar
-    });
-  };
-
-  const handleHoleHandicapChange = (holeIndex: number, handicap: string) => {
-    const newHandicaps = [...(course.hole_handicaps || [])];
-    newHandicaps[holeIndex] = parseInt(handicap) || 0;
-    setCourse({ ...course, hole_handicaps: newHandicaps });
-  };
-
-  const handleImageUploaded = (url: string) => {
-    setCourse({ ...course, image_url: url });
-  };
-
-  const handleGalleryUpdated = (urls: string) => {
-    setCourse({ ...course, image_gallery: urls });
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-
+  const onSubmit = async (data: GolfCourseTemplate) => {
+    setIsSubmitting(true);
     try {
       const courseData = {
-        name: course.name.trim(),
-        holes: course.holes,
-        par: course.par,
-        address: course.address?.trim() || null,
-        state: course.state?.trim() || null,
-        city: course.city?.trim() || null,
-        description: course.description?.trim() || null,
-        phone: course.phone?.trim() || null,
-        website: course.website?.trim() || null,
-        image_url: course.image_url?.trim() || null,
-        image_gallery: course.image_gallery?.trim() || null,
-        opening_hours: course.opening_hours ? JSON.stringify(course.opening_hours) : null,
-        hole_pars: course.hole_pars || null,
-        hole_handicaps: course.hole_handicaps || null,
+        ...data,
+        opening_hours: JSON.stringify(openingHours),
+        latitude: data.latitude ? parseFloat(data.latitude.toString()) : null,
+        longitude: data.longitude ? parseFloat(data.longitude.toString()) : null,
       };
 
-      console.log('Saving course data:', courseData);
-
+      let result;
       if (initialCourse?.id) {
-        const { error } = await supabase
-          .from('golf_courses')
+        result = await supabase
+          .from("golf_courses")
           .update(courseData)
-          .eq('id', initialCourse.id);
-
-        if (error) {
-          console.error('Update error:', error);
-          throw error;
-        }
-        
-        toast({
-          title: "Éxito",
-          description: "Campo de golf actualizado exitosamente",
-        });
+          .eq("id", initialCourse.id);
       } else {
-        const { error } = await supabase
-          .from('golf_courses')
+        result = await supabase
+          .from("golf_courses")
           .insert([courseData]);
-
-        if (error) {
-          console.error('Insert error:', error);
-          throw error;
-        }
-        
-        toast({
-          title: "Éxito",
-          description: "Campo de golf creado exitosamente",
-        });
       }
 
+      if (result.error) throw result.error;
+
+      toast({
+        title: "Éxito",
+        description: initialCourse?.id 
+          ? "Campo de golf actualizado exitosamente" 
+          : "Campo de golf creado exitosamente",
+      });
+      
       if (onSubmitSuccess) {
         onSubmitSuccess();
       }
     } catch (error: any) {
-      console.error('Error saving course:', error);
+      console.error("Error saving course:", error);
       toast({
         title: "Error",
-        description: `Error al guardar el campo de golf: ${error.message || 'Error desconocido'}`,
+        description: `Error al guardar el campo: ${error.message}`,
         variant: "destructive",
       });
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 max-w-7xl mx-auto p-6">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Información Básica</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="name">Nombre del Campo</Label>
-                <Input
-                  type="text"
-                  id="name"
-                  value={course.name}
-                  onChange={(e) => handleInputChange(e, 'name')}
-                  required
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Información Básica</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="name">Nombre del Campo*</Label>
+              <Input
+                id="name"
+                {...register("name", { required: "El nombre es requerido" })}
+                placeholder="Nombre del campo de golf"
+              />
+              {errors.name && (
+                <p className="text-sm text-red-500 mt-1">{errors.name.message}</p>
+              )}
+            </div>
+
+            <div>
+              <Label htmlFor="type">Tipo de Campo</Label>
+              <Input
+                id="type"
+                {...register("type")}
+                placeholder="Standard, Championship, Executive, etc."
+              />
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="description">Descripción</Label>
+            <Textarea
+              id="description"
+              {...register("description")}
+              placeholder="Descripción del campo de golf"
+              rows={3}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="established_year">Año de Establecimiento</Label>
+              <Input
+                id="established_year"
+                type="number"
+                {...register("established_year", { 
+                  valueAsNumber: true,
+                  min: 1800,
+                  max: new Date().getFullYear()
+                })}
+                placeholder="1995"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="holes">Número de Hoyos*</Label>
+              <Input
+                id="holes"
+                type="number"
+                {...register("holes", { 
+                  required: "El número de hoyos es requerido",
+                  valueAsNumber: true,
+                  min: 1,
+                  max: 36
+                })}
+                placeholder="18"
+              />
+              {errors.holes && (
+                <p className="text-sm text-red-500 mt-1">{errors.holes.message}</p>
+              )}
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="par">Par Total</Label>
+            <Input
+              id="par"
+              type="number"
+              {...register("par", { valueAsNumber: true, min: 27, max: 144 })}
+              placeholder="72"
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Ubicación</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label htmlFor="address">Dirección</Label>
+            <Input
+              id="address"
+              {...register("address")}
+              placeholder="Dirección completa del campo"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="city">Ciudad</Label>
+              <Input
+                id="city"
+                {...register("city")}
+                placeholder="Ciudad"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="state">Estado/Provincia</Label>
+              <Input
+                id="state"
+                {...register("state")}
+                placeholder="Estado o provincia"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="latitude">Latitud</Label>
+              <Input
+                id="latitude"
+                type="number"
+                step="any"
+                {...register("latitude", { valueAsNumber: true })}
+                placeholder="-34.6118"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Coordenada de latitud (ejemplo: -34.6118)
+              </p>
+            </div>
+
+            <div>
+              <Label htmlFor="longitude">Longitud</Label>
+              <Input
+                id="longitude"
+                type="number"
+                step="any"
+                {...register("longitude", { valueAsNumber: true })}
+                placeholder="-58.3816"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Coordenada de longitud (ejemplo: -58.3816)
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Contacto</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="phone">Teléfono</Label>
+              <Input
+                id="phone"
+                {...register("phone")}
+                placeholder="+54 11 1234-5678"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="website">Sitio Web</Label>
+              <Input
+                id="website"
+                {...register("website")}
+                placeholder="https://www.campo.com"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Imágenes</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label htmlFor="image_url">Imagen Principal (URL)</Label>
+            <Input
+              id="image_url"
+              {...register("image_url")}
+              placeholder="https://ejemplo.com/imagen.jpg"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="image_gallery">Galería de Imágenes (URLs separadas por comas)</Label>
+            <Textarea
+              id="image_gallery"
+              {...register("image_gallery")}
+              placeholder="https://ejemplo.com/img1.jpg,https://ejemplo.com/img2.jpg"
+              rows={3}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Horarios de Apertura</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {daysOfWeek.map((day, index) => (
+              <div key={index} className="flex items-center space-x-4 p-3 border rounded-lg">
+                <div className="w-20 font-medium">{day}</div>
+                <Switch
+                  checked={openingHours[index]?.isOpen || false}
+                  onCheckedChange={(checked) => updateOpeningHours(index, "isOpen", checked)}
                 />
+                {openingHours[index]?.isOpen && (
+                  <>
+                    <Input
+                      type="time"
+                      value={openingHours[index]?.open || ""}
+                      onChange={(e) => updateOpeningHours(index, "open", e.target.value)}
+                      className="w-32"
+                    />
+                    <span>-</span>
+                    <Input
+                      type="time"
+                      value={openingHours[index]?.close || ""}
+                      onChange={(e) => updateOpeningHours(index, "close", e.target.value)}
+                      className="w-32"
+                    />
+                  </>
+                )}
               </div>
-              
-              <div className="grid grid-cols-2 gap-4">
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Configuración de Hoyos</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {Array.from({ length: holes }, (_, i) => (
+              <div key={i} className="p-3 border rounded-lg space-y-2">
+                <div className="font-medium text-center">Hoyo {i + 1}</div>
                 <div>
-                  <Label htmlFor="holes">Número de Hoyos</Label>
-                  <Select onValueChange={handleHolesChange} value={course.holes.toString()}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecciona el número de hoyos" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {[9, 18].map((num) => (
-                        <SelectItem key={num} value={num.toString()}>{num} Hoyos</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="par">Par (Calculado automáticamente)</Label>
+                  <Label className="text-xs">Par</Label>
                   <Input
                     type="number"
-                    id="par"
-                    value={course.par}
-                    readOnly
-                    className="bg-gray-100"
-                    title="El par se calcula automáticamente sumando los pares de cada hoyo"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="description">Descripción</Label>
-                <Textarea
-                  id="description"
-                  value={course.description || ""}
-                  onChange={(e) => handleInputChange(e, 'description')}
-                  rows={3}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Información de Ubicación</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="address">Dirección</Label>
-                <Input
-                  type="text"
-                  id="address"
-                  value={course.address || ""}
-                  onChange={(e) => handleInputChange(e, 'address')}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="city">Ciudad</Label>
-                  <Input
-                    type="text"
-                    id="city"
-                    value={course.city || ""}
-                    onChange={(e) => handleInputChange(e, 'city')}
+                    min="3"
+                    max="6"
+                    value={holePars[i] || 4}
+                    onChange={(e) => updateHolePar(i, parseInt(e.target.value) || 4)}
+                    className="text-center"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="state">Estado</Label>
+                  <Label className="text-xs">Handicap</Label>
                   <Input
-                    type="text"
-                    id="state"
-                    value={course.state || ""}
-                    onChange={(e) => handleInputChange(e, 'state')}
+                    type="number"
+                    min="1"
+                    max={holes}
+                    value={holeHandicaps[i] || 1}
+                    onChange={(e) => updateHoleHandicap(i, parseInt(e.target.value) || 1)}
+                    className="text-center"
                   />
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Información de Contacto</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="phone">Teléfono</Label>
-                <Input
-                  type="tel"
-                  id="phone"
-                  value={course.phone || ""}
-                  onChange={(e) => handleInputChange(e, 'phone')}
-                />
-              </div>
-              <div>
-                <Label htmlFor="website">Sitio Web</Label>
-                <Input
-                  type="url"
-                  id="website"
-                  value={course.website || ""}
-                  onChange={(e) => handleInputChange(e, 'website')}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Imágenes</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label>Imagen Principal</Label>
-                <ImageUploader
-                  onImageUploaded={handleImageUploaded}
-                  initialImage={course.image_url}
-                />
-              </div>
-              <div>
-                <Label>Galería de Imágenes</Label>
-                <GalleryUploader
-                  onGalleryUpdated={handleGalleryUpdated}
-                  initialGallery={course.image_gallery}
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Horarios de Apertura</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {Array.from({ length: 7 }).map((_, i) => (
-                <div key={i} className="flex items-center space-x-2">
-                  <div className="w-20 text-sm">
-                    {['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'][i]}
-                  </div>
-                  <Checkbox
-                    id={`isOpen-${i}`}
-                    checked={course.opening_hours?.[i]?.isOpen || false}
-                    onCheckedChange={(checked) => handleOpeningHoursChange(i, 'isOpen', checked!)}
-                  />
-                  <Input
-                    type="time"
-                    value={course.opening_hours?.[i]?.open || "08:00"}
-                    onChange={(e) => handleOpeningHoursChange(i, 'open', e.target.value)}
-                    disabled={!course.opening_hours?.[i]?.isOpen}
-                    className="w-24"
-                  />
-                  <span className="text-sm">a</span>
-                  <Input
-                    type="time"
-                    value={course.opening_hours?.[i]?.close || "18:00"}
-                    onChange={(e) => handleOpeningHoursChange(i, 'close', e.target.value)}
-                    disabled={!course.opening_hours?.[i]?.isOpen}
-                    className="w-24"
-                  />
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Detalles de los Hoyos</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 gap-4 max-h-96 overflow-y-auto">
-                {Array.from({ length: course.holes }, (_, i) => (
-                  <div key={i} className="border rounded-lg p-3 space-y-2">
-                    <h4 className="font-medium text-sm">Hoyo {i + 1}</h4>
-                    
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <label className="block text-xs font-medium mb-1">Par</label>
-                        <input
-                          type="number"
-                          min="3"
-                          max="5"
-                          value={course.hole_pars?.[i] || 4}
-                          onChange={(e) => handleHoleParChange(i, e.target.value)}
-                          className="w-full p-1 border rounded text-sm"
-                        />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-xs font-medium mb-1">Handicap</label>
-                        <input
-                          type="number"
-                          min="0"
-                          max="18"
-                          value={course.hole_handicaps?.[i] || 0}
-                          onChange={(e) => handleHoleHandicapChange(i, e.target.value)}
-                          className="w-full p-1 border rounded text-sm"
-                          placeholder="0"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-
-      <div className="col-span-full">
-        <Button disabled={isLoading} className="w-full">
-          {isLoading ? "Guardando..." : "Guardar Campo de Golf"}
+      <div className="flex justify-end space-x-2">
+        <Button type="submit" disabled={isSubmitting} className="min-w-32">
+          {isSubmitting ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Guardando...
+            </>
+          ) : (
+            <>Guardar Campo</>
+          )}
         </Button>
       </div>
     </form>
@@ -481,56 +464,16 @@ export const AdminGolfCourseForm = ({ initialCourse, onSubmitSuccess }: AdminGol
 };
 
 const AdminGolfCourseManager = () => {
-  const [currentView, setCurrentView] = useState<'list' | 'add'>('list');
-  const navigate = useNavigate();
-
-  const handleEditCourse = (course: GolfCourseTemplate) => {
-    navigate(`/admin/course-edit/${course.id}`);
-  };
-
-  const handleAddCourseSuccess = () => {
-    setCurrentView('list');
-  };
-
-  if (currentView === 'add') {
-    return (
-      <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-6">
-          <div className="mb-6 flex items-center gap-4">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentView('list')}
-              className="flex items-center gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Volver a la Lista
-            </Button>
-            <h1 className="text-2xl font-bold">Agregar Nuevo Campo de Golf</h1>
-          </div>
-          
-          <AdminGolfCourseForm onSubmitSuccess={handleAddCourseSuccess} />
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-6">
-        <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Administrar Campos de Golf</h1>
-          <Button
-            onClick={() => setCurrentView('add')}
-            className="flex items-center gap-2"
-          >
-            <Plus className="h-4 w-4" />
-            Agregar Campo
-          </Button>
-        </div>
-        
-        <CourseList onEditCourse={handleEditCourse} />
+    <div className="container mx-auto px-4 py-6">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold">Gestor de Campos de Golf</h1>
+        <p className="text-muted-foreground">
+          Administra los campos de golf en tu sistema
+        </p>
       </div>
+      
+      <AdminGolfCourseForm />
     </div>
   );
 };
