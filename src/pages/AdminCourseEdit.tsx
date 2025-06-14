@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { AdminGolfCourseForm, GolfCourseTemplate } from "./AdminGolfCourseManager";
-import { defaultOpeningHours } from "@/utils/openingHours";
+import { defaultOpeningHours, type OpeningHours } from "@/utils/openingHours";
 
 const AdminCourseEdit = () => {
   const { id } = useParams();
@@ -27,15 +27,18 @@ const AdminCourseEdit = () => {
 
         if (error) throw error;
         
-        // Parse opening hours properly
-        let parsedOpeningHours = defaultOpeningHours;
+        // Parse opening hours properly with type assertion
+        let parsedOpeningHours: OpeningHours = defaultOpeningHours;
         
         if (data.opening_hours) {
           try {
             if (typeof data.opening_hours === 'string') {
-              parsedOpeningHours = JSON.parse(data.opening_hours);
-            } else if (Array.isArray(data.opening_hours)) {
-              parsedOpeningHours = data.opening_hours;
+              const parsed = JSON.parse(data.opening_hours);
+              if (Array.isArray(parsed) && parsed.length === 7) {
+                parsedOpeningHours = parsed as OpeningHours;
+              }
+            } else if (Array.isArray(data.opening_hours) && data.opening_hours.length === 7) {
+              parsedOpeningHours = data.opening_hours as OpeningHours;
             }
           } catch (parseError) {
             console.error('Error parsing opening hours:', parseError);
