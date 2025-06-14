@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { AdminGolfCourseForm, GolfCourseTemplate } from "./AdminGolfCourseManager";
-import { defaultOpeningHours, type OpeningHours } from "@/utils/openingHours";
+import { validateOpeningHours } from "@/utils/openingHoursValidation";
 
 const AdminCourseEdit = () => {
   const { id } = useParams();
@@ -28,53 +27,18 @@ const AdminCourseEdit = () => {
 
         if (error) throw error;
         
-        // Parse opening hours properly with type assertion
-        let parsedOpeningHours: OpeningHours = defaultOpeningHours;
-        
-        if (data.opening_hours) {
-          try {
-            let openingHoursData: any;
-            
-            if (typeof data.opening_hours === 'string') {
-              openingHoursData = JSON.parse(data.opening_hours);
-            } else {
-              openingHoursData = data.opening_hours;
-            }
-            
-            // Validate that it's an array with 7 elements and each has the correct structure
-            if (Array.isArray(openingHoursData) && openingHoursData.length === 7) {
-              const isValidOpeningHours = openingHoursData.every(day => 
-                typeof day === 'object' && 
-                day !== null &&
-                'isOpen' in day &&
-                'open' in day &&
-                'close' in day
-              );
-              
-              if (isValidOpeningHours) {
-                parsedOpeningHours = openingHoursData as OpeningHours;
-                console.log('Successfully parsed opening hours:', parsedOpeningHours);
-              } else {
-                console.warn('Opening hours data structure is invalid, using defaults');
-              }
-            } else {
-              console.warn('Opening hours is not a valid 7-day array, using defaults');
-            }
-          } catch (parseError) {
-            console.error('Error parsing opening hours:', parseError);
-            // Keep default opening hours if parsing fails
-          }
-        }
+        // Use the validation utility to properly parse opening hours
+        const validatedOpeningHours = validateOpeningHours(data.opening_hours);
         
         // Transform the data to match GolfCourseTemplate
         const courseData: GolfCourseTemplate = {
           ...data,
-          opening_hours: parsedOpeningHours,
+          opening_hours: validatedOpeningHours,
           hole_pars: data.hole_pars || Array(data.holes || 18).fill(4),
           hole_handicaps: data.hole_handicaps || Array(data.holes || 18).fill(1)
         };
         
-        console.log('Final course data with parsed opening hours:', courseData);
+        console.log('Final course data with validated opening hours:', courseData);
         setCourse(courseData);
       } catch (error) {
         console.error('Error fetching course:', error);

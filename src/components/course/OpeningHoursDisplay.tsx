@@ -36,6 +36,16 @@ const OpeningHoursDisplay = ({ openingHours }: OpeningHoursDisplayProps) => {
             const isToday = index === currentDayIndex;
             const dayName = getDayName(index);
             
+            // Improved validation logic for determining if a day is open
+            const isDayOpen = day && 
+              day.isOpen === true && 
+              day.open && 
+              day.close && 
+              day.open.trim() !== '' && 
+              day.close.trim() !== '' &&
+              day.open !== 'null' &&
+              day.close !== 'null';
+            
             return (
               <div 
                 key={index}
@@ -54,7 +64,7 @@ const OpeningHoursDisplay = ({ openingHours }: OpeningHoursDisplayProps) => {
                   "text-foreground",
                   isToday && "text-primary font-medium"
                 )}>
-                  {day && day.isOpen && day.open && day.close 
+                  {isDayOpen 
                     ? `${day.open} - ${day.close}`
                     : "Closed"
                   }

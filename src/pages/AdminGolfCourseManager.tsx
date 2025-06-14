@@ -13,6 +13,7 @@ import { Loader2 } from "lucide-react";
 import ImageUploader from "@/components/admin/ImageUploader";
 import GalleryUploader from "@/components/admin/GalleryUploader";
 import { defaultOpeningHours, type OpeningHours } from "@/utils/openingHours";
+import { validateOpeningHours, prepareOpeningHoursForSave } from "@/utils/openingHoursValidation";
 
 export interface GolfCourseTemplate {
   id?: string;
@@ -46,11 +47,11 @@ export const AdminGolfCourseForm: React.FC<AdminGolfCourseFormProps> = ({
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // Initialize opening hours with proper default or initial values
+  // Initialize opening hours with proper validation
   const getInitialOpeningHours = (): OpeningHours => {
     if (initialCourse?.opening_hours) {
-      console.log('Using initial course opening hours:', initialCourse.opening_hours);
-      return initialCourse.opening_hours;
+      console.log('Validating initial course opening hours:', initialCourse.opening_hours);
+      return validateOpeningHours(initialCourse.opening_hours);
     }
     console.log('Using default opening hours');
     return defaultOpeningHours;
@@ -62,7 +63,8 @@ export const AdminGolfCourseForm: React.FC<AdminGolfCourseFormProps> = ({
   useEffect(() => {
     if (initialCourse?.opening_hours) {
       console.log('Updating opening hours from initial course:', initialCourse.opening_hours);
-      setOpeningHours(initialCourse.opening_hours);
+      const validatedHours = validateOpeningHours(initialCourse.opening_hours);
+      setOpeningHours(validatedHours);
     }
   }, [initialCourse?.opening_hours]);
 
@@ -110,7 +112,20 @@ export const AdminGolfCourseForm: React.FC<AdminGolfCourseFormProps> = ({
 
   const updateOpeningHours = (dayIndex: number, field: string, value: any) => {
     const newOpeningHours = [...openingHours];
-    newOpeningHours[dayIndex] = { ...newOpeningHours[dayIndex], [field]: value };
+    
+    if (field === 'isOpen') {
+      // When toggling isOpen, ensure proper time values
+      newOpeningHours[dayIndex] = { 
+        ...newOpeningHours[dayIndex], 
+        [field]: value,
+        // Reset to default times if opening, or null if closing
+        open: value ? (newOpeningHours[dayIndex].open || defaultOpeningHours[dayIndex].open) : null,
+        close: value ? (newOpeningHours[dayIndex].close || defaultOpeningHours[dayIndex].close) : null
+      };
+    } else {
+      newOpeningHours[dayIndex] = { ...newOpeningHours[dayIndex], [field]: value };
+    }
+    
     setOpeningHours(newOpeningHours);
     console.log('Updated opening hours:', newOpeningHours);
   };
@@ -134,7 +149,7 @@ export const AdminGolfCourseForm: React.FC<AdminGolfCourseFormProps> = ({
       
       const courseData = {
         ...data,
-        opening_hours: JSON.stringify(openingHours),
+        opening_hours: prepareOpeningHoursForSave(openingHours),
         latitude: data.latitude ? parseFloat(data.latitude.toString()) : null,
         longitude: data.longitude ? parseFloat(data.longitude.toString()) : null,
       };

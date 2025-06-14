@@ -1,4 +1,3 @@
-
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -119,8 +118,11 @@ const Course = () => {
   const parseOpeningHours = () => {
     try {
       if (typeof course.opening_hours === 'string') {
-        return JSON.parse(course.opening_hours);
+        const parsed = JSON.parse(course.opening_hours);
+        console.log('Parsed opening hours from string:', parsed);
+        return parsed;
       }
+      console.log('Using opening hours as object:', course.opening_hours);
       return course.opening_hours;
     } catch (error) {
       console.error("Error parsing opening hours:", error);

@@ -1,8 +1,8 @@
-
 import { Link } from "react-router-dom";
 import { MapPin, Flag, Clock } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { isCurrentlyOpen, formatOpeningHours } from "@/utils/openingHours";
+import { validateOpeningHours } from "@/utils/openingHoursValidation";
 import CourseImageCarousel from "./CourseImageCarousel";
 import FavoriteButton from "@/components/ui/FavoriteButton";
 
@@ -34,20 +34,8 @@ const CourseCard = ({ course, currentTime }: CourseCardProps) => {
 
   const courseImages = getCourseImages(course);
   
-  // Parse opening_hours if it's a string
-  const parseOpeningHours = () => {
-    try {
-      if (typeof course.opening_hours === 'string') {
-        return JSON.parse(course.opening_hours);
-      }
-      return course.opening_hours;
-    } catch (error) {
-      console.error("Error parsing opening hours for course:", course.name, error);
-      return null;
-    }
-  };
-  
-  const openingHoursData = parseOpeningHours();
+  // Use the validation utility to properly parse and validate opening hours
+  const openingHoursData = validateOpeningHours(course.opening_hours);
   const isOpen = isCurrentlyOpen(openingHoursData);
   const formattedHours = formatOpeningHours(openingHoursData);
   
