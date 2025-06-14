@@ -152,7 +152,7 @@ You can modify your account settings in the Profile section.
 ## Contact Support
 
 If you need further assistance, please contact our support team at:
-- Email: support@golfapp.com
+- Email: support@golfitargentina.com
 - Hours: Monday-Friday, 9am-5pm EST`
     : `# Ayuda y Soporte
 
@@ -170,7 +170,7 @@ Puede modificar la configuración de su cuenta en la sección Perfil.
 ## Contactar a Soporte
 
 Si necesita más ayuda, comuníquese con nuestro equipo de soporte en:
-- Correo electrónico: support@golfapp.com
+- Correo electrónico: support@golfitargentina.com
 - Horario: Lunes a Viernes, 9am-5pm EST`;
 
   return (
