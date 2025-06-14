@@ -113,7 +113,8 @@ export const AdminGolfCourseForm: React.FC<AdminGolfCourseFormProps> = ({
 
   const updateHoleHandicap = (holeIndex: number, handicap: number) => {
     const newHoleHandicaps = [...holeHandicaps];
-    newHoleHandicaps[holeIndex] = Math.max(1, Math.min(handicap, holes)); // Ensure handicap is between 1 and number of holes
+    // Remove the restrictive validation - allow any handicap value between 1 and total holes
+    newHoleHandicaps[holeIndex] = handicap;
     setValue("hole_handicaps", newHoleHandicaps);
   };
 
