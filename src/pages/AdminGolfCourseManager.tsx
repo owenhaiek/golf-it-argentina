@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -113,7 +112,6 @@ export const AdminGolfCourseForm: React.FC<AdminGolfCourseFormProps> = ({
 
   const updateHoleHandicap = (holeIndex: number, handicap: number) => {
     const newHoleHandicaps = [...holeHandicaps];
-    // Remove the restrictive validation - allow any handicap value between 1 and total holes
     newHoleHandicaps[holeIndex] = handicap;
     setValue("hole_handicaps", newHoleHandicaps);
   };
@@ -416,7 +414,6 @@ export const AdminGolfCourseForm: React.FC<AdminGolfCourseFormProps> = ({
                     <Input
                       type="number"
                       min="1"
-                      max={holes}
                       value={holeHandicaps[i] || 1}
                       onChange={(e) => updateHoleHandicap(i, parseInt(e.target.value) || 1)}
                       className="text-center"
