@@ -20,6 +20,7 @@ import {
   ThermometerSnowflake,
   Wind,
   Tornado,
+  Droplets, // <-- added import here
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
