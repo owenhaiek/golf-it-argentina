@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import ImageUploader from "@/components/admin/ImageUploader";
 import GalleryUploader from "@/components/admin/GalleryUploader";
+import { defaultOpeningHours } from "@/utils/openingHours";
 
 export interface GolfCourseTemplate {
   id?: string;
@@ -47,14 +49,23 @@ export const AdminGolfCourseForm: React.FC<AdminGolfCourseFormProps> = ({
 }) => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Initialize opening hours properly
   const [openingHours, setOpeningHours] = useState<Array<{
     isOpen: boolean;
     open: string;
     close: string;
   }>>(
-    initialCourse?.opening_hours || 
-    Array(7).fill({ isOpen: false, open: "", close: "" })
+    initialCourse?.opening_hours || defaultOpeningHours
   );
+
+  // Update opening hours when initialCourse changes
+  useEffect(() => {
+    if (initialCourse?.opening_hours) {
+      console.log('Setting opening hours from initial course:', initialCourse.opening_hours);
+      setOpeningHours(initialCourse.opening_hours);
+    }
+  }, [initialCourse]);
 
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<GolfCourseTemplate>({
     defaultValues: initialCourse || {
@@ -102,6 +113,7 @@ export const AdminGolfCourseForm: React.FC<AdminGolfCourseFormProps> = ({
     const newOpeningHours = [...openingHours];
     newOpeningHours[dayIndex] = { ...newOpeningHours[dayIndex], [field]: value };
     setOpeningHours(newOpeningHours);
+    console.log('Updated opening hours:', newOpeningHours);
   };
 
   const updateHolePar = (holeIndex: number, par: number) => {
@@ -119,6 +131,8 @@ export const AdminGolfCourseForm: React.FC<AdminGolfCourseFormProps> = ({
   const onSubmit = async (data: GolfCourseTemplate) => {
     setIsSubmitting(true);
     try {
+      console.log('Submitting with opening hours:', openingHours);
+      
       const courseData = {
         ...data,
         opening_hours: JSON.stringify(openingHours),

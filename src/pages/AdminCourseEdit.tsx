@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { AdminGolfCourseForm, GolfCourseTemplate } from "./AdminGolfCourseManager";
+import { defaultOpeningHours } from "@/utils/openingHours";
 
 const AdminCourseEdit = () => {
   const { id } = useParams();
@@ -27,15 +27,31 @@ const AdminCourseEdit = () => {
 
         if (error) throw error;
         
+        // Parse opening hours properly
+        let parsedOpeningHours = defaultOpeningHours;
+        
+        if (data.opening_hours) {
+          try {
+            if (typeof data.opening_hours === 'string') {
+              parsedOpeningHours = JSON.parse(data.opening_hours);
+            } else if (Array.isArray(data.opening_hours)) {
+              parsedOpeningHours = data.opening_hours;
+            }
+          } catch (parseError) {
+            console.error('Error parsing opening hours:', parseError);
+            // Keep default opening hours if parsing fails
+          }
+        }
+        
         // Transform the data to match GolfCourseTemplate
         const courseData: GolfCourseTemplate = {
           ...data,
-          opening_hours: data.opening_hours ? 
-            (typeof data.opening_hours === 'string' ? 
-              JSON.parse(data.opening_hours) : data.opening_hours) : 
-            Array(7).fill({ isOpen: false, open: "", close: "" })
+          opening_hours: parsedOpeningHours,
+          hole_pars: data.hole_pars || Array(data.holes || 18).fill(4),
+          hole_handicaps: data.hole_handicaps || Array(data.holes || 18).fill(1)
         };
         
+        console.log('Parsed course data with opening hours:', courseData);
         setCourse(courseData);
       } catch (error) {
         console.error('Error fetching course:', error);
