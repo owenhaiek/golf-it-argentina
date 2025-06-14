@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,13 +33,32 @@ const AdminCourseEdit = () => {
         
         if (data.opening_hours) {
           try {
+            let openingHoursData: any;
+            
             if (typeof data.opening_hours === 'string') {
-              const parsed = JSON.parse(data.opening_hours);
-              if (Array.isArray(parsed) && parsed.length === 7) {
-                parsedOpeningHours = parsed as OpeningHours;
+              openingHoursData = JSON.parse(data.opening_hours);
+            } else {
+              openingHoursData = data.opening_hours;
+            }
+            
+            // Validate that it's an array with 7 elements and each has the correct structure
+            if (Array.isArray(openingHoursData) && openingHoursData.length === 7) {
+              const isValidOpeningHours = openingHoursData.every(day => 
+                typeof day === 'object' && 
+                day !== null &&
+                'isOpen' in day &&
+                'open' in day &&
+                'close' in day
+              );
+              
+              if (isValidOpeningHours) {
+                parsedOpeningHours = openingHoursData as OpeningHours;
+                console.log('Successfully parsed opening hours:', parsedOpeningHours);
+              } else {
+                console.warn('Opening hours data structure is invalid, using defaults');
               }
-            } else if (Array.isArray(data.opening_hours) && data.opening_hours.length === 7) {
-              parsedOpeningHours = data.opening_hours as OpeningHours;
+            } else {
+              console.warn('Opening hours is not a valid 7-day array, using defaults');
             }
           } catch (parseError) {
             console.error('Error parsing opening hours:', parseError);
@@ -54,7 +74,7 @@ const AdminCourseEdit = () => {
           hole_handicaps: data.hole_handicaps || Array(data.holes || 18).fill(1)
         };
         
-        console.log('Parsed course data with opening hours:', courseData);
+        console.log('Final course data with parsed opening hours:', courseData);
         setCourse(courseData);
       } catch (error) {
         console.error('Error fetching course:', error);

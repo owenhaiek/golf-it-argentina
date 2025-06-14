@@ -12,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import ImageUploader from "@/components/admin/ImageUploader";
 import GalleryUploader from "@/components/admin/GalleryUploader";
-import { defaultOpeningHours } from "@/utils/openingHours";
+import { defaultOpeningHours, type OpeningHours } from "@/utils/openingHours";
 
 export interface GolfCourseTemplate {
   id?: string;
@@ -29,11 +29,7 @@ export interface GolfCourseTemplate {
   image_gallery?: string;
   latitude?: number;
   longitude?: number;
-  opening_hours?: Array<{
-    isOpen: boolean;
-    open: string;
-    close: string;
-  }>;
+  opening_hours?: OpeningHours;
   hole_pars?: number[];
   hole_handicaps?: number[];
 }
@@ -50,22 +46,25 @@ export const AdminGolfCourseForm: React.FC<AdminGolfCourseFormProps> = ({
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // Initialize opening hours properly
-  const [openingHours, setOpeningHours] = useState<Array<{
-    isOpen: boolean;
-    open: string;
-    close: string;
-  }>>(
-    initialCourse?.opening_hours || defaultOpeningHours
-  );
+  // Initialize opening hours with proper default or initial values
+  const getInitialOpeningHours = (): OpeningHours => {
+    if (initialCourse?.opening_hours) {
+      console.log('Using initial course opening hours:', initialCourse.opening_hours);
+      return initialCourse.opening_hours;
+    }
+    console.log('Using default opening hours');
+    return defaultOpeningHours;
+  };
 
-  // Update opening hours when initialCourse changes
+  const [openingHours, setOpeningHours] = useState<OpeningHours>(getInitialOpeningHours());
+
+  // Update opening hours when initialCourse changes (for edit mode)
   useEffect(() => {
     if (initialCourse?.opening_hours) {
-      console.log('Setting opening hours from initial course:', initialCourse.opening_hours);
+      console.log('Updating opening hours from initial course:', initialCourse.opening_hours);
       setOpeningHours(initialCourse.opening_hours);
     }
-  }, [initialCourse]);
+  }, [initialCourse?.opening_hours]);
 
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<GolfCourseTemplate>({
     defaultValues: initialCourse || {
