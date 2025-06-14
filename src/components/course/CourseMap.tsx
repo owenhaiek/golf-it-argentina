@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MapPin, Map, Globe } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
@@ -103,7 +102,7 @@ export const CourseMap = ({ latitude, longitude, name }: CourseMapProps) => {
         offset: [0, -30],
       })
         .setLngLat([longitude, latitude])
-        .setHTML(`<div class="font-medium text-xs">${name}</div>`)
+        .setHTML(`<div class="font-medium text-xs">${name || 'Golf Course'}</div>`)
         .addTo(map);
       
       map.on('load', () => {
@@ -186,13 +185,6 @@ export const CourseMap = ({ latitude, longitude, name }: CourseMapProps) => {
           <div className="absolute bottom-1 right-1 text-[8px] text-muted-foreground bg-white/80 px-1 rounded">
             © Mapbox © OpenStreetMap
           </div>
-        </div>
-        
-        {/* Course coordinates */}
-        <div className="mt-2 text-center">
-          <p className="text-sm text-muted-foreground">
-            {latitude.toFixed(6)}, {longitude.toFixed(6)}
-          </p>
         </div>
       </CardContent>
     </Card>
