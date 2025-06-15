@@ -1,5 +1,5 @@
 
-import { useEffect, useState, useRef, MutableRefObject } from "react";
+import { useEffect, useState, MutableRefObject } from "react";
 
 interface UseMapboxOptions {
   containerRef: MutableRefObject<HTMLDivElement | null>;
@@ -15,40 +15,65 @@ export function useMapbox({ containerRef, onMapLoaded, center = [-58.3816, -34.6
   const [scriptsLoaded, setScriptsLoaded] = useState(false);
   const [initError, setInitError] = useState<string | null>(null);
 
+  // Only inject Mapbox GL script + stylesheet once, persistent across hooks (browser session)
   useEffect(() => {
+    // Bail if already loaded
     if (window.mapboxgl) {
       setScriptsLoaded(true);
       return;
     }
 
-    // Avoid loading script multiples times
-    if (!document.querySelector('script[src*="mapbox-gl"]')) {
-      const link = document.createElement('link');
-      link.href = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css';
-      link.rel = 'stylesheet';
-      document.head.appendChild(link);
-
+    // Check if loading is already in progress
+    if (!document.getElementById('mapbox-gl-script')) {
+      // Add stylesheet if not present
+      if (!document.querySelector('link[href*="mapbox-gl.css"]')) {
+        const link = document.createElement('link');
+        link.href = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css';
+        link.rel = 'stylesheet';
+        link.id = 'mapbox-gl-css';
+        document.head.appendChild(link);
+      }
+      // Add JS script
       const script = document.createElement('script');
       script.src = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js';
-      script.async = false;
-      script.onload = () => setScriptsLoaded(true);
-      script.onerror = () => setInitError("Failed to load map resources");
+      script.async = true;
+      script.id = 'mapbox-gl-script';
+      script.onload = () => {
+        setScriptsLoaded(true);
+        // Double-check window.mapboxgl actually loaded
+        if (!window.mapboxgl) setInitError("Mapbox script failed to expose window.mapboxgl");
+      };
+      script.onerror = () => {
+        setInitError("Failed to load Mapbox GL script.");
+      };
       document.head.appendChild(script);
     } else {
-      // If script loading, poll for window.mapboxgl
+      // Wait for script tag to finish - poll window.mapboxgl
       const poll = setInterval(() => {
         if (window.mapboxgl) {
           setScriptsLoaded(true);
           clearInterval(poll);
         }
       }, 100);
-      setTimeout(() => clearInterval(poll), 10000); // Safety
+      setTimeout(() => clearInterval(poll), 10000);
     }
   }, []);
 
+  // Actual map instance creation when all ready
   useEffect(() => {
-    if (map || !scriptsLoaded || !containerRef.current) return;
-    if (!window.mapboxgl) return;
+    // Clean up and delay until ready
+    let destroyed = false;
+    if (!scriptsLoaded || !containerRef.current) return;
+
+    if (!window.mapboxgl) {
+      setInitError("Mapbox script failed to set window.mapboxgl");
+      return;
+    }
+
+    if (map) {
+      // Already initialized; don't do again.
+      return;
+    }
 
     try {
       window.mapboxgl.accessToken = accessToken;
@@ -63,6 +88,7 @@ export function useMapbox({ containerRef, onMapLoaded, center = [-58.3816, -34.6
         attributionControl: false,
         preserveDrawingBuffer: true,
       });
+
       mapInstance.addControl(
         new window.mapboxgl.NavigationControl({
           showCompass: false,
@@ -70,17 +96,24 @@ export function useMapbox({ containerRef, onMapLoaded, center = [-58.3816, -34.6
         }),
         'bottom-right'
       );
+
       mapInstance.on('load', () => {
+        if (destroyed) return; // Clean up attempt
         setMapLoaded(true);
         onMapLoaded?.(mapInstance);
       });
-      mapInstance.on('error', (e: any) => setInitError("Map failed to load properly"));
+
+      mapInstance.on('error', () => {
+        setInitError("Map failed to load properly");
+      });
+
       setMap(mapInstance);
-    } catch {
-      setInitError("Failed to initialize map");
+    } catch (err) {
+      setInitError("Failed to initialize map: " + ((err as Error).message ?? String(err)));
     }
 
     return () => {
+      destroyed = true;
       if (map) {
         map.remove();
         setMap(null);

@@ -37,6 +37,10 @@ const CoursesMap = () => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
+  // Use a persistent ref for init error logs/session
+  const [initError, setInitError] = useState<string|null>(null);
+  const [isInitializing, setIsInitializing] = useState(false);
+
   const { data: courses, isLoading: coursesLoading, error: coursesError } = useQuery({
     queryKey: ['courses-map'],
     queryFn: async () => {
@@ -53,10 +57,13 @@ const CoursesMap = () => {
     gcTime: 15 * 60 * 1000,
   });
 
-  const [initError, setInitError] = useState<string|null>(null);
-  const [isInitializing, setIsInitializing] = useState(false);
-
-  const { map, mapLoaded, scriptsLoaded, initError: mapboxError } = useMapbox({
+  // --- MAPBOX: use refactored hook with more robust session initialization ---
+  const {
+    map,
+    mapLoaded,
+    scriptsLoaded,
+    initError: mapboxError,
+  } = useMapbox({
     containerRef: mapContainerRef,
     center: [-58.3816, -34.6118],
     zoom: 6,
@@ -64,9 +71,17 @@ const CoursesMap = () => {
     onMapLoaded: () => setIsInitializing(false),
   });
 
+  // Always show error if hook reports one
   useEffect(() => {
     setInitError(mapboxError);
   }, [mapboxError]);
+
+  // Announce phase in console for diagnostics
+  useEffect(() => {
+    if (!scriptsLoaded) console.log("Mapbox scripts still loading...");
+    else if (!mapLoaded && !isInitializing) console.log("Mapbox scripts loaded, waiting for map to init...");
+    else if (mapLoaded) console.log("Map loaded and ready.");
+  }, [scriptsLoaded, mapLoaded, isInitializing]);
 
   // Show error state
   if (initError || coursesError) {
