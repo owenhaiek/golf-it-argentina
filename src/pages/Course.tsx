@@ -1,3 +1,4 @@
+
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,7 +12,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import CoursePhotos from "@/components/course/CoursePhotos";
 import CourseHoleDetails from "@/components/course/CourseHoleDetails";
 import CourseStats from "@/components/course/CourseStats";
-import CourseWeather from "@/components/course/CourseWeather";
+import { CourseWeather } from "@/components/course/CourseWeather";
 import CourseMap from "@/components/course/CourseMap";
 import AddReviewForm from "@/components/course/AddReviewForm";
 import CourseReviews from "@/components/course/CourseReviews";

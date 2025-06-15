@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -183,7 +182,6 @@ const Search = () => {
                   <CourseCard
                     key={course.id}
                     course={course}
-                    currentTime={currentTime}
                   />
                 ))}
               </div>
