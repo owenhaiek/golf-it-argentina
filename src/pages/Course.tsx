@@ -11,7 +11,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import CoursePhotos from "@/components/course/CoursePhotos";
 import CourseHoleDetails from "@/components/course/CourseHoleDetails";
 import CourseStats from "@/components/course/CourseStats";
-import CourseWeather from "@/components/course/CourseWeather";
+import { CourseWeather } from "@/components/course/CourseWeather";
 import CourseMap from "@/components/course/CourseMap";
 import AddReviewForm from "@/components/course/AddReviewForm";
 import CourseReviews from "@/components/course/CourseReviews";
@@ -48,6 +48,7 @@ const Course = () => {
     queryFn: async () => {
       if (!id) return [];
       
+      console.log('Fetching reviews for course:', id);
       const { data, error } = await supabase
         .from('course_reviews')
         .select(`
@@ -61,8 +62,12 @@ const Course = () => {
         .eq('course_id', id)
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching reviews:', error);
+        throw error;
+      }
       
+      console.log('Reviews fetched:', data?.length || 0);
       return data?.map(review => ({
         ...review,
         profiles: Array.isArray(review.profiles) ? review.profiles[0] : review.profiles
@@ -133,9 +138,13 @@ const Course = () => {
   const openingHoursData = parseOpeningHours();
   const isOpen = isCurrentlyOpen(openingHoursData);
 
-  const averageRating = reviews.length > 0 
-    ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length 
+  // Fix the average rating calculation to ensure reviews array is valid
+  const validReviews = reviews || [];
+  const averageRating = validReviews.length > 0 
+    ? validReviews.reduce((sum, review) => sum + (review.rating || 0), 0) / validReviews.length 
     : 0;
+
+  console.log('Reviews count:', validReviews.length, 'Average rating:', averageRating);
 
   const getCourseImages = (course: any): string[] => {
     const images: string[] = [];
@@ -279,7 +288,7 @@ const Course = () => {
                   </span>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {reviews.length} {language === "en" ? "review" + (reviews.length !== 1 ? "s" : "") : "reseña" + (reviews.length !== 1 ? "s" : "")}
+                  {validReviews.length} {language === "en" ? "review" + (validReviews.length !== 1 ? "s" : "") : "reseña" + (validReviews.length !== 1 ? "s" : "")}
                 </p>
               </div>
             </div>

@@ -36,6 +36,7 @@ const CoursesMap = () => {
   const [scriptsLoaded, setScriptsLoaded] = useState(false);
   const [markers, setMarkers] = useState<any[]>([]);
   const [initError, setInitError] = useState<string | null>(null);
+  const [isInitializing, setIsInitializing] = useState(false);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
@@ -58,58 +59,100 @@ const CoursesMap = () => {
     gcTime: 15 * 60 * 1000,
   });
 
-  // Load Mapbox scripts
+  // Check if Mapbox is already available
   useEffect(() => {
-    const loadMapboxScripts = async () => {
-      if (window.mapboxgl || scriptsLoaded) {
-        setScriptsLoaded(true);
-        return;
-      }
+    if (window.mapboxgl) {
+      console.log("Mapbox already available");
+      setScriptsLoaded(true);
+      return;
+    }
+  }, []);
 
+  // Load Mapbox scripts only if not already loaded
+  useEffect(() => {
+    if (scriptsLoaded || window.mapboxgl) return;
+
+    const loadMapboxScripts = async () => {
       try {
         console.log("Loading Mapbox scripts...");
+        setIsInitializing(true);
         
-        // Load CSS
-        const link = document.createElement('link');
-        link.href = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css';
-        link.rel = 'stylesheet';
-        document.head.appendChild(link);
+        // Check if script is already loading
+        if (document.querySelector('script[src*="mapbox-gl"]')) {
+          console.log("Mapbox script already loading, waiting...");
+          // Wait for it to load
+          const checkInterval = setInterval(() => {
+            if (window.mapboxgl) {
+              clearInterval(checkInterval);
+              console.log("Mapbox became available");
+              setScriptsLoaded(true);
+              setIsInitializing(false);
+            }
+          }, 100);
+          
+          // Timeout after 10 seconds
+          setTimeout(() => {
+            clearInterval(checkInterval);
+            if (!window.mapboxgl) {
+              setInitError("Map loading timed out");
+              setIsInitializing(false);
+            }
+          }, 10000);
+          return;
+        }
+
+        // Load CSS first
+        if (!document.querySelector('link[href*="mapbox-gl"]')) {
+          const link = document.createElement('link');
+          link.href = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css';
+          link.rel = 'stylesheet';
+          document.head.appendChild(link);
+        }
 
         // Load JS
         const script = document.createElement('script');
         script.src = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js';
-        script.async = false; // Load synchronously for better control
+        script.async = false;
         
-        await new Promise((resolve, reject) => {
-          script.onload = () => {
-            console.log("Mapbox scripts loaded successfully");
-            setScriptsLoaded(true);
-            resolve(true);
-          };
-          script.onerror = () => {
-            console.error("Failed to load Mapbox scripts");
-            setInitError("Failed to load map resources");
-            reject(new Error("Failed to load Mapbox"));
-          };
-          document.head.appendChild(script);
-        });
+        script.onload = () => {
+          console.log("Mapbox scripts loaded successfully");
+          setScriptsLoaded(true);
+          setIsInitializing(false);
+        };
+        
+        script.onerror = () => {
+          console.error("Failed to load Mapbox scripts");
+          setInitError("Failed to load map resources");
+          setIsInitializing(false);
+        };
+        
+        document.head.appendChild(script);
         
       } catch (error) {
         console.error("Error loading Mapbox:", error);
         setInitError("Failed to load map resources");
+        setIsInitializing(false);
       }
     };
 
     loadMapboxScripts();
   }, [scriptsLoaded]);
 
-  // Initialize map
+  // Initialize map when everything is ready
   useEffect(() => {
-    if (!scriptsLoaded || !mapContainerRef.current || map || initError || !window.mapboxgl) return;
+    if (!scriptsLoaded || !mapContainerRef.current || map || initError || !window.mapboxgl || isInitializing) {
+      return;
+    }
 
     const initializeMap = () => {
       try {
         console.log("Initializing map...");
+        
+        // Clear any existing map
+        if (map) {
+          map.remove();
+          setMap(null);
+        }
         
         window.mapboxgl.accessToken = 'pk.eyJ1Ijoib3dlbmhhaWVrIiwiYSI6ImNtYW8zbWZpajAyeGsyaXB3Z2NrOG9yeWsifQ.EutakvlH6R5Hala3cVTEYw';
 
@@ -152,17 +195,18 @@ const CoursesMap = () => {
       }
     };
 
-    // Small delay to ensure DOM is ready
-    setTimeout(initializeMap, 100);
+    // Initialize immediately if ready
+    initializeMap();
 
     return () => {
       if (map) {
+        console.log("Cleaning up map");
         map.remove();
         setMap(null);
         setMapLoaded(false);
       }
     };
-  }, [scriptsLoaded, map, initError]);
+  }, [scriptsLoaded, initError, isInitializing]);
 
   // Add markers when courses and map are ready
   useEffect(() => {
@@ -171,7 +215,11 @@ const CoursesMap = () => {
     console.log(`Adding ${courses.length} markers to map...`);
 
     // Clear existing markers
-    markers.forEach(marker => marker.remove());
+    markers.forEach(marker => {
+      if (marker && marker.remove) {
+        marker.remove();
+      }
+    });
     setMarkers([]);
 
     const newMarkers: any[] = [];
@@ -255,12 +303,14 @@ const CoursesMap = () => {
     <div className="h-screen relative overflow-hidden">
       {/* Map container */}
       <div className="absolute inset-0">
-        {(coursesLoading || !scriptsLoaded) ? (
+        {(coursesLoading || !scriptsLoaded || isInitializing) ? (
           <div className="flex items-center justify-center h-full bg-gradient-to-br from-green-50 to-green-100">
             <div className="text-center">
               <Loader2 className="h-8 w-8 animate-spin text-green-600 mx-auto mb-4" />
               <p className="text-green-700 font-medium">
-                {!scriptsLoaded ? 'Loading map...' : 'Loading golf courses...'}
+                {isInitializing ? 'Initializing map...' : 
+                 !scriptsLoaded ? 'Loading map resources...' : 
+                 'Loading golf courses...'}
               </p>
             </div>
           </div>
@@ -273,7 +323,7 @@ const CoursesMap = () => {
             />
             
             {/* Loading overlay for map */}
-            {!mapLoaded && scriptsLoaded && (
+            {!mapLoaded && scriptsLoaded && !isInitializing && (
               <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-10">
                 <div className="text-center">
                   <Loader2 className="h-8 w-8 animate-spin text-green-600 mx-auto mb-4" />
