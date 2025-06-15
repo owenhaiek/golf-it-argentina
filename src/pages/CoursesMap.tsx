@@ -1,20 +1,28 @@
 
-import { useEffect, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { CourseMarker } from "@/components/map/CourseMarker";
-import { CoursePopup } from "@/components/map/CoursePopup";
-import { CourseInfoTab } from "@/components/map/CourseInfoTab";
-import { useMapOptimization } from "@/hooks/useMapOptimization";
-import { MapSkeleton } from "@/components/ui/LoadingSkeleton";
+import { useState, useEffect, useRef } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useMapOptimization } from '@/hooks/useMapOptimization';
+import CourseMarker from '@/components/map/CourseMarker';
+import CoursePopup from '@/components/map/CoursePopup';
+import CourseInfoTab from '@/components/map/CourseInfoTab';
+import { Button } from '@/components/ui/button';
+import { MapPin, List } from 'lucide-react';
+import { MapSkeleton } from '@/components/ui/LoadingSkeleton';
+
+declare global {
+  interface Window {
+    mapboxgl: any;
+  }
+}
 
 interface GolfCourse {
   id: string;
   name: string;
-  latitude: number | null;
-  longitude: number | null;
   city: string | null;
   state: string | null;
+  latitude: number | null;
+  longitude: number | null;
   holes: number;
   par: number | null;
   image_url: string | null;
@@ -24,131 +32,152 @@ interface GolfCourse {
 const CoursesMap = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const [selectedCourse, setSelectedCourse] = useState<GolfCourse | null>(null);
-  const [mapInstance, setMapInstance] = useState<any>(null);
-  const { isMapLoaded, mapError, initializeMap } = useMapOptimization();
+  const [showCourseList, setShowCourseList] = useState(false);
+  const { initializeMap, isMapLoaded, mapError, mapInstance } = useMapOptimization();
 
   const { data: courses = [], isLoading } = useQuery({
-    queryKey: ['courses-with-coordinates'],
+    queryKey: ['golf-courses-map'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('golf_courses')
-        .select('id, name, latitude, longitude, city, state, holes, par, image_url, description')
+        .select('*')
         .not('latitude', 'is', null)
         .not('longitude', 'is', null);
-      
+
       if (error) throw error;
-      return data || [];
-    },
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+      return data as GolfCourse[];
+    }
   });
 
   useEffect(() => {
-    if (!mapContainer.current || mapInstance || courses.length === 0) return;
+    if (!mapContainer.current || courses.length === 0) return;
 
-    const setupMap = async () => {
+    const initMap = async () => {
       try {
         const map = await initializeMap(mapContainer.current!, {
           style: 'mapbox://styles/mapbox/outdoors-v12',
-          center: [-58.3816, -34.6037], // Buenos Aires, Argentina
-          zoom: 6,
-          accessToken: 'pk.eyJ1IjoiYWxlamFuZHJvMTIzNCIsImEiOiJjbTR4dHZxc3cwb3N2Mm1zOTNnNW5mOXp2In0.lH6yCjgpOwGxHN5sS6xHYQ'
+          center: [-98.5795, 39.8283], // Center of US
+          zoom: 4,
+          accessToken: import.meta.env.VITE_MAPBOX_ACCESS_TOKEN
         });
 
-        setMapInstance(map);
+        // Wait for map to be fully loaded
+        map.on('load', () => {
+          // Add markers for all courses
+          courses.forEach(course => {
+            if (course.latitude && course.longitude) {
+              const marker = new window.mapboxgl.Marker({
+                color: '#10b981'
+              })
+                .setLngLat([course.longitude, course.latitude])
+                .addTo(map);
 
-        // Add markers for courses
-        courses.forEach((course) => {
-          if (course.latitude && course.longitude) {
-            const marker = new window.mapboxgl.Marker({
-              element: CourseMarker({ course, onClick: () => setSelectedCourse(course) })
-            })
-              .setLngLat([course.longitude, course.latitude])
-              .addTo(map);
+              marker.getElement().addEventListener('click', () => {
+                setSelectedCourse(course);
+              });
+            }
+          });
+
+          // Fit map to show all courses if we have multiple courses
+          if (courses.length > 1) {
+            const bounds = new window.mapboxgl.LngLatBounds();
+            courses.forEach(course => {
+              if (course.latitude && course.longitude) {
+                bounds.extend([course.longitude, course.latitude]);
+              }
+            });
+            map.fitBounds(bounds, { padding: 50 });
           }
         });
 
-        // Fit map to show all courses
-        if (courses.length > 0) {
-          const bounds = new window.mapboxgl.LngLatBounds();
-          courses.forEach(course => {
-            if (course.latitude && course.longitude) {
-              bounds.extend([course.longitude, course.latitude]);
-            }
-          });
-          map.fitBounds(bounds, { padding: 50 });
-        }
       } catch (error) {
-        console.error('Failed to initialize map:', error);
+        console.error('Map initialization error:', error);
       }
     };
 
-    setupMap();
-
-    return () => {
-      if (mapInstance) {
-        mapInstance.remove();
-        setMapInstance(null);
-      }
-    };
-  }, [courses, mapInstance, initializeMap]);
+    initMap();
+  }, [courses, initializeMap]);
 
   if (isLoading) {
     return (
-      <div className="h-screen flex flex-col">
-        <div className="flex-shrink-0 p-4 bg-background border-b border-border">
-          <h1 className="text-2xl font-bold text-foreground">Golf Courses Map</h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            Explore golf courses across Argentina
-          </p>
-        </div>
-        <div className="flex-1 p-4">
-          <MapSkeleton />
-        </div>
+      <div className="h-screen w-full">
+        <MapSkeleton />
       </div>
     );
   }
 
   if (mapError) {
     return (
-      <div className="h-screen flex flex-col">
-        <div className="flex-shrink-0 p-4 bg-background border-b border-border">
-          <h1 className="text-2xl font-bold text-foreground">Golf Courses Map</h1>
-        </div>
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <h3 className="text-lg font-medium text-foreground mb-2">Map Failed to Load</h3>
-            <p className="text-muted-foreground">{mapError}</p>
-          </div>
+      <div className="h-screen w-full flex items-center justify-center">
+        <div className="text-center">
+          <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <h2 className="text-xl font-semibold mb-2">Map Unavailable</h2>
+          <p className="text-muted-foreground">{mapError}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="h-screen flex flex-col">
-      <div className="flex-shrink-0 p-4 bg-background border-b border-border">
-        <h1 className="text-2xl font-bold text-foreground">Golf Courses Map</h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          Explore {courses.length} golf courses across Argentina
-        </p>
-      </div>
+    <div className="relative h-screen w-full">
+      <div ref={mapContainer} className="h-full w-full" />
       
-      <div className="flex-1 relative">
-        <div ref={mapContainer} className="w-full h-full" />
-        
-        {selectedCourse && (
-          <>
-            <CoursePopup 
-              course={selectedCourse} 
-              onClose={() => setSelectedCourse(null)} 
-            />
-            <CourseInfoTab 
-              course={selectedCourse} 
-              onClose={() => setSelectedCourse(null)} 
-            />
-          </>
-        )}
+      {/* Floating Controls */}
+      <div className="absolute top-4 right-4 z-10">
+        <Button
+          variant="secondary"
+          size="icon"
+          onClick={() => setShowCourseList(!showCourseList)}
+        >
+          <List className="h-4 w-4" />
+        </Button>
       </div>
+
+      {/* Course List Sidebar */}
+      {showCourseList && (
+        <div className="absolute top-0 left-0 w-80 h-full bg-background border-r overflow-y-auto z-20">
+          <div className="p-4">
+            <h2 className="text-lg font-semibold mb-4">Golf Courses</h2>
+            <div className="space-y-2">
+              {courses.map(course => (
+                <div
+                  key={course.id}
+                  className="p-3 border rounded-lg cursor-pointer hover:bg-muted"
+                  onClick={() => {
+                    setSelectedCourse(course);
+                    if (mapInstance && course.latitude && course.longitude) {
+                      mapInstance.flyTo({
+                        center: [course.longitude, course.latitude],
+                        zoom: 14
+                      });
+                    }
+                  }}
+                >
+                  <h3 className="font-medium">{course.name}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {[course.city, course.state].filter(Boolean).join(', ')}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Course Popup */}
+      {selectedCourse && (
+        <CoursePopup 
+          course={selectedCourse} 
+        />
+      )}
+
+      {/* Course Info Tab */}
+      {selectedCourse && (
+        <CourseInfoTab 
+          course={selectedCourse} 
+          isOpen={!!selectedCourse}
+        />
+      )}
     </div>
   );
 };

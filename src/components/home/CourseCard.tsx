@@ -84,3 +84,6 @@ export const CourseCard = ({ course }: CourseCardProps) => {
     </Card>
   );
 };
+
+// Also export as default for backward compatibility
+export default CourseCard;
