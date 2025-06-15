@@ -3,16 +3,23 @@ import { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useMapOptimization } from '@/hooks/useMapOptimization';
-import CourseMarker from '@/components/map/CourseMarker';
-import CoursePopup from '@/components/map/CoursePopup';
-import CourseInfoTab from '@/components/map/CourseInfoTab';
+import { CourseMarker } from '@/components/map/CourseMarker';
+import { CoursePopup } from '@/components/map/CoursePopup';
+import { CourseInfoTab } from '@/components/map/CourseInfoTab';
 import { Button } from '@/components/ui/button';
 import { MapPin, List } from 'lucide-react';
 import { MapSkeleton } from '@/components/ui/LoadingSkeleton';
 
 declare global {
   interface Window {
-    mapboxgl: any;
+    mapboxgl: {
+      accessToken: string;
+      Map: any;
+      Marker: any;
+      LngLatBounds: any;
+      NavigationControl: any;
+      Popup: any;
+    };
   }
 }
 
@@ -164,18 +171,12 @@ const CoursesMap = () => {
         </div>
       )}
 
-      {/* Course Popup */}
-      {selectedCourse && (
-        <CoursePopup 
-          course={selectedCourse} 
-        />
-      )}
-
       {/* Course Info Tab */}
       {selectedCourse && (
         <CourseInfoTab 
           course={selectedCourse} 
           isOpen={!!selectedCourse}
+          onClose={() => setSelectedCourse(null)}
         />
       )}
     </div>

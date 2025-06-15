@@ -17,11 +17,11 @@ interface CoursePopupProps {
     phone?: string;
     website?: string;
   };
-  isOpen: boolean;
-  onNavigate: () => void;
+  isOpen?: boolean;
+  onNavigate?: () => void;
 }
 
-export const CoursePopup = ({ course, isOpen, onNavigate }: CoursePopupProps) => {
+export const CoursePopup = ({ course, isOpen = true, onNavigate }: CoursePopupProps) => {
   const defaultImageUrl = 'https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80';
   
   return (
@@ -99,13 +99,18 @@ export const CoursePopup = ({ course, isOpen, onNavigate }: CoursePopupProps) =>
           )}
         </div>
         
-        <Button 
-          className="w-full"
-          onClick={onNavigate}
-        >
-          View Course Details
-        </Button>
+        {onNavigate && (
+          <Button 
+            className="w-full"
+            onClick={onNavigate}
+          >
+            View Course Details
+          </Button>
+        )}
       </CardContent>
     </Card>
   );
 };
+
+// Also export as default for backward compatibility
+export default CoursePopup;
