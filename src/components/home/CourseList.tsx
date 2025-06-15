@@ -1,7 +1,7 @@
 
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
-import { CourseCard } from "./CourseCard";
+import CourseCard from "./CourseCard";
 import GolfAnimationLoader from "@/components/ui/GolfAnimationLoader";
 
 interface CourseListProps {
@@ -34,7 +34,7 @@ const CourseList = ({ courses, isLoading, currentTime, handleResetFilters }: Cou
       {/* Desktop: 3 column grid, Mobile: single column full width */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-0 md:gap-4">
         {courses.map(course => (
-          <CourseCard key={course.id} course={course} />
+          <CourseCard key={course.id} course={course} currentTime={currentTime} />
         ))}
       </div>
     </div>

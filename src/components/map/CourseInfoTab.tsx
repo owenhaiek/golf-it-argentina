@@ -152,6 +152,3 @@ export const CourseInfoTab = ({ course, isOpen, onClose }: CourseInfoTabProps) =
     </AnimatePresence>
   );
 };
-
-// Also export as default for backward compatibility
-export default CourseInfoTab;

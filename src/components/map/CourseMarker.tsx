@@ -35,6 +35,3 @@ export const CourseMarker = ({ course, onClick }: CourseMarkerProps) => {
     </motion.div>
   );
 };
-
-// Also export as default for backward compatibility
-export default CourseMarker;
