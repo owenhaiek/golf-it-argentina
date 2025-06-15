@@ -6,7 +6,6 @@ import { MapPin, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { FavoriteButton } from "@/components/ui/FavoriteButton";
-import { OptimizedCourseImageCarousel } from "./OptimizedCourseImageCarousel";
 
 interface CourseCardProps {
   course: {
@@ -23,25 +22,21 @@ interface CourseCardProps {
 
 export const CourseCard = ({ course }: CourseCardProps) => {
   const navigate = useNavigate();
-  const [imagesLoaded, setImagesLoaded] = useState(0);
+  const [imageError, setImageError] = useState(false);
 
-  const images = [
-    course.image_url,
-    ...(course.image_gallery ? course.image_gallery.split(',') : [])
-  ].filter(Boolean) as string[];
-
-  const handleImageLoad = () => {
-    setImagesLoaded(prev => prev + 1);
-  };
+  const defaultImageUrl = 'https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80';
 
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 bg-card border-border group">
       <CardHeader className="p-0">
-        <OptimizedCourseImageCarousel
-          images={images}
-          courseName={course.name}
-          onImageLoad={handleImageLoad}
-        />
+        <div className="relative h-48 bg-muted">
+          <img
+            src={imageError ? defaultImageUrl : (course.image_url || defaultImageUrl)}
+            alt={course.name}
+            className="w-full h-full object-cover"
+            onError={() => setImageError(true)}
+          />
+        </div>
       </CardHeader>
       
       <CardContent className="p-4">

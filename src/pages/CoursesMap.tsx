@@ -10,19 +10,6 @@ import { Button } from '@/components/ui/button';
 import { MapPin, List } from 'lucide-react';
 import { MapSkeleton } from '@/components/ui/LoadingSkeleton';
 
-declare global {
-  interface Window {
-    mapboxgl: {
-      accessToken: string;
-      Map: any;
-      Marker: any;
-      LngLatBounds: any;
-      NavigationControl: any;
-      Popup: any;
-    };
-  }
-}
-
 interface GolfCourse {
   id: string;
   name: string;
@@ -72,7 +59,7 @@ const CoursesMap = () => {
         map.on('load', () => {
           // Add markers for all courses
           courses.forEach(course => {
-            if (course.latitude && course.longitude) {
+            if (course.latitude && course.longitude && window.mapboxgl) {
               const marker = new window.mapboxgl.Marker({
                 color: '#10b981'
               })
@@ -86,7 +73,7 @@ const CoursesMap = () => {
           });
 
           // Fit map to show all courses if we have multiple courses
-          if (courses.length > 1) {
+          if (courses.length > 1 && window.mapboxgl) {
             const bounds = new window.mapboxgl.LngLatBounds();
             courses.forEach(course => {
               if (course.latitude && course.longitude) {
