@@ -1,6 +1,6 @@
 
-import { useState, useRef, useEffect } from "react";
-import { ChevronLeft, ChevronRight, Circle } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { 
   Carousel, 
@@ -8,15 +8,6 @@ import {
   CarouselItem
 } from "@/components/ui/carousel";
 import type { EmblaCarouselType } from "embla-carousel";
-
-// Embla options for improved mobile experience
-const MOBILE_CAROUSEL_OPTS = {
-  loop: true,
-  align: "start",
-  dragFree: true, // enables momentum/fling scrolling
-  speed: 12, // fast and fluid
-  containScroll: "trimSnaps"
-};
 
 interface CourseImageCarouselProps {
   images: string[];
@@ -67,50 +58,53 @@ const CourseImageCarousel = ({ images, courseName, courseId }: CourseImageCarous
 
   if (!images.length) {
     return (
-      <div className="w-full h-48 bg-secondary/20 flex items-center justify-center text-muted-foreground">No hay imágenes disponibles</div>
+      <div className="w-full h-48 bg-secondary/20 flex items-center justify-center text-muted-foreground">
+        No hay imágenes disponibles
+      </div>
     );
   }
 
-  // Navigation handlers (kept outside scroll area for statics)
   const goPrev = () => api?.scrollPrev();
   const goNext = () => api?.scrollNext();
 
   return (
-    <div className="w-full relative overflow-visible">
-      {/* Carousel */}
+    <div className="w-full relative">
       <Carousel
-        className="w-full relative"
-        opts={isMobile ? MOBILE_CAROUSEL_OPTS : { loop: true, align: "start" }}
+        className="w-full"
+        opts={{
+          loop: true,
+          align: "start" as const,
+          ...(isMobile && {
+            dragFree: false,
+            containScroll: "trimSnaps" as const
+          })
+        }}
         setApi={setApi}
       >
-        {/* Next/Prev Navigation, always static at edges, visible only if multiple images and not mobile */}
+        {/* Desktop Navigation - Static positioning */}
         {(images.length > 1 && !isMobile) && (
           <>
             <button 
-              className="absolute z-20 left-2 top-1/2 -translate-y-1/2 bg-background/70 rounded-full shadow p-2 hover:bg-background/90 transition-all"
-              style={{ pointerEvents: "auto" }}
+              className="absolute z-20 left-2 top-1/2 -translate-y-1/2 bg-background/80 backdrop-blur-sm rounded-full shadow-lg p-2 hover:bg-background/90 transition-all duration-200"
               onClick={goPrev}
               aria-label="Anterior"
-              tabIndex={0}
             >
-              <ChevronLeft className="h-7 w-7 text-primary" />
+              <ChevronLeft className="h-5 w-5 text-primary" />
             </button>
             <button 
-              className="absolute z-20 right-2 top-1/2 -translate-y-1/2 bg-background/70 rounded-full shadow p-2 hover:bg-background/90 transition-all"
-              style={{ pointerEvents: "auto" }}
+              className="absolute z-20 right-2 top-1/2 -translate-y-1/2 bg-background/80 backdrop-blur-sm rounded-full shadow-lg p-2 hover:bg-background/90 transition-all duration-200"
               onClick={goNext}
               aria-label="Siguiente"
-              tabIndex={0}
             >
-              <ChevronRight className="h-7 w-7 text-primary" />
+              <ChevronRight className="h-5 w-5 text-primary" />
             </button>
           </>
         )}
 
-        <CarouselContent>
+        <CarouselContent className="-ml-0">
           {images.map((image, idx) => (
-            <CarouselItem key={`${courseId}-${idx}`} className="basis-full">
-              <div className="relative h-48 w-full touch-pan-y">
+            <CarouselItem key={`${courseId}-${idx}`} className="pl-0 basis-full">
+              <div className="relative h-48 w-full">
                 {!imagesLoaded[idx] && (
                   <div className="absolute inset-0 bg-secondary/10 flex items-center justify-center">
                     <div className="w-6 h-6 border-2 border-primary/30 border-t-transparent rounded-full animate-spin"></div>
@@ -119,7 +113,9 @@ const CourseImageCarousel = ({ images, courseName, courseId }: CourseImageCarous
                 <img
                   src={image}
                   alt={`${courseName} - imagen ${idx + 1}`}
-                  className={`w-full h-full object-cover transition-opacity duration-200 ${imagesLoaded[idx] ? 'opacity-100' : 'opacity-0'}`}
+                  className={`w-full h-full object-cover transition-opacity duration-200 ${
+                    imagesLoaded[idx] ? 'opacity-100' : 'opacity-0'
+                  }`}
                   draggable={false}
                   loading="lazy"
                   onLoad={() =>
@@ -137,21 +133,24 @@ const CourseImageCarousel = ({ images, courseName, courseId }: CourseImageCarous
                       return newState;
                     });
                   }}
-                  style={{ touchAction: "pan-y", WebkitUserDrag: "none" }}
+                  style={{ 
+                    touchAction: "pan-y",
+                    userSelect: "none"
+                  }}
                 />
-                {/* Dots only for mobile, static at image bottom */}
+                
+                {/* Mobile dots - Static positioning */}
                 {images.length > 1 && isMobile && (
-                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex justify-center gap-2 z-10">
+                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 z-10">
                     {images.map((_, index) => (
                       <button
                         key={`dot-${index}`}
                         className="focus:outline-none"
                         onClick={() => api?.scrollTo(index)}
                         aria-label={`Go to slide ${index + 1}`}
-                        tabIndex={0}
                       >
                         <div
-                          className={`w-2 h-2 rounded-full transition-all ${
+                          className={`w-2 h-2 rounded-full transition-all duration-200 ${
                             index === current 
                               ? 'bg-white scale-110 shadow-md' 
                               : 'bg-white/60 scale-100'
@@ -171,4 +170,3 @@ const CourseImageCarousel = ({ images, courseName, courseId }: CourseImageCarous
 };
 
 export default CourseImageCarousel;
-

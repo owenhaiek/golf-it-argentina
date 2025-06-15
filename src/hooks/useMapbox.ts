@@ -9,7 +9,6 @@ interface UseMapboxOptions {
   accessToken: string;
 }
 
-// Improved state guards and race-free scripts loading
 export function useMapbox({
   containerRef,
   onMapLoaded,
@@ -22,69 +21,68 @@ export function useMapbox({
   const [scriptsLoaded, setScriptsLoaded] = useState(false);
   const [initError, setInitError] = useState<string | null>(null);
 
-  // Prevent race on script/style load
+  // Load Mapbox scripts and styles
   useEffect(() => {
-    let scriptReady = !!window.mapboxgl;
-    if (scriptReady) {
+    if (window.mapboxgl) {
       setScriptsLoaded(true);
       return;
     }
 
-    // Load CSS first if not present
-    if (!document.querySelector('link[href*="mapbox-gl.css"]')) {
-      const link = document.createElement('link');
-      link.href = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css';
-      link.rel = 'stylesheet';
-      link.id = 'mapbox-gl-css';
-      document.head.appendChild(link);
-    }
+    const loadMapboxResources = async () => {
+      try {
+        // Load CSS first
+        if (!document.querySelector('link[href*="mapbox-gl.css"]')) {
+          const link = document.createElement('link');
+          link.href = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css';
+          link.rel = 'stylesheet';
+          document.head.appendChild(link);
+        }
 
-    // Load JS if not present, else poll
-    const finalCheckReady = () => {
-      if (window.mapboxgl) {
-        setScriptsLoaded(true);
-        scriptReady = true;
+        // Load JavaScript
+        if (!document.querySelector('script[src*="mapbox-gl.js"]')) {
+          const script = document.createElement('script');
+          script.src = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js';
+          script.async = true;
+          
+          const scriptPromise = new Promise((resolve, reject) => {
+            script.onload = resolve;
+            script.onerror = reject;
+          });
+          
+          document.head.appendChild(script);
+          await scriptPromise;
+        }
+
+        // Wait for window.mapboxgl to be available
+        let attempts = 0;
+        while (!window.mapboxgl && attempts < 50) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+          attempts++;
+        }
+
+        if (window.mapboxgl) {
+          setScriptsLoaded(true);
+        } else {
+          throw new Error("Mapbox GL failed to load");
+        }
+      } catch (error) {
+        console.error("Error loading Mapbox resources:", error);
+        setInitError("Failed to load map resources");
       }
     };
 
-    if (!document.getElementById('mapbox-gl-script')) {
-      const script = document.createElement('script');
-      script.src = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js';
-      script.async = true;
-      script.id = 'mapbox-gl-script';
-      script.onload = finalCheckReady;
-      script.onerror = () => setInitError("Failed to load Mapbox GL script.");
-      document.head.appendChild(script);
-    } else {
-      // Poll for window.mapboxgl for up to 5s, then error out
-      let pollTimeout: number | undefined;
-      const poll = setInterval(() => {
-        finalCheckReady();
-        if (scriptReady) clearInterval(poll);
-      }, 100);
-      pollTimeout = setTimeout(() => {
-        clearInterval(poll)
-        if (!window.mapboxgl) setInitError("Mapbox script failed to load.");
-      }, 5000) as unknown as number;
-      return () => {
-        clearInterval(poll);
-        if (pollTimeout) clearTimeout(pollTimeout);
-      };
-    }
+    loadMapboxResources();
   }, []);
 
-  // Clean map initialization, avoid double/multiple inits
+  // Initialize map when scripts are loaded
   useEffect(() => {
-    let destroyed = false;
-    if (!scriptsLoaded || !containerRef.current || map) return;
-
-    if (!window.mapboxgl) {
-      setInitError("Mapbox script failed to set window.mapboxgl");
-      return;
-    }
+    if (!scriptsLoaded || !containerRef.current || map || initError) return;
 
     try {
+      console.log("Initializing Mapbox map...");
+      
       window.mapboxgl.accessToken = accessToken;
+      
       const mapInstance = new window.mapboxgl.Map({
         container: containerRef.current,
         style: 'mapbox://styles/mapbox/light-v11',
@@ -106,35 +104,30 @@ export function useMapbox({
       );
 
       mapInstance.on('load', () => {
-        if (destroyed) return;
+        console.log("Map loaded successfully");
         setMapLoaded(true);
         onMapLoaded?.(mapInstance);
       });
 
-      mapInstance.on('error', () => {
-        setInitError("Map failed to load properly");
+      mapInstance.on('error', (e) => {
+        console.error("Map error:", e);
+        setInitError("Map failed to load");
       });
 
       setMap(mapInstance);
-    } catch (err) {
-      setInitError("Failed to initialize map: " + ((err as Error).message ?? String(err)));
+    } catch (error) {
+      console.error("Error initializing map:", error);
+      setInitError(`Failed to initialize map: ${error}`);
     }
 
     return () => {
-      destroyed = true;
       if (map) {
         map.remove();
         setMap(null);
         setMapLoaded(false);
       }
     };
-    // eslint-disable-next-line
-  }, [scriptsLoaded, containerRef]);
-
-  // Effect: If script error, abort loading state
-  useEffect(() => {
-    if (initError && !mapLoaded) setMapLoaded(false);
-  }, [initError, mapLoaded]);
+  }, [scriptsLoaded, containerRef, accessToken, center, zoom, onMapLoaded]);
 
   return { map, mapLoaded, scriptsLoaded, initError };
 }

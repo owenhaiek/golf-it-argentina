@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MapPin, Map, Globe } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
@@ -10,66 +11,79 @@ interface CourseMapProps {
   name?: string;
 }
 
+const MAPBOX_TOKEN = 'pk.eyJ1Ijoib3dlbmhhaWVrIiwiYSI6ImNtYW8zbWZpajAyeGsyaXB3Z2NrOG9yeWsifQ.EutakvlH6R5Hala3cVTEYw';
+
 export const CourseMap = ({ latitude, longitude, name }: CourseMapProps) => {
   const { t } = useLanguage();
   const [isLoading, setIsLoading] = useState(true);
   const [mapInstance, setMapInstance] = useState<any>(null);
-  const [scriptLoaded, setScriptLoaded] = useState(false);
+  const [scriptsReady, setScriptsReady] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   
+  // Load Mapbox resources
   useEffect(() => {
-    // First load Mapbox script if needed
-    const loadMapboxScript = () => {
-      // Skip if already loaded
-      if (window.mapboxgl || document.getElementById('mapbox-script')) {
-        setScriptLoaded(true);
+    const loadMapboxResources = async () => {
+      if (window.mapboxgl) {
+        setScriptsReady(true);
         return;
       }
 
-      // Create and load script
-      const script = document.createElement('script');
-      script.id = 'mapbox-script';
-      script.src = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js';
-      script.async = true;
-      
-      // Create and load CSS
-      const link = document.createElement('link');
-      link.href = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css';
-      link.rel = 'stylesheet';
-      
-      document.head.appendChild(link);
-      
-      script.onload = () => {
-        console.log('Mapbox script loaded successfully');
-        setScriptLoaded(true);
-      };
-      
-      script.onerror = (e) => {
-        console.error('Error loading Mapbox script:', e);
+      try {
+        // Load CSS
+        if (!document.querySelector('link[href*="mapbox-gl.css"]')) {
+          const link = document.createElement('link');
+          link.href = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css';
+          link.rel = 'stylesheet';
+          document.head.appendChild(link);
+        }
+
+        // Load JS
+        if (!document.querySelector('script[src*="mapbox-gl.js"]')) {
+          const script = document.createElement('script');
+          script.src = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js';
+          script.async = true;
+          
+          await new Promise((resolve, reject) => {
+            script.onload = resolve;
+            script.onerror = reject;
+            document.head.appendChild(script);
+          });
+        }
+
+        // Wait for mapboxgl to be available
+        let attempts = 0;
+        while (!window.mapboxgl && attempts < 30) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+          attempts++;
+        }
+
+        if (window.mapboxgl) {
+          setScriptsReady(true);
+        } else {
+          throw new Error("Mapbox GL failed to load");
+        }
+      } catch (error) {
+        console.error('Error loading Mapbox:', error);
         setMapError('Failed to load map resources');
         setIsLoading(false);
-      };
-      
-      document.head.appendChild(script);
+      }
     };
 
-    loadMapboxScript();
+    loadMapboxResources();
   }, []);
   
-  // Initialize map when script is loaded and coordinates are available
+  // Initialize map when everything is ready
   useEffect(() => {
-    if (!scriptLoaded || !latitude || !longitude || !mapContainerRef.current || mapInstance) {
+    if (!scriptsReady || !latitude || !longitude || !mapContainerRef.current || mapInstance) {
       return;
     }
 
     try {
-      console.log(`Initializing map for ${name} at ${latitude}, ${longitude}`);
+      console.log(`Initializing course map for ${name}`);
       
-      // Set Mapbox access token
-      window.mapboxgl.accessToken = 'pk.eyJ1Ijoib3dlbmhhaWVrIiwiYSI6ImNtYW8zbWZpajAyeGsyaXB3Z2NrOG9yeWsifQ.EutakvlH6R5Hala3cVTEYw';
+      window.mapboxgl.accessToken = MAPBOX_TOKEN;
       
-      // Create map instance
       const map = new window.mapboxgl.Map({
         container: mapContainerRef.current,
         style: 'mapbox://styles/mapbox/streets-v12',
@@ -79,7 +93,6 @@ export const CourseMap = ({ latitude, longitude, name }: CourseMapProps) => {
         dragRotate: false,
       });
       
-      // Add controls
       map.addControl(
         new window.mapboxgl.NavigationControl({
           showCompass: false,
@@ -87,14 +100,12 @@ export const CourseMap = ({ latitude, longitude, name }: CourseMapProps) => {
         'bottom-right'
       );
       
-      // Add marker
       const marker = new window.mapboxgl.Marker({
         color: '#10b981',
       })
         .setLngLat([longitude, latitude])
         .addTo(map);
       
-      // Add popup with course name
       new window.mapboxgl.Popup({
         closeButton: false,
         closeOnClick: false,
@@ -106,24 +117,30 @@ export const CourseMap = ({ latitude, longitude, name }: CourseMapProps) => {
         .addTo(map);
       
       map.on('load', () => {
-        console.log('Map loaded successfully');
+        console.log('Course map loaded successfully');
+        setIsLoading(false);
+      });
+      
+      map.on('error', (e) => {
+        console.error('Course map error:', e);
+        setMapError('Could not load map');
         setIsLoading(false);
       });
       
       setMapInstance(map);
     } catch (error) {
-      console.error('Error initializing map:', error);
+      console.error('Error initializing course map:', error);
       setMapError('Could not initialize map');
       setIsLoading(false);
     }
     
-    // Cleanup function
     return () => {
       if (mapInstance) {
         mapInstance.remove();
+        setMapInstance(null);
       }
     };
-  }, [scriptLoaded, latitude, longitude, name, mapInstance]);
+  }, [scriptsReady, latitude, longitude, name]);
   
   // Handle missing location data
   if (!latitude || !longitude) {
@@ -140,7 +157,6 @@ export const CourseMap = ({ latitude, longitude, name }: CourseMapProps) => {
     );
   }
 
-  // Show map with location
   return (
     <Card className="mb-4">
       <CardHeader className="pb-2">
@@ -148,7 +164,6 @@ export const CourseMap = ({ latitude, longitude, name }: CourseMapProps) => {
       </CardHeader>
       <CardContent>
         <div className="bg-muted h-[300px] rounded-md relative overflow-hidden">
-          {/* Map container */}
           <div
             ref={mapContainerRef}
             className="absolute inset-0 w-full h-full"
@@ -162,7 +177,9 @@ export const CourseMap = ({ latitude, longitude, name }: CourseMapProps) => {
                 <div className="absolute inset-0 rounded-full border-3 border-primary border-t-transparent animate-spin"></div>
                 <Map className="absolute inset-0 w-5 h-5 m-auto text-primary/70" />
               </div>
-              <p className="text-sm text-muted-foreground mt-3">{t("common", "loading")}...</p>
+              <p className="text-sm text-muted-foreground mt-3">
+                {!scriptsReady ? 'Loading map...' : 'Initializing...'}
+              </p>
             </div>
           )}
           
