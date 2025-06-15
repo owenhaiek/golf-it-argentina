@@ -9,6 +9,51 @@ interface UseMapboxOptions {
   accessToken: string;
 }
 
+// Helper to load Mapbox script/CSS
+function loadMapboxResources(): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (window.mapboxgl) return resolve();
+
+    // Load CSS
+    if (!document.querySelector('link[href*="mapbox-gl.css"]')) {
+      const link = document.createElement('link');
+      link.href = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css';
+      link.rel = 'stylesheet';
+      document.head.appendChild(link);
+    }
+
+    // Load JS
+    if (!document.querySelector('script[src*="mapbox-gl.js"]')) {
+      const script = document.createElement('script');
+      script.src = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js';
+      script.async = true;
+
+      script.onload = () => {
+        // Give the browser a tick to attach window.mapboxgl
+        setTimeout(() => {
+          if (window.mapboxgl) resolve();
+          else reject(new Error("MapboxGL did not register on window"));
+        }, 50);
+      };
+
+      script.onerror = () => reject(new Error("Failed to load MapboxGL JS"));
+      document.head.appendChild(script);
+    } else {
+      // If already loading somewhere else, poll until available
+      let pollAttempts = 0;
+      const pollInterval = setInterval(() => {
+        if (window.mapboxgl) {
+          clearInterval(pollInterval);
+          resolve();
+        } else if (++pollAttempts > 40) { // Wait max 4s
+          clearInterval(pollInterval);
+          reject(new Error("MapboxGL failed to load in time"));
+        }
+      }, 100);
+    }
+  });
+}
+
 export function useMapbox({
   containerRef,
   onMapLoaded,
@@ -21,69 +66,35 @@ export function useMapbox({
   const [scriptsLoaded, setScriptsLoaded] = useState(false);
   const [initError, setInitError] = useState<string | null>(null);
 
-  // Load Mapbox scripts and styles
+  // Load Mapbox scripts/styles and set state
   useEffect(() => {
-    if (window.mapboxgl) {
-      setScriptsLoaded(true);
-      return;
-    }
-
-    const loadMapboxResources = async () => {
-      try {
-        // Load CSS first
-        if (!document.querySelector('link[href*="mapbox-gl.css"]')) {
-          const link = document.createElement('link');
-          link.href = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css';
-          link.rel = 'stylesheet';
-          document.head.appendChild(link);
-        }
-
-        // Load JavaScript
-        if (!document.querySelector('script[src*="mapbox-gl.js"]')) {
-          const script = document.createElement('script');
-          script.src = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js';
-          script.async = true;
-          
-          const scriptPromise = new Promise((resolve, reject) => {
-            script.onload = resolve;
-            script.onerror = reject;
-          });
-          
-          document.head.appendChild(script);
-          await scriptPromise;
-        }
-
-        // Wait for window.mapboxgl to be available
-        let attempts = 0;
-        while (!window.mapboxgl && attempts < 50) {
-          await new Promise(resolve => setTimeout(resolve, 100));
-          attempts++;
-        }
-
-        if (window.mapboxgl) {
-          setScriptsLoaded(true);
-        } else {
-          throw new Error("Mapbox GL failed to load");
-        }
-      } catch (error) {
-        console.error("Error loading Mapbox resources:", error);
+    let cancelled = false;
+    setInitError(null);
+    setScriptsLoaded(false);
+    loadMapboxResources()
+      .then(() => {
+        if (!cancelled) setScriptsLoaded(true);
+      })
+      .catch((err) => {
+        console.error("Error loading Mapbox resources:", err);
         setInitError("Failed to load map resources");
-      }
+      });
+    return () => {
+      cancelled = true;
     };
-
-    loadMapboxResources();
   }, []);
 
-  // Initialize map when scripts are loaded
+  // Initialize the map
   useEffect(() => {
     if (!scriptsLoaded || !containerRef.current || map || initError) return;
+    // Defensive: Check token/center/zoom
+    if (!accessToken || !Array.isArray(center) || !containerRef.current) return;
 
+    let mapInstance: any = null;
+    setMapLoaded(false);
     try {
-      console.log("Initializing Mapbox map...");
-      
       window.mapboxgl.accessToken = accessToken;
-      
-      const mapInstance = new window.mapboxgl.Map({
+      mapInstance = new window.mapboxgl.Map({
         container: containerRef.current,
         style: 'mapbox://styles/mapbox/light-v11',
         center,
@@ -96,38 +107,50 @@ export function useMapbox({
       });
 
       mapInstance.addControl(
-        new window.mapboxgl.NavigationControl({
-          showCompass: false,
-          showZoom: true,
-        }),
+        new window.mapboxgl.NavigationControl({ showCompass: false, showZoom: true }),
         'bottom-right'
       );
 
-      mapInstance.on('load', () => {
-        console.log("Map loaded successfully");
-        setMapLoaded(true);
-        onMapLoaded?.(mapInstance);
-      });
+      const onLoad = () => {
+        if (mapInstance) {
+          setMapLoaded(true);
+          onMapLoaded?.(mapInstance);
+        }
+      };
+      const onError = (e: any) => {
+        // Often error.userData.error.message
+        let errorMessage = "Map failed to load";
+        if (e?.error?.message) errorMessage += ": " + e.error.message;
+        setInitError(errorMessage);
+        setMapLoaded(false);
+        try { mapInstance?.remove(); } catch { }
+      };
 
-      mapInstance.on('error', (e) => {
-        console.error("Map error:", e);
-        setInitError("Map failed to load");
-      });
+      mapInstance.on('load', onLoad);
+      mapInstance.on('error', onError);
 
       setMap(mapInstance);
-    } catch (error) {
+
+    } catch (error: any) {
       console.error("Error initializing map:", error);
-      setInitError(`Failed to initialize map: ${error}`);
+      setInitError("Failed to initialize map: " + (error?.message || error));
+      setMapLoaded(false);
     }
 
+    // Clean up map instance
     return () => {
-      if (map) {
-        map.remove();
-        setMap(null);
-        setMapLoaded(false);
+      if (mapInstance) {
+        try {
+          mapInstance.remove();
+        } catch (e) {
+          // Already removed, ignore
+        }
       }
+      setMap(null);
+      setMapLoaded(false);
     };
-  }, [scriptsLoaded, containerRef, accessToken, center, zoom, onMapLoaded]);
+    // eslint-disable-next-line
+  }, [scriptsLoaded, containerRef, accessToken, JSON.stringify(center), zoom /* do NOT put onMapLoaded here */]);
 
   return { map, mapLoaded, scriptsLoaded, initError };
 }
