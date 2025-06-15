@@ -1,281 +1,154 @@
 
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
+import { CourseMarker } from "@/components/map/CourseMarker";
+import { CoursePopup } from "@/components/map/CoursePopup";
 import { CourseInfoTab } from "@/components/map/CourseInfoTab";
-import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, MapPin } from "lucide-react";
+import { useMapOptimization } from "@/hooks/useMapOptimization";
+import { MapSkeleton } from "@/components/ui/LoadingSkeleton";
 
 interface GolfCourse {
   id: string;
   name: string;
-  city?: string;
-  state?: string;
-  par?: number;
+  latitude: number | null;
+  longitude: number | null;
+  city: string | null;
+  state: string | null;
   holes: number;
-  description?: string;
-  image_url?: string;
-  latitude?: number;
-  longitude?: number;
-  address?: string;
-  phone?: string;
-  website?: string;
-  opening_hours?: any;
-  hole_pars?: number[];
-  hole_handicaps?: number[];
-  image_gallery?: string;
-  established_year?: number;
-  type?: string;
+  par: number | null;
+  image_url: string | null;
+  description: string | null;
 }
 
 const CoursesMap = () => {
+  const mapContainer = useRef<HTMLDivElement>(null);
   const [selectedCourse, setSelectedCourse] = useState<GolfCourse | null>(null);
-  const [map, setMap] = useState<any>(null);
-  const [mapLoaded, setMapLoaded] = useState(false);
-  const [scriptsLoaded, setScriptsLoaded] = useState(false);
-  const [markers, setMarkers] = useState<any[]>([]);
-  const mapContainerRef = useRef<HTMLDivElement>(null);
-  const navigate = useNavigate();
+  const [mapInstance, setMapInstance] = useState<any>(null);
+  const { isMapLoaded, mapError, initializeMap } = useMapOptimization();
 
-  // Preload courses data
-  const { data: courses, isLoading: coursesLoading } = useQuery({
-    queryKey: ['courses'],
+  const { data: courses = [], isLoading } = useQuery({
+    queryKey: ['courses-with-coordinates'],
     queryFn: async () => {
-      console.log("Fetching courses for map...");
       const { data, error } = await supabase
         .from('golf_courses')
-        .select('*')
+        .select('id, name, latitude, longitude, city, state, holes, par, image_url, description')
         .not('latitude', 'is', null)
-        .not('longitude', 'is', null)
-        .order('name');
+        .not('longitude', 'is', null);
+      
       if (error) throw error;
-      console.log(`Found ${data?.length || 0} courses with coordinates`);
       return data || [];
     },
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
 
-  // Load Mapbox scripts immediately
   useEffect(() => {
-    const loadMapboxScripts = async () => {
-      // Check if already loaded
-      if (window.mapboxgl) {
-        setScriptsLoaded(true);
-        return;
-      }
+    if (!mapContainer.current || mapInstance || courses.length === 0) return;
 
+    const setupMap = async () => {
       try {
-        console.log("Loading Mapbox scripts...");
-        
-        // Load CSS first
-        const link = document.createElement('link');
-        link.href = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css';
-        link.rel = 'stylesheet';
-        document.head.appendChild(link);
-
-        // Load JS
-        const script = document.createElement('script');
-        script.src = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js';
-        script.async = true;
-        
-        script.onload = () => {
-          console.log("Mapbox scripts loaded successfully");
-          setScriptsLoaded(true);
-        };
-        
-        script.onerror = () => {
-          console.error("Failed to load Mapbox scripts");
-        };
-        
-        document.head.appendChild(script);
-      } catch (error) {
-        console.error("Error loading Mapbox scripts:", error);
-      }
-    };
-
-    loadMapboxScripts();
-  }, []);
-
-  // Initialize map when scripts are loaded
-  useEffect(() => {
-    if (!scriptsLoaded || !mapContainerRef.current || mapLoaded) return;
-
-    const initializeMap = () => {
-      try {
-        console.log("Initializing map...");
-        
-        window.mapboxgl.accessToken = 'pk.eyJ1Ijoib3dlbmhhaWVrIiwiYSI6ImNtYW8zbWZpajAyeGsyaXB3Z2NrOG9yeWsifQ.EutakvlH6R5Hala3cVTEYw';
-
-        const mapInstance = new window.mapboxgl.Map({
-          container: mapContainerRef.current,
-          style: 'mapbox://styles/mapbox/light-v11',
-          center: [-58.3816, -34.6118], // Default to Buenos Aires
+        const map = await initializeMap(mapContainer.current!, {
+          style: 'mapbox://styles/mapbox/outdoors-v12',
+          center: [-58.3816, -34.6037], // Buenos Aires, Argentina
           zoom: 6,
-          pitch: 0,
-          bearing: 0,
-          antialias: true,
-          attributionControl: false,
-          optimizeForTerrain: true,
-          preserveDrawingBuffer: true,
+          accessToken: 'pk.eyJ1IjoiYWxlamFuZHJvMTIzNCIsImEiOiJjbTR4dHZxc3cwb3N2Mm1zOTNnNW5mOXp2In0.lH6yCjgpOwGxHN5sS6xHYQ'
         });
 
-        // Add navigation controls
-        mapInstance.addControl(
-          new window.mapboxgl.NavigationControl({
-            showCompass: false,
-            showZoom: true,
-          }),
-          'bottom-right'
-        );
+        setMapInstance(map);
 
-        mapInstance.on('load', () => {
-          console.log("Map loaded successfully");
-          setMapLoaded(true);
-          setMap(mapInstance);
+        // Add markers for courses
+        courses.forEach((course) => {
+          if (course.latitude && course.longitude) {
+            const marker = new window.mapboxgl.Marker({
+              element: CourseMarker({ course, onClick: () => setSelectedCourse(course) })
+            })
+              .setLngLat([course.longitude, course.latitude])
+              .addTo(map);
+          }
         });
 
-        mapInstance.on('error', (e) => {
-          console.error("Map error:", e);
-        });
-
+        // Fit map to show all courses
+        if (courses.length > 0) {
+          const bounds = new window.mapboxgl.LngLatBounds();
+          courses.forEach(course => {
+            if (course.latitude && course.longitude) {
+              bounds.extend([course.longitude, course.latitude]);
+            }
+          });
+          map.fitBounds(bounds, { padding: 50 });
+        }
       } catch (error) {
-        console.error('Error initializing map:', error);
+        console.error('Failed to initialize map:', error);
       }
     };
 
-    initializeMap();
-  }, [scriptsLoaded, mapLoaded]);
+    setupMap();
 
-  // Add markers when courses and map are ready
-  useEffect(() => {
-    if (!map || !courses || courses.length === 0) return;
+    return () => {
+      if (mapInstance) {
+        mapInstance.remove();
+        setMapInstance(null);
+      }
+    };
+  }, [courses, mapInstance, initializeMap]);
 
-    console.log(`Adding ${courses.length} markers to map...`);
-
-    // Clear existing markers
-    markers.forEach(marker => marker.remove());
-    setMarkers([]);
-
-    const newMarkers: any[] = [];
-    const bounds = new (window as any).mapboxgl.LngLatBounds();
-
-    courses.forEach((course) => {
-      if (!course.latitude || !course.longitude) return;
-
-      // Create custom marker element
-      const markerElement = document.createElement('div');
-      markerElement.className = 'golf-marker';
-      markerElement.innerHTML = `
-        <div class="w-12 h-12 bg-green-500 rounded-full border-4 border-white shadow-lg cursor-pointer hover:bg-green-600 transition-colors duration-200 flex items-center justify-center">
-          <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z"/>
-          </svg>
+  if (isLoading) {
+    return (
+      <div className="h-screen flex flex-col">
+        <div className="flex-shrink-0 p-4 bg-background border-b border-border">
+          <h1 className="text-2xl font-bold text-foreground">Golf Courses Map</h1>
+          <p className="text-muted-foreground text-sm mt-1">
+            Explore golf courses across Argentina
+          </p>
         </div>
-      `;
+        <div className="flex-1 p-4">
+          <MapSkeleton />
+        </div>
+      </div>
+    );
+  }
 
-      // Add click event to marker
-      markerElement.addEventListener('click', () => {
-        setSelectedCourse(course);
-        // Fly to the course location
-        map.flyTo({
-          center: [course.longitude!, course.latitude!],
-          zoom: 14,
-          duration: 1000,
-        });
-      });
-
-      // Create marker
-      const marker = new (window as any).mapboxgl.Marker({
-        element: markerElement,
-        anchor: 'center',
-      })
-        .setLngLat([course.longitude, course.latitude])
-        .addTo(map);
-
-      newMarkers.push(marker);
-      bounds.extend([course.longitude, course.latitude]);
-    });
-
-    setMarkers(newMarkers);
-
-    // Fit map to show all markers
-    if (courses.length > 0) {
-      map.fitBounds(bounds, {
-        padding: 50,
-        maxZoom: 12,
-        duration: 1000,
-      });
-    }
-  }, [map, courses]);
-
-  const handleViewCourse = (courseId: string) => {
-    navigate(`/course/${courseId}`);
-  };
+  if (mapError) {
+    return (
+      <div className="h-screen flex flex-col">
+        <div className="flex-shrink-0 p-4 bg-background border-b border-border">
+          <h1 className="text-2xl font-bold text-foreground">Golf Courses Map</h1>
+        </div>
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <h3 className="text-lg font-medium text-foreground mb-2">Map Failed to Load</h3>
+            <p className="text-muted-foreground">{mapError}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="h-screen relative overflow-hidden">
-      {/* Map container */}
-      <div className="absolute inset-0">
-        {(coursesLoading || !scriptsLoaded) ? (
-          <div className="flex items-center justify-center h-full bg-gradient-to-br from-green-50 to-green-100">
-            <div className="text-center">
-              <Loader2 className="h-8 w-8 animate-spin text-green-600 mx-auto mb-4" />
-              <p className="text-green-700 font-medium">
-                {!scriptsLoaded ? 'Cargando mapa...' : 'Cargando campos de golf...'}
-              </p>
-            </div>
-          </div>
-        ) : (
+    <div className="h-screen flex flex-col">
+      <div className="flex-shrink-0 p-4 bg-background border-b border-border">
+        <h1 className="text-2xl font-bold text-foreground">Golf Courses Map</h1>
+        <p className="text-muted-foreground text-sm mt-1">
+          Explore {courses.length} golf courses across Argentina
+        </p>
+      </div>
+      
+      <div className="flex-1 relative">
+        <div ref={mapContainer} className="w-full h-full" />
+        
+        {selectedCourse && (
           <>
-            <div
-              ref={mapContainerRef}
-              className="absolute inset-0 w-full h-full"
-              style={{ cursor: 'grab' }}
+            <CoursePopup 
+              course={selectedCourse} 
+              onClose={() => setSelectedCourse(null)} 
             />
-            
-            {/* Loading overlay for map */}
-            {!mapLoaded && (
-              <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-10">
-                <div className="text-center">
-                  <Loader2 className="h-8 w-8 animate-spin text-green-600 mx-auto mb-4" />
-                  <p className="text-green-700 font-medium">Inicializando mapa...</p>
-                </div>
-              </div>
-            )}
-
-            {/* No courses message */}
-            {courses && courses.length === 0 && mapLoaded && (
-              <div className="absolute inset-0 flex items-center justify-center z-10">
-                <Card className="max-w-md mx-auto bg-white/90 backdrop-blur-sm">
-                  <CardContent className="text-center p-6">
-                    <MapPin className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                    <p className="text-muted-foreground">
-                      No se encontraron campos de golf con datos de ubicación.
-                    </p>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
+            <CourseInfoTab 
+              course={selectedCourse} 
+              onClose={() => setSelectedCourse(null)} 
+            />
           </>
         )}
       </div>
-
-      {/* Course info slide-down tab */}
-      {selectedCourse && (
-        <CourseInfoTab 
-          course={selectedCourse} 
-          onClose={() => setSelectedCourse(null)} 
-          isOpen={!!selectedCourse}
-        />
-      )}
-
-      {/* Custom styles for markers */}
-      <style>{`
-        .golf-marker:hover {
-          transform: scale(1.1);
-        }
-      `}</style>
     </div>
   );
 };
