@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import {
   Card,
@@ -20,8 +21,10 @@ import {
   Wind,
   Tornado,
   Droplets,
+  RefreshCw,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 interface WeatherData {
   temperature: number;
@@ -45,9 +48,8 @@ interface CourseWeatherProps {
 }
 
 const getWeatherIcon = (code: number, isDay?: number) => {
-  // See https://open-meteo.com/en/docs#api_form for codes
   switch (code) {
-    case 0: // Clear
+    case 0:
       return isDay ? <ThermometerSun className="text-yellow-500" /> : <CloudFog className="text-blue-500" />;
     case 1:
     case 2:
@@ -95,10 +97,8 @@ const getWeatherIcon = (code: number, isDay?: number) => {
 };
 
 const getWeatherDesc = (code: number) => {
-  // Can be expanded, basic summary for codes
   switch (code) {
-    case 0:
-      return "Clear sky";
+    case 0: return "Clear sky";
     case 1: return "Mainly clear";
     case 2: return "Partly cloudy";
     case 3: return "Cloudy";
@@ -117,84 +117,116 @@ const getWeatherDesc = (code: number) => {
   }
 };
 
+const formatDate = (isoDate: string) => {
+  const date = new Date(isoDate);
+  return date.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+};
+
 export const CourseWeather = ({ latitude, longitude }: CourseWeatherProps) => {
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [forecast, setForecast] = useState<ForecastData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [err, setErr] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  // Format date for forecast
-  const formatDate = (isoDate: string) => {
-    const date = new Date(isoDate);
-    return date.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+  const fetchWeather = async (lat: number, lng: number, retryCount = 0) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      console.log(`Fetching weather for coordinates: ${lat}, ${lng} (attempt ${retryCount + 1})`);
+      
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,weathercode,relative_humidity_2m,wind_speed_10m,is_day&daily=weathercode,temperature_2m_max,temperature_2m_min&forecast_days=5&timezone=auto`;
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      
+      const resp = await fetch(url, { 
+        signal: controller.signal,
+        headers: {
+          'Accept': 'application/json',
+          'Cache-Control': 'no-cache'
+        }
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (!resp.ok) {
+        throw new Error(`Weather API returned ${resp.status}: ${resp.statusText}`);
+      }
+      
+      const data = await resp.json();
+      console.log("Weather API response:", data);
+      
+      if (!data.current || !data.daily) {
+        throw new Error("Weather API returned incomplete data");
+      }
+      
+      // Current weather
+      const curr = data.current;
+      const weather: WeatherData = {
+        temperature: Math.round(curr.temperature_2m || 0),
+        description: getWeatherDesc(curr.weathercode || 0),
+        humidity: Math.round(curr.relative_humidity_2m || 0),
+        windSpeed: Math.round(curr.wind_speed_10m || 0),
+        icon: getWeatherIcon(curr.weathercode || 0, curr.is_day),
+      };
+      
+      // Forecast
+      const daily = data.daily || {};
+      const forecast: ForecastData[] = (daily.time || []).slice(0, 5).map((date: string, idx: number) => ({
+        date: formatDate(date),
+        min: Math.round(daily.temperature_2m_min?.[idx] || 0),
+        max: Math.round(daily.temperature_2m_max?.[idx] || 0),
+        icon: getWeatherIcon(daily.weathercode?.[idx] || 0, 1),
+        desc: getWeatherDesc(daily.weathercode?.[idx] || 0),
+      }));
+      
+      setWeather(weather);
+      setForecast(forecast);
+      setError(null);
+      
+    } catch (e: any) {
+      console.error("Weather API Error: ", e);
+      
+      if (e.name === 'AbortError') {
+        setError("Weather request timed out. Please try again.");
+      } else if (retryCount < 2) {
+        // Retry up to 2 times with exponential backoff
+        setTimeout(() => {
+          fetchWeather(lat, lng, retryCount + 1);
+        }, Math.pow(2, retryCount) * 1000);
+        return;
+      } else {
+        setError("Unable to load weather data. Please check your connection and try again.");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-    const fetchWeather = async (lat: number, lng: number) => {
-      setLoading(true);
-      setErr(null);
-      try {
-        console.log(`Fetching weather for coordinates: ${lat}, ${lng}`);
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,weathercode,humidity_2m,wind_speed_10m,is_day&daily=weathercode,temperature_2m_max,temperature_2m_min&forecast_days=5&timezone=auto`;
-        const resp = await fetch(url);
-        if (!resp.ok) {
-          console.error("Weather fetch HTTP error", resp.status, resp.statusText);
-          throw new Error(`Weather fetch failed: ${resp.status}`);
-        }
-        const data = await resp.json();
-        console.log("Weather API response:", data);
-        
-        if (!data.current || !data.daily) {
-          console.error("Weather API: returned data missing current or daily", data);
-          throw new Error("Weather API returned incomplete data.");
-        }
-        
-        // Current (Open-Meteo returns 'current')
-        const curr = data.current;
-        const weather: WeatherData = {
-          temperature: curr.temperature_2m,
-          description: getWeatherDesc(curr.weathercode),
-          humidity: curr.humidity_2m,
-          windSpeed: curr.wind_speed_10m,
-          icon: getWeatherIcon(curr.weathercode, curr.is_day),
-        };
-        // Forecast
-        const daily = data.daily || {};
-        const forecast: ForecastData[] = (daily.time || []).map((date: string, idx: number) => ({
-          date: formatDate(date),
-          min: Math.round(daily.temperature_2m_min[idx]),
-          max: Math.round(daily.temperature_2m_max[idx]),
-          icon: getWeatherIcon(daily.weathercode[idx], 1),
-          desc: getWeatherDesc(daily.weathercode[idx]),
-        }));
-        setWeather(weather);
-        setForecast(forecast);
-      } catch (e: any) {
-        setErr("Unable to load weather data. Please try again later.");
-        console.error("Weather API Error: ", e);
-      }
+    // Validate coordinates
+    const lat = Number(latitude);
+    const lng = Number(longitude);
+    
+    if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+      console.log(`Invalid coordinates: ${latitude}, ${longitude}`);
+      setError("Invalid location coordinates for weather data");
       setLoading(false);
-    };
-
-    // Simplified validation - just check if we have valid numeric coordinates
-    if (latitude != null && longitude != null) {
-      const lat = Number(latitude);
-      const lng = Number(longitude);
-      
-      if (!isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
-        console.log(`Valid coordinates found: ${lat}, ${lng}`);
-        fetchWeather(lat, lng);
-      } else {
-        console.log(`Invalid coordinates: ${latitude}, ${longitude}`);
-        setErr("Invalid location coordinates for weather data");
-        setLoading(false);
-      }
-    } else {
-      console.log("No coordinates provided");
-      setErr("No location data available for weather");
-      setLoading(false);
+      return;
     }
+
+    console.log(`Valid coordinates found: ${lat}, ${lng}`);
+    fetchWeather(lat, lng);
   }, [latitude, longitude]);
+
+  const handleRetry = () => {
+    const lat = Number(latitude);
+    const lng = Number(longitude);
+    if (!isNaN(lat) && !isNaN(lng)) {
+      fetchWeather(lat, lng);
+    }
+  };
 
   return (
     <Card>
@@ -211,20 +243,30 @@ export const CourseWeather = ({ latitude, longitude }: CourseWeatherProps) => {
             <span className="text-muted-foreground">Loading weather...</span>
           </div>
         )}
-        {err && (
-          <div className="flex flex-col items-center justify-center min-h-[200px]">
+        
+        {error && (
+          <div className="flex flex-col items-center justify-center min-h-[200px] space-y-4">
             <Tornado className="h-10 w-10 text-destructive mb-2" />
-            <span className="text-destructive">{err}</span>
+            <span className="text-destructive text-center">{error}</span>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleRetry}
+              className="flex items-center gap-2"
+            >
+              <RefreshCw className="h-4 w-4" />
+              Try Again
+            </Button>
           </div>
         )}
 
-        {!loading && !err && weather && (
+        {!loading && !error && weather && (
           <div>
             {/* Current conditions */}
             <div className="flex flex-col items-center mb-3">
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-3xl">{weather.icon}</span>
-                <span className="text-4xl font-semibold">{Math.round(weather.temperature)}°C</span>
+                <span className="text-4xl font-semibold">{weather.temperature}°C</span>
               </div>
               <div className="text-lg font-medium">{weather.description}</div>
               <div className="flex flex-row items-center gap-4 mt-2 text-sm text-muted-foreground">
@@ -232,7 +274,7 @@ export const CourseWeather = ({ latitude, longitude }: CourseWeatherProps) => {
                   <Droplets className="w-4 h-4" /> {weather.humidity}% Humidity
                 </div>
                 <div className="flex items-center gap-1">
-                  <Wind className="w-4 h-4" /> {Math.round(weather.windSpeed)} km/h Wind
+                  <Wind className="w-4 h-4" /> {weather.windSpeed} km/h Wind
                 </div>
               </div>
             </div>
@@ -252,7 +294,7 @@ export const CourseWeather = ({ latitude, longitude }: CourseWeatherProps) => {
                     >
                       <div className="mb-1 text-xs text-muted-foreground">{day.date}</div>
                       <div className="text-xl">{day.icon}</div>
-                      <div className="text-xs">{day.desc}</div>
+                      <div className="text-xs text-center">{day.desc}</div>
                       <div className="text-sm mt-1">
                         {day.max}° / <span className="text-muted-foreground">{day.min}°</span>
                       </div>
