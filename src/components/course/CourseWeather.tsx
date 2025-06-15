@@ -128,42 +128,46 @@ export const CourseWeather = ({ latitude, longitude }: CourseWeatherProps) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchWeather = async (lat: number, lng: number, retryCount = 0) => {
+  const fetchWeather = async (lat: number, lng: number) => {
     setLoading(true);
     setError(null);
     
     try {
-      console.log(`Fetching weather for coordinates: ${lat}, ${lng} (attempt ${retryCount + 1})`);
+      console.log(`Fetching weather for coordinates: ${lat}, ${lng}`);
+      
+      // Validate coordinates first
+      if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+        throw new Error("Invalid coordinates");
+      }
       
       const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,weathercode,relative_humidity_2m,wind_speed_10m,is_day&daily=weathercode,temperature_2m_max,temperature_2m_min&forecast_days=5&timezone=auto`;
       
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
       
       const resp = await fetch(url, { 
         signal: controller.signal,
         headers: {
           'Accept': 'application/json',
-          'Cache-Control': 'no-cache'
         }
       });
       
       clearTimeout(timeoutId);
       
       if (!resp.ok) {
-        throw new Error(`Weather API returned ${resp.status}: ${resp.statusText}`);
+        throw new Error(`Weather API error: ${resp.status}`);
       }
       
       const data = await resp.json();
       console.log("Weather API response:", data);
       
       if (!data.current || !data.daily) {
-        throw new Error("Weather API returned incomplete data");
+        throw new Error("Invalid weather data received");
       }
       
       // Current weather
       const curr = data.current;
-      const weather: WeatherData = {
+      const weatherData: WeatherData = {
         temperature: Math.round(curr.temperature_2m || 0),
         description: getWeatherDesc(curr.weathercode || 0),
         humidity: Math.round(curr.relative_humidity_2m || 0),
@@ -172,32 +176,25 @@ export const CourseWeather = ({ latitude, longitude }: CourseWeatherProps) => {
       };
       
       // Forecast
-      const daily = data.daily || {};
-      const forecast: ForecastData[] = (daily.time || []).slice(0, 5).map((date: string, idx: number) => ({
+      const daily = data.daily;
+      const forecastData: ForecastData[] = daily.time.slice(0, 5).map((date: string, idx: number) => ({
         date: formatDate(date),
-        min: Math.round(daily.temperature_2m_min?.[idx] || 0),
-        max: Math.round(daily.temperature_2m_max?.[idx] || 0),
-        icon: getWeatherIcon(daily.weathercode?.[idx] || 0, 1),
-        desc: getWeatherDesc(daily.weathercode?.[idx] || 0),
+        min: Math.round(daily.temperature_2m_min[idx] || 0),
+        max: Math.round(daily.temperature_2m_max[idx] || 0),
+        icon: getWeatherIcon(daily.weathercode[idx] || 0, 1),
+        desc: getWeatherDesc(daily.weathercode[idx] || 0),
       }));
       
-      setWeather(weather);
-      setForecast(forecast);
-      setError(null);
+      setWeather(weatherData);
+      setForecast(forecastData);
       
     } catch (e: any) {
-      console.error("Weather API Error: ", e);
+      console.error("Weather fetch error:", e);
       
       if (e.name === 'AbortError') {
-        setError("Weather request timed out. Please try again.");
-      } else if (retryCount < 2) {
-        // Retry up to 2 times with exponential backoff
-        setTimeout(() => {
-          fetchWeather(lat, lng, retryCount + 1);
-        }, Math.pow(2, retryCount) * 1000);
-        return;
+        setError("Weather request timed out");
       } else {
-        setError("Unable to load weather data. Please check your connection and try again.");
+        setError("Unable to load weather data");
       }
     } finally {
       setLoading(false);
@@ -205,26 +202,19 @@ export const CourseWeather = ({ latitude, longitude }: CourseWeatherProps) => {
   };
 
   useEffect(() => {
-    // Validate coordinates
-    const lat = Number(latitude);
-    const lng = Number(longitude);
-    
-    if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
-      console.log(`Invalid coordinates: ${latitude}, ${longitude}`);
-      setError("Invalid location coordinates for weather data");
+    // Only fetch if we have valid coordinates
+    if (latitude && longitude) {
+      fetchWeather(latitude, longitude);
+    } else {
+      console.log("No valid coordinates provided for weather");
+      setError("Location coordinates not available");
       setLoading(false);
-      return;
     }
-
-    console.log(`Valid coordinates found: ${lat}, ${lng}`);
-    fetchWeather(lat, lng);
   }, [latitude, longitude]);
 
   const handleRetry = () => {
-    const lat = Number(latitude);
-    const lng = Number(longitude);
-    if (!isNaN(lat) && !isNaN(lng)) {
-      fetchWeather(lat, lng);
+    if (latitude && longitude) {
+      fetchWeather(latitude, longitude);
     }
   };
 

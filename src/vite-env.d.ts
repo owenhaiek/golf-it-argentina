@@ -2,15 +2,17 @@
 /// <reference types="vite/client" />
 
 // Mapbox GL declarations
-interface MapboxGl {
-  Map: any;
-  NavigationControl: any;
-  Marker: any;
-  Popup: any;
-  accessToken: string;
-  version?: string; // Add version as optional property
+declare global {
+  interface Window {
+    mapboxgl: {
+      Map: new (options: any) => any;
+      NavigationControl: new (options?: any) => any;
+      Marker: new (options?: any) => any;
+      Popup: new (options?: any) => any;
+      LngLatBounds: new () => any;
+      accessToken: string;
+    };
+  }
 }
 
-interface Window {
-  mapboxgl: MapboxGl;
-}
+export {};

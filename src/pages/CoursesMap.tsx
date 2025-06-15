@@ -29,63 +29,17 @@ interface GolfCourse {
   type?: string;
 }
 
-// Global flag to track if Mapbox is loaded
-let mapboxLoaded = false;
-let mapboxPromise: Promise<void> | null = null;
-
-const loadMapboxScripts = (): Promise<void> => {
-  // Return existing promise if already loading
-  if (mapboxPromise) return mapboxPromise;
-  
-  // Return resolved promise if already loaded
-  if (mapboxLoaded || window.mapboxgl) {
-    mapboxLoaded = true;
-    return Promise.resolve();
-  }
-
-  mapboxPromise = new Promise((resolve, reject) => {
-    console.log("Loading Mapbox scripts...");
-    
-    // Load CSS first
-    const link = document.createElement('link');
-    link.href = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css';
-    link.rel = 'stylesheet';
-    document.head.appendChild(link);
-
-    // Load JS
-    const script = document.createElement('script');
-    script.src = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js';
-    script.async = true;
-    
-    script.onload = () => {
-      console.log("Mapbox scripts loaded successfully");
-      mapboxLoaded = true;
-      resolve();
-    };
-    
-    script.onerror = () => {
-      console.error("Failed to load Mapbox scripts");
-      mapboxPromise = null; // Reset promise to allow retry
-      reject(new Error("Failed to load Mapbox"));
-    };
-    
-    document.head.appendChild(script);
-  });
-
-  return mapboxPromise;
-};
-
 const CoursesMap = () => {
   const [selectedCourse, setSelectedCourse] = useState<GolfCourse | null>(null);
-  const [map, setMap] = useState<mapboxgl.Map | null>(null);
+  const [map, setMap] = useState<any>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
-  const [scriptsLoaded, setScriptsLoaded] = useState(mapboxLoaded);
-  const [markers, setMarkers] = useState<mapboxgl.Marker[]>([]);
+  const [scriptsLoaded, setScriptsLoaded] = useState(false);
+  const [markers, setMarkers] = useState<any[]>([]);
   const [initError, setInitError] = useState<string | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
-  // Preload courses data with better caching
+  // Preload courses data
   const { data: courses, isLoading: coursesLoading, error: coursesError } = useQuery({
     queryKey: ['courses-map'],
     queryFn: async () => {
@@ -100,40 +54,69 @@ const CoursesMap = () => {
       console.log(`Found ${data?.length || 0} courses with coordinates`);
       return data || [];
     },
-    staleTime: 10 * 60 * 1000, // Cache for 10 minutes
-    gcTime: 15 * 60 * 1000, // Keep in cache for 15 minutes
+    staleTime: 10 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
   });
 
-  // Load Mapbox scripts immediately on component mount
+  // Load Mapbox scripts
   useEffect(() => {
-    if (!scriptsLoaded) {
-      loadMapboxScripts()
-        .then(() => setScriptsLoaded(true))
-        .catch((error) => {
-          console.error("Error loading Mapbox:", error);
-          setInitError("Failed to load map resources");
+    const loadMapboxScripts = async () => {
+      if (window.mapboxgl || scriptsLoaded) {
+        setScriptsLoaded(true);
+        return;
+      }
+
+      try {
+        console.log("Loading Mapbox scripts...");
+        
+        // Load CSS
+        const link = document.createElement('link');
+        link.href = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css';
+        link.rel = 'stylesheet';
+        document.head.appendChild(link);
+
+        // Load JS
+        const script = document.createElement('script');
+        script.src = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js';
+        script.async = false; // Load synchronously for better control
+        
+        await new Promise((resolve, reject) => {
+          script.onload = () => {
+            console.log("Mapbox scripts loaded successfully");
+            setScriptsLoaded(true);
+            resolve(true);
+          };
+          script.onerror = () => {
+            console.error("Failed to load Mapbox scripts");
+            setInitError("Failed to load map resources");
+            reject(new Error("Failed to load Mapbox"));
+          };
+          document.head.appendChild(script);
         });
-    }
+        
+      } catch (error) {
+        console.error("Error loading Mapbox:", error);
+        setInitError("Failed to load map resources");
+      }
+    };
+
+    loadMapboxScripts();
   }, [scriptsLoaded]);
 
-  // Initialize map when scripts are loaded and container is ready
+  // Initialize map
   useEffect(() => {
-    if (!scriptsLoaded || !mapContainerRef.current || map || initError) return;
+    if (!scriptsLoaded || !mapContainerRef.current || map || initError || !window.mapboxgl) return;
 
-    const initializeMap = async () => {
+    const initializeMap = () => {
       try {
         console.log("Initializing map...");
         
-        if (!window.mapboxgl) {
-          throw new Error("Mapbox GL not available");
-        }
-
         window.mapboxgl.accessToken = 'pk.eyJ1Ijoib3dlbmhhaWVrIiwiYSI6ImNtYW8zbWZpajAyeGsyaXB3Z2NrOG9yeWsifQ.EutakvlH6R5Hala3cVTEYw';
 
         const mapInstance = new window.mapboxgl.Map({
           container: mapContainerRef.current!,
           style: 'mapbox://styles/mapbox/light-v11',
-          center: [-58.3816, -34.6118], // Default to Buenos Aires
+          center: [-58.3816, -34.6118],
           zoom: 6,
           pitch: 0,
           bearing: 0,
@@ -156,7 +139,7 @@ const CoursesMap = () => {
           setMapLoaded(true);
         });
 
-        mapInstance.on('error', (e) => {
+        mapInstance.on('error', (e: any) => {
           console.error("Map error:", e);
           setInitError("Map failed to load properly");
         });
@@ -169,9 +152,9 @@ const CoursesMap = () => {
       }
     };
 
-    initializeMap();
+    // Small delay to ensure DOM is ready
+    setTimeout(initializeMap, 100);
 
-    // Cleanup function
     return () => {
       if (map) {
         map.remove();
@@ -183,7 +166,7 @@ const CoursesMap = () => {
 
   // Add markers when courses and map are ready
   useEffect(() => {
-    if (!map || !mapLoaded || !courses || courses.length === 0) return;
+    if (!map || !mapLoaded || !courses || courses.length === 0 || !window.mapboxgl) return;
 
     console.log(`Adding ${courses.length} markers to map...`);
 
@@ -191,7 +174,7 @@ const CoursesMap = () => {
     markers.forEach(marker => marker.remove());
     setMarkers([]);
 
-    const newMarkers: mapboxgl.Marker[] = [];
+    const newMarkers: any[] = [];
     const bounds = new window.mapboxgl.LngLatBounds();
 
     courses.forEach((course) => {
@@ -211,7 +194,6 @@ const CoursesMap = () => {
       // Add click event to marker
       markerElement.addEventListener('click', () => {
         setSelectedCourse(course);
-        // Fly to the course location
         map.flyTo({
           center: [course.longitude!, course.latitude!],
           zoom: 14,
@@ -233,7 +215,7 @@ const CoursesMap = () => {
 
     setMarkers(newMarkers);
 
-    // Fit map to show all markers with animation
+    // Fit map to show all markers
     if (courses.length > 0) {
       map.fitBounds(bounds, {
         padding: 50,
@@ -278,7 +260,7 @@ const CoursesMap = () => {
             <div className="text-center">
               <Loader2 className="h-8 w-8 animate-spin text-green-600 mx-auto mb-4" />
               <p className="text-green-700 font-medium">
-                {!scriptsLoaded ? 'Cargando mapa...' : 'Cargando campos de golf...'}
+                {!scriptsLoaded ? 'Loading map...' : 'Loading golf courses...'}
               </p>
             </div>
           </div>
@@ -291,11 +273,11 @@ const CoursesMap = () => {
             />
             
             {/* Loading overlay for map */}
-            {!mapLoaded && (
+            {!mapLoaded && scriptsLoaded && (
               <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-10">
                 <div className="text-center">
                   <Loader2 className="h-8 w-8 animate-spin text-green-600 mx-auto mb-4" />
-                  <p className="text-green-700 font-medium">Inicializando mapa...</p>
+                  <p className="text-green-700 font-medium">Initializing map...</p>
                 </div>
               </div>
             )}
@@ -307,7 +289,7 @@ const CoursesMap = () => {
                   <CardContent className="text-center p-6">
                     <MapPin className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                     <p className="text-muted-foreground">
-                      No se encontraron campos de golf con datos de ubicación.
+                      No golf courses found with location data.
                     </p>
                   </CardContent>
                 </Card>
