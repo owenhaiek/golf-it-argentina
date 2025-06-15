@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -37,9 +38,8 @@ const CoursesMap = () => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
-  // Use a persistent ref for init error logs/session
   const [initError, setInitError] = useState<string|null>(null);
-  const [isInitializing, setIsInitializing] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true);
 
   const { data: courses, isLoading: coursesLoading, error: coursesError } = useQuery({
     queryKey: ['courses-map'],
@@ -57,7 +57,7 @@ const CoursesMap = () => {
     gcTime: 15 * 60 * 1000,
   });
 
-  // --- MAPBOX: use refactored hook with more robust session initialization ---
+  // --- MAPBOX ---
   const {
     map,
     mapLoaded,
@@ -68,22 +68,36 @@ const CoursesMap = () => {
     center: [-58.3816, -34.6118],
     zoom: 6,
     accessToken: MAPBOX_TOKEN,
-    onMapLoaded: () => setIsInitializing(false),
+    onMapLoaded: () => {
+      setIsInitializing(false);
+    },
   });
 
-  // Always show error if hook reports one
   useEffect(() => {
     setInitError(mapboxError);
   }, [mapboxError]);
 
+  useEffect(() => {
+    if (!scriptsLoaded) {
+      setIsInitializing(true);
+      return;
+    }
+    if (scriptsLoaded && !mapLoaded) {
+      setIsInitializing(true);
+      return;
+    }
+    if (mapLoaded) {
+      setIsInitializing(false);
+    }
+  }, [scriptsLoaded, mapLoaded]);
+
   // Announce phase in console for diagnostics
   useEffect(() => {
     if (!scriptsLoaded) console.log("Mapbox scripts still loading...");
-    else if (!mapLoaded && !isInitializing) console.log("Mapbox scripts loaded, waiting for map to init...");
+    else if (!mapLoaded && isInitializing) console.log("Mapbox scripts loaded, waiting for map to init...");
     else if (mapLoaded) console.log("Map loaded and ready.");
   }, [scriptsLoaded, mapLoaded, isInitializing]);
 
-  // Show error state
   if (initError || coursesError) {
     return (
       <div className="h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-green-100">
@@ -114,7 +128,7 @@ const CoursesMap = () => {
             <div className="text-center">
               <Loader2 className="h-8 w-8 animate-spin text-green-600 mx-auto mb-4" />
               <p className="text-green-700 font-medium">
-                {isInitializing ? 'Initializing map...' : 
+                {isInitializing || !mapLoaded ? 'Initializing map...' : 
                  !scriptsLoaded ? 'Loading map resources...' : 
                  'Loading golf courses...'}
               </p>
@@ -131,7 +145,7 @@ const CoursesMap = () => {
             {map && courses && courses.length > 0 && (
               <MapMarkers map={map} courses={courses} onMarkerClick={setSelectedCourse} />
             )}
-            {!mapLoaded && scriptsLoaded && !isInitializing && (
+            {!mapLoaded && scriptsLoaded && isInitializing && (
               <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-10">
                 <div className="text-center">
                   <Loader2 className="h-8 w-8 animate-spin text-green-600 mx-auto mb-4" />
