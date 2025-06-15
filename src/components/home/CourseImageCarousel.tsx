@@ -123,6 +123,28 @@ const CourseImageCarousel = ({ images, courseName, courseId }: CourseImageCarous
                     });
                   }}
                 />
+
+                {/* Navigation dots positioned inside image at bottom - only for mobile */}
+                {images.length > 1 && isMobile && (
+                  <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 flex justify-center gap-2">
+                    {images.map((_, index) => (
+                      <button
+                        key={`dot-${index}`}
+                        className="focus:outline-none"
+                        onClick={() => api?.scrollTo(index)}
+                        aria-label={`Go to slide ${index + 1}`}
+                      >
+                        <div 
+                          className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                            index === current 
+                              ? 'bg-white scale-110 shadow-md' 
+                              : 'bg-white/60 scale-100'
+                          }`} 
+                        />
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </CarouselItem>
           ))}
@@ -141,28 +163,6 @@ const CourseImageCarousel = ({ images, courseName, courseId }: CourseImageCarous
           </>
         )}
       </Carousel>
-
-      {/* Dots for mobile navigation with minimalist design */}
-      {images.length > 1 && isMobile && (
-        <div className="flex justify-center gap-2 mt-4">
-          {images.map((_, index) => (
-            <button
-              key={`dot-${index}`}
-              className="focus:outline-none"
-              onClick={() => api?.scrollTo(index)}
-              aria-label={`Go to slide ${index + 1}`}
-            >
-              <div 
-                className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                  index === current 
-                    ? 'bg-primary scale-110' 
-                    : 'bg-muted-foreground/30 scale-100'
-                }`} 
-              />
-            </button>
-          ))}
-        </div>
-      )}
     </div>
   );
 };

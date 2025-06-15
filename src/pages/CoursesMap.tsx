@@ -33,13 +33,16 @@ const CoursesMap = () => {
   const [selectedCourse, setSelectedCourse] = useState<GolfCourse | null>(null);
   const [map, setMap] = useState<any>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [scriptsLoaded, setScriptsLoaded] = useState(false);
   const [markers, setMarkers] = useState<any[]>([]);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
-  const { data: courses, isLoading } = useQuery({
+  // Preload courses data
+  const { data: courses, isLoading: coursesLoading } = useQuery({
     queryKey: ['courses'],
     queryFn: async () => {
+      console.log("Fetching courses for map...");
       const { data, error } = await supabase
         .from('golf_courses')
         .select('*')
@@ -47,73 +50,108 @@ const CoursesMap = () => {
         .not('longitude', 'is', null)
         .order('name');
       if (error) throw error;
+      console.log(`Found ${data?.length || 0} courses with coordinates`);
       return data || [];
     },
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
 
-  // Initialize Mapbox map
+  // Load Mapbox scripts immediately
   useEffect(() => {
-    if (!mapContainerRef.current || mapLoaded) return;
+    const loadMapboxScripts = async () => {
+      // Check if already loaded
+      if (window.mapboxgl) {
+        setScriptsLoaded(true);
+        return;
+      }
 
-    // Load Mapbox script if not already loaded
-    if (!window.mapboxgl) {
-      const script = document.createElement('script');
-      script.src = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js';
-      script.async = true;
-      script.onload = () => {
-        initializeMap();
-      };
-      document.head.appendChild(script);
+      try {
+        console.log("Loading Mapbox scripts...");
+        
+        // Load CSS first
+        const link = document.createElement('link');
+        link.href = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css';
+        link.rel = 'stylesheet';
+        document.head.appendChild(link);
 
-      const link = document.createElement('link');
-      link.href = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css';
-      link.rel = 'stylesheet';
-      document.head.appendChild(link);
-    } else {
-      initializeMap();
-    }
-  }, [mapLoaded]);
+        // Load JS
+        const script = document.createElement('script');
+        script.src = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js';
+        script.async = true;
+        
+        script.onload = () => {
+          console.log("Mapbox scripts loaded successfully");
+          setScriptsLoaded(true);
+        };
+        
+        script.onerror = () => {
+          console.error("Failed to load Mapbox scripts");
+        };
+        
+        document.head.appendChild(script);
+      } catch (error) {
+        console.error("Error loading Mapbox scripts:", error);
+      }
+    };
 
-  const initializeMap = () => {
-    if (!mapContainerRef.current) return;
+    loadMapboxScripts();
+  }, []);
 
-    try {
-      // Set your Mapbox access token here
-      window.mapboxgl.accessToken = 'pk.eyJ1Ijoib3dlbmhhaWVrIiwiYSI6ImNtYW8zbWZpajAyeGsyaXB3Z2NrOG9yeWsifQ.EutakvlH6R5Hala3cVTEYw';
+  // Initialize map when scripts are loaded
+  useEffect(() => {
+    if (!scriptsLoaded || !mapContainerRef.current || mapLoaded) return;
 
-      const mapInstance = new window.mapboxgl.Map({
-        container: mapContainerRef.current,
-        style: 'mapbox://styles/mapbox/light-v11', // Clean, minimal style
-        center: [-58.3816, -34.6118], // Default to Buenos Aires
-        zoom: 6,
-        pitch: 0,
-        bearing: 0,
-        antialias: true,
-        attributionControl: false,
-      });
+    const initializeMap = () => {
+      try {
+        console.log("Initializing map...");
+        
+        window.mapboxgl.accessToken = 'pk.eyJ1Ijoib3dlbmhhaWVrIiwiYSI6ImNtYW8zbWZpajAyeGsyaXB3Z2NrOG9yeWsifQ.EutakvlH6R5Hala3cVTEYw';
 
-      // Add navigation controls
-      mapInstance.addControl(
-        new window.mapboxgl.NavigationControl({
-          showCompass: false,
-          showZoom: true,
-        }),
-        'bottom-right'
-      );
+        const mapInstance = new window.mapboxgl.Map({
+          container: mapContainerRef.current,
+          style: 'mapbox://styles/mapbox/light-v11',
+          center: [-58.3816, -34.6118], // Default to Buenos Aires
+          zoom: 6,
+          pitch: 0,
+          bearing: 0,
+          antialias: true,
+          attributionControl: false,
+          optimizeForTerrain: true,
+          preserveDrawingBuffer: true,
+        });
 
-      mapInstance.on('load', () => {
-        setMapLoaded(true);
-        setMap(mapInstance);
-      });
+        // Add navigation controls
+        mapInstance.addControl(
+          new window.mapboxgl.NavigationControl({
+            showCompass: false,
+            showZoom: true,
+          }),
+          'bottom-right'
+        );
 
-    } catch (error) {
-      console.error('Error initializing map:', error);
-    }
-  };
+        mapInstance.on('load', () => {
+          console.log("Map loaded successfully");
+          setMapLoaded(true);
+          setMap(mapInstance);
+        });
+
+        mapInstance.on('error', (e) => {
+          console.error("Map error:", e);
+        });
+
+      } catch (error) {
+        console.error('Error initializing map:', error);
+      }
+    };
+
+    initializeMap();
+  }, [scriptsLoaded, mapLoaded]);
 
   // Add markers when courses and map are ready
   useEffect(() => {
     if (!map || !courses || courses.length === 0) return;
+
+    console.log(`Adding ${courses.length} markers to map...`);
 
     // Clear existing markers
     markers.forEach(marker => marker.remove());
@@ -179,11 +217,13 @@ const CoursesMap = () => {
     <div className="h-screen relative overflow-hidden">
       {/* Map container */}
       <div className="absolute inset-0">
-        {isLoading ? (
+        {(coursesLoading || !scriptsLoaded) ? (
           <div className="flex items-center justify-center h-full bg-gradient-to-br from-green-50 to-green-100">
             <div className="text-center">
               <Loader2 className="h-8 w-8 animate-spin text-green-600 mx-auto mb-4" />
-              <p className="text-green-700 font-medium">Cargando campos de golf...</p>
+              <p className="text-green-700 font-medium">
+                {!scriptsLoaded ? 'Cargando mapa...' : 'Cargando campos de golf...'}
+              </p>
             </div>
           </div>
         ) : (
@@ -199,7 +239,7 @@ const CoursesMap = () => {
               <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-10">
                 <div className="text-center">
                   <Loader2 className="h-8 w-8 animate-spin text-green-600 mx-auto mb-4" />
-                  <p className="text-green-700 font-medium">Cargando mapa...</p>
+                  <p className="text-green-700 font-medium">Inicializando mapa...</p>
                 </div>
               </div>
             )}

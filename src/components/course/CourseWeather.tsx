@@ -19,7 +19,7 @@ import {
   ThermometerSnowflake,
   Wind,
   Tornado,
-  Droplets, // <-- added import here
+  Droplets,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -134,12 +134,7 @@ export const CourseWeather = ({ latitude, longitude }: CourseWeatherProps) => {
       setLoading(true);
       setErr(null);
       try {
-        // Defensive: ensure numbers and in valid ranges
-        if (typeof lat !== "number" || typeof lng !== "number" || isNaN(lat) || isNaN(lng)) {
-          setErr("Invalid course location for weather data.");
-          setLoading(false);
-          return;
-        }
+        console.log(`Fetching weather for coordinates: ${lat}, ${lng}`);
         const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,weathercode,humidity_2m,wind_speed_10m,is_day&daily=weathercode,temperature_2m_max,temperature_2m_min&forecast_days=5&timezone=auto`;
         const resp = await fetch(url);
         if (!resp.ok) {
@@ -147,10 +142,13 @@ export const CourseWeather = ({ latitude, longitude }: CourseWeatherProps) => {
           throw new Error(`Weather fetch failed: ${resp.status}`);
         }
         const data = await resp.json();
+        console.log("Weather API response:", data);
+        
         if (!data.current || !data.daily) {
           console.error("Weather API: returned data missing current or daily", data);
           throw new Error("Weather API returned incomplete data.");
         }
+        
         // Current (Open-Meteo returns 'current')
         const curr = data.current;
         const weather: WeatherData = {
@@ -178,22 +176,24 @@ export const CourseWeather = ({ latitude, longitude }: CourseWeatherProps) => {
       setLoading(false);
     };
 
-    // Defensive: check that both latitude and longitude are valid numbers
-    const lat = typeof latitude === "string" ? parseFloat(latitude) : latitude;
-    const lng = typeof longitude === "string" ? parseFloat(longitude) : longitude;
-
-    if (
-      lat !== null && lat !== undefined && !isNaN(Number(lat)) &&
-      lng !== null && lng !== undefined && !isNaN(Number(lng))
-    ) {
-      fetchWeather(Number(lat), Number(lng));
+    // Simplified validation - just check if we have valid numeric coordinates
+    if (latitude != null && longitude != null) {
+      const lat = Number(latitude);
+      const lng = Number(longitude);
+      
+      if (!isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+        console.log(`Valid coordinates found: ${lat}, ${lng}`);
+        fetchWeather(lat, lng);
+      } else {
+        console.log(`Invalid coordinates: ${latitude}, ${longitude}`);
+        setErr("Invalid location coordinates for weather data");
+        setLoading(false);
+      }
     } else {
-      setWeather(null);
-      setForecast([]);
+      console.log("No coordinates provided");
       setErr("No location data available for weather");
       setLoading(false);
     }
-    // Add latitude/longitude as dependencies only
   }, [latitude, longitude]);
 
   return (
