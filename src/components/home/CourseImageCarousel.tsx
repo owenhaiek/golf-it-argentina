@@ -1,5 +1,5 @@
 
-import SimpleCarousel from "./SimpleCarousel";
+import TouchCarousel from "./TouchCarousel";
 
 interface CourseImageCarouselProps {
   images: string[];
@@ -9,7 +9,7 @@ interface CourseImageCarouselProps {
 
 const CourseImageCarousel = ({ images, courseName, courseId }: CourseImageCarouselProps) => {
   return (
-    <SimpleCarousel 
+    <TouchCarousel 
       images={images} 
       courseName={courseName} 
       courseId={courseId} 

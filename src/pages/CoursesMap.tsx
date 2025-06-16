@@ -1,11 +1,11 @@
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { CourseInfoTab } from "@/components/map/CourseInfoTab";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, MapPin, AlertCircle } from "lucide-react";
-import { useMapbox } from "@/hooks/useMapbox";
+import { Loader2, MapPin, AlertCircle, RefreshCw } from "lucide-react";
+import { useReliableMapbox } from "@/hooks/useReliableMapbox";
 import { MapMarkers } from "@/components/map/MapMarkers";
 import { Button } from "@/components/ui/button";
 
@@ -53,32 +53,35 @@ const CoursesMap = () => {
     gcTime: 15 * 60 * 1000,
   });
 
-  const {
-    map,
-    mapLoaded,
-    scriptsLoaded,
-    initError,
-  } = useMapbox({
+  const { map, isLoading: mapLoading, error: mapError } = useReliableMapbox({
     containerRef: mapContainerRef,
     center: [-58.3816, -34.6118],
     zoom: 6,
     accessToken: MAPBOX_TOKEN,
   });
 
+  const handleRetry = () => {
+    window.location.reload();
+  };
+
   // Show error state
-  if (initError || coursesError) {
+  if (mapError || coursesError) {
     return (
       <div className="h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-green-100">
         <Card className="max-w-md mx-auto">
           <CardContent className="text-center p-6">
             <AlertCircle className="h-12 w-12 mx-auto mb-4 text-red-500" />
-            <p className="text-red-600 mb-4">
-              {initError || (coursesError ? String(coursesError) : "Failed to load golf courses")}
+            <h3 className="text-lg font-semibold mb-2 text-red-600">
+              {mapError ? "Map Loading Error" : "Data Loading Error"}
+            </h3>
+            <p className="text-red-600 mb-4 text-sm">
+              {mapError || (coursesError ? String(coursesError) : "Failed to load golf courses")}
             </p>
             <Button 
-              onClick={() => window.location.reload()}
+              onClick={handleRetry}
               className="bg-primary text-white hover:bg-primary/90"
             >
+              <RefreshCw className="h-4 w-4 mr-2" />
               Try Again
             </Button>
           </CardContent>
@@ -88,18 +91,21 @@ const CoursesMap = () => {
   }
 
   // Show loading state
-  if (coursesLoading || !scriptsLoaded || (scriptsLoaded && !mapLoaded)) {
+  if (coursesLoading || mapLoading) {
     const loadingText = coursesLoading 
       ? 'Loading golf courses...' 
-      : !scriptsLoaded 
-      ? 'Loading map resources...' 
-      : 'Initializing map...';
+      : 'Loading map...';
 
     return (
       <div className="h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-green-100">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin text-green-600 mx-auto mb-4" />
           <p className="text-green-700 font-medium">{loadingText}</p>
+          {mapLoading && (
+            <p className="text-green-600 text-sm mt-2">
+              This may take a few moments...
+            </p>
+          )}
         </div>
       </div>
     );
