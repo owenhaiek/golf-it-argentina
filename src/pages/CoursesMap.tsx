@@ -3,11 +3,10 @@ import { useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { CourseInfoTab } from "@/components/map/CourseInfoTab";
-import { MapMarkers } from "@/components/map/MapMarkers";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, MapPin, AlertCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useMapbox } from "@/hooks/useMapbox";
+import { useSimpleMapbox } from "@/hooks/useSimpleMapbox";
 
 interface GolfCourse {
   id: string;
@@ -23,12 +22,6 @@ interface GolfCourse {
   address?: string;
   phone?: string;
   website?: string;
-  opening_hours?: any;
-  hole_pars?: number[];
-  hole_handicaps?: number[];
-  image_gallery?: string;
-  established_year?: number;
-  type?: string;
 }
 
 const MAPBOX_TOKEN = 'pk.eyJ1Ijoib3dlbmhhaWVrIiwiYSI6ImNtYW8zbWZpajAyeGsyaXB3Z2NrOG9yeWsifQ.EutakvlH6R5Hala3cVTEYw';
@@ -36,6 +29,7 @@ const MAPBOX_TOKEN = 'pk.eyJ1Ijoib3dlbmhhaWVrIiwiYSI6ImNtYW8zbWZpajAyeGsyaXB3Z2N
 const CoursesMap = () => {
   const [selectedCourse, setSelectedCourse] = useState<GolfCourse | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
+  const markersRef = useRef<any[]>([]);
 
   const { data: courses, isLoading: coursesLoading, error: coursesError } = useQuery({
     queryKey: ['courses-map'],
@@ -50,25 +44,108 @@ const CoursesMap = () => {
       if (error) throw error;
       console.log("[CoursesMap] Courses loaded:", data?.length || 0);
       return data || [];
-    },
-    staleTime: 10 * 60 * 1000,
-    gcTime: 15 * 60 * 1000,
+    }
   });
 
-  const { map, isLoading: mapLoading, error: mapError } = useMapbox({
+  const { map, isLoading: mapLoading, error: mapError } = useSimpleMapbox({
     containerRef: mapContainerRef,
     center: [-58.3816, -34.6118],
     zoom: 6,
     accessToken: MAPBOX_TOKEN,
     onMapReady: (mapInstance) => {
-      console.log("[CoursesMap] Map is ready for markers");
+      console.log("[CoursesMap] Map ready, adding markers...");
+      addMarkersToMap(mapInstance);
     }
   });
 
-  const handleMarkerClick = (course: GolfCourse) => {
-    console.log("[CoursesMap] Marker clicked:", course.name);
-    setSelectedCourse(course);
+  const addMarkersToMap = (mapInstance: any) => {
+    if (!courses || courses.length === 0) return;
+
+    // Clear existing markers
+    markersRef.current.forEach(marker => marker.remove());
+    markersRef.current = [];
+
+    const bounds = new (window as any).mapboxgl.LngLatBounds();
+    let validCourses = 0;
+
+    courses.forEach(course => {
+      if (!course.latitude || !course.longitude) return;
+      
+      validCourses++;
+      
+      // Create green marker element
+      const el = document.createElement("div");
+      el.className = "golf-marker";
+      el.style.cssText = `
+        width: 40px;
+        height: 40px;
+        background-color: #10b981;
+        border: 3px solid white;
+        border-radius: 50%;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+      `;
+      
+      el.innerHTML = `
+        <svg width="20" height="20" fill="white" viewBox="0 0 24 24">
+          <path d="M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z"/>
+        </svg>
+      `;
+
+      // Add hover effects
+      el.addEventListener("mouseenter", () => {
+        el.style.backgroundColor = "#059669";
+        el.style.transform = "scale(1.1)";
+      });
+
+      el.addEventListener("mouseleave", () => {
+        el.style.backgroundColor = "#10b981";
+        el.style.transform = "scale(1)";
+      });
+
+      el.addEventListener("click", (e) => {
+        e.stopPropagation();
+        console.log("[CoursesMap] Marker clicked:", course.name);
+        setSelectedCourse(course);
+      });
+
+      const marker = new (window as any).mapboxgl.Marker({
+        element: el,
+        anchor: "center",
+      })
+        .setLngLat([course.longitude, course.latitude])
+        .addTo(mapInstance);
+
+      markersRef.current.push(marker);
+      bounds.extend([course.longitude, course.latitude]);
+    });
+
+    console.log("[CoursesMap] Added", validCourses, "markers");
+
+    // Fit map to show all markers
+    if (validCourses > 0) {
+      try {
+        mapInstance.fitBounds(bounds, {
+          padding: { top: 50, bottom: 50, left: 50, right: 50 },
+          maxZoom: 12,
+          duration: 1000,
+        });
+      } catch (error) {
+        console.warn("[CoursesMap] Error fitting bounds:", error);
+      }
+    }
   };
+
+  // Re-add markers when courses load and map is ready
+  useState(() => {
+    if (map && courses && courses.length > 0) {
+      addMarkersToMap(map);
+    }
+  }, [map, courses]);
 
   const handleRetry = () => {
     window.location.reload();
@@ -121,22 +198,13 @@ const CoursesMap = () => {
 
   return (
     <div className="h-screen relative overflow-hidden">
-      {/* Map container */}
-      <div className="absolute inset-0">
+      {/* Map container with grey background */}
+      <div className="absolute inset-0 bg-gray-200">
         <div
           ref={mapContainerRef}
           className="absolute inset-0 w-full h-full"
           style={{ cursor: 'grab' }}
         />
-        
-        {/* Map markers component */}
-        {map && courses && (
-          <MapMarkers
-            map={map}
-            courses={courses}
-            onMarkerClick={handleMarkerClick}
-          />
-        )}
         
         {/* Empty state */}
         {courses && courses.length === 0 && (
@@ -153,7 +221,7 @@ const CoursesMap = () => {
         )}
       </div>
       
-      {/* Course info tab */}
+      {/* Course info tab with slide-down animation */}
       {selectedCourse && (
         <CourseInfoTab 
           course={selectedCourse}

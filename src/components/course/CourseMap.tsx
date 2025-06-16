@@ -4,7 +4,7 @@ import { MapPin, Map, Globe } from "lucide-react";
 import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useMapbox } from "@/hooks/useMapbox";
+import { useSimpleMapbox } from "@/hooks/useSimpleMapbox";
 
 interface CourseMapProps {
   latitude?: number | null;
@@ -18,7 +18,7 @@ export const CourseMap = ({ latitude, longitude, name }: CourseMapProps) => {
   const { t } = useLanguage();
   const mapContainerRef = useRef<HTMLDivElement>(null);
   
-  const { map, isLoading, error } = useMapbox({
+  const { map, isLoading, error } = useSimpleMapbox({
     containerRef: mapContainerRef,
     center: longitude && latitude ? [longitude, latitude] : [-58.3816, -34.6118],
     zoom: 15,
@@ -26,7 +26,7 @@ export const CourseMap = ({ latitude, longitude, name }: CourseMapProps) => {
     onMapReady: (mapInstance) => {
       if (!latitude || !longitude) return;
       
-      // Add marker and popup
+      // Add green marker and popup
       const marker = new (window as any).mapboxgl.Marker({
         color: '#10b981',
       })
@@ -66,7 +66,7 @@ export const CourseMap = ({ latitude, longitude, name }: CourseMapProps) => {
         <CardTitle className="text-lg">{t("course", "courseLocation")}</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="bg-muted h-[300px] rounded-md relative overflow-hidden">
+        <div className="bg-gray-200 h-[300px] rounded-md relative overflow-hidden">
           <div
             ref={mapContainerRef}
             className="absolute inset-0 w-full h-full"
@@ -74,11 +74,11 @@ export const CourseMap = ({ latitude, longitude, name }: CourseMapProps) => {
           
           {/* Loading state */}
           {isLoading && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-muted z-10">
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-200 z-10">
               <div className="relative w-10 h-10">
-                <div className="absolute inset-0 rounded-full border-3 border-primary/20"></div>
-                <div className="absolute inset-0 rounded-full border-3 border-primary border-t-transparent animate-spin"></div>
-                <Map className="absolute inset-0 w-5 h-5 m-auto text-primary/70" />
+                <div className="absolute inset-0 rounded-full border-3 border-green-600/20"></div>
+                <div className="absolute inset-0 rounded-full border-3 border-green-600 border-t-transparent animate-spin"></div>
+                <Map className="absolute inset-0 w-5 h-5 m-auto text-green-600/70" />
               </div>
               <p className="text-sm text-muted-foreground mt-3">Loading map...</p>
             </div>
@@ -86,7 +86,7 @@ export const CourseMap = ({ latitude, longitude, name }: CourseMapProps) => {
           
           {/* Error state */}
           {error && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-muted z-10">
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-200 z-10">
               <Globe className="h-12 w-12 text-muted-foreground opacity-50 mb-3" />
               <p className="text-muted-foreground mb-3 text-center px-4 text-sm">{error}</p>
               <Button 
