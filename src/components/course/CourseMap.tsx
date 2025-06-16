@@ -4,7 +4,7 @@ import { MapPin, Map, Globe } from "lucide-react";
 import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useOptimizedMapbox } from "@/hooks/useOptimizedMapbox";
+import { useMapbox } from "@/hooks/useMapbox";
 
 interface CourseMapProps {
   latitude?: number | null;
@@ -18,7 +18,7 @@ export const CourseMap = ({ latitude, longitude, name }: CourseMapProps) => {
   const { t } = useLanguage();
   const mapContainerRef = useRef<HTMLDivElement>(null);
   
-  const { map, isLoading, error } = useOptimizedMapbox({
+  const { map, isLoading, error } = useMapbox({
     containerRef: mapContainerRef,
     center: longitude && latitude ? [longitude, latitude] : [-58.3816, -34.6118],
     zoom: 15,
@@ -105,7 +105,7 @@ export const CourseMap = ({ latitude, longitude, name }: CourseMapProps) => {
           </div>
         </div>
       </CardContent>
-    </Card>
+    </div>
   );
 };
 

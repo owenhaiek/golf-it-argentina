@@ -7,7 +7,7 @@ import { MapMarkers } from "@/components/map/MapMarkers";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, MapPin, AlertCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useOptimizedMapbox } from "@/hooks/useOptimizedMapbox";
+import { useMapbox } from "@/hooks/useMapbox";
 
 interface GolfCourse {
   id: string;
@@ -55,7 +55,7 @@ const CoursesMap = () => {
     gcTime: 15 * 60 * 1000,
   });
 
-  const { map, isLoading: mapLoading, error: mapError } = useOptimizedMapbox({
+  const { map, isLoading: mapLoading, error: mapError } = useMapbox({
     containerRef: mapContainerRef,
     center: [-58.3816, -34.6118],
     zoom: 6,

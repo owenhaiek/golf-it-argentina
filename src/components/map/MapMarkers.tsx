@@ -43,18 +43,42 @@ export function MapMarkers({ map, courses, onMarkerClick }: MapMarkersProps) {
       
       validCourses++;
       
-      // Create custom marker element
+      // Create custom marker element with better styling
       const el = document.createElement("div");
       el.className = "golf-marker";
+      el.style.cssText = `
+        width: 48px;
+        height: 48px;
+        background-color: #10b981;
+        border: 3px solid white;
+        border-radius: 50%;
+        cursor: pointer;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+      `;
+      
       el.innerHTML = `
-        <div class="w-12 h-12 bg-green-500 rounded-full border-4 border-white shadow-lg cursor-pointer hover:bg-green-600 transition-colors duration-200 flex items-center justify-center">
-          <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z"/>
-          </svg>
-        </div>
+        <svg width="24" height="24" fill="white" viewBox="0 0 24 24">
+          <path d="M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z"/>
+        </svg>
       `;
 
-      el.addEventListener("click", () => {
+      // Add hover effects
+      el.addEventListener("mouseenter", () => {
+        el.style.backgroundColor = "#059669";
+        el.style.transform = "scale(1.1)";
+      });
+
+      el.addEventListener("mouseleave", () => {
+        el.style.backgroundColor = "#10b981";
+        el.style.transform = "scale(1)";
+      });
+
+      el.addEventListener("click", (e) => {
+        e.stopPropagation();
         console.log("[MapMarkers] Marker clicked:", course.name);
         onMarkerClick(course);
       });
@@ -72,13 +96,17 @@ export function MapMarkers({ map, courses, onMarkerClick }: MapMarkersProps) {
 
     console.log("[MapMarkers] Added", validCourses, "markers to map");
 
-    // Fit map to show all markers
+    // Fit map to show all markers with proper padding
     if (validCourses > 0) {
-      map.fitBounds(bounds, {
-        padding: 50,
-        maxZoom: 12,
-        duration: 800,
-      });
+      try {
+        map.fitBounds(bounds, {
+          padding: { top: 50, bottom: 50, left: 50, right: 50 },
+          maxZoom: 12,
+          duration: 1000,
+        });
+      } catch (error) {
+        console.warn("[MapMarkers] Error fitting bounds:", error);
+      }
     }
 
     return () => {
