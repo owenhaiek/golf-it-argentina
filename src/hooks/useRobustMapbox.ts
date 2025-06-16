@@ -23,30 +23,47 @@ export function useRobustMapbox({
   useEffect(() => {
     let cancelled = false;
     let mapInstance: any = null;
-    let retryCount = 0;
-    const maxRetries = 10;
 
     const waitForContainer = async (): Promise<boolean> => {
       return new Promise((resolve) => {
+        let attempts = 0;
+        const maxAttempts = 50; // 10 seconds max
+        
         const checkContainer = () => {
-          if (containerRef.current) {
-            console.log("[RobustMap] Container found:", containerRef.current);
-            resolve(true);
-            return;
-          }
-          
-          retryCount++;
-          if (retryCount >= maxRetries) {
-            console.log("[RobustMap] Container not found after", maxRetries, "attempts");
+          if (cancelled) {
             resolve(false);
             return;
           }
           
-          console.log("[RobustMap] Waiting for container, attempt", retryCount);
+          const container = containerRef.current;
+          
+          // Check if container exists and is properly mounted in DOM
+          if (container && 
+              container.offsetParent !== null && 
+              container.clientWidth > 0 && 
+              container.clientHeight > 0) {
+            console.log("[RobustMap] Container ready:", {
+              width: container.clientWidth,
+              height: container.clientHeight,
+              inDOM: document.contains(container)
+            });
+            resolve(true);
+            return;
+          }
+          
+          attempts++;
+          if (attempts >= maxAttempts) {
+            console.log("[RobustMap] Container timeout after", attempts, "attempts");
+            resolve(false);
+            return;
+          }
+          
+          console.log("[RobustMap] Waiting for container, attempt", attempts);
           setTimeout(checkContainer, 200);
         };
         
-        checkContainer();
+        // Start checking after a small delay to allow React to render
+        setTimeout(checkContainer, 100);
       });
     };
 
@@ -57,48 +74,41 @@ export function useRobustMapbox({
         setError(null);
         
         // Validate token first
-        if (!accessToken) {
-          throw new Error("Mapbox access token is required");
-        }
-        
-        if (accessToken.length < 10 || !accessToken.startsWith('pk.')) {
-          throw new Error("Invalid Mapbox access token format");
+        if (!accessToken || accessToken.length < 10 || !accessToken.startsWith('pk.')) {
+          throw new Error("Invalid Mapbox access token");
         }
 
-        console.log("[RobustMap] Token validated");
-
-        // Wait for container to be available
+        // Wait for container to be properly available
         const containerAvailable = await waitForContainer();
         if (!containerAvailable || cancelled) {
-          throw new Error("Map container is not available");
+          throw new Error("Map container is not available or not properly mounted");
         }
 
-        console.log("[RobustMap] Container validated, loading resources...");
+        // Double-check container one more time before proceeding
+        if (!containerRef.current) {
+          throw new Error("Container reference lost during initialization");
+        }
 
-        // Check if Mapbox is already loaded
+        console.log("[RobustMap] Container validated, loading Mapbox...");
+
+        // Load Mapbox resources if not already loaded
         if (!(window as any).mapboxgl) {
-          console.log("[RobustMap] Loading Mapbox resources...");
-          
-          // Load CSS first
+          // Load CSS
           if (!document.querySelector('link[href*="mapbox-gl.css"]')) {
             await new Promise<void>((resolve, reject) => {
               const link = document.createElement('link');
               link.href = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css';
               link.rel = 'stylesheet';
               
-              const timeout = setTimeout(() => {
-                reject(new Error("CSS loading timeout"));
-              }, 10000);
+              const timeout = setTimeout(() => reject(new Error("CSS timeout")), 10000);
               
               link.onload = () => {
                 clearTimeout(timeout);
-                console.log("[RobustMap] CSS loaded");
                 resolve();
               };
-              
               link.onerror = () => {
                 clearTimeout(timeout);
-                reject(new Error("Failed to load Mapbox CSS"));
+                reject(new Error("Failed to load CSS"));
               };
               
               document.head.appendChild(link);
@@ -110,21 +120,16 @@ export function useRobustMapbox({
             await new Promise<void>((resolve, reject) => {
               const script = document.createElement('script');
               script.src = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js';
-              script.async = true;
               
-              const timeout = setTimeout(() => {
-                reject(new Error("Script loading timeout"));
-              }, 15000);
+              const timeout = setTimeout(() => reject(new Error("Script timeout")), 15000);
               
               script.onload = () => {
                 clearTimeout(timeout);
-                console.log("[RobustMap] Script loaded");
                 resolve();
               };
-              
               script.onerror = () => {
                 clearTimeout(timeout);
-                reject(new Error("Failed to load Mapbox script"));
+                reject(new Error("Failed to load script"));
               };
               
               document.head.appendChild(script);
@@ -139,39 +144,29 @@ export function useRobustMapbox({
           }
 
           if (!(window as any).mapboxgl) {
-            throw new Error("Mapbox GL failed to initialize after loading");
+            throw new Error("Mapbox GL failed to load");
           }
         }
 
         if (cancelled) return;
 
-        console.log("[RobustMap] Creating map instance...");
-        
-        // Double-check container is still available
+        // Final container check
         if (!containerRef.current) {
-          throw new Error("Container became unavailable during initialization");
+          throw new Error("Container became unavailable");
         }
         
-        // Set access token
+        console.log("[RobustMap] Creating map...");
+        
         (window as any).mapboxgl.accessToken = accessToken;
         
-        // Create map with error handling
-        try {
-          mapInstance = new (window as any).mapboxgl.Map({
-            container: containerRef.current,
-            style: 'mapbox://styles/mapbox/light-v11',
-            center,
-            zoom,
-            attributionControl: false,
-            logoPosition: 'bottom-right'
-          });
-        } catch (tokenError: any) {
-          console.error("[RobustMap] Map creation error:", tokenError);
-          if (tokenError.message.includes('token') || tokenError.message.includes('Unauthorized')) {
-            throw new Error("Invalid Mapbox token - please check your token");
-          }
-          throw tokenError;
-        }
+        mapInstance = new (window as any).mapboxgl.Map({
+          container: containerRef.current,
+          style: 'mapbox://styles/mapbox/light-v11',
+          center,
+          zoom,
+          attributionControl: false,
+          logoPosition: 'bottom-right'
+        });
 
         // Add controls
         mapInstance.addControl(
@@ -182,9 +177,9 @@ export function useRobustMapbox({
           'bottom-right'
         );
 
-        // Handle load event
+        // Handle events
         mapInstance.on('load', () => {
-          console.log("[RobustMap] Map ready!");
+          console.log("[RobustMap] Map loaded successfully!");
           if (!cancelled) {
             setMap(mapInstance);
             setIsLoading(false);
@@ -193,18 +188,16 @@ export function useRobustMapbox({
           }
         });
 
-        // Handle errors
         mapInstance.on('error', (e: any) => {
           console.error("[RobustMap] Map error:", e);
           if (!cancelled) {
-            const errorMsg = e.error?.message || "Map failed to load";
-            setError(errorMsg);
+            setError(e.error?.message || "Map failed to load");
             setIsLoading(false);
           }
         });
 
       } catch (error: any) {
-        console.error("[RobustMap] Init error:", error);
+        console.error("[RobustMap] Initialization error:", error);
         if (!cancelled) {
           setError(error.message || "Failed to initialize map");
           setIsLoading(false);
@@ -212,16 +205,16 @@ export function useRobustMapbox({
       }
     };
 
-    // Initialize with a delay to ensure DOM is ready
-    const timeoutId = setTimeout(() => {
+    // Start initialization with proper timing
+    const initTimeout = setTimeout(() => {
       if (!cancelled) {
         initializeMap();
       }
-    }, 500);
+    }, 300);
     
     return () => {
       cancelled = true;
-      clearTimeout(timeoutId);
+      clearTimeout(initTimeout);
       if (mapInstance) {
         try {
           mapInstance.remove();
