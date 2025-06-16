@@ -25,7 +25,12 @@ export function CourseTabs({ course, rounds, isLoadingRounds, reviews, isLoading
         )}
       </TabsContent>
       <TabsContent value="holes" className="mt-4">
-        <CourseHoleDetails coursePar={course.par} holes={course.holes} />
+        <CourseHoleDetails 
+          coursePar={course.par} 
+          holes={course.holes}
+          holePars={course.hole_pars}
+          holeHandicaps={course.hole_handicaps}
+        />
       </TabsContent>
       <TabsContent value="images" className="mt-4">
         <CoursePhotos

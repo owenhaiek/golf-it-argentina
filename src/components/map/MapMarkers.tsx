@@ -26,15 +26,24 @@ interface MapMarkersProps {
 export function MapMarkers({ map, courses, onMarkerClick }: MapMarkersProps) {
   useEffect(() => {
     if (!map || !courses) return;
+    
+    console.log("[MapMarkers] Adding markers for", courses.length, "courses");
+    
     // Remove previous markers if any
-    let markers: any[] = [];
-    map.__lov_markers?.forEach((marker: any) => marker.remove());
+    if (map.__lov_markers) {
+      map.__lov_markers.forEach((marker: any) => marker.remove());
+    }
     map.__lov_markers = [];
 
-    const bounds = new window.mapboxgl.LngLatBounds();
+    const bounds = new (window as any).mapboxgl.LngLatBounds();
+    let validCourses = 0;
 
     courses.forEach(course => {
       if (!course.latitude || !course.longitude) return;
+      
+      validCourses++;
+      
+      // Create custom marker element
       const el = document.createElement("div");
       el.className = "golf-marker";
       el.innerHTML = `
@@ -44,18 +53,27 @@ export function MapMarkers({ map, courses, onMarkerClick }: MapMarkersProps) {
           </svg>
         </div>
       `;
-      el.addEventListener("click", () => onMarkerClick(course));
-      const marker = new window.mapboxgl.Marker({
+
+      el.addEventListener("click", () => {
+        console.log("[MapMarkers] Marker clicked:", course.name);
+        onMarkerClick(course);
+      });
+
+      const marker = new (window as any).mapboxgl.Marker({
         element: el,
         anchor: "center",
       })
         .setLngLat([course.longitude, course.latitude])
         .addTo(map);
-      markers.push(marker);
+
+      map.__lov_markers.push(marker);
       bounds.extend([course.longitude, course.latitude]);
     });
-    map.__lov_markers = markers;
-    if (courses.length > 0) {
+
+    console.log("[MapMarkers] Added", validCourses, "markers to map");
+
+    // Fit map to show all markers
+    if (validCourses > 0) {
       map.fitBounds(bounds, {
         padding: 50,
         maxZoom: 12,
@@ -64,8 +82,10 @@ export function MapMarkers({ map, courses, onMarkerClick }: MapMarkersProps) {
     }
 
     return () => {
-      markers.forEach(marker => marker.remove());
-      map.__lov_markers = [];
+      if (map.__lov_markers) {
+        map.__lov_markers.forEach((marker: any) => marker.remove());
+        map.__lov_markers = [];
+      }
     };
   }, [map, courses, onMarkerClick]);
 

@@ -1,38 +1,57 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Flag, Target, TrendingUp } from "lucide-react";
+import { Flag, Target } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface CourseHoleDetailsProps {
   coursePar?: number;
   holes?: number;
+  holePars?: number[];
+  holeHandicaps?: number[];
 }
 
-const CourseHoleDetails = ({ coursePar = 72, holes = 18 }: CourseHoleDetailsProps) => {
-  // Generate default hole data for demonstration
+const CourseHoleDetails = ({ 
+  coursePar = 72, 
+  holes = 18, 
+  holePars = [],
+  holeHandicaps = []
+}: CourseHoleDetailsProps) => {
+  
+  // Generate hole data using real course data when available
   const generateHoleData = () => {
     const holeData = [];
-    const parValues = [3, 4, 5]; // Par 3, 4, or 5
     
     for (let i = 1; i <= holes; i++) {
-      // Generate realistic par distribution
+      // Use actual hole par if available, otherwise generate realistic defaults
       let par;
-      if (i % 6 === 0 || i % 12 === 0) {
-        par = 5; // Par 5 holes
-      } else if (i % 3 === 0) {
-        par = 3; // Par 3 holes
+      if (holePars && holePars[i - 1]) {
+        par = holePars[i - 1];
       } else {
-        par = 4; // Par 4 holes (most common)
+        // Generate realistic par distribution as fallback
+        if (i % 6 === 0 || i % 12 === 0) {
+          par = 5; // Par 5 holes
+        } else if (i % 3 === 0) {
+          par = 3; // Par 3 holes
+        } else {
+          par = 4; // Par 4 holes (most common)
+        }
       }
       
-      // Generate handicap (difficulty rating 1-18)
-      const handicap = i <= 9 ? i * 2 - 1 : (i - 9) * 2;
+      // Use actual handicap if available, otherwise generate defaults
+      let handicap;
+      if (holeHandicaps && holeHandicaps[i - 1]) {
+        handicap = holeHandicaps[i - 1];
+      } else {
+        // Generate handicap (difficulty rating 1-18)
+        handicap = i <= 9 ? i * 2 - 1 : (i - 9) * 2;
+        if (handicap > 18) handicap = handicap - 18;
+      }
       
       holeData.push({
         hole: i,
         par: par,
-        handicap: handicap > 18 ? handicap - 18 : handicap
+        handicap: handicap
       });
     }
     
@@ -45,6 +64,7 @@ const CourseHoleDetails = ({ coursePar = 72, holes = 18 }: CourseHoleDetailsProp
   
   const frontNinePar = frontNine.reduce((sum, hole) => sum + hole.par, 0);
   const backNinePar = backNine.reduce((sum, hole) => sum + hole.par, 0);
+  const totalPar = frontNinePar + backNinePar;
 
   const HoleTable = ({ holes, title, totalPar }: {
     holes: any[], 
@@ -120,7 +140,7 @@ const CourseHoleDetails = ({ coursePar = 72, holes = 18 }: CourseHoleDetailsProp
               <Target className="h-5 w-5 text-primary" />
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Total Par</p>
-                <p className="text-2xl font-bold">{frontNinePar + backNinePar}</p>
+                <p className="text-2xl font-bold">{totalPar}</p>
               </div>
             </div>
           </CardContent>

@@ -1,12 +1,13 @@
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { CourseInfoTab } from "@/components/map/CourseInfoTab";
+import { MapMarkers } from "@/components/map/MapMarkers";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, MapPin, AlertCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useRobustMapbox } from "@/hooks/useRobustMapbox";
+import { useOptimizedMapbox } from "@/hooks/useOptimizedMapbox";
 
 interface GolfCourse {
   id: string;
@@ -35,7 +36,6 @@ const MAPBOX_TOKEN = 'pk.eyJ1Ijoib3dlbmhhaWVrIiwiYSI6ImNtYW8zbWZpajAyeGsyaXB3Z2N
 const CoursesMap = () => {
   const [selectedCourse, setSelectedCourse] = useState<GolfCourse | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
-  const markersRef = useRef<any[]>([]);
 
   const { data: courses, isLoading: coursesLoading, error: coursesError } = useQuery({
     queryKey: ['courses-map'],
@@ -55,7 +55,7 @@ const CoursesMap = () => {
     gcTime: 15 * 60 * 1000,
   });
 
-  const { map, isLoading: mapLoading, error: mapError } = useRobustMapbox({
+  const { map, isLoading: mapLoading, error: mapError } = useOptimizedMapbox({
     containerRef: mapContainerRef,
     center: [-58.3816, -34.6118],
     zoom: 6,
@@ -65,55 +65,10 @@ const CoursesMap = () => {
     }
   });
 
-  // Add markers when map and courses are ready
-  useEffect(() => {
-    if (!map || !courses || courses.length === 0) {
-      return;
-    }
-
-    console.log("[CoursesMap] Adding markers for", courses.length, "courses");
-
-    // Clear existing markers
-    markersRef.current.forEach(marker => marker.remove());
-    markersRef.current = [];
-
-    const bounds = new (window as any).mapboxgl.LngLatBounds();
-
-    courses.forEach(course => {
-      if (!course.latitude || !course.longitude) return;
-
-      // Create custom marker element
-      const el = document.createElement("div");
-      el.className = "golf-marker";
-      el.innerHTML = `
-        <div class="w-12 h-12 bg-green-500 rounded-full border-4 border-white shadow-lg cursor-pointer hover:bg-green-600 transition-colors duration-200 flex items-center justify-center">
-          <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z"/>
-          </svg>
-        </div>
-      `;
-
-      el.addEventListener("click", () => setSelectedCourse(course));
-
-      const marker = new (window as any).mapboxgl.Marker({
-        element: el,
-        anchor: "center",
-      })
-        .setLngLat([course.longitude, course.latitude])
-        .addTo(map);
-
-      markersRef.current.push(marker);
-      bounds.extend([course.longitude, course.latitude]);
-    });
-
-    if (courses.length > 0) {
-      map.fitBounds(bounds, {
-        padding: 50,
-        maxZoom: 12,
-        duration: 800,
-      });
-    }
-  }, [map, courses]);
+  const handleMarkerClick = (course: GolfCourse) => {
+    console.log("[CoursesMap] Marker clicked:", course.name);
+    setSelectedCourse(course);
+  };
 
   const handleRetry = () => {
     window.location.reload();
@@ -173,6 +128,15 @@ const CoursesMap = () => {
           className="absolute inset-0 w-full h-full"
           style={{ cursor: 'grab' }}
         />
+        
+        {/* Map markers component */}
+        {map && courses && (
+          <MapMarkers
+            map={map}
+            courses={courses}
+            onMarkerClick={handleMarkerClick}
+          />
+        )}
         
         {/* Empty state */}
         {courses && courses.length === 0 && (
