@@ -105,7 +105,7 @@ export const CourseMap = ({ latitude, longitude, name }: CourseMapProps) => {
           </div>
         </div>
       </CardContent>
-    </div>
+    </Card>
   );
 };
 
