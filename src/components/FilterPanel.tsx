@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -136,10 +137,10 @@ const FilterPanel = ({
   }, [dragStart, dragOffset]);
 
   const holesOptions = [
-    { value: "", label: "All", icon: "🏌️" },
-    { value: "9", label: "9", icon: "9️⃣" },
-    { value: "18", label: "18", icon: "🔥" },
-    { value: "27", label: "27", icon: "⭐" }
+    { value: "", label: "All" },
+    { value: "9", label: "9" },
+    { value: "18", label: "18" },
+    { value: "27", label: "27" }
   ];
 
   return (
@@ -160,8 +161,8 @@ const FilterPanel = ({
         }`}
         style={{
           transform: `translateY(${isOpen ? dragOffset : 100}%)`,
-          paddingBottom: '72px',
-          maxHeight: 'calc(85vh - 72px)'
+          height: 'calc(90vh)',
+          maxHeight: '90vh'
         }}
       >
         <Card className="rounded-t-2xl rounded-b-none border-b-0 shadow-2xl bg-card text-card-foreground w-full h-full">
@@ -187,7 +188,7 @@ const FilterPanel = ({
               </Button>
             </div>
 
-            <div className="space-y-6 flex-1 overflow-y-auto">
+            <div className="space-y-6 flex-1 overflow-y-auto pb-24">
               {/* Favorites Filter - Enhanced Design */}
               <div className="space-y-3">
                 <Label className="text-sm font-medium text-foreground">Show Favorites</Label>
@@ -240,16 +241,16 @@ const FilterPanel = ({
                 </div>
               </div>
 
-              {/* Number of Holes - Enhanced Design */}
+              {/* Number of Holes - Compact Design */}
               <div className="space-y-3">
                 <Label className="text-sm font-medium text-foreground">Number of Holes</Label>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-4 gap-2">
                   {holesOptions.map((option) => (
                     <div
                       key={option.value}
-                      className={`flex items-center space-x-3 p-3 rounded-lg border-2 transition-all cursor-pointer ${
+                      className={`flex flex-col items-center p-2 rounded-lg border-2 transition-all cursor-pointer min-h-[60px] ${
                         filters.holes === option.value
-                          ? 'bg-green-50 border-green-200 dark:bg-green-950/20 dark:border-green-800'
+                          ? 'bg-green-50 border-green-500 dark:bg-green-950/20 dark:border-green-500'
                           : 'bg-muted/50 border-border hover:bg-muted'
                       }`}
                       onClick={() => setFilters({
@@ -257,44 +258,21 @@ const FilterPanel = ({
                         holes: option.value
                       })}
                     >
-                      <div className={`flex items-center justify-center w-8 h-8 rounded-full transition-all ${
-                        filters.holes === option.value
-                          ? 'bg-green-100 dark:bg-green-900/30'
-                          : 'bg-background'
-                      }`}>
-                        {option.value === "" ? (
-                          <Flag 
-                            size={16} 
-                            className={`transition-all ${
-                              filters.holes === option.value
-                                ? 'text-green-600'
-                                : 'text-muted-foreground'
-                            }`} 
-                          />
-                        ) : (
-                          <span className="text-sm font-bold">
-                            {option.icon}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        <p className={`font-medium transition-all ${
+                      <Flag 
+                        size={16} 
+                        className={`mb-1 transition-all ${
                           filters.holes === option.value
-                            ? 'text-green-700 dark:text-green-300'
-                            : 'text-foreground'
-                        }`}>
-                          {option.label} {option.value && "Holes"}
-                        </p>
-                      </div>
-                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                            ? 'text-green-600'
+                            : 'text-muted-foreground'
+                        }`} 
+                      />
+                      <span className={`text-xs font-medium transition-all ${
                         filters.holes === option.value
-                          ? 'bg-green-500 border-green-500'
-                          : 'border-muted-foreground'
+                          ? 'text-green-700 dark:text-green-300'
+                          : 'text-foreground'
                       }`}>
-                        {filters.holes === option.value && (
-                          <div className="w-2 h-2 rounded-full bg-white"></div>
-                        )}
-                      </div>
+                        {option.label}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -335,13 +313,15 @@ const FilterPanel = ({
               </div>
             </div>
 
-            <div className="flex space-x-3 pt-4 mt-auto">
-              <Button onClick={handleResetFilters} variant="outline" className="flex-1 h-11">
-                Reset
-              </Button>
-              <Button onClick={handleApplyFilters} className="flex-1 h-11">
-                Apply Filters
-              </Button>
+            <div className="absolute bottom-0 left-0 right-0 p-6 bg-card border-t">
+              <div className="flex space-x-3">
+                <Button onClick={handleResetFilters} variant="outline" className="flex-1 h-11">
+                  Reset
+                </Button>
+                <Button onClick={handleApplyFilters} className="flex-1 h-11">
+                  Apply Filters
+                </Button>
+              </div>
             </div>
           </div>
         </Card>
