@@ -3,8 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { X, Clock, Heart } from "lucide-react";
+import { X, Clock, Heart, Flag } from "lucide-react";
 
 type FilterOptions = {
   holes: string;
@@ -136,6 +135,13 @@ const FilterPanel = ({
     }
   }, [dragStart, dragOffset]);
 
+  const holesOptions = [
+    { value: "", label: "All", icon: "🏌️" },
+    { value: "9", label: "9", icon: "9️⃣" },
+    { value: "18", label: "18", icon: "🔥" },
+    { value: "27", label: "27", icon: "⭐" }
+  ];
+
   return (
     <>
       {/* Backdrop */}
@@ -160,7 +166,7 @@ const FilterPanel = ({
       >
         <Card className="rounded-t-2xl rounded-b-none border-b-0 shadow-2xl bg-card text-card-foreground w-full h-full">
           <div className="p-6 h-full flex flex-col">
-            {/* Larger drag indicator - made bigger and with better touch area */}
+            {/* Larger drag indicator */}
             <div 
               className="w-16 h-2 bg-muted rounded-full mx-auto mb-6 cursor-pointer touch-none relative"
               onTouchStart={handleTouchStart}
@@ -168,11 +174,9 @@ const FilterPanel = ({
               onTouchEnd={handleTouchEnd}
               onMouseDown={handleMouseDown}
               style={{
-                /* Add padding around the visual indicator for better touch target */
                 padding: '8px 0'
               }}
             >
-              {/* Invisible touch area for better mobile interaction */}
               <div className="absolute inset-0 -top-4 -bottom-4 -left-4 -right-4 touch-none" />
             </div>
             
@@ -236,33 +240,64 @@ const FilterPanel = ({
                 </div>
               </div>
 
+              {/* Number of Holes - Enhanced Design */}
               <div className="space-y-3">
-                <Label htmlFor="holes-filter" className="text-sm font-medium text-foreground">Number of Holes</Label>
-                <RadioGroup 
-                  value={filters.holes} 
-                  onValueChange={value => setFilters({
-                    ...filters,
-                    holes: value
-                  })} 
-                  className="flex flex-wrap gap-3"
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="" id="holes-all" />
-                    <Label htmlFor="holes-all" className="text-sm text-foreground">All</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="9" id="holes-9" />
-                    <Label htmlFor="holes-9" className="text-sm text-foreground">9 Holes</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="18" id="holes-18" />
-                    <Label htmlFor="holes-18" className="text-sm text-foreground">18 Holes</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="27" id="holes-27" />
-                    <Label htmlFor="holes-27" className="text-sm text-foreground">27 Holes</Label>
-                  </div>
-                </RadioGroup>
+                <Label className="text-sm font-medium text-foreground">Number of Holes</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  {holesOptions.map((option) => (
+                    <div
+                      key={option.value}
+                      className={`flex items-center space-x-3 p-3 rounded-lg border-2 transition-all cursor-pointer ${
+                        filters.holes === option.value
+                          ? 'bg-green-50 border-green-200 dark:bg-green-950/20 dark:border-green-800'
+                          : 'bg-muted/50 border-border hover:bg-muted'
+                      }`}
+                      onClick={() => setFilters({
+                        ...filters,
+                        holes: option.value
+                      })}
+                    >
+                      <div className={`flex items-center justify-center w-8 h-8 rounded-full transition-all ${
+                        filters.holes === option.value
+                          ? 'bg-green-100 dark:bg-green-900/30'
+                          : 'bg-background'
+                      }`}>
+                        {option.value === "" ? (
+                          <Flag 
+                            size={16} 
+                            className={`transition-all ${
+                              filters.holes === option.value
+                                ? 'text-green-600'
+                                : 'text-muted-foreground'
+                            }`} 
+                          />
+                        ) : (
+                          <span className="text-sm font-bold">
+                            {option.icon}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <p className={`font-medium transition-all ${
+                          filters.holes === option.value
+                            ? 'text-green-700 dark:text-green-300'
+                            : 'text-foreground'
+                        }`}>
+                          {option.label} {option.value && "Holes"}
+                        </p>
+                      </div>
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                        filters.holes === option.value
+                          ? 'bg-green-500 border-green-500'
+                          : 'border-muted-foreground'
+                      }`}>
+                        {filters.holes === option.value && (
+                          <div className="w-2 h-2 rounded-full bg-white"></div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               <div className="space-y-3">

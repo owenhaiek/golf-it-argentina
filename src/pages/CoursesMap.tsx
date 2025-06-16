@@ -1,12 +1,10 @@
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { CourseInfoTab } from "@/components/map/CourseInfoTab";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, MapPin, AlertCircle, RefreshCw } from "lucide-react";
-import { useReliableMapbox } from "@/hooks/useReliableMapbox";
-import { MapMarkers } from "@/components/map/MapMarkers";
 import { Button } from "@/components/ui/button";
 
 interface GolfCourse {
@@ -35,7 +33,12 @@ const MAPBOX_TOKEN = 'pk.eyJ1Ijoib3dlbmhhaWVrIiwiYSI6ImNtYW8zbWZpajAyeGsyaXB3Z2N
 
 const CoursesMap = () => {
   const [selectedCourse, setSelectedCourse] = useState<GolfCourse | null>(null);
+  const [map, setMap] = useState<any>(null);
+  const [mapLoaded, setMapLoaded] = useState(false);
+  const [mapError, setMapError] = useState<string | null>(null);
+  const [scriptsLoaded, setScriptsLoaded] = useState(false);
   const mapContainerRef = useRef<HTMLDivElement>(null);
+  const markersRef = useRef<any[]>([]);
 
   const { data: courses, isLoading: coursesLoading, error: coursesError } = useQuery({
     queryKey: ['courses-map'],
@@ -53,12 +56,145 @@ const CoursesMap = () => {
     gcTime: 15 * 60 * 1000,
   });
 
-  const { map, isLoading: mapLoading, error: mapError } = useReliableMapbox({
-    containerRef: mapContainerRef,
-    center: [-58.3816, -34.6118],
-    zoom: 6,
-    accessToken: MAPBOX_TOKEN,
-  });
+  // Load Mapbox scripts
+  useEffect(() => {
+    const loadMapboxResources = async () => {
+      try {
+        if ((window as any).mapboxgl) {
+          setScriptsLoaded(true);
+          return;
+        }
+
+        // Load CSS
+        if (!document.querySelector('link[href*="mapbox-gl.css"]')) {
+          const link = document.createElement('link');
+          link.href = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css';
+          link.rel = 'stylesheet';
+          document.head.appendChild(link);
+        }
+
+        // Load JS
+        if (!document.querySelector('script[src*="mapbox-gl.js"]')) {
+          const script = document.createElement('script');
+          script.src = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js';
+          script.async = true;
+          
+          await new Promise<void>((resolve, reject) => {
+            script.onload = () => resolve();
+            script.onerror = () => reject(new Error("Failed to load Mapbox script"));
+            document.head.appendChild(script);
+          });
+        }
+
+        // Wait for mapboxgl to be available
+        let attempts = 0;
+        while (!(window as any).mapboxgl && attempts < 50) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+          attempts++;
+        }
+
+        if ((window as any).mapboxgl) {
+          setScriptsLoaded(true);
+        } else {
+          throw new Error("Mapbox GL failed to initialize");
+        }
+      } catch (error: any) {
+        console.error("[Map] Error loading resources:", error);
+        setMapError("Failed to load map resources");
+      }
+    };
+
+    loadMapboxResources();
+  }, []);
+
+  // Initialize map
+  useEffect(() => {
+    if (!scriptsLoaded || !mapContainerRef.current || mapError || map) {
+      return;
+    }
+
+    try {
+      console.log("[Map] Initializing map...");
+      
+      (window as any).mapboxgl.accessToken = MAPBOX_TOKEN;
+      
+      const mapInstance = new (window as any).mapboxgl.Map({
+        container: mapContainerRef.current,
+        style: 'mapbox://styles/mapbox/light-v11',
+        center: [-58.3816, -34.6118],
+        zoom: 6,
+        attributionControl: false,
+      });
+
+      mapInstance.addControl(
+        new (window as any).mapboxgl.NavigationControl({ showCompass: false }),
+        'bottom-right'
+      );
+
+      mapInstance.on('load', () => {
+        console.log("[Map] Map loaded successfully");
+        setMapLoaded(true);
+        setMap(mapInstance);
+      });
+
+      mapInstance.on('error', (e: any) => {
+        console.error("[Map] Map error:", e);
+        setMapError(`Map error: ${e.error?.message || 'Unknown error'}`);
+      });
+
+    } catch (error: any) {
+      console.error("[Map] Error initializing map:", error);
+      setMapError(error.message || "Failed to initialize map");
+    }
+  }, [scriptsLoaded, mapError, map]);
+
+  // Add markers when map and courses are ready
+  useEffect(() => {
+    if (!map || !mapLoaded || !courses || courses.length === 0) {
+      return;
+    }
+
+    // Clear existing markers
+    markersRef.current.forEach(marker => marker.remove());
+    markersRef.current = [];
+
+    const bounds = new (window as any).mapboxgl.LngLatBounds();
+
+    courses.forEach(course => {
+      if (!course.latitude || !course.longitude) return;
+
+      // Create custom marker element
+      const el = document.createElement("div");
+      el.className = "golf-marker";
+      el.innerHTML = `
+        <div class="w-12 h-12 bg-green-500 rounded-full border-4 border-white shadow-lg cursor-pointer hover:bg-green-600 transition-colors duration-200 flex items-center justify-center">
+          <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z"/>
+          </svg>
+        </div>
+      `;
+
+      el.addEventListener("click", () => setSelectedCourse(course));
+
+      const marker = new (window as any).mapboxgl.Marker({
+        element: el,
+        anchor: "center",
+      })
+        .setLngLat([course.longitude, course.latitude])
+        .addTo(map);
+
+      markersRef.current.push(marker);
+      bounds.extend([course.longitude, course.latitude]);
+    });
+
+    if (courses.length > 0) {
+      map.fitBounds(bounds, {
+        padding: 50,
+        maxZoom: 12,
+        duration: 800,
+      });
+    }
+  }, [map, mapLoaded, courses]);
 
   const handleRetry = () => {
     window.location.reload();
@@ -91,29 +227,24 @@ const CoursesMap = () => {
   }
 
   // Show loading state
-  if (coursesLoading || mapLoading) {
+  if (coursesLoading || !scriptsLoaded || !mapLoaded) {
     const loadingText = coursesLoading 
       ? 'Loading golf courses...' 
-      : 'Loading map...';
+      : !scriptsLoaded 
+      ? 'Loading map...'
+      : 'Initializing map...';
 
     return (
       <div className="h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-green-100">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin text-green-600 mx-auto mb-4" />
           <p className="text-green-700 font-medium">{loadingText}</p>
-          {mapLoading && (
-            <p className="text-green-600 text-sm mt-2">
-              This may take a few moments...
-            </p>
-          )}
+          <p className="text-green-600 text-sm mt-2">
+            This may take a few moments...
+          </p>
         </div>
       </div>
     );
-  }
-
-  // Ensure we have a container before rendering map content
-  if (!mapContainerRef.current && !mapLoading) {
-    console.log("[Map] Container ref not ready yet");
   }
 
   return (
@@ -125,15 +256,6 @@ const CoursesMap = () => {
           className="absolute inset-0 w-full h-full"
           style={{ cursor: 'grab' }}
         />
-        
-        {/* Markers - only render when map is ready and has courses */}
-        {map && courses && courses.length > 0 && (
-          <MapMarkers 
-            map={map} 
-            courses={courses} 
-            onMarkerClick={setSelectedCourse} 
-          />
-        )}
         
         {/* Empty state */}
         {courses && courses.length === 0 && (
