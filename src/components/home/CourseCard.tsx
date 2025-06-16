@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 import { MapPin, Flag, Clock } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -76,7 +77,7 @@ const CourseCard = ({ course, currentTime }: CourseCardProps) => {
         </div>
         
         {/* Content Section */}
-        <div className="p-4 sm:p-6 space-y-3">
+        <div className="p-4 space-y-3">
           <div className="space-y-2">
             <h2 className="text-xl sm:text-2xl font-semibold text-foreground line-clamp-1">{course.name}</h2>
             
