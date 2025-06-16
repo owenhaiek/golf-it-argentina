@@ -1,10 +1,8 @@
-
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { X, Clock, Heart, Flag } from "lucide-react";
+import { X } from "lucide-react";
+import { FilterContent } from "./filters/FilterContent";
 
 type FilterOptions = {
   holes: string;
@@ -179,13 +177,6 @@ const FilterPanel = ({
     }
   }, [dragStart, dragOffset]);
 
-  const holesOptions = [
-    { value: "", label: "All" },
-    { value: "9", label: "9" },
-    { value: "18", label: "18" },
-    { value: "27", label: "27" }
-  ];
-
   return (
     <>
       {/* Backdrop */}
@@ -206,8 +197,8 @@ const FilterPanel = ({
         style={{
           transform: `translateY(${isOpen ? dragOffset : 100}%)`,
           bottom: '76px',
-          height: '70vh',
-          maxHeight: '70vh',
+          height: 'calc(100vh - 152px)',
+          maxHeight: 'calc(100vh - 152px)',
           touchAction: 'none'
         }}
       >
@@ -235,171 +226,12 @@ const FilterPanel = ({
               </Button>
             </div>
 
-            {/* Scrollable content area */}
-            <div className="flex-1 overflow-y-auto px-4" style={{ touchAction: 'pan-y' }}>
-              <div className="space-y-4 pb-4">
-                {/* Favorites Filter */}
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-foreground">Show Favorites</Label>
-                  <div 
-                    className={`flex items-center space-x-3 p-3 rounded-lg border-2 transition-all cursor-pointer ${
-                      filters.favoritesOnly 
-                        ? 'bg-red-50 border-red-200 dark:bg-red-950/20 dark:border-red-800' 
-                        : 'bg-muted/50 border-border hover:bg-muted'
-                    }`}
-                    onClick={() => setFilters({
-                      ...filters,
-                      favoritesOnly: !filters.favoritesOnly
-                    })}
-                  >
-                    <div className={`flex items-center justify-center w-8 h-8 rounded-full transition-all ${
-                      filters.favoritesOnly 
-                        ? 'bg-red-100 dark:bg-red-900/30' 
-                        : 'bg-background'
-                    }`}>
-                      <Heart 
-                        size={16} 
-                        className={`transition-all ${
-                          filters.favoritesOnly 
-                            ? 'fill-red-500 text-red-500' 
-                            : 'text-muted-foreground'
-                        }`} 
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <p className={`font-medium transition-all ${
-                        filters.favoritesOnly 
-                          ? 'text-red-700 dark:text-red-300' 
-                          : 'text-foreground'
-                      }`}>
-                        Favorites Only
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {filters.favoritesOnly ? 'Show only your favorite courses' : 'Show all courses including favorites'}
-                      </p>
-                    </div>
-                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
-                      filters.favoritesOnly 
-                        ? 'bg-red-500 border-red-500' 
-                        : 'border-muted-foreground'
-                    }`}>
-                      {filters.favoritesOnly && (
-                        <div className="w-2 h-2 rounded-full bg-white"></div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Number of Holes */}
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-foreground">Number of Holes</Label>
-                  <div className="grid grid-cols-4 gap-2">
-                    {holesOptions.map((option) => (
-                      <div
-                        key={option.value}
-                        className={`flex flex-col items-center p-3 rounded-lg border-2 transition-all cursor-pointer ${
-                          filters.holes === option.value
-                            ? 'bg-green-50 border-green-500 dark:bg-green-950/20 dark:border-green-500'
-                            : 'bg-muted/50 border-border hover:bg-muted'
-                        }`}
-                        onClick={() => setFilters({
-                          ...filters,
-                          holes: option.value
-                        })}
-                      >
-                        <Flag 
-                          size={12} 
-                          className={`mb-1 transition-all ${
-                            filters.holes === option.value
-                              ? 'text-green-600'
-                              : 'text-muted-foreground'
-                          }`} 
-                        />
-                        <span className={`text-sm font-medium transition-all ${
-                          filters.holes === option.value
-                            ? 'text-green-700 dark:text-green-300'
-                            : 'text-foreground'
-                        }`}>
-                          {option.label}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Currently Open */}
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-foreground">Status</Label>
-                  <div 
-                    className={`flex items-center space-x-3 p-3 rounded-lg border-2 transition-all cursor-pointer ${
-                      filters.isOpen 
-                        ? 'bg-blue-50 border-blue-200 dark:bg-blue-950/20 dark:border-blue-800' 
-                        : 'bg-muted/50 border-border hover:bg-muted'
-                    }`}
-                    onClick={() => setFilters({
-                      ...filters,
-                      isOpen: !filters.isOpen
-                    })}
-                  >
-                    <div className={`flex items-center justify-center w-8 h-8 rounded-full transition-all ${
-                      filters.isOpen 
-                        ? 'bg-blue-100 dark:bg-blue-900/30' 
-                        : 'bg-background'
-                    }`}>
-                      <Clock 
-                        size={16} 
-                        className={`transition-all ${
-                          filters.isOpen 
-                            ? 'text-blue-600' 
-                            : 'text-muted-foreground'
-                        }`} 
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <p className={`font-medium transition-all ${
-                        filters.isOpen 
-                          ? 'text-blue-700 dark:text-blue-300' 
-                          : 'text-foreground'
-                      }`}>
-                        Currently Open
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {filters.isOpen ? 'Show only open courses' : 'Show all courses regardless of status'}
-                      </p>
-                    </div>
-                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
-                      filters.isOpen 
-                        ? 'bg-blue-500 border-blue-500' 
-                        : 'border-muted-foreground'
-                    }`}>
-                      {filters.isOpen && (
-                        <div className="w-2 h-2 rounded-full bg-white"></div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Location */}
-                <div className="space-y-2">
-                  <Label htmlFor="location-filter" className="text-sm font-medium text-foreground">Location</Label>
-                  <Input 
-                    id="location-filter" 
-                    type="text" 
-                    placeholder="City or state..." 
-                    value={filters.location} 
-                    onChange={e => setFilters({
-                      ...filters,
-                      location: e.target.value
-                    })}
-                    className="h-12 text-base"
-                  />
-                </div>
-              </div>
-            </div>
+            {/* Filter Content */}
+            <FilterContent filters={filters} setFilters={setFilters} />
 
             {/* Fixed button area at bottom */}
-            <div className="flex-shrink-0 p-4 bg-card border-t safe-area-inset-bottom">
-              <div className="flex space-x-3 pb-2">
+            <div className="flex-shrink-0 p-4 bg-card border-t" style={{ paddingBottom: '32px' }}>
+              <div className="flex space-x-3">
                 <Button onClick={handleResetFilters} variant="outline" className="flex-1 h-12 text-base">
                   Reset
                 </Button>
