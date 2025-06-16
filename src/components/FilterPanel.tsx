@@ -156,13 +156,14 @@ const FilterPanel = ({
       {/* Filter Panel */}
       <div 
         ref={panelRef}
-        className={`fixed inset-x-0 bottom-0 z-[110] w-full transform transition-transform duration-500 ease-out ${
+        className={`fixed inset-x-0 z-[110] w-full transform transition-transform duration-500 ease-out ${
           isOpen ? "translate-y-0" : "translate-y-full"
         }`}
         style={{
           transform: `translateY(${isOpen ? dragOffset : 100}%)`,
-          height: '85vh',
-          maxHeight: '85vh'
+          bottom: '76px', // Space for navigation menu
+          height: '60vh',
+          maxHeight: '60vh'
         }}
       >
         <Card className="rounded-t-2xl border-b-0 shadow-2xl bg-card text-card-foreground w-full h-full">
@@ -190,12 +191,12 @@ const FilterPanel = ({
             </div>
 
             {/* Scrollable content */}
-            <div className="space-y-3 flex-1 overflow-y-auto px-4">
+            <div className="space-y-2 flex-1 overflow-y-auto px-4 pb-0">
               {/* Favorites Filter */}
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-foreground">Show Favorites</Label>
                 <div 
-                  className={`flex items-center space-x-3 p-3 rounded-lg border-2 transition-all cursor-pointer ${
+                  className={`flex items-center space-x-3 p-2 rounded-lg border-2 transition-all cursor-pointer ${
                     filters.favoritesOnly 
                       ? 'bg-red-50 border-red-200 dark:bg-red-950/20 dark:border-red-800' 
                       : 'bg-muted/50 border-border hover:bg-muted'
@@ -250,7 +251,7 @@ const FilterPanel = ({
                   {holesOptions.map((option) => (
                     <div
                       key={option.value}
-                      className={`flex flex-col items-center p-2 rounded-lg border-2 transition-all cursor-pointer min-h-[40px] ${
+                      className={`flex flex-col items-center p-2 rounded-lg border-2 transition-all cursor-pointer min-h-[36px] ${
                         filters.holes === option.value
                           ? 'bg-green-50 border-green-500 dark:bg-green-950/20 dark:border-green-500'
                           : 'bg-muted/50 border-border hover:bg-muted'
@@ -284,7 +285,7 @@ const FilterPanel = ({
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-foreground">Status</Label>
                 <div 
-                  className={`flex items-center space-x-3 p-3 rounded-lg border-2 transition-all cursor-pointer ${
+                  className={`flex items-center space-x-3 p-2 rounded-lg border-2 transition-all cursor-pointer ${
                     filters.isOpen 
                       ? 'bg-blue-50 border-blue-200 dark:bg-blue-950/20 dark:border-blue-800' 
                       : 'bg-muted/50 border-border hover:bg-muted'
@@ -333,7 +334,7 @@ const FilterPanel = ({
               </div>
 
               {/* Location */}
-              <div className="space-y-2">
+              <div className="space-y-2 pb-2">
                 <Label htmlFor="location-filter" className="text-sm font-medium text-foreground">Location</Label>
                 <Input 
                   id="location-filter" 
@@ -344,18 +345,18 @@ const FilterPanel = ({
                     ...filters,
                     location: e.target.value
                   })}
-                  className="h-11"
+                  className="h-10"
                 />
               </div>
             </div>
 
             {/* Fixed button area at bottom */}
-            <div className="flex-shrink-0 p-4 bg-card border-t">
+            <div className="flex-shrink-0 p-3 bg-card border-t">
               <div className="flex space-x-3">
-                <Button onClick={handleResetFilters} variant="outline" className="flex-1 h-11">
+                <Button onClick={handleResetFilters} variant="outline" className="flex-1 h-10">
                   Reset
                 </Button>
-                <Button onClick={handleApplyFilters} className="flex-1 h-11">
+                <Button onClick={handleApplyFilters} className="flex-1 h-10">
                   Apply Filters
                 </Button>
               </div>
