@@ -161,15 +161,15 @@ const FilterPanel = ({
         }`}
         style={{
           transform: `translateY(${isOpen ? dragOffset : 100}%)`,
-          height: '75vh',
-          maxHeight: '75vh'
+          height: '85vh',
+          maxHeight: '85vh'
         }}
       >
         <Card className="rounded-t-2xl border-b-0 shadow-2xl bg-card text-card-foreground w-full h-full">
           <div className="h-full flex flex-col">
-            {/* Larger drag indicator */}
+            {/* Drag indicator */}
             <div 
-              className="w-16 h-2 bg-muted rounded-full mx-auto mt-3 mb-3 cursor-pointer touch-none relative"
+              className="w-16 h-2 bg-muted rounded-full mx-auto mt-2 mb-2 cursor-pointer touch-none relative"
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
@@ -181,15 +181,17 @@ const FilterPanel = ({
               <div className="absolute inset-0 -top-4 -bottom-4 -left-4 -right-4 touch-none" />
             </div>
             
-            <div className="flex items-center justify-between mb-4 px-6">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-3 px-4">
               <h3 className="text-lg font-semibold text-foreground">Filter Courses</h3>
               <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full">
                 <X size={20} />
               </Button>
             </div>
 
-            <div className="space-y-4 flex-1 overflow-y-auto px-6">
-              {/* Favorites Filter - Enhanced Design */}
+            {/* Scrollable content */}
+            <div className="space-y-3 flex-1 overflow-y-auto px-4">
+              {/* Favorites Filter */}
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-foreground">Show Favorites</Label>
                 <div 
@@ -241,7 +243,7 @@ const FilterPanel = ({
                 </div>
               </div>
 
-              {/* Number of Holes - Compact Design */}
+              {/* Number of Holes */}
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-foreground">Number of Holes</Label>
                 <div className="grid grid-cols-4 gap-2">
@@ -278,7 +280,7 @@ const FilterPanel = ({
                 </div>
               </div>
 
-              {/* Currently Open - Enhanced Design */}
+              {/* Currently Open */}
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-foreground">Status</Label>
                 <div 
@@ -330,6 +332,7 @@ const FilterPanel = ({
                 </div>
               </div>
 
+              {/* Location */}
               <div className="space-y-2">
                 <Label htmlFor="location-filter" className="text-sm font-medium text-foreground">Location</Label>
                 <Input 
@@ -347,7 +350,7 @@ const FilterPanel = ({
             </div>
 
             {/* Fixed button area at bottom */}
-            <div className="flex-shrink-0 p-6 bg-card border-t">
+            <div className="flex-shrink-0 p-4 bg-card border-t">
               <div className="flex space-x-3">
                 <Button onClick={handleResetFilters} variant="outline" className="flex-1 h-11">
                   Reset
