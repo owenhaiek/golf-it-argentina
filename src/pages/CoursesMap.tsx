@@ -6,6 +6,7 @@ import { CourseInfoTab } from "@/components/map/CourseInfoTab";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, MapPin, AlertCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useOptimizedMapbox } from "@/hooks/useOptimizedMapbox";
 
 interface GolfCourse {
   id: string;
@@ -33,16 +34,13 @@ const MAPBOX_TOKEN = 'pk.eyJ1Ijoib3dlbmhhaWVrIiwiYSI6ImNtYW8zbWZpajAyeGsyaXB3Z2N
 
 const CoursesMap = () => {
   const [selectedCourse, setSelectedCourse] = useState<GolfCourse | null>(null);
-  const [map, setMap] = useState<any>(null);
-  const [mapLoaded, setMapLoaded] = useState(false);
-  const [mapError, setMapError] = useState<string | null>(null);
-  const [scriptsLoaded, setScriptsLoaded] = useState(false);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<any[]>([]);
 
   const { data: courses, isLoading: coursesLoading, error: coursesError } = useQuery({
     queryKey: ['courses-map'],
     queryFn: async () => {
+      console.log("[CoursesMap] Fetching courses...");
       const { data, error } = await supabase
         .from('golf_courses')
         .select('*')
@@ -50,109 +48,30 @@ const CoursesMap = () => {
         .not('longitude', 'is', null)
         .order('name');
       if (error) throw error;
+      console.log("[CoursesMap] Courses loaded:", data?.length || 0);
       return data || [];
     },
     staleTime: 10 * 60 * 1000,
     gcTime: 15 * 60 * 1000,
   });
 
-  // Load Mapbox scripts
-  useEffect(() => {
-    const loadMapboxResources = async () => {
-      try {
-        if ((window as any).mapboxgl) {
-          setScriptsLoaded(true);
-          return;
-        }
-
-        // Load CSS
-        if (!document.querySelector('link[href*="mapbox-gl.css"]')) {
-          const link = document.createElement('link');
-          link.href = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css';
-          link.rel = 'stylesheet';
-          document.head.appendChild(link);
-        }
-
-        // Load JS
-        if (!document.querySelector('script[src*="mapbox-gl.js"]')) {
-          const script = document.createElement('script');
-          script.src = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js';
-          script.async = true;
-          
-          await new Promise<void>((resolve, reject) => {
-            script.onload = () => resolve();
-            script.onerror = () => reject(new Error("Failed to load Mapbox script"));
-            document.head.appendChild(script);
-          });
-        }
-
-        // Wait for mapboxgl to be available
-        let attempts = 0;
-        while (!(window as any).mapboxgl && attempts < 50) {
-          await new Promise(resolve => setTimeout(resolve, 100));
-          attempts++;
-        }
-
-        if ((window as any).mapboxgl) {
-          setScriptsLoaded(true);
-        } else {
-          throw new Error("Mapbox GL failed to initialize");
-        }
-      } catch (error: any) {
-        console.error("[Map] Error loading resources:", error);
-        setMapError("Failed to load map resources");
-      }
-    };
-
-    loadMapboxResources();
-  }, []);
-
-  // Initialize map
-  useEffect(() => {
-    if (!scriptsLoaded || !mapContainerRef.current || mapError || map) {
-      return;
+  const { map, isLoading: mapLoading, error: mapError } = useOptimizedMapbox({
+    containerRef: mapContainerRef,
+    center: [-58.3816, -34.6118],
+    zoom: 6,
+    accessToken: MAPBOX_TOKEN,
+    onMapReady: (mapInstance) => {
+      console.log("[CoursesMap] Map is ready for markers");
     }
-
-    try {
-      console.log("[Map] Initializing map...");
-      
-      (window as any).mapboxgl.accessToken = MAPBOX_TOKEN;
-      
-      const mapInstance = new (window as any).mapboxgl.Map({
-        container: mapContainerRef.current,
-        style: 'mapbox://styles/mapbox/light-v11',
-        center: [-58.3816, -34.6118],
-        zoom: 6,
-        attributionControl: false,
-      });
-
-      mapInstance.addControl(
-        new (window as any).mapboxgl.NavigationControl({ showCompass: false }),
-        'bottom-right'
-      );
-
-      mapInstance.on('load', () => {
-        console.log("[Map] Map loaded successfully");
-        setMapLoaded(true);
-        setMap(mapInstance);
-      });
-
-      mapInstance.on('error', (e: any) => {
-        console.error("[Map] Map error:", e);
-        setMapError(`Map error: ${e.error?.message || 'Unknown error'}`);
-      });
-
-    } catch (error: any) {
-      console.error("[Map] Error initializing map:", error);
-      setMapError(error.message || "Failed to initialize map");
-    }
-  }, [scriptsLoaded, mapError, map]);
+  });
 
   // Add markers when map and courses are ready
   useEffect(() => {
-    if (!map || !mapLoaded || !courses || courses.length === 0) {
+    if (!map || !courses || courses.length === 0) {
       return;
     }
+
+    console.log("[CoursesMap] Adding markers for", courses.length, "courses");
 
     // Clear existing markers
     markersRef.current.forEach(marker => marker.remove());
@@ -194,7 +113,7 @@ const CoursesMap = () => {
         duration: 800,
       });
     }
-  }, [map, mapLoaded, courses]);
+  }, [map, courses]);
 
   const handleRetry = () => {
     window.location.reload();
@@ -227,12 +146,10 @@ const CoursesMap = () => {
   }
 
   // Show loading state
-  if (coursesLoading || !scriptsLoaded || !mapLoaded) {
+  if (coursesLoading || mapLoading) {
     const loadingText = coursesLoading 
       ? 'Loading golf courses...' 
-      : !scriptsLoaded 
-      ? 'Loading map...'
-      : 'Initializing map...';
+      : 'Loading map...';
 
     return (
       <div className="h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-green-100">
@@ -240,7 +157,7 @@ const CoursesMap = () => {
           <Loader2 className="h-8 w-8 animate-spin text-green-600 mx-auto mb-4" />
           <p className="text-green-700 font-medium">{loadingText}</p>
           <p className="text-green-600 text-sm mt-2">
-            This may take a few moments...
+            This should only take a moment...
           </p>
         </div>
       </div>

@@ -1,9 +1,10 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MapPin, Map, Globe } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useOptimizedMapbox } from "@/hooks/useOptimizedMapbox";
 
 interface CourseMapProps {
   latitude?: number | null;
@@ -15,98 +16,24 @@ const MAPBOX_TOKEN = 'pk.eyJ1Ijoib3dlbmhhaWVrIiwiYSI6ImNtYW8zbWZpajAyeGsyaXB3Z2N
 
 export const CourseMap = ({ latitude, longitude, name }: CourseMapProps) => {
   const { t } = useLanguage();
-  const [isLoading, setIsLoading] = useState(true);
-  const [mapInstance, setMapInstance] = useState<any>(null);
-  const [scriptsReady, setScriptsReady] = useState(false);
-  const [mapError, setMapError] = useState<string | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   
-  // Load Mapbox resources
-  useEffect(() => {
-    const loadMapboxResources = async () => {
-      if (window.mapboxgl) {
-        setScriptsReady(true);
-        return;
-      }
-
-      try {
-        // Load CSS
-        if (!document.querySelector('link[href*="mapbox-gl.css"]')) {
-          const link = document.createElement('link');
-          link.href = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css';
-          link.rel = 'stylesheet';
-          document.head.appendChild(link);
-        }
-
-        // Load JS
-        if (!document.querySelector('script[src*="mapbox-gl.js"]')) {
-          const script = document.createElement('script');
-          script.src = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js';
-          script.async = true;
-          
-          await new Promise((resolve, reject) => {
-            script.onload = resolve;
-            script.onerror = reject;
-            document.head.appendChild(script);
-          });
-        }
-
-        // Wait for mapboxgl to be available
-        let attempts = 0;
-        while (!window.mapboxgl && attempts < 30) {
-          await new Promise(resolve => setTimeout(resolve, 100));
-          attempts++;
-        }
-
-        if (window.mapboxgl) {
-          setScriptsReady(true);
-        } else {
-          throw new Error("Mapbox GL failed to load");
-        }
-      } catch (error) {
-        console.error('Error loading Mapbox:', error);
-        setMapError('Failed to load map resources');
-        setIsLoading(false);
-      }
-    };
-
-    loadMapboxResources();
-  }, []);
-  
-  // Initialize map when everything is ready
-  useEffect(() => {
-    if (!scriptsReady || !latitude || !longitude || !mapContainerRef.current || mapInstance) {
-      return;
-    }
-
-    try {
-      console.log(`Initializing course map for ${name}`);
+  const { map, isLoading, error } = useOptimizedMapbox({
+    containerRef: mapContainerRef,
+    center: longitude && latitude ? [longitude, latitude] : [-58.3816, -34.6118],
+    zoom: 15,
+    accessToken: MAPBOX_TOKEN,
+    onMapReady: (mapInstance) => {
+      if (!latitude || !longitude) return;
       
-      window.mapboxgl.accessToken = MAPBOX_TOKEN;
-      
-      const map = new window.mapboxgl.Map({
-        container: mapContainerRef.current,
-        style: 'mapbox://styles/mapbox/streets-v12',
-        center: [longitude, latitude],
-        zoom: 15,
-        attributionControl: false,
-        dragRotate: false,
-      });
-      
-      map.addControl(
-        new window.mapboxgl.NavigationControl({
-          showCompass: false,
-        }),
-        'bottom-right'
-      );
-      
-      const marker = new window.mapboxgl.Marker({
+      // Add marker and popup
+      const marker = new (window as any).mapboxgl.Marker({
         color: '#10b981',
       })
         .setLngLat([longitude, latitude])
-        .addTo(map);
+        .addTo(mapInstance);
       
-      new window.mapboxgl.Popup({
+      new (window as any).mapboxgl.Popup({
         closeButton: false,
         closeOnClick: false,
         anchor: 'bottom',
@@ -114,33 +41,9 @@ export const CourseMap = ({ latitude, longitude, name }: CourseMapProps) => {
       })
         .setLngLat([longitude, latitude])
         .setHTML(`<div class="font-medium text-xs">${name || 'Golf Course'}</div>`)
-        .addTo(map);
-      
-      map.on('load', () => {
-        console.log('Course map loaded successfully');
-        setIsLoading(false);
-      });
-      
-      map.on('error', (e) => {
-        console.error('Course map error:', e);
-        setMapError('Could not load map');
-        setIsLoading(false);
-      });
-      
-      setMapInstance(map);
-    } catch (error) {
-      console.error('Error initializing course map:', error);
-      setMapError('Could not initialize map');
-      setIsLoading(false);
+        .addTo(mapInstance);
     }
-    
-    return () => {
-      if (mapInstance) {
-        mapInstance.remove();
-        setMapInstance(null);
-      }
-    };
-  }, [scriptsReady, latitude, longitude, name]);
+  });
   
   // Handle missing location data
   if (!latitude || !longitude) {
@@ -177,17 +80,15 @@ export const CourseMap = ({ latitude, longitude, name }: CourseMapProps) => {
                 <div className="absolute inset-0 rounded-full border-3 border-primary border-t-transparent animate-spin"></div>
                 <Map className="absolute inset-0 w-5 h-5 m-auto text-primary/70" />
               </div>
-              <p className="text-sm text-muted-foreground mt-3">
-                {!scriptsReady ? 'Loading map...' : 'Initializing...'}
-              </p>
+              <p className="text-sm text-muted-foreground mt-3">Loading map...</p>
             </div>
           )}
           
           {/* Error state */}
-          {mapError && (
+          {error && (
             <div className="absolute inset-0 flex flex-col items-center justify-center bg-muted z-10">
               <Globe className="h-12 w-12 text-muted-foreground opacity-50 mb-3" />
-              <p className="text-muted-foreground mb-3">{mapError}</p>
+              <p className="text-muted-foreground mb-3">{error}</p>
               <Button 
                 variant="outline" 
                 size="sm" 
