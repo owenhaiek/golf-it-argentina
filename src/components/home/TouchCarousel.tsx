@@ -58,9 +58,13 @@ const TouchCarousel = ({ images, courseName, courseId }: TouchCarouselProps) => 
     goToSlide(newIndex);
   }, [currentIndex, images.length, goToSlide]);
 
-  // Touch handlers
+  // Touch handlers with better touch handling to prevent page scroll
   const handleTouchStart = (e: React.TouchEvent) => {
     if (!isMobile || images.length <= 1) return;
+    
+    // Prevent page scrolling when touching the carousel
+    e.stopPropagation();
+    
     setIsDragging(true);
     setStartX(e.touches[0].clientX);
     setInitialTranslateX(translateX);
@@ -68,15 +72,21 @@ const TouchCarousel = ({ images, courseName, courseId }: TouchCarouselProps) => 
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!isDragging || !isMobile) return;
+    
+    // Prevent page scrolling during carousel swipe
     e.preventDefault();
+    e.stopPropagation();
+    
     const currentX = e.touches[0].clientX;
     const diff = currentX - startX;
     const percentage = (diff / (carouselRef.current?.offsetWidth || 300)) * 100;
     setTranslateX(initialTranslateX + percentage);
   };
 
-  const handleTouchEnd = () => {
+  const handleTouchEnd = (e: React.TouchEvent) => {
     if (!isDragging || !isMobile) return;
+    
+    e.stopPropagation();
     setIsDragging(false);
     
     const diff = translateX - initialTranslateX;
@@ -133,14 +143,14 @@ const TouchCarousel = ({ images, courseName, courseId }: TouchCarouselProps) => 
 
   if (!images.length) {
     return (
-      <div className="w-full h-48 bg-secondary/20 flex items-center justify-center text-muted-foreground rounded-lg">
+      <div className="w-full h-48 bg-secondary/20 flex items-center justify-center text-muted-foreground rounded-t-lg">
         No hay imágenes disponibles
       </div>
     );
   }
 
   return (
-    <div className="relative w-full h-48 overflow-hidden rounded-lg bg-secondary/20">
+    <div className="relative w-full h-48 overflow-hidden rounded-t-lg bg-secondary/20">
       {/* Images */}
       <div 
         ref={carouselRef}
@@ -228,13 +238,6 @@ const TouchCarousel = ({ images, courseName, courseId }: TouchCarouselProps) => 
               />
             </button>
           ))}
-        </div>
-      )}
-
-      {/* Swipe indicator for mobile */}
-      {isMobile && images.length > 1 && (
-        <div className="absolute top-3 right-3 bg-black/50 text-white text-xs px-2 py-1 rounded">
-          Desliza para ver más
         </div>
       )}
     </div>

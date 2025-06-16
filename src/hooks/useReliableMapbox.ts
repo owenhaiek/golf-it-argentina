@@ -34,6 +34,11 @@ export function useReliableMapbox({
           throw new Error("Invalid Mapbox access token");
         }
 
+        // Validate container
+        if (!containerRef.current) {
+          throw new Error("Map container not available");
+        }
+
         // Set timeout for the entire operation
         timeoutId = setTimeout(() => {
           if (!cancelled) {
@@ -92,11 +97,6 @@ export function useReliableMapbox({
           }
         }
 
-        // Check if container is available
-        if (!containerRef.current) {
-          throw new Error("Map container not available");
-        }
-
         console.log("[Map] Creating map instance...");
         
         // Set access token
@@ -149,8 +149,17 @@ export function useReliableMapbox({
 
     // Only initialize if we have a container and token
     if (containerRef.current && accessToken) {
-      initializeMap();
+      // Add a small delay to ensure container is properly mounted
+      setTimeout(() => {
+        if (!cancelled && containerRef.current) {
+          initializeMap();
+        }
+      }, 100);
     } else {
+      console.log("[Map] Missing requirements:", { 
+        hasContainer: !!containerRef.current, 
+        hasToken: !!accessToken 
+      });
       setError("Missing container or access token");
       setIsLoading(false);
     }

@@ -111,6 +111,11 @@ const CoursesMap = () => {
     );
   }
 
+  // Ensure we have a container before rendering map content
+  if (!mapContainerRef.current && !mapLoading) {
+    console.log("[Map] Container ref not ready yet");
+  }
+
   return (
     <div className="h-screen relative overflow-hidden">
       {/* Map container */}
@@ -121,7 +126,7 @@ const CoursesMap = () => {
           style={{ cursor: 'grab' }}
         />
         
-        {/* Markers */}
+        {/* Markers - only render when map is ready and has courses */}
         {map && courses && courses.length > 0 && (
           <MapMarkers 
             map={map} 
