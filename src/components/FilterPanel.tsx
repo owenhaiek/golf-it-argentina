@@ -161,15 +161,15 @@ const FilterPanel = ({
         }`}
         style={{
           transform: `translateY(${isOpen ? dragOffset : 100}%)`,
-          height: 'calc(100vh - env(safe-area-inset-top, 0px))',
-          maxHeight: 'calc(100vh - env(safe-area-inset-top, 0px))'
+          height: '85vh',
+          maxHeight: '85vh'
         }}
       >
-        <Card className="rounded-t-2xl rounded-b-none border-b-0 shadow-2xl bg-card text-card-foreground w-full h-full">
+        <Card className="rounded-t-2xl border-b-0 shadow-2xl bg-card text-card-foreground w-full h-full">
           <div className="p-6 h-full flex flex-col">
             {/* Larger drag indicator */}
             <div 
-              className="w-16 h-2 bg-muted rounded-full mx-auto mb-6 cursor-pointer touch-none relative"
+              className="w-16 h-2 bg-muted rounded-full mx-auto mb-4 cursor-pointer touch-none relative"
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
@@ -181,16 +181,16 @@ const FilterPanel = ({
               <div className="absolute inset-0 -top-4 -bottom-4 -left-4 -right-4 touch-none" />
             </div>
             
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-foreground">Filter Courses</h3>
               <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full">
                 <X size={20} />
               </Button>
             </div>
 
-            <div className="space-y-6 flex-1 overflow-y-auto" style={{ paddingBottom: 'calc(120px + env(safe-area-inset-bottom, 0px))' }}>
+            <div className="space-y-4 flex-1 overflow-y-auto pb-20">
               {/* Favorites Filter - Enhanced Design */}
-              <div className="space-y-3">
+              <div className="space-y-2">
                 <Label className="text-sm font-medium text-foreground">Show Favorites</Label>
                 <div 
                   className={`flex items-center space-x-3 p-3 rounded-lg border-2 transition-all cursor-pointer ${
@@ -242,13 +242,13 @@ const FilterPanel = ({
               </div>
 
               {/* Number of Holes - Compact Design */}
-              <div className="space-y-3">
+              <div className="space-y-2">
                 <Label className="text-sm font-medium text-foreground">Number of Holes</Label>
                 <div className="grid grid-cols-4 gap-2">
                   {holesOptions.map((option) => (
                     <div
                       key={option.value}
-                      className={`flex flex-col items-center p-2 rounded-lg border-2 transition-all cursor-pointer min-h-[50px] ${
+                      className={`flex flex-col items-center p-2 rounded-lg border-2 transition-all cursor-pointer min-h-[45px] ${
                         filters.holes === option.value
                           ? 'bg-green-50 border-green-500 dark:bg-green-950/20 dark:border-green-500'
                           : 'bg-muted/50 border-border hover:bg-muted'
@@ -259,7 +259,7 @@ const FilterPanel = ({
                       })}
                     >
                       <Flag 
-                        size={14} 
+                        size={12} 
                         className={`mb-1 transition-all ${
                           filters.holes === option.value
                             ? 'text-green-600'
@@ -278,7 +278,59 @@ const FilterPanel = ({
                 </div>
               </div>
 
-              <div className="space-y-3">
+              {/* Currently Open - Enhanced Design */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-foreground">Status</Label>
+                <div 
+                  className={`flex items-center space-x-3 p-3 rounded-lg border-2 transition-all cursor-pointer ${
+                    filters.isOpen 
+                      ? 'bg-blue-50 border-blue-200 dark:bg-blue-950/20 dark:border-blue-800' 
+                      : 'bg-muted/50 border-border hover:bg-muted'
+                  }`}
+                  onClick={() => setFilters({
+                    ...filters,
+                    isOpen: !filters.isOpen
+                  })}
+                >
+                  <div className={`flex items-center justify-center w-8 h-8 rounded-full transition-all ${
+                    filters.isOpen 
+                      ? 'bg-blue-100 dark:bg-blue-900/30' 
+                      : 'bg-background'
+                  }`}>
+                    <Clock 
+                      size={16} 
+                      className={`transition-all ${
+                        filters.isOpen 
+                          ? 'text-blue-600' 
+                          : 'text-muted-foreground'
+                      }`} 
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <p className={`font-medium transition-all ${
+                      filters.isOpen 
+                        ? 'text-blue-700 dark:text-blue-300' 
+                        : 'text-foreground'
+                    }`}>
+                      Currently Open
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {filters.isOpen ? 'Show only open courses' : 'Show all courses regardless of status'}
+                    </p>
+                  </div>
+                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                    filters.isOpen 
+                      ? 'bg-blue-500 border-blue-500' 
+                      : 'border-muted-foreground'
+                  }`}>
+                    {filters.isOpen && (
+                      <div className="w-2 h-2 rounded-full bg-white"></div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="location-filter" className="text-sm font-medium text-foreground">Location</Label>
                 <Input 
                   id="location-filter" 
@@ -292,28 +344,9 @@ const FilterPanel = ({
                   className="h-11"
                 />
               </div>
-
-              <div className="space-y-3">
-                <div className="flex items-center space-x-3">
-                  <input
-                    type="checkbox"
-                    id="is-open-filter"
-                    checked={filters.isOpen}
-                    onChange={e => setFilters({
-                      ...filters,
-                      isOpen: e.target.checked
-                    })}
-                    className="h-4 w-4 rounded border-input text-primary focus:ring-primary"
-                  />
-                  <Label htmlFor="is-open-filter" className="flex items-center gap-2 text-sm font-medium text-foreground">
-                    <Clock size={16} className="text-primary" />
-                    Currently Open
-                  </Label>
-                </div>
-              </div>
             </div>
 
-            <div className="absolute bottom-0 left-0 right-0 p-6 bg-card border-t" style={{ paddingBottom: 'calc(24px + env(safe-area-inset-bottom, 0px))' }}>
+            <div className="absolute bottom-0 left-0 right-0 p-4 bg-card border-t" style={{ paddingBottom: 'calc(16px + env(safe-area-inset-bottom, 0px))' }}>
               <div className="flex space-x-3">
                 <Button onClick={handleResetFilters} variant="outline" className="flex-1 h-11">
                   Reset
