@@ -24,81 +24,6 @@ export function useMapbox({
     let cancelled = false;
     let mapInstance: any = null;
 
-    const waitForContainer = (): Promise<void> => {
-      return new Promise((resolve, reject) => {
-        let attempts = 0;
-        const maxAttempts = 50; // 5 seconds total
-        
-        const checkContainer = () => {
-          if (cancelled) {
-            reject(new Error("Operation cancelled"));
-            return;
-          }
-
-          const container = containerRef.current;
-          console.log(`[Mapbox] Container check attempt ${attempts + 1}:`, {
-            exists: !!container,
-            offsetWidth: container?.offsetWidth || 0,
-            offsetHeight: container?.offsetHeight || 0,
-            parentElement: !!container?.parentElement
-          });
-
-          if (container && container.offsetWidth > 0 && container.offsetHeight > 0) {
-            console.log("[Mapbox] Container is ready");
-            resolve();
-            return;
-          }
-
-          attempts++;
-          if (attempts >= maxAttempts) {
-            reject(new Error(`Container not ready after ${maxAttempts} attempts. Container exists: ${!!container}, Width: ${container?.offsetWidth || 0}, Height: ${container?.offsetHeight || 0}`));
-            return;
-          }
-
-          setTimeout(checkContainer, 100);
-        };
-
-        // Start checking immediately
-        checkContainer();
-      });
-    };
-
-    const waitForMapbox = (): Promise<void> => {
-      return new Promise((resolve, reject) => {
-        if ((window as any).mapboxgl) {
-          console.log("[Mapbox] Mapbox GL JS already loaded");
-          resolve();
-          return;
-        }
-
-        let attempts = 0;
-        const maxAttempts = 30; // 3 seconds
-        
-        const checkMapbox = () => {
-          if (cancelled) {
-            reject(new Error("Operation cancelled"));
-            return;
-          }
-
-          if ((window as any).mapboxgl) {
-            console.log("[Mapbox] Mapbox GL JS loaded");
-            resolve();
-            return;
-          }
-
-          attempts++;
-          if (attempts >= maxAttempts) {
-            reject(new Error("Mapbox GL JS failed to load"));
-            return;
-          }
-
-          setTimeout(checkMapbox, 100);
-        };
-
-        checkMapbox();
-      });
-    };
-
     const initializeMap = async () => {
       try {
         console.log("[Mapbox] Starting initialization...");
@@ -107,15 +32,19 @@ export function useMapbox({
           throw new Error("Mapbox access token is required");
         }
 
-        // Wait for both container and Mapbox to be ready
-        await Promise.all([
-          waitForContainer(),
-          waitForMapbox()
-        ]);
+        // Wait for Mapbox to be available
+        console.log("[Mapbox] Checking for Mapbox GL JS...");
+        if (!(window as any).mapboxgl) {
+          throw new Error("Mapbox GL JS not loaded. Please check your internet connection.");
+        }
+
+        // Wait for container with improved logic
+        console.log("[Mapbox] Waiting for container...");
+        await waitForContainer();
 
         if (cancelled) return;
 
-        console.log("[Mapbox] Creating map instance...");
+        console.log("[Mapbox] Container is ready, creating map...");
         
         // Set access token
         (window as any).mapboxgl.accessToken = accessToken;
@@ -168,12 +97,60 @@ export function useMapbox({
       }
     };
 
-    // Start initialization with a small delay
-    const timeoutId = setTimeout(initializeMap, 200);
+    const waitForContainer = (): Promise<void> => {
+      return new Promise((resolve, reject) => {
+        let attempts = 0;
+        const maxAttempts = 100; // Increased attempts
+        
+        const checkContainer = () => {
+          if (cancelled) {
+            reject(new Error("Operation cancelled"));
+            return;
+          }
+
+          const container = containerRef.current;
+          const containerExists = !!container;
+          const containerMounted = container && container.parentElement;
+          const containerVisible = container && container.offsetWidth > 0 && container.offsetHeight > 0;
+          
+          console.log(`[Mapbox] Container check #${attempts + 1}:`, {
+            exists: containerExists,
+            mounted: !!containerMounted,
+            visible: containerVisible,
+            width: container?.offsetWidth || 0,
+            height: container?.offsetHeight || 0,
+            hasParent: !!container?.parentElement,
+            isConnected: container?.isConnected || false
+          });
+
+          // Container is ready if it exists, is mounted, and has dimensions
+          if (containerExists && containerMounted && containerVisible) {
+            console.log("[Mapbox] Container is ready!");
+            resolve();
+            return;
+          }
+
+          attempts++;
+          if (attempts >= maxAttempts) {
+            reject(new Error(`Container not ready after ${maxAttempts} attempts. Container exists: ${containerExists}, Mounted: ${!!containerMounted}, Width: ${container?.offsetWidth || 0}, Height: ${container?.offsetHeight || 0}`));
+            return;
+          }
+
+          // Use longer intervals for later attempts
+          const delay = attempts < 20 ? 50 : attempts < 50 ? 100 : 200;
+          setTimeout(checkContainer, delay);
+        };
+
+        // Start checking after a small delay to allow React to render
+        setTimeout(checkContainer, 100);
+      });
+    };
+
+    // Start initialization
+    initializeMap();
     
     return () => {
       cancelled = true;
-      clearTimeout(timeoutId);
       if (mapInstance) {
         try {
           console.log("[Mapbox] Cleaning up map instance");
@@ -183,7 +160,7 @@ export function useMapbox({
         }
       }
     };
-  }, [accessToken]); // Only depend on accessToken, not the refs
+  }, [accessToken, center, zoom]); // Removed containerRef from dependencies
 
   return { map, isLoading, error };
 }
