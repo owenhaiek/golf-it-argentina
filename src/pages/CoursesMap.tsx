@@ -1,5 +1,5 @@
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { CourseInfoTab } from "@/components/map/CourseInfoTab";
@@ -141,7 +141,7 @@ const CoursesMap = () => {
   };
 
   // Re-add markers when courses load and map is ready
-  useState(() => {
+  useEffect(() => {
     if (map && courses && courses.length > 0) {
       addMarkersToMap(map);
     }
