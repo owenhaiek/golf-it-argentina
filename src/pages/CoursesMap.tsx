@@ -31,6 +31,7 @@ const CoursesMap = () => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<any[]>([]);
 
+  // Fetch courses data
   const { data: courses, isLoading: coursesLoading, error: coursesError } = useQuery({
     queryKey: ['courses-map'],
     queryFn: async () => {
@@ -47,6 +48,7 @@ const CoursesMap = () => {
     }
   });
 
+  // Initialize map
   const { map, isLoading: mapLoading, error: mapError } = useSimpleMapbox({
     containerRef: mapContainerRef,
     center: [-58.3816, -34.6118],
@@ -54,7 +56,9 @@ const CoursesMap = () => {
     accessToken: MAPBOX_TOKEN,
     onMapReady: (mapInstance) => {
       console.log("[CoursesMap] Map ready, adding markers...");
-      addMarkersToMap(mapInstance);
+      if (courses && courses.length > 0) {
+        addMarkersToMap(mapInstance);
+      }
     }
   });
 
@@ -75,7 +79,6 @@ const CoursesMap = () => {
       
       // Create green marker element
       const el = document.createElement("div");
-      el.className = "golf-marker";
       el.style.cssText = `
         width: 40px;
         height: 40px;
@@ -151,7 +154,7 @@ const CoursesMap = () => {
     window.location.reload();
   };
 
-  // Show error state
+  // Error state
   if (mapError || coursesError) {
     return (
       <div className="h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-green-100">
@@ -164,10 +167,7 @@ const CoursesMap = () => {
             <p className="text-red-600 mb-4 text-sm">
               {mapError || (coursesError ? String(coursesError) : "Failed to load golf courses")}
             </p>
-            <Button 
-              onClick={handleRetry}
-              className="bg-primary text-white hover:bg-primary/90"
-            >
+            <Button onClick={handleRetry} className="bg-primary text-white hover:bg-primary/90">
               <RefreshCw className="h-4 w-4 mr-2" />
               Try Again
             </Button>
@@ -177,19 +177,17 @@ const CoursesMap = () => {
     );
   }
 
-  // Show loading state
+  // Loading state
   if (coursesLoading || mapLoading) {
-    const loadingText = coursesLoading 
-      ? 'Loading golf courses...' 
-      : 'Loading map...';
-
     return (
       <div className="h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-green-100">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin text-green-600 mx-auto mb-4" />
-          <p className="text-green-700 font-medium">{loadingText}</p>
+          <p className="text-green-700 font-medium">
+            {coursesLoading ? 'Loading golf courses...' : 'Loading map...'}
+          </p>
           <p className="text-green-600 text-sm mt-2">
-            Please wait while we load the map...
+            Please wait while we prepare the map...
           </p>
         </div>
       </div>
@@ -198,12 +196,22 @@ const CoursesMap = () => {
 
   return (
     <div className="h-screen relative overflow-hidden">
-      {/* Map container with grey background */}
+      {/* Ensure Mapbox CSS is loaded */}
+      <link
+        href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css"
+        rel="stylesheet"
+      />
+      
+      {/* Map container */}
       <div className="absolute inset-0 bg-gray-200">
         <div
           ref={mapContainerRef}
           className="absolute inset-0 w-full h-full"
-          style={{ cursor: 'grab' }}
+          style={{ 
+            cursor: 'grab',
+            minHeight: '100vh',
+            minWidth: '100vw'
+          }}
         />
         
         {/* Empty state */}
@@ -221,7 +229,7 @@ const CoursesMap = () => {
         )}
       </div>
       
-      {/* Course info tab with slide-down animation */}
+      {/* Course info tab */}
       {selectedCourse && (
         <CourseInfoTab 
           course={selectedCourse}

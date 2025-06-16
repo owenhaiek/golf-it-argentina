@@ -22,73 +22,72 @@ export function useSimpleMapbox({
   const initializationRef = useRef(false);
 
   useEffect(() => {
-    if (initializationRef.current) return;
+    if (initializationRef.current || !accessToken) return;
     
     const initializeMap = async () => {
       try {
         console.log("[SimpleMapbox] Starting initialization...");
         
-        if (!accessToken) {
-          throw new Error("Mapbox access token is required");
-        }
-
-        // Wait for container to be mounted and have dimensions
+        // Wait for DOM to be ready
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // Check container availability with improved detection
         let attempts = 0;
-        const maxAttempts = 100; // Increased attempts
+        const maxAttempts = 50;
+        let container: HTMLDivElement | null = null;
         
         while (attempts < maxAttempts) {
-          const container = containerRef.current;
+          container = containerRef.current;
           
           if (container) {
-            // Force a layout check
+            // Force layout calculation
+            container.style.display = container.style.display || 'block';
             const rect = container.getBoundingClientRect();
-            const computedStyle = window.getComputedStyle(container);
             
             console.log("[SimpleMapbox] Container check:", {
+              attempt: attempts + 1,
               exists: !!container,
-              offsetWidth: container.offsetWidth,
-              offsetHeight: container.offsetHeight,
-              rectWidth: rect.width,
-              rectHeight: rect.height,
-              display: computedStyle.display,
-              visibility: computedStyle.visibility,
-              attempt: attempts + 1
+              width: rect.width,
+              height: rect.height,
+              isConnected: container.isConnected
             });
             
-            if (rect.width > 0 && rect.height > 0 && computedStyle.display !== 'none') {
+            // Check if container is properly mounted and has dimensions
+            if (container.isConnected && rect.width > 0 && rect.height > 0) {
               console.log("[SimpleMapbox] Container ready!");
               break;
             }
           }
           
-          await new Promise(resolve => setTimeout(resolve, 50));
+          await new Promise(resolve => setTimeout(resolve, 100));
           attempts++;
         }
 
-        const finalContainer = containerRef.current;
-        if (!finalContainer) {
-          throw new Error(`Container not found after ${maxAttempts} attempts`);
+        if (!container || !container.isConnected) {
+          throw new Error(`Container not available after ${maxAttempts} attempts`);
         }
 
-        const finalRect = finalContainer.getBoundingClientRect();
-        if (finalRect.width === 0 || finalRect.height === 0) {
-          throw new Error(`Container has no dimensions: ${finalRect.width}x${finalRect.height}`);
-        }
-
-        // Wait for Mapbox to be available
+        // Ensure Mapbox GL is loaded
         if (!(window as any).mapboxgl) {
-          throw new Error("Mapbox GL JS not loaded");
+          console.log("[SimpleMapbox] Loading Mapbox GL...");
+          await new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js';
+            script.onload = resolve;
+            script.onerror = reject;
+            document.head.appendChild(script);
+          });
         }
 
-        console.log("[SimpleMapbox] Creating map...");
+        console.log("[SimpleMapbox] Creating map instance...");
         initializationRef.current = true;
 
         // Set access token
         (window as any).mapboxgl.accessToken = accessToken;
         
-        // Create map with light style (grey appearance)
+        // Create map with light style
         const mapInstance = new (window as any).mapboxgl.Map({
-          container: finalContainer,
+          container: container,
           style: 'mapbox://styles/mapbox/light-v11',
           center,
           zoom,
@@ -125,15 +124,16 @@ export function useSimpleMapbox({
         console.error("[SimpleMapbox] Initialization error:", error);
         setError(error.message || "Failed to initialize map");
         setIsLoading(false);
-        initializationRef.current = false; // Allow retry
+        initializationRef.current = false;
       }
     };
 
-    // Start initialization with a small delay to ensure DOM is ready
-    const timeoutId = setTimeout(initializeMap, 100);
+    initializeMap();
     
     return () => {
-      clearTimeout(timeoutId);
+      if (map) {
+        map.remove();
+      }
     };
   }, [accessToken, center, zoom]);
 
