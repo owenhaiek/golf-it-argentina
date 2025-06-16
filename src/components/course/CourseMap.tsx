@@ -88,7 +88,7 @@ export const CourseMap = ({ latitude, longitude, name }: CourseMapProps) => {
           {error && (
             <div className="absolute inset-0 flex flex-col items-center justify-center bg-muted z-10">
               <Globe className="h-12 w-12 text-muted-foreground opacity-50 mb-3" />
-              <p className="text-muted-foreground mb-3 text-center px-4">{error}</p>
+              <p className="text-muted-foreground mb-3 text-center px-4 text-sm">{error}</p>
               <Button 
                 variant="outline" 
                 size="sm" 
@@ -100,9 +100,11 @@ export const CourseMap = ({ latitude, longitude, name }: CourseMapProps) => {
           )}
           
           {/* Map attribution */}
-          <div className="absolute bottom-1 right-1 text-[8px] text-muted-foreground bg-white/80 px-1 rounded">
-            © Mapbox © OpenStreetMap
-          </div>
+          {!error && !isLoading && (
+            <div className="absolute bottom-1 right-1 text-[8px] text-muted-foreground bg-white/80 px-1 rounded">
+              © Mapbox © OpenStreetMap
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

@@ -24,6 +24,81 @@ export function useMapbox({
     let cancelled = false;
     let mapInstance: any = null;
 
+    const waitForContainer = (): Promise<void> => {
+      return new Promise((resolve, reject) => {
+        let attempts = 0;
+        const maxAttempts = 50; // 5 seconds total
+        
+        const checkContainer = () => {
+          if (cancelled) {
+            reject(new Error("Operation cancelled"));
+            return;
+          }
+
+          const container = containerRef.current;
+          console.log(`[Mapbox] Container check attempt ${attempts + 1}:`, {
+            exists: !!container,
+            offsetWidth: container?.offsetWidth || 0,
+            offsetHeight: container?.offsetHeight || 0,
+            parentElement: !!container?.parentElement
+          });
+
+          if (container && container.offsetWidth > 0 && container.offsetHeight > 0) {
+            console.log("[Mapbox] Container is ready");
+            resolve();
+            return;
+          }
+
+          attempts++;
+          if (attempts >= maxAttempts) {
+            reject(new Error(`Container not ready after ${maxAttempts} attempts. Container exists: ${!!container}, Width: ${container?.offsetWidth || 0}, Height: ${container?.offsetHeight || 0}`));
+            return;
+          }
+
+          setTimeout(checkContainer, 100);
+        };
+
+        // Start checking immediately
+        checkContainer();
+      });
+    };
+
+    const waitForMapbox = (): Promise<void> => {
+      return new Promise((resolve, reject) => {
+        if ((window as any).mapboxgl) {
+          console.log("[Mapbox] Mapbox GL JS already loaded");
+          resolve();
+          return;
+        }
+
+        let attempts = 0;
+        const maxAttempts = 30; // 3 seconds
+        
+        const checkMapbox = () => {
+          if (cancelled) {
+            reject(new Error("Operation cancelled"));
+            return;
+          }
+
+          if ((window as any).mapboxgl) {
+            console.log("[Mapbox] Mapbox GL JS loaded");
+            resolve();
+            return;
+          }
+
+          attempts++;
+          if (attempts >= maxAttempts) {
+            reject(new Error("Mapbox GL JS failed to load"));
+            return;
+          }
+
+          setTimeout(checkMapbox, 100);
+        };
+
+        checkMapbox();
+      });
+    };
+
     const initializeMap = async () => {
       try {
         console.log("[Mapbox] Starting initialization...");
@@ -32,61 +107,11 @@ export function useMapbox({
           throw new Error("Mapbox access token is required");
         }
 
-        if (!containerRef.current) {
-          throw new Error("Map container is not available");
-        }
-
-        // Wait for container to be properly sized
-        await new Promise(resolve => {
-          const checkContainer = () => {
-            if (containerRef.current && containerRef.current.offsetWidth > 0) {
-              resolve(void 0);
-            } else {
-              setTimeout(checkContainer, 100);
-            }
-          };
-          checkContainer();
-        });
-
-        if (cancelled) return;
-
-        // Load Mapbox resources if not already loaded
-        if (!(window as any).mapboxgl) {
-          console.log("[Mapbox] Loading Mapbox GL JS...");
-          
-          // Load CSS
-          if (!document.querySelector('link[href*="mapbox-gl.css"]')) {
-            const link = document.createElement('link');
-            link.href = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css';
-            link.rel = 'stylesheet';
-            document.head.appendChild(link);
-          }
-          
-          // Load JS
-          if (!document.querySelector('script[src*="mapbox-gl.js"]')) {
-            await new Promise<void>((resolve, reject) => {
-              const script = document.createElement('script');
-              script.src = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js';
-              script.async = true;
-              
-              script.onload = () => resolve();
-              script.onerror = () => reject(new Error("Failed to load Mapbox GL JS"));
-              
-              document.head.appendChild(script);
-            });
-          }
-
-          // Wait for mapboxgl to be available
-          let attempts = 0;
-          while (!(window as any).mapboxgl && attempts < 50) {
-            await new Promise(resolve => setTimeout(resolve, 100));
-            attempts++;
-          }
-
-          if (!(window as any).mapboxgl) {
-            throw new Error("Mapbox GL JS failed to load");
-          }
-        }
+        // Wait for both container and Mapbox to be ready
+        await Promise.all([
+          waitForContainer(),
+          waitForMapbox()
+        ]);
 
         if (cancelled) return;
 
@@ -97,7 +122,7 @@ export function useMapbox({
         
         // Create map
         mapInstance = new (window as any).mapboxgl.Map({
-          container: containerRef.current,
+          container: containerRef.current!,
           style: 'mapbox://styles/mapbox/light-v11',
           center,
           zoom,
@@ -129,7 +154,7 @@ export function useMapbox({
         mapInstance.on('error', (e: any) => {
           console.error("[Mapbox] Map error:", e);
           if (!cancelled) {
-            setError("Failed to load map");
+            setError(`Map error: ${e.error?.message || 'Unknown error'}`);
             setIsLoading(false);
           }
         });
@@ -143,21 +168,22 @@ export function useMapbox({
       }
     };
 
-    // Small delay to ensure DOM is ready
-    const timeoutId = setTimeout(initializeMap, 100);
+    // Start initialization with a small delay
+    const timeoutId = setTimeout(initializeMap, 200);
     
     return () => {
       cancelled = true;
       clearTimeout(timeoutId);
       if (mapInstance) {
         try {
+          console.log("[Mapbox] Cleaning up map instance");
           mapInstance.remove();
         } catch (e) {
           console.error("[Mapbox] Cleanup error:", e);
         }
       }
     };
-  }, [containerRef, accessToken, center, zoom]);
+  }, [accessToken]); // Only depend on accessToken, not the refs
 
   return { map, isLoading, error };
 }
