@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -34,30 +35,59 @@ const FilterPanel = ({
     setFilters(currentFilters);
   }, [isOpen, currentFilters]);
 
-  // Prevent body scrolling when filter is open - improved for all devices
+  // Enhanced scroll prevention for all devices
   useEffect(() => {
     if (isOpen) {
-      // Store current scroll position
       const scrollY = window.scrollY;
+      const body = document.body;
+      const html = document.documentElement;
       
-      // Apply styles to prevent scrolling
-      document.body.style.overflow = 'hidden';
-      document.body.style.position = 'fixed';
-      document.body.style.top = `-${scrollY}px`;
-      document.body.style.width = '100%';
-      document.body.style.height = '100vh';
+      // Store original styles
+      const originalBodyOverflow = body.style.overflow;
+      const originalBodyPosition = body.style.position;
+      const originalBodyTop = body.style.top;
+      const originalBodyWidth = body.style.width;
+      const originalHtmlOverflow = html.style.overflow;
       
-      // Also prevent scrolling on documentElement for some browsers
-      document.documentElement.style.overflow = 'hidden';
+      // Apply comprehensive scroll prevention
+      body.style.overflow = 'hidden';
+      body.style.position = 'fixed';
+      body.style.top = `-${scrollY}px`;
+      body.style.width = '100%';
+      body.style.height = '100vh';
+      html.style.overflow = 'hidden';
+      
+      // Prevent touch events on body
+      const preventDefault = (e: TouchEvent) => {
+        if (!panelRef.current?.contains(e.target as Node)) {
+          e.preventDefault();
+        }
+      };
+      
+      const preventWheel = (e: WheelEvent) => {
+        if (!panelRef.current?.contains(e.target as Node)) {
+          e.preventDefault();
+        }
+      };
+      
+      // Add event listeners
+      document.addEventListener('touchmove', preventDefault, { passive: false });
+      document.addEventListener('wheel', preventWheel, { passive: false });
+      document.addEventListener('scroll', preventDefault, { passive: false });
       
       return () => {
-        // Restore scroll position and styles
-        document.body.style.overflow = '';
-        document.body.style.position = '';
-        document.body.style.top = '';
-        document.body.style.width = '';
-        document.body.style.height = '';
-        document.documentElement.style.overflow = '';
+        // Restore original styles
+        body.style.overflow = originalBodyOverflow;
+        body.style.position = originalBodyPosition;
+        body.style.top = originalBodyTop;
+        body.style.width = originalBodyWidth;
+        body.style.height = '';
+        html.style.overflow = originalHtmlOverflow;
+        
+        // Remove event listeners
+        document.removeEventListener('touchmove', preventDefault);
+        document.removeEventListener('wheel', preventWheel);
+        document.removeEventListener('scroll', preventDefault);
         
         // Restore scroll position
         window.scrollTo(0, scrollY);
@@ -150,6 +180,7 @@ const FilterPanel = ({
           isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
         onClick={onClose}
+        style={{ touchAction: 'none' }}
       />
       
       {/* Filter Panel */}
@@ -161,8 +192,9 @@ const FilterPanel = ({
         style={{
           transform: `translateY(${isOpen ? dragOffset : 100}%)`,
           bottom: '76px', // Space for navigation menu
-          height: '55vh',
-          maxHeight: '55vh'
+          height: '50vh',
+          maxHeight: '50vh',
+          touchAction: 'pan-y'
         }}
       >
         <Card className="rounded-t-2xl border-b-0 shadow-2xl bg-card text-card-foreground w-full h-full">
@@ -190,9 +222,9 @@ const FilterPanel = ({
             </div>
 
             {/* Fixed content - no scrolling */}
-            <div className="space-y-2 flex-1 px-4">
+            <div className="space-y-1 flex-1 px-4 overflow-hidden">
               {/* Favorites Filter */}
-              <div className="space-y-2 pb-2">
+              <div className="space-y-1 pb-1">
                 <Label className="text-sm font-medium text-foreground">Show Favorites</Label>
                 <div 
                   className={`flex items-center space-x-3 p-2 rounded-lg border-2 transition-all cursor-pointer ${
@@ -244,7 +276,7 @@ const FilterPanel = ({
               </div>
 
               {/* Number of Holes */}
-              <div className="space-y-2 pb-2">
+              <div className="space-y-1 pb-1">
                 <Label className="text-sm font-medium text-foreground">Number of Holes</Label>
                 <div className="grid grid-cols-4 gap-2">
                   {holesOptions.map((option) => (
@@ -281,7 +313,7 @@ const FilterPanel = ({
               </div>
 
               {/* Currently Open */}
-              <div className="space-y-2 pb-2">
+              <div className="space-y-1 pb-1">
                 <Label className="text-sm font-medium text-foreground">Status</Label>
                 <div 
                   className={`flex items-center space-x-3 p-2 rounded-lg border-2 transition-all cursor-pointer ${
@@ -333,7 +365,7 @@ const FilterPanel = ({
               </div>
 
               {/* Location */}
-              <div className="space-y-2">
+              <div className="space-y-1 pb-2">
                 <Label htmlFor="location-filter" className="text-sm font-medium text-foreground">Location</Label>
                 <Input 
                   id="location-filter" 
@@ -349,8 +381,8 @@ const FilterPanel = ({
               </div>
             </div>
 
-            {/* Fixed button area at bottom */}
-            <div className="flex-shrink-0 p-3 bg-card border-t">
+            {/* Fixed button area at bottom with extra spacing */}
+            <div className="flex-shrink-0 p-4 bg-card border-t" style={{ paddingBottom: '20px' }}>
               <div className="flex space-x-3">
                 <Button onClick={handleResetFilters} variant="outline" className="flex-1 h-10">
                   Reset
