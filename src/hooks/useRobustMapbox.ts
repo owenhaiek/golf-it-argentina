@@ -23,96 +23,117 @@ export function useRobustMapbox({
   useEffect(() => {
     let cancelled = false;
     let mapInstance: any = null;
+    let retryCount = 0;
+    const maxRetries = 10;
+
+    const waitForContainer = async (): Promise<boolean> => {
+      return new Promise((resolve) => {
+        const checkContainer = () => {
+          if (containerRef.current) {
+            console.log("[RobustMap] Container found:", containerRef.current);
+            resolve(true);
+            return;
+          }
+          
+          retryCount++;
+          if (retryCount >= maxRetries) {
+            console.log("[RobustMap] Container not found after", maxRetries, "attempts");
+            resolve(false);
+            return;
+          }
+          
+          console.log("[RobustMap] Waiting for container, attempt", retryCount);
+          setTimeout(checkContainer, 200);
+        };
+        
+        checkContainer();
+      });
+    };
 
     const initializeMap = async () => {
       try {
         console.log("[RobustMap] Starting initialization...");
+        setIsLoading(true);
+        setError(null);
         
         // Validate token first
         if (!accessToken) {
           throw new Error("Mapbox access token is required");
         }
         
-        if (accessToken.length < 10) {
+        if (accessToken.length < 10 || !accessToken.startsWith('pk.')) {
           throw new Error("Invalid Mapbox access token format");
         }
-        
-        if (!accessToken.startsWith('pk.')) {
-          throw new Error("Mapbox token should start with 'pk.'");
-        }
 
-        // Validate container
-        if (!containerRef.current) {
+        console.log("[RobustMap] Token validated");
+
+        // Wait for container to be available
+        const containerAvailable = await waitForContainer();
+        if (!containerAvailable || cancelled) {
           throw new Error("Map container is not available");
         }
 
-        console.log("[RobustMap] Token and container validated");
+        console.log("[RobustMap] Container validated, loading resources...");
 
         // Check if Mapbox is already loaded
         if (!(window as any).mapboxgl) {
           console.log("[RobustMap] Loading Mapbox resources...");
           
           // Load CSS first
-          await new Promise<void>((resolve, reject) => {
-            if (document.querySelector('link[href*="mapbox-gl.css"]')) {
-              resolve();
-              return;
-            }
-            
-            const link = document.createElement('link');
-            link.href = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css';
-            link.rel = 'stylesheet';
-            
-            const timeout = setTimeout(() => {
-              reject(new Error("CSS loading timeout"));
-            }, 10000);
-            
-            link.onload = () => {
-              clearTimeout(timeout);
-              console.log("[RobustMap] CSS loaded");
-              resolve();
-            };
-            
-            link.onerror = () => {
-              clearTimeout(timeout);
-              reject(new Error("Failed to load Mapbox CSS"));
-            };
-            
-            document.head.appendChild(link);
-          });
+          if (!document.querySelector('link[href*="mapbox-gl.css"]')) {
+            await new Promise<void>((resolve, reject) => {
+              const link = document.createElement('link');
+              link.href = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css';
+              link.rel = 'stylesheet';
+              
+              const timeout = setTimeout(() => {
+                reject(new Error("CSS loading timeout"));
+              }, 10000);
+              
+              link.onload = () => {
+                clearTimeout(timeout);
+                console.log("[RobustMap] CSS loaded");
+                resolve();
+              };
+              
+              link.onerror = () => {
+                clearTimeout(timeout);
+                reject(new Error("Failed to load Mapbox CSS"));
+              };
+              
+              document.head.appendChild(link);
+            });
+          }
           
           // Load JavaScript
-          await new Promise<void>((resolve, reject) => {
-            if (document.querySelector('script[src*="mapbox-gl.js"]')) {
-              resolve();
-              return;
-            }
-            
-            const script = document.createElement('script');
-            script.src = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js';
-            script.async = true;
-            
-            const timeout = setTimeout(() => {
-              reject(new Error("Script loading timeout"));
-            }, 15000);
-            
-            script.onload = () => {
-              clearTimeout(timeout);
-              console.log("[RobustMap] Script loaded");
-              resolve();
-            };
-            
-            script.onerror = () => {
-              clearTimeout(timeout);
-              reject(new Error("Failed to load Mapbox script"));
-            };
-            
-            document.head.appendChild(script);
-          });
+          if (!document.querySelector('script[src*="mapbox-gl.js"]')) {
+            await new Promise<void>((resolve, reject) => {
+              const script = document.createElement('script');
+              script.src = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js';
+              script.async = true;
+              
+              const timeout = setTimeout(() => {
+                reject(new Error("Script loading timeout"));
+              }, 15000);
+              
+              script.onload = () => {
+                clearTimeout(timeout);
+                console.log("[RobustMap] Script loaded");
+                resolve();
+              };
+              
+              script.onerror = () => {
+                clearTimeout(timeout);
+                reject(new Error("Failed to load Mapbox script"));
+              };
+              
+              document.head.appendChild(script);
+            });
+          }
 
           // Wait for mapboxgl to be available
           let attempts = 0;
-          while (!(window as any).mapboxgl && attempts < 50) {
+          while (!(window as any).mapboxgl && attempts < 100) {
             await new Promise(resolve => setTimeout(resolve, 100));
             attempts++;
           }
@@ -126,12 +147,17 @@ export function useRobustMapbox({
 
         console.log("[RobustMap] Creating map instance...");
         
+        // Double-check container is still available
+        if (!containerRef.current) {
+          throw new Error("Container became unavailable during initialization");
+        }
+        
         // Set access token
         (window as any).mapboxgl.accessToken = accessToken;
         
-        // Test token by creating a temporary map instance
+        // Create map with error handling
         try {
-          const testMap = new (window as any).mapboxgl.Map({
+          mapInstance = new (window as any).mapboxgl.Map({
             container: containerRef.current,
             style: 'mapbox://styles/mapbox/light-v11',
             center,
@@ -139,10 +165,9 @@ export function useRobustMapbox({
             attributionControl: false,
             logoPosition: 'bottom-right'
           });
-          
-          mapInstance = testMap;
         } catch (tokenError: any) {
-          if (tokenError.message.includes('token')) {
+          console.error("[RobustMap] Map creation error:", tokenError);
+          if (tokenError.message.includes('token') || tokenError.message.includes('Unauthorized')) {
             throw new Error("Invalid Mapbox token - please check your token");
           }
           throw tokenError;
@@ -187,29 +212,24 @@ export function useRobustMapbox({
       }
     };
 
-    if (containerRef.current && accessToken) {
-      // Small delay to ensure DOM is ready
-      const timeoutId = setTimeout(initializeMap, 100);
-      
-      return () => {
-        cancelled = true;
-        clearTimeout(timeoutId);
-        if (mapInstance) {
-          try {
-            mapInstance.remove();
-          } catch (e) {
-            console.error("[RobustMap] Cleanup error:", e);
-          }
+    // Initialize with a delay to ensure DOM is ready
+    const timeoutId = setTimeout(() => {
+      if (!cancelled) {
+        initializeMap();
+      }
+    }, 500);
+    
+    return () => {
+      cancelled = true;
+      clearTimeout(timeoutId);
+      if (mapInstance) {
+        try {
+          mapInstance.remove();
+        } catch (e) {
+          console.error("[RobustMap] Cleanup error:", e);
         }
-      };
-    } else {
-      const missingParts = [];
-      if (!containerRef.current) missingParts.push("container");
-      if (!accessToken) missingParts.push("token");
-      
-      setError(`Missing required: ${missingParts.join(", ")}`);
-      setIsLoading(false);
-    }
+      }
+    };
   }, [containerRef, accessToken, center, zoom]);
 
   return { map, isLoading, error };
