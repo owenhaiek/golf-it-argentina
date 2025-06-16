@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -162,8 +161,8 @@ const FilterPanel = ({
         style={{
           transform: `translateY(${isOpen ? dragOffset : 100}%)`,
           bottom: '76px', // Space for navigation menu
-          height: '60vh',
-          maxHeight: '60vh'
+          height: '55vh',
+          maxHeight: '55vh'
         }}
       >
         <Card className="rounded-t-2xl border-b-0 shadow-2xl bg-card text-card-foreground w-full h-full">
@@ -190,8 +189,8 @@ const FilterPanel = ({
               </Button>
             </div>
 
-            {/* Scrollable content */}
-            <div className="space-y-2 flex-1 overflow-y-auto px-4 pb-4">
+            {/* Fixed content - no scrolling */}
+            <div className="space-y-2 flex-1 px-4">
               {/* Favorites Filter */}
               <div className="space-y-2 pb-2">
                 <Label className="text-sm font-medium text-foreground">Show Favorites</Label>
@@ -334,7 +333,7 @@ const FilterPanel = ({
               </div>
 
               {/* Location */}
-              <div className="space-y-2 pb-4">
+              <div className="space-y-2">
                 <Label htmlFor="location-filter" className="text-sm font-medium text-foreground">Location</Label>
                 <Input 
                   id="location-filter" 
