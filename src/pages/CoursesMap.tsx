@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -64,20 +65,6 @@ const CoursesMap = () => {
     accessToken: MAPBOX_TOKEN,
   });
 
-  // Enhanced: Add log output for debugging
-  useEffect(() => {
-    if (!scriptsLoaded) {
-      console.log("Mapbox scripts not loaded yet.");
-    } else if (!mapLoaded) {
-      console.log("Mapbox scripts loaded, waiting for map to initialize...");
-    } else if (map) {
-      console.log("Map instance loaded successfully.", map);
-    }
-    if (initError) {
-      console.error("Map init error:", initError);
-    }
-  }, [scriptsLoaded, mapLoaded, map, initError]);
-
   // Show error state
   if (initError || coursesError) {
     return (
@@ -86,7 +73,7 @@ const CoursesMap = () => {
           <CardContent className="text-center p-6">
             <AlertCircle className="h-12 w-12 mx-auto mb-4 text-red-500" />
             <p className="text-red-600 mb-4">
-              {initError || coursesError ? String(initError || coursesError) : "Failed to load golf courses"}
+              {initError || (coursesError ? String(coursesError) : "Failed to load golf courses")}
             </p>
             <Button 
               onClick={() => window.location.reload()}
@@ -100,19 +87,19 @@ const CoursesMap = () => {
     );
   }
 
-  // Show loading state, log status
-  const isLoading = coursesLoading || !scriptsLoaded || !mapLoaded;
-  
-  if (isLoading) {
+  // Show loading state
+  if (coursesLoading || !scriptsLoaded || (scriptsLoaded && !mapLoaded)) {
+    const loadingText = coursesLoading 
+      ? 'Loading golf courses...' 
+      : !scriptsLoaded 
+      ? 'Loading map resources...' 
+      : 'Initializing map...';
+
     return (
       <div className="h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-green-100">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin text-green-600 mx-auto mb-4" />
-          <p className="text-green-700 font-medium">
-            {!scriptsLoaded ? 'Loading map resources...' : 
-             !mapLoaded ? 'Initializing map...' : 
-             'Loading golf courses...'}
-          </p>
+          <p className="text-green-700 font-medium">{loadingText}</p>
         </div>
       </div>
     );
