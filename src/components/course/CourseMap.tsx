@@ -4,7 +4,7 @@ import { MapPin, Map, Globe } from "lucide-react";
 import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useOptimizedMapbox } from "@/hooks/useOptimizedMapbox";
+import { useRobustMapbox } from "@/hooks/useRobustMapbox";
 
 interface CourseMapProps {
   latitude?: number | null;
@@ -18,7 +18,7 @@ export const CourseMap = ({ latitude, longitude, name }: CourseMapProps) => {
   const { t } = useLanguage();
   const mapContainerRef = useRef<HTMLDivElement>(null);
   
-  const { map, isLoading, error } = useOptimizedMapbox({
+  const { map, isLoading, error } = useRobustMapbox({
     containerRef: mapContainerRef,
     center: longitude && latitude ? [longitude, latitude] : [-58.3816, -34.6118],
     zoom: 15,
@@ -88,7 +88,7 @@ export const CourseMap = ({ latitude, longitude, name }: CourseMapProps) => {
           {error && (
             <div className="absolute inset-0 flex flex-col items-center justify-center bg-muted z-10">
               <Globe className="h-12 w-12 text-muted-foreground opacity-50 mb-3" />
-              <p className="text-muted-foreground mb-3">{error}</p>
+              <p className="text-muted-foreground mb-3 text-center px-4">{error}</p>
               <Button 
                 variant="outline" 
                 size="sm" 

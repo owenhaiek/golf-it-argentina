@@ -6,7 +6,7 @@ import { CourseInfoTab } from "@/components/map/CourseInfoTab";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, MapPin, AlertCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useOptimizedMapbox } from "@/hooks/useOptimizedMapbox";
+import { useRobustMapbox } from "@/hooks/useRobustMapbox";
 
 interface GolfCourse {
   id: string;
@@ -55,7 +55,7 @@ const CoursesMap = () => {
     gcTime: 15 * 60 * 1000,
   });
 
-  const { map, isLoading: mapLoading, error: mapError } = useOptimizedMapbox({
+  const { map, isLoading: mapLoading, error: mapError } = useRobustMapbox({
     containerRef: mapContainerRef,
     center: [-58.3816, -34.6118],
     zoom: 6,
@@ -157,7 +157,7 @@ const CoursesMap = () => {
           <Loader2 className="h-8 w-8 animate-spin text-green-600 mx-auto mb-4" />
           <p className="text-green-700 font-medium">{loadingText}</p>
           <p className="text-green-600 text-sm mt-2">
-            This should only take a moment...
+            Please wait while we load the map...
           </p>
         </div>
       </div>
