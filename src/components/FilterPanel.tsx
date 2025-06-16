@@ -161,15 +161,15 @@ const FilterPanel = ({
         }`}
         style={{
           transform: `translateY(${isOpen ? dragOffset : 100}%)`,
-          height: '80vh',
-          maxHeight: '80vh'
+          height: '75vh',
+          maxHeight: '75vh'
         }}
       >
         <Card className="rounded-t-2xl border-b-0 shadow-2xl bg-card text-card-foreground w-full h-full">
-          <div className="p-6 h-full flex flex-col">
+          <div className="h-full flex flex-col">
             {/* Larger drag indicator */}
             <div 
-              className="w-16 h-2 bg-muted rounded-full mx-auto mb-4 cursor-pointer touch-none relative"
+              className="w-16 h-2 bg-muted rounded-full mx-auto mt-3 mb-3 cursor-pointer touch-none relative"
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
@@ -181,14 +181,14 @@ const FilterPanel = ({
               <div className="absolute inset-0 -top-4 -bottom-4 -left-4 -right-4 touch-none" />
             </div>
             
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-4 px-6">
               <h3 className="text-lg font-semibold text-foreground">Filter Courses</h3>
               <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full">
                 <X size={20} />
               </Button>
             </div>
 
-            <div className="space-y-4 flex-1 overflow-y-auto">
+            <div className="space-y-4 flex-1 overflow-y-auto px-6">
               {/* Favorites Filter - Enhanced Design */}
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-foreground">Show Favorites</Label>
@@ -346,7 +346,8 @@ const FilterPanel = ({
               </div>
             </div>
 
-            <div className="mt-4 p-4 bg-card border-t" style={{ paddingBottom: 'calc(16px + env(safe-area-inset-bottom, 0px))' }}>
+            {/* Fixed button area at bottom */}
+            <div className="flex-shrink-0 p-6 bg-card border-t">
               <div className="flex space-x-3">
                 <Button onClick={handleResetFilters} variant="outline" className="flex-1 h-11">
                   Reset
