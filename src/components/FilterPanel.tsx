@@ -161,8 +161,8 @@ const FilterPanel = ({
         }`}
         style={{
           transform: `translateY(${isOpen ? dragOffset : 100}%)`,
-          height: '85vh',
-          maxHeight: '85vh'
+          height: '80vh',
+          maxHeight: '80vh'
         }}
       >
         <Card className="rounded-t-2xl border-b-0 shadow-2xl bg-card text-card-foreground w-full h-full">
@@ -188,7 +188,7 @@ const FilterPanel = ({
               </Button>
             </div>
 
-            <div className="space-y-4 flex-1 overflow-y-auto pb-20">
+            <div className="space-y-4 flex-1 overflow-y-auto">
               {/* Favorites Filter - Enhanced Design */}
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-foreground">Show Favorites</Label>
@@ -248,7 +248,7 @@ const FilterPanel = ({
                   {holesOptions.map((option) => (
                     <div
                       key={option.value}
-                      className={`flex flex-col items-center p-2 rounded-lg border-2 transition-all cursor-pointer min-h-[45px] ${
+                      className={`flex flex-col items-center p-2 rounded-lg border-2 transition-all cursor-pointer min-h-[40px] ${
                         filters.holes === option.value
                           ? 'bg-green-50 border-green-500 dark:bg-green-950/20 dark:border-green-500'
                           : 'bg-muted/50 border-border hover:bg-muted'
@@ -259,7 +259,7 @@ const FilterPanel = ({
                       })}
                     >
                       <Flag 
-                        size={12} 
+                        size={10} 
                         className={`mb-1 transition-all ${
                           filters.holes === option.value
                             ? 'text-green-600'
@@ -346,7 +346,7 @@ const FilterPanel = ({
               </div>
             </div>
 
-            <div className="absolute bottom-0 left-0 right-0 p-4 bg-card border-t" style={{ paddingBottom: 'calc(16px + env(safe-area-inset-bottom, 0px))' }}>
+            <div className="mt-4 p-4 bg-card border-t" style={{ paddingBottom: 'calc(16px + env(safe-area-inset-bottom, 0px))' }}>
               <div className="flex space-x-3">
                 <Button onClick={handleResetFilters} variant="outline" className="flex-1 h-11">
                   Reset
