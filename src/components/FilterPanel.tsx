@@ -191,9 +191,9 @@ const FilterPanel = ({
             </div>
 
             {/* Scrollable content */}
-            <div className="space-y-2 flex-1 overflow-y-auto px-4 pb-0">
+            <div className="space-y-2 flex-1 overflow-y-auto px-4 pb-4">
               {/* Favorites Filter */}
-              <div className="space-y-2">
+              <div className="space-y-2 pb-2">
                 <Label className="text-sm font-medium text-foreground">Show Favorites</Label>
                 <div 
                   className={`flex items-center space-x-3 p-2 rounded-lg border-2 transition-all cursor-pointer ${
@@ -245,7 +245,7 @@ const FilterPanel = ({
               </div>
 
               {/* Number of Holes */}
-              <div className="space-y-2">
+              <div className="space-y-2 pb-2">
                 <Label className="text-sm font-medium text-foreground">Number of Holes</Label>
                 <div className="grid grid-cols-4 gap-2">
                   {holesOptions.map((option) => (
@@ -282,7 +282,7 @@ const FilterPanel = ({
               </div>
 
               {/* Currently Open */}
-              <div className="space-y-2">
+              <div className="space-y-2 pb-2">
                 <Label className="text-sm font-medium text-foreground">Status</Label>
                 <div 
                   className={`flex items-center space-x-3 p-2 rounded-lg border-2 transition-all cursor-pointer ${
@@ -334,7 +334,7 @@ const FilterPanel = ({
               </div>
 
               {/* Location */}
-              <div className="space-y-2 pb-2">
+              <div className="space-y-2 pb-4">
                 <Label htmlFor="location-filter" className="text-sm font-medium text-foreground">Location</Label>
                 <Input 
                   id="location-filter" 
