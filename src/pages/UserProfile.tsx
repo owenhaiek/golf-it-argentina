@@ -93,8 +93,8 @@ const UserProfile = () => {
   // Calculate stats safely
   const totalRoundsPlayed = recentRounds?.length || 0;
   
-  // Calculate best over/under par score
-  const bestScore = totalRoundsPlayed > 0
+  // Calculate best over/under par score with icon
+  const bestScoreData = totalRoundsPlayed > 0
     ? (() => {
         const parDifferences = recentRounds.map(round => {
           const coursePar = round.golf_courses?.par || 72;
@@ -103,14 +103,26 @@ const UserProfile = () => {
         const bestDiff = Math.min(...parDifferences);
         
         if (bestDiff < 0) {
-          return `${Math.abs(bestDiff)} under par`;
+          return {
+            text: `${Math.abs(bestDiff)} under par`,
+            icon: Minus,
+            color: "text-green-600"
+          };
         } else if (bestDiff > 0) {
-          return `${bestDiff} over par`;
+          return {
+            text: `${bestDiff} over par`,
+            icon: Plus,
+            color: "text-red-600"
+          };
         } else {
-          return "Even par";
+          return {
+            text: "Even par",
+            icon: Check,
+            color: "text-blue-600"
+          };
         }
       })()
-    : "N/A";
+    : null;
 
   const lastPlayedCourse = recentRounds?.[0]?.golf_courses?.name || "N/A";
   const lastPlayedDate = recentRounds?.[0]?.created_at
@@ -180,8 +192,20 @@ const UserProfile = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-lg font-bold">{bestScore}</div>
-                    <p className="text-sm text-muted-foreground">vs Par</p>
+                    {bestScoreData ? (
+                      <>
+                        <div className={`flex items-center gap-1 text-lg font-bold ${bestScoreData.color}`}>
+                          <bestScoreData.icon className="h-4 w-4" />
+                          <span>{bestScoreData.text}</span>
+                        </div>
+                        <p className="text-sm text-muted-foreground">vs Par</p>
+                      </>
+                    ) : (
+                      <>
+                        <div className="text-lg font-bold">N/A</div>
+                        <p className="text-sm text-muted-foreground">vs Par</p>
+                      </>
+                    )}
                   </CardContent>
                 </Card>
 
