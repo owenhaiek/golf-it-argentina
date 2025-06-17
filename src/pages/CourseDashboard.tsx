@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -259,9 +258,8 @@ const CourseDashboard = () => {
 
           <div className="mt-6">
             <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-4 mb-6">
+              <TabsList className="grid w-full grid-cols-3 mb-6">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
-                <TabsTrigger value="calendar">Calendar</TabsTrigger>
                 <TabsTrigger value="reservations">Reservations</TabsTrigger>
                 <TabsTrigger value="analytics">Analytics</TabsTrigger>
               </TabsList>
@@ -307,71 +305,7 @@ const CourseDashboard = () => {
                   </Card>
                 </div>
 
-                {/* Course Information */}
-                <div className="grid gap-6 md:grid-cols-2">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>About</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-muted-foreground">
-                        {course.description || "A beautiful golf course with challenging holes and stunning views."}
-                      </p>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Course Information</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      {course.address && (
-                        <div className="flex items-center">
-                          <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
-                          <span className="text-sm">{course.address}</span>
-                        </div>
-                      )}
-                      {course.phone && (
-                        <div className="flex items-center">
-                          <Phone className="h-4 w-4 mr-2 text-muted-foreground" />
-                          <span className="text-sm">{course.phone}</span>
-                        </div>
-                      )}
-                      {course.website && (
-                        <div className="flex items-center">
-                          <Globe className="h-4 w-4 mr-2 text-muted-foreground" />
-                          <a 
-                            href={course.website} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-sm text-primary hover:underline"
-                          >
-                            Visit Website
-                          </a>
-                        </div>
-                      )}
-                      {formattedHours && (
-                        <div className="flex items-start">
-                          <Clock className="h-4 w-4 mr-2 text-muted-foreground mt-0.5" />
-                          <div className="text-sm">
-                            <div className="font-medium mb-1">Opening Hours:</div>
-                            <div className="space-y-0.5">
-                              {formattedHours.map((day, index) => (
-                                <div key={index} className="flex justify-between">
-                                  <span>{day.day}:</span>
-                                  <span className="text-muted-foreground">{day.hours}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="calendar" className="space-y-6">
+                {/* Reservation Calendar */}
                 <ReservationCalendar 
                   reservations={reservations}
                   onReservationClick={handleReservationClick}
