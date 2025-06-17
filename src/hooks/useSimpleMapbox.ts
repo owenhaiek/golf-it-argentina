@@ -31,7 +31,7 @@ export function useSimpleMapbox({
         // Wait for DOM to be ready
         await new Promise(resolve => setTimeout(resolve, 100));
         
-        // Check container availability with improved detection
+        // Check container availability
         let attempts = 0;
         const maxAttempts = 50;
         let container: HTMLDivElement | null = null;
@@ -40,19 +40,9 @@ export function useSimpleMapbox({
           container = containerRef.current;
           
           if (container) {
-            // Force layout calculation
             container.style.display = container.style.display || 'block';
             const rect = container.getBoundingClientRect();
             
-            console.log("[SimpleMapbox] Container check:", {
-              attempt: attempts + 1,
-              exists: !!container,
-              width: rect.width,
-              height: rect.height,
-              isConnected: container.isConnected
-            });
-            
-            // Check if container is properly mounted and has dimensions
             if (container.isConnected && rect.width > 0 && rect.height > 0) {
               console.log("[SimpleMapbox] Container ready!");
               break;
@@ -85,7 +75,7 @@ export function useSimpleMapbox({
         // Set access token
         (window as any).mapboxgl.accessToken = accessToken;
         
-        // Create map with light style
+        // Create map with improved settings for stability
         const mapInstance = new (window as any).mapboxgl.Map({
           container: container,
           style: 'mapbox://styles/mapbox/light-v11',
@@ -93,13 +83,16 @@ export function useSimpleMapbox({
           zoom,
           attributionControl: false,
           logoPosition: 'bottom-right',
-          // Disable double click zoom to prevent zoom conflicts
-          doubleClickZoom: false,
-          // Set max bounds to prevent excessive panning
+          // Improved zoom and interaction settings
+          minZoom: 2,
+          maxZoom: 18,
           maxBounds: [
             [-180, -85], // Southwest coordinates
             [180, 85]    // Northeast coordinates
-          ]
+          ],
+          // Better performance settings
+          antialias: false,
+          optimizeForTerrain: false
         });
 
         // Add navigation controls
@@ -127,16 +120,33 @@ export function useSimpleMapbox({
           setIsLoading(false);
         });
 
-        // Prevent zoom conflicts
+        // Improved zoom handling - prevent conflicts
+        let isUserZooming = false;
+        
+        mapInstance.on('zoomstart', (e: any) => {
+          if (e.originalEvent) {
+            isUserZooming = true;
+          }
+        });
+
+        mapInstance.on('zoomend', () => {
+          setTimeout(() => {
+            isUserZooming = false;
+          }, 100);
+        });
+
+        // Better wheel zoom handling
         mapInstance.on('wheel', (e: any) => {
-          // Allow normal zoom behavior
-          if (!e.originalEvent.ctrlKey && !e.originalEvent.metaKey) {
+          if (!isUserZooming) {
             e.preventDefault();
-            const zoomLevel = mapInstance.getZoom();
+            const currentZoom = mapInstance.getZoom();
             const delta = e.originalEvent.deltaY > 0 ? -0.5 : 0.5;
+            const newZoom = Math.max(2, Math.min(18, currentZoom + delta));
+            
             mapInstance.easeTo({
-              zoom: Math.max(1, Math.min(18, zoomLevel + delta)),
-              duration: 200
+              zoom: newZoom,
+              duration: 200,
+              easing: (t: number) => t
             });
           }
         });

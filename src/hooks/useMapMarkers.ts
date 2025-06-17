@@ -20,7 +20,6 @@ interface GolfCourse {
 
 export const useMapMarkers = (onCourseSelect: (course: GolfCourse) => void) => {
   const markersRef = useRef<any[]>([]);
-  const coursesRef = useRef<GolfCourse[]>([]);
 
   const clearMarkers = useCallback(() => {
     markersRef.current.forEach(marker => {
@@ -61,7 +60,7 @@ export const useMapMarkers = (onCourseSelect: (course: GolfCourse) => void) => {
       
       console.log(`Adding marker for ${course.name} at [${lng}, ${lat}]`);
 
-      // Create marker with proper positioning
+      // Create marker with proper positioning - center anchor is key for stability
       const marker = new (window as any).mapboxgl.Marker({
         element: el,
         anchor: "center"
@@ -75,24 +74,22 @@ export const useMapMarkers = (onCourseSelect: (course: GolfCourse) => void) => {
 
     console.log("[MapMarkers] Added", validCourses, "valid markers");
 
-    // Fit bounds only when explicitly requested
+    // Only fit bounds on initial load, not on updates
     if (shouldFitBounds && validCourses > 0) {
-      fitMapToBounds(mapInstance, bounds, validCourses);
+      // Add a small delay to ensure markers are rendered
+      setTimeout(() => {
+        fitMapToBounds(mapInstance, bounds, validCourses);
+      }, 100);
     }
-
-    // Update courses reference
-    coursesRef.current = coursesToAdd;
   }, [onCourseSelect, clearMarkers]);
 
   const cleanup = useCallback(() => {
     clearMarkers();
-    coursesRef.current = [];
   }, [clearMarkers]);
 
   return {
     addMarkersToMap,
     clearMarkers,
-    cleanup,
-    coursesRef
+    cleanup
   };
 };
