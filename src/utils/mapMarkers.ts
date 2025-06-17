@@ -8,6 +8,8 @@ interface GolfCourse {
 
 export const createMarkerElement = (course: GolfCourse, onCourseSelect: (course: GolfCourse) => void) => {
   const el = document.createElement("div");
+  
+  // Use more precise positioning to prevent movement during zoom
   el.style.cssText = `
     width: 32px;
     height: 32px;
@@ -19,11 +21,13 @@ export const createMarkerElement = (course: GolfCourse, onCourseSelect: (course:
     display: flex;
     align-items: center;
     justify-content: center;
-    position: relative;
-    transition: background-color 0.2s ease;
+    position: absolute;
+    transform: translate(-50%, -50%);
     user-select: none;
     -webkit-user-select: none;
     touch-action: manipulation;
+    pointer-events: auto;
+    z-index: 100;
   `;
   
   el.innerHTML = `
@@ -32,7 +36,7 @@ export const createMarkerElement = (course: GolfCourse, onCourseSelect: (course:
     </svg>
   `;
 
-  // Only change color on hover, no transform
+  // Remove any transform effects that could cause movement
   el.addEventListener("mouseenter", () => {
     el.style.backgroundColor = "#059669";
   });

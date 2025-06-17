@@ -69,9 +69,11 @@ export const useMapMarkers = (onCourseSelect: (course: GolfCourse) => void) => {
       console.log(`Adding marker for ${course.name} at [${lng}, ${lat}]`);
 
       try {
+        // Use 'center' anchor to ensure marker stays precisely positioned
         const marker = new (window as any).mapboxgl.Marker({
           element: el,
-          anchor: "center"
+          anchor: "center",
+          draggable: false
         })
           .setLngLat(coordinates)
           .addTo(mapInstance);
@@ -85,7 +87,7 @@ export const useMapMarkers = (onCourseSelect: (course: GolfCourse) => void) => {
 
     console.log("[MapMarkers] Added", validCourses, "valid markers");
 
-    // Only fit bounds on initial load and if we have valid courses
+    // Only fit bounds on initial load
     if (shouldFitBounds && validCourses > 0) {
       setTimeout(() => {
         fitMapToBounds(mapInstance, bounds, validCourses);
