@@ -20,30 +20,35 @@ export const AdminGuard = ({ children }: AdminGuardProps) => {
 
   useEffect(() => {
     const checkAdminRole = async () => {
+      console.log("AdminGuard: Starting admin role check");
+      console.log("AdminGuard: User loading state:", loading);
+      console.log("AdminGuard: Current user:", user);
+      
       if (!user) {
-        console.log("No user found, denying admin access");
+        console.log("AdminGuard: No user found, denying admin access");
         setIsAdmin(false);
         setCheckingRole(false);
         return;
       }
 
       try {
-        console.log("Checking admin role for user:", user.email);
+        console.log("AdminGuard: Checking admin role for user:", user.email);
         
         // Updated to use only the dedicated admin email
         const adminEmail = 'admin@golfitargentina.com';
         const isUserAdmin = user.email === adminEmail;
         
-        console.log("User email:", user.email);
-        console.log("Is admin:", isUserAdmin);
-        console.log("Required admin email:", adminEmail);
+        console.log("AdminGuard: User email:", user.email);
+        console.log("AdminGuard: Required admin email:", adminEmail);
+        console.log("AdminGuard: Is admin:", isUserAdmin);
         
         setIsAdmin(isUserAdmin);
       } catch (error) {
-        console.error('Error checking admin role:', error);
+        console.error('AdminGuard: Error checking admin role:', error);
         setIsAdmin(false);
       } finally {
         setCheckingRole(false);
+        console.log("AdminGuard: Admin role check completed");
       }
     };
 
@@ -56,8 +61,11 @@ export const AdminGuard = ({ children }: AdminGuardProps) => {
     navigate('/');
   };
 
+  console.log("AdminGuard: Render state - loading:", loading, "checkingRole:", checkingRole, "isAdmin:", isAdmin);
+
   // Show loading while checking authentication and role
   if (loading || checkingRole) {
+    console.log("AdminGuard: Showing loading state");
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-background z-50">
         <GolfAnimationLoader />
@@ -67,7 +75,7 @@ export const AdminGuard = ({ children }: AdminGuardProps) => {
 
   // If user is not authenticated or not admin, show access denied
   if (!user || !isAdmin) {
-    console.log("Access denied. User:", user?.email, "Is admin:", isAdmin);
+    console.log("AdminGuard: Access denied. User:", user?.email, "Is admin:", isAdmin);
     return (
       <div className="min-h-screen flex items-center justify-center bg-muted/50 p-4">
         <Card className="max-w-md w-full">
@@ -92,6 +100,6 @@ export const AdminGuard = ({ children }: AdminGuardProps) => {
     );
   }
 
-  console.log("Admin access granted for user:", user.email);
+  console.log("AdminGuard: Admin access granted for user:", user.email);
   return <>{children}</>;
 };

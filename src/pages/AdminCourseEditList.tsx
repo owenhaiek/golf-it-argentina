@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AdminGolfCourseForm, GolfCourseTemplate } from "./AdminGolfCourseManager";
-import CourseList from "@/components/admin/CourseList";
+import AdminCourseList from "@/components/admin/CourseList";
 
 const AdminCourseEditList = () => {
   const [selectedCourse, setSelectedCourse] = useState<GolfCourseTemplate | null>(null);
@@ -14,16 +14,19 @@ const AdminCourseEditList = () => {
   const { toast } = useToast();
 
   const handleEditCourse = (course: GolfCourseTemplate) => {
+    console.log("Editing course:", course);
     setSelectedCourse(course);
     setShowAddForm(false);
   };
 
   const handleAddNewCourse = () => {
+    console.log("Adding new course");
     setSelectedCourse(null);
     setShowAddForm(true);
   };
 
   const handleFormSuccess = () => {
+    console.log("Form submitted successfully");
     setSelectedCourse(null);
     setShowAddForm(false);
     toast({
@@ -35,11 +38,14 @@ const AdminCourseEditList = () => {
   };
 
   const handleCancelEdit = () => {
+    console.log("Cancelling edit");
     setSelectedCourse(null);
     setShowAddForm(false);
   };
 
   const isEditing = selectedCourse || showAddForm;
+
+  console.log("AdminCourseEditList render - isEditing:", isEditing, "selectedCourse:", selectedCourse, "showAddForm:", showAddForm);
 
   return (
     <div className="min-h-screen bg-background">
@@ -93,7 +99,7 @@ const AdminCourseEditList = () => {
             />
           </div>
         ) : (
-          <CourseList onEditCourse={handleEditCourse} />
+          <AdminCourseList onEditCourse={handleEditCourse} />
         )}
       </div>
     </div>
