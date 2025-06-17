@@ -30,13 +30,13 @@ export const AdminGuard = ({ children }: AdminGuardProps) => {
       try {
         console.log("Checking admin role for user:", user.email);
         
-        // Updated admin emails list to include your email
-        const adminEmails = ['admin@golfapp.com', 'admin@example.com', 'owenhaiek11@gmail.com'];
-        const isUserAdmin = adminEmails.includes(user.email || '');
+        // Updated to use only the dedicated admin email
+        const adminEmail = 'admin@golfitargentina.com';
+        const isUserAdmin = user.email === adminEmail;
         
         console.log("User email:", user.email);
         console.log("Is admin:", isUserAdmin);
-        console.log("Admin emails:", adminEmails);
+        console.log("Required admin email:", adminEmail);
         
         setIsAdmin(isUserAdmin);
       } catch (error) {
