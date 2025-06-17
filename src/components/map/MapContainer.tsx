@@ -40,33 +40,44 @@ export const MapContainer = ({ courses, onCourseSelect }: MapContainerProps) => 
     let validCourses = 0;
 
     courses.forEach(course => {
-      if (!course.latitude || !course.longitude) {
-        console.warn(`Course ${course.name} missing coordinates:`, { lat: course.latitude, lng: course.longitude });
+      // Validate coordinates more strictly
+      const lat = parseFloat(String(course.latitude || 0));
+      const lng = parseFloat(String(course.longitude || 0));
+      
+      if (!course.latitude || !course.longitude || isNaN(lat) || isNaN(lng)) {
+        console.warn(`Course ${course.name} has invalid coordinates:`, { 
+          lat: course.latitude, 
+          lng: course.longitude,
+          parsedLat: lat,
+          parsedLng: lng
+        });
         return;
       }
       
       validCourses++;
       
-      // Create marker element with proper positioning
+      // Create marker element with fixed positioning
       const el = document.createElement("div");
       el.className = "golf-course-marker";
       el.style.cssText = `
-        width: 40px;
-        height: 40px;
+        width: 32px;
+        height: 32px;
         background-color: #10b981;
-        border: 3px solid white;
+        border: 2px solid white;
         border-radius: 50%;
         cursor: pointer;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         display: flex;
         align-items: center;
         justify-content: center;
         transition: all 0.2s ease;
-        position: relative;
+        transform: translate(-50%, -50%);
+        position: absolute;
+        z-index: 1;
       `;
       
       el.innerHTML = `
-        <svg width="20" height="20" fill="white" viewBox="0 0 24 24">
+        <svg width="16" height="16" fill="white" viewBox="0 0 24 24">
           <path d="M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z"/>
         </svg>
       `;
@@ -74,12 +85,12 @@ export const MapContainer = ({ courses, onCourseSelect }: MapContainerProps) => 
       // Add hover effects
       el.addEventListener("mouseenter", () => {
         el.style.backgroundColor = "#059669";
-        el.style.transform = "scale(1.1)";
+        el.style.transform = "translate(-50%, -50%) scale(1.2)";
       });
 
       el.addEventListener("mouseleave", () => {
         el.style.backgroundColor = "#10b981";
-        el.style.transform = "scale(1)";
+        el.style.transform = "translate(-50%, -50%) scale(1)";
       });
 
       el.addEventListener("click", (e) => {
@@ -88,14 +99,16 @@ export const MapContainer = ({ courses, onCourseSelect }: MapContainerProps) => 
         onCourseSelect(course);
       });
 
-      // Create marker with proper coordinate positioning
-      const coordinates: [number, number] = [Number(course.longitude), Number(course.latitude)];
+      // Create coordinates array with proper type conversion
+      const coordinates: [number, number] = [lng, lat];
       
       console.log(`Adding marker for ${course.name} at coordinates:`, coordinates);
 
+      // Create marker with proper anchor and offset handling
       const marker = new (window as any).mapboxgl.Marker({
         element: el,
-        anchor: "center", // Anchor to center ensures proper positioning
+        anchor: "center",
+        offset: [0, 0] // No offset since we handle centering with CSS transform
       })
         .setLngLat(coordinates)
         .addTo(mapInstance);
@@ -110,9 +123,9 @@ export const MapContainer = ({ courses, onCourseSelect }: MapContainerProps) => 
     if (validCourses > 0) {
       try {
         mapInstance.fitBounds(bounds, {
-          padding: { top: 60, bottom: 60, left: 60, right: 60 },
-          maxZoom: 14,
-          duration: 1500,
+          padding: { top: 80, bottom: 80, left: 80, right: 80 },
+          maxZoom: 13,
+          duration: 1200,
         });
       } catch (error) {
         console.warn("[MapContainer] Error fitting bounds:", error);
@@ -128,7 +141,7 @@ export const MapContainer = ({ courses, onCourseSelect }: MapContainerProps) => 
     onMapReady: (mapInstance) => {
       console.log("[MapContainer] Map ready, adding markers...");
       
-      // Ensure map is fully loaded before adding markers
+      // Wait for map to be fully rendered
       mapInstance.on('idle', () => {
         if (courses && courses.length > 0) {
           addMarkersToMap(mapInstance);
@@ -140,11 +153,11 @@ export const MapContainer = ({ courses, onCourseSelect }: MapContainerProps) => 
   // Re-add markers when courses change and map is ready
   useEffect(() => {
     if (map && courses && courses.length > 0) {
-      // Wait for map to be fully ready before adding markers
+      // Ensure map style is loaded before adding markers
       if (map.isStyleLoaded()) {
         addMarkersToMap(map);
       } else {
-        map.on('styledata', () => {
+        map.once('styledata', () => {
           addMarkersToMap(map);
         });
       }
