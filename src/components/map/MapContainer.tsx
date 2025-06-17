@@ -28,9 +28,13 @@ const MAPBOX_TOKEN = 'pk.eyJ1Ijoib3dlbmhhaWVrIiwiYSI6ImNtYW8zbWZpajAyeGsyaXB3Z2N
 export const MapContainer = ({ courses, onCourseSelect }: MapContainerProps) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<any[]>([]);
+  const mapReadyRef = useRef(false);
+  const markersAddedRef = useRef(false);
 
   const addMarkersToMap = (mapInstance: any) => {
-    if (!courses || courses.length === 0) return;
+    if (!courses || courses.length === 0 || markersAddedRef.current) return;
+
+    console.log("[MapContainer] Adding markers for", courses.length, "courses");
 
     // Clear existing markers
     markersRef.current.forEach(marker => marker.remove());
@@ -40,11 +44,11 @@ export const MapContainer = ({ courses, onCourseSelect }: MapContainerProps) => 
     let validCourses = 0;
 
     courses.forEach(course => {
-      // Validate coordinates more strictly
+      // Validate coordinates strictly
       const lat = parseFloat(String(course.latitude || 0));
       const lng = parseFloat(String(course.longitude || 0));
       
-      if (!course.latitude || !course.longitude || isNaN(lat) || isNaN(lng)) {
+      if (!course.latitude || !course.longitude || isNaN(lat) || isNaN(lng) || lat === 0 || lng === 0) {
         console.warn(`Course ${course.name} has invalid coordinates:`, { 
           lat: course.latitude, 
           lng: course.longitude,
@@ -56,7 +60,7 @@ export const MapContainer = ({ courses, onCourseSelect }: MapContainerProps) => 
       
       validCourses++;
       
-      // Create marker element with fixed positioning
+      // Create marker element
       const el = document.createElement("div");
       el.className = "golf-course-marker";
       el.style.cssText = `
@@ -71,9 +75,6 @@ export const MapContainer = ({ courses, onCourseSelect }: MapContainerProps) => 
         align-items: center;
         justify-content: center;
         transition: all 0.2s ease;
-        transform: translate(-50%, -50%);
-        position: absolute;
-        z-index: 1;
       `;
       
       el.innerHTML = `
@@ -85,12 +86,12 @@ export const MapContainer = ({ courses, onCourseSelect }: MapContainerProps) => 
       // Add hover effects
       el.addEventListener("mouseenter", () => {
         el.style.backgroundColor = "#059669";
-        el.style.transform = "translate(-50%, -50%) scale(1.2)";
+        el.style.transform = "scale(1.2)";
       });
 
       el.addEventListener("mouseleave", () => {
         el.style.backgroundColor = "#10b981";
-        el.style.transform = "translate(-50%, -50%) scale(1)";
+        el.style.transform = "scale(1)";
       });
 
       el.addEventListener("click", (e) => {
@@ -99,16 +100,15 @@ export const MapContainer = ({ courses, onCourseSelect }: MapContainerProps) => 
         onCourseSelect(course);
       });
 
-      // Create coordinates array with proper type conversion
+      // Create coordinates - ensure correct order [longitude, latitude]
       const coordinates: [number, number] = [lng, lat];
       
-      console.log(`Adding marker for ${course.name} at coordinates:`, coordinates);
+      console.log(`Adding marker for ${course.name} at [${lng}, ${lat}]`);
 
-      // Create marker with proper anchor and offset handling
+      // Create marker with center anchor
       const marker = new (window as any).mapboxgl.Marker({
         element: el,
-        anchor: "center",
-        offset: [0, 0] // No offset since we handle centering with CSS transform
+        anchor: "center"
       })
         .setLngLat(coordinates)
         .addTo(mapInstance);
@@ -117,20 +117,22 @@ export const MapContainer = ({ courses, onCourseSelect }: MapContainerProps) => 
       bounds.extend(coordinates);
     });
 
-    console.log("[MapContainer] Added", validCourses, "markers with coordinates");
+    console.log("[MapContainer] Added", validCourses, "valid markers");
 
-    // Fit map to show all markers with padding
-    if (validCourses > 0) {
+    // Fit map to show all markers only once
+    if (validCourses > 0 && !markersAddedRef.current) {
       try {
         mapInstance.fitBounds(bounds, {
-          padding: { top: 80, bottom: 80, left: 80, right: 80 },
-          maxZoom: 13,
-          duration: 1200,
+          padding: { top: 50, bottom: 50, left: 50, right: 50 },
+          maxZoom: 12,
+          duration: 1000,
         });
       } catch (error) {
         console.warn("[MapContainer] Error fitting bounds:", error);
       }
     }
+
+    markersAddedRef.current = true;
   };
 
   const { map, isLoading, error } = useSimpleMapbox({
@@ -139,21 +141,24 @@ export const MapContainer = ({ courses, onCourseSelect }: MapContainerProps) => 
     zoom: 6,
     accessToken: MAPBOX_TOKEN,
     onMapReady: (mapInstance) => {
-      console.log("[MapContainer] Map ready, adding markers...");
+      console.log("[MapContainer] Map ready");
+      mapReadyRef.current = true;
       
-      // Wait for map to be fully rendered
-      mapInstance.on('idle', () => {
-        if (courses && courses.length > 0) {
+      // Add markers once when map is ready and loaded
+      mapInstance.once('idle', () => {
+        if (courses && courses.length > 0 && !markersAddedRef.current) {
           addMarkersToMap(mapInstance);
         }
       });
     }
   });
 
-  // Re-add markers when courses change and map is ready
+  // Add markers when courses change and map is ready
   useEffect(() => {
-    if (map && courses && courses.length > 0) {
-      // Ensure map style is loaded before adding markers
+    if (map && mapReadyRef.current && courses && courses.length > 0) {
+      // Reset markers added flag when courses change
+      markersAddedRef.current = false;
+      
       if (map.isStyleLoaded()) {
         addMarkersToMap(map);
       } else {
@@ -162,13 +167,15 @@ export const MapContainer = ({ courses, onCourseSelect }: MapContainerProps) => 
         });
       }
     }
-  }, [map, courses]);
+  }, [courses]); // Only depend on courses, not map
 
   // Cleanup markers on unmount
   useEffect(() => {
     return () => {
       markersRef.current.forEach(marker => marker.remove());
       markersRef.current = [];
+      markersAddedRef.current = false;
+      mapReadyRef.current = false;
     };
   }, []);
 
