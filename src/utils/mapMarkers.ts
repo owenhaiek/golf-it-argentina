@@ -20,7 +20,10 @@ export const createMarkerElement = (course: GolfCourse, onCourseSelect: (course:
     align-items: center;
     justify-content: center;
     position: relative;
-    transition: transform 0.2s ease, background-color 0.2s ease;
+    transition: background-color 0.2s ease;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
   `;
   
   el.innerHTML = `
@@ -29,15 +32,13 @@ export const createMarkerElement = (course: GolfCourse, onCourseSelect: (course:
     </svg>
   `;
 
-  // Add hover effects
+  // Only change color on hover, no transform
   el.addEventListener("mouseenter", () => {
     el.style.backgroundColor = "#059669";
-    el.style.transform = "scale(1.2)";
   });
 
   el.addEventListener("mouseleave", () => {
     el.style.backgroundColor = "#10b981";
-    el.style.transform = "scale(1)";
   });
 
   el.addEventListener("click", (e) => {
@@ -53,7 +54,8 @@ export const createMarkerElement = (course: GolfCourse, onCourseSelect: (course:
 export const validateCoordinates = (latitude?: number, longitude?: number): boolean => {
   const lat = Number(latitude);
   const lng = Number(longitude);
-  return !(!latitude || !longitude || isNaN(lat) || isNaN(lng) || lat === 0 || lng === 0);
+  return !(!latitude || !longitude || isNaN(lat) || isNaN(lng) || 
+           lat === 0 || lng === 0 || lat < -90 || lat > 90 || lng < -180 || lng > 180);
 };
 
 export const fitMapToBounds = (map: any, bounds: any, validCourses: number) => {
@@ -61,8 +63,8 @@ export const fitMapToBounds = (map: any, bounds: any, validCourses: number) => {
     try {
       map.fitBounds(bounds, {
         padding: { top: 50, bottom: 50, left: 50, right: 50 },
-        maxZoom: 12,
-        duration: 1500,
+        maxZoom: 10,
+        duration: 1000,
       });
     } catch (error) {
       console.warn("[MapMarkers] Error fitting bounds:", error);

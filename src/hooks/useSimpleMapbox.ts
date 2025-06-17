@@ -83,16 +83,11 @@ export function useSimpleMapbox({
           zoom,
           attributionControl: false,
           logoPosition: 'bottom-right',
-          // Improved zoom and interaction settings
           minZoom: 2,
           maxZoom: 18,
-          maxBounds: [
-            [-180, -85], // Southwest coordinates
-            [180, 85]    // Northeast coordinates
-          ],
-          // Better performance settings
-          antialias: false,
-          optimizeForTerrain: false
+          dragRotate: false,
+          pitchWithRotate: false,
+          touchZoomRotate: true
         });
 
         // Add navigation controls
@@ -118,37 +113,6 @@ export function useSimpleMapbox({
           console.error("[SimpleMapbox] Map error:", e);
           setError("Failed to load map");
           setIsLoading(false);
-        });
-
-        // Improved zoom handling - prevent conflicts
-        let isUserZooming = false;
-        
-        mapInstance.on('zoomstart', (e: any) => {
-          if (e.originalEvent) {
-            isUserZooming = true;
-          }
-        });
-
-        mapInstance.on('zoomend', () => {
-          setTimeout(() => {
-            isUserZooming = false;
-          }, 100);
-        });
-
-        // Better wheel zoom handling
-        mapInstance.on('wheel', (e: any) => {
-          if (!isUserZooming) {
-            e.preventDefault();
-            const currentZoom = mapInstance.getZoom();
-            const delta = e.originalEvent.deltaY > 0 ? -0.5 : 0.5;
-            const newZoom = Math.max(2, Math.min(18, currentZoom + delta));
-            
-            mapInstance.easeTo({
-              zoom: newZoom,
-              duration: 200,
-              easing: (t: number) => t
-            });
-          }
         });
 
       } catch (error: any) {

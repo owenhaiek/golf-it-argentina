@@ -44,23 +44,27 @@ export const MapContainer = ({ courses, onCourseSelect }: MapContainerProps) => 
     };
   }, [cleanup]);
 
+  // Ensure Mapbox CSS is loaded
+  useEffect(() => {
+    const linkId = 'mapbox-gl-css';
+    if (!document.getElementById(linkId)) {
+      const link = document.createElement('link');
+      link.id = linkId;
+      link.href = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css';
+      link.rel = 'stylesheet';
+      document.head.appendChild(link);
+    }
+  }, []);
+
   return (
-    <>
-      {/* Ensure Mapbox CSS is loaded */}
-      <link
-        href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css"
-        rel="stylesheet"
-      />
-      
-      <div
-        ref={mapContainerRef}
-        className="absolute inset-0 w-full h-full"
-        style={{ 
-          cursor: 'grab',
-          minHeight: '100vh',
-          minWidth: '100vw'
-        }}
-      />
-    </>
+    <div
+      ref={mapContainerRef}
+      className="absolute inset-0 w-full h-full"
+      style={{ 
+        cursor: 'grab',
+        minHeight: '100vh',
+        minWidth: '100vw'
+      }}
+    />
   );
 };

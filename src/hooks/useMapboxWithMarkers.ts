@@ -55,7 +55,11 @@ export const useMapboxWithMarkers = ({
     if (!map || !courses || courses.length === 0 || isLoading) return;
 
     // Create a version string to detect actual course changes
-    const currentVersion = courses.map(c => `${c.id}-${c.latitude}-${c.longitude}`).join('|');
+    const currentVersion = courses
+      .filter(c => c.latitude && c.longitude)
+      .map(c => `${c.id}-${c.latitude}-${c.longitude}`)
+      .sort()
+      .join('|');
     
     // Only add markers if courses actually changed or haven't been initialized
     if (!markersInitialized || currentVersion !== coursesVersionRef.current) {

@@ -22,13 +22,17 @@ export const useMapMarkers = (onCourseSelect: (course: GolfCourse) => void) => {
   const markersRef = useRef<any[]>([]);
 
   const clearMarkers = useCallback(() => {
-    markersRef.current.forEach(marker => {
-      try {
-        marker.remove();
-      } catch (e) {
-        console.warn("Error removing marker:", e);
-      }
-    });
+    if (markersRef.current && markersRef.current.length > 0) {
+      markersRef.current.forEach(marker => {
+        try {
+          if (marker && typeof marker.remove === 'function') {
+            marker.remove();
+          }
+        } catch (e) {
+          console.warn("Error removing marker:", e);
+        }
+      });
+    }
     markersRef.current = [];
   }, []);
 
@@ -38,13 +42,15 @@ export const useMapMarkers = (onCourseSelect: (course: GolfCourse) => void) => {
     // Clear existing markers first
     clearMarkers();
 
+    if (!coursesToAdd || coursesToAdd.length === 0) {
+      console.log("[MapMarkers] No courses to add markers for");
+      return;
+    }
+
     const bounds = new (window as any).mapboxgl.LngLatBounds();
     let validCourses = 0;
 
     coursesToAdd.forEach(course => {
-      const lat = Number(course.latitude);
-      const lng = Number(course.longitude);
-      
       if (!validateCoordinates(course.latitude, course.longitude)) {
         console.warn(`Course ${course.name} has invalid coordinates:`, { 
           lat: course.latitude, 
@@ -53,6 +59,8 @@ export const useMapMarkers = (onCourseSelect: (course: GolfCourse) => void) => {
         return;
       }
       
+      const lat = Number(course.latitude);
+      const lng = Number(course.longitude);
       validCourses++;
       
       const el = createMarkerElement(course, onCourseSelect);
@@ -60,26 +68,28 @@ export const useMapMarkers = (onCourseSelect: (course: GolfCourse) => void) => {
       
       console.log(`Adding marker for ${course.name} at [${lng}, ${lat}]`);
 
-      // Create marker with proper positioning - center anchor is key for stability
-      const marker = new (window as any).mapboxgl.Marker({
-        element: el,
-        anchor: "center"
-      })
-        .setLngLat(coordinates)
-        .addTo(mapInstance);
+      try {
+        const marker = new (window as any).mapboxgl.Marker({
+          element: el,
+          anchor: "center"
+        })
+          .setLngLat(coordinates)
+          .addTo(mapInstance);
 
-      markersRef.current.push(marker);
-      bounds.extend(coordinates);
+        markersRef.current.push(marker);
+        bounds.extend(coordinates);
+      } catch (error) {
+        console.warn(`Failed to add marker for ${course.name}:`, error);
+      }
     });
 
     console.log("[MapMarkers] Added", validCourses, "valid markers");
 
-    // Only fit bounds on initial load, not on updates
+    // Only fit bounds on initial load and if we have valid courses
     if (shouldFitBounds && validCourses > 0) {
-      // Add a small delay to ensure markers are rendered
       setTimeout(() => {
         fitMapToBounds(mapInstance, bounds, validCourses);
-      }, 100);
+      }, 300);
     }
   }, [onCourseSelect, clearMarkers]);
 
