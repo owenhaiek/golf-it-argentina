@@ -40,12 +40,16 @@ export const MapContainer = ({ courses, onCourseSelect }: MapContainerProps) => 
     let validCourses = 0;
 
     courses.forEach(course => {
-      if (!course.latitude || !course.longitude) return;
+      if (!course.latitude || !course.longitude) {
+        console.warn(`Course ${course.name} missing coordinates:`, { lat: course.latitude, lng: course.longitude });
+        return;
+      }
       
       validCourses++;
       
-      // Create green marker element
+      // Create marker element with proper positioning
       const el = document.createElement("div");
+      el.className = "golf-course-marker";
       el.style.cssText = `
         width: 40px;
         height: 40px;
@@ -58,6 +62,7 @@ export const MapContainer = ({ courses, onCourseSelect }: MapContainerProps) => 
         align-items: center;
         justify-content: center;
         transition: all 0.2s ease;
+        position: relative;
       `;
       
       el.innerHTML = `
@@ -83,26 +88,31 @@ export const MapContainer = ({ courses, onCourseSelect }: MapContainerProps) => 
         onCourseSelect(course);
       });
 
+      // Create marker with proper coordinate positioning
+      const coordinates: [number, number] = [Number(course.longitude), Number(course.latitude)];
+      
+      console.log(`Adding marker for ${course.name} at coordinates:`, coordinates);
+
       const marker = new (window as any).mapboxgl.Marker({
         element: el,
-        anchor: "center",
+        anchor: "center", // Anchor to center ensures proper positioning
       })
-        .setLngLat([course.longitude, course.latitude])
+        .setLngLat(coordinates)
         .addTo(mapInstance);
 
       markersRef.current.push(marker);
-      bounds.extend([course.longitude, course.latitude]);
+      bounds.extend(coordinates);
     });
 
-    console.log("[MapContainer] Added", validCourses, "markers");
+    console.log("[MapContainer] Added", validCourses, "markers with coordinates");
 
-    // Fit map to show all markers
+    // Fit map to show all markers with padding
     if (validCourses > 0) {
       try {
         mapInstance.fitBounds(bounds, {
-          padding: { top: 50, bottom: 50, left: 50, right: 50 },
-          maxZoom: 12,
-          duration: 1000,
+          padding: { top: 60, bottom: 60, left: 60, right: 60 },
+          maxZoom: 14,
+          duration: 1500,
         });
       } catch (error) {
         console.warn("[MapContainer] Error fitting bounds:", error);
@@ -112,23 +122,42 @@ export const MapContainer = ({ courses, onCourseSelect }: MapContainerProps) => 
 
   const { map, isLoading, error } = useSimpleMapbox({
     containerRef: mapContainerRef,
-    center: [-58.3816, -34.6118],
+    center: [-58.3816, -34.6118], // Argentina center
     zoom: 6,
     accessToken: MAPBOX_TOKEN,
     onMapReady: (mapInstance) => {
       console.log("[MapContainer] Map ready, adding markers...");
-      if (courses && courses.length > 0) {
-        addMarkersToMap(mapInstance);
-      }
+      
+      // Ensure map is fully loaded before adding markers
+      mapInstance.on('idle', () => {
+        if (courses && courses.length > 0) {
+          addMarkersToMap(mapInstance);
+        }
+      });
     }
   });
 
-  // Re-add markers when courses load and map is ready
+  // Re-add markers when courses change and map is ready
   useEffect(() => {
     if (map && courses && courses.length > 0) {
-      addMarkersToMap(map);
+      // Wait for map to be fully ready before adding markers
+      if (map.isStyleLoaded()) {
+        addMarkersToMap(map);
+      } else {
+        map.on('styledata', () => {
+          addMarkersToMap(map);
+        });
+      }
     }
   }, [map, courses]);
+
+  // Cleanup markers on unmount
+  useEffect(() => {
+    return () => {
+      markersRef.current.forEach(marker => marker.remove());
+      markersRef.current = [];
+    };
+  }, []);
 
   return (
     <>
