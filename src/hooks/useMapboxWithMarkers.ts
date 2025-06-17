@@ -1,5 +1,5 @@
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useSimpleMapbox } from "@/hooks/useSimpleMapbox";
 import { useMapMarkers } from "@/hooks/useMapMarkers";
 
@@ -36,7 +36,7 @@ export const useMapboxWithMarkers = ({
   courses,
   onCourseSelect
 }: UseMapboxWithMarkersOptions) => {
-  const [hasInitialLoad, setHasInitialLoad] = useState(false);
+  const [markersAdded, setMarkersAdded] = useState(false);
   const { addMarkersToMap, cleanup, coursesRef } = useMapMarkers(onCourseSelect);
 
   const { map, isLoading, error } = useSimpleMapbox({
@@ -45,33 +45,38 @@ export const useMapboxWithMarkers = ({
     zoom,
     accessToken,
     onMapReady: (mapInstance) => {
-      console.log("[MapboxWithMarkers] Map ready");
+      console.log("[MapboxWithMarkers] Map ready, adding markers");
       
-      mapInstance.on('idle', () => {
-        if (courses && courses.length > 0 && !hasInitialLoad) {
-          addMarkersToMap(mapInstance, courses, true);
-          setHasInitialLoad(true);
-        }
-      });
+      // Add markers only once when map is ready and we have courses
+      if (courses && courses.length > 0 && !markersAdded) {
+        // Wait for map to be fully loaded before adding markers
+        mapInstance.on('idle', () => {
+          if (!markersAdded) {
+            addMarkersToMap(mapInstance, courses, true);
+            setMarkersAdded(true);
+          }
+        });
+      }
     }
   });
 
-  const updateMarkers = (newCourses: GolfCourse[]) => {
-    if (!map || !newCourses) return;
+  // Handle courses changes - only update if courses actually changed
+  useEffect(() => {
+    if (!map || !courses || markersAdded) return;
 
-    const coursesChanged = newCourses.length !== coursesRef.current.length || 
-      newCourses.some((course, index) => course.id !== coursesRef.current[index]?.id);
+    const coursesChanged = courses.length !== coursesRef.current.length || 
+      courses.some((course, index) => course.id !== coursesRef.current[index]?.id);
 
     if (coursesChanged && map.isStyleLoaded()) {
-      addMarkersToMap(map, newCourses, false);
+      addMarkersToMap(map, courses, true);
+      setMarkersAdded(true);
     }
-  };
+  }, [courses, map, addMarkersToMap, markersAdded, coursesRef]);
 
   return {
     map,
     isLoading,
     error,
-    updateMarkers,
     cleanup
   };
 };

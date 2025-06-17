@@ -28,7 +28,7 @@ const MAPBOX_TOKEN = 'pk.eyJ1Ijoib3dlbmhhaWVrIiwiYSI6ImNtYW8zbWZpajAyeGsyaXB3Z2N
 export const MapContainer = ({ courses, onCourseSelect }: MapContainerProps) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
 
-  const { map, isLoading, error, updateMarkers, cleanup } = useMapboxWithMarkers({
+  const { map, isLoading, error, cleanup } = useMapboxWithMarkers({
     containerRef: mapContainerRef,
     center: [-58.3816, -34.6118],
     zoom: 6,
@@ -36,13 +36,6 @@ export const MapContainer = ({ courses, onCourseSelect }: MapContainerProps) => 
     courses,
     onCourseSelect
   });
-
-  // Handle courses changes
-  useEffect(() => {
-    if (courses && courses.length > 0) {
-      updateMarkers(courses);
-    }
-  }, [courses, updateMarkers]);
 
   // Cleanup on unmount
   useEffect(() => {

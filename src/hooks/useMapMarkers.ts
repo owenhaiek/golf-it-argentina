@@ -33,10 +33,10 @@ export const useMapMarkers = (onCourseSelect: (course: GolfCourse) => void) => {
     markersRef.current = [];
   }, []);
 
-  const addMarkersToMap = useCallback((mapInstance: any, coursesToAdd: GolfCourse[], isInitialLoad = false) => {
+  const addMarkersToMap = useCallback((mapInstance: any, coursesToAdd: GolfCourse[], shouldFitBounds = false) => {
     console.log("[MapMarkers] Adding markers for", coursesToAdd.length, "courses");
 
-    // Clear existing markers
+    // Clear existing markers first
     clearMarkers();
 
     const bounds = new (window as any).mapboxgl.LngLatBounds();
@@ -61,6 +61,7 @@ export const useMapMarkers = (onCourseSelect: (course: GolfCourse) => void) => {
       
       console.log(`Adding marker for ${course.name} at [${lng}, ${lat}]`);
 
+      // Create marker with proper positioning
       const marker = new (window as any).mapboxgl.Marker({
         element: el,
         anchor: "center"
@@ -74,8 +75,8 @@ export const useMapMarkers = (onCourseSelect: (course: GolfCourse) => void) => {
 
     console.log("[MapMarkers] Added", validCourses, "valid markers");
 
-    // Fit bounds only on initial load
-    if (isInitialLoad) {
+    // Fit bounds only when explicitly requested
+    if (shouldFitBounds && validCourses > 0) {
       fitMapToBounds(mapInstance, bounds, validCourses);
     }
 

@@ -92,7 +92,14 @@ export function useSimpleMapbox({
           center,
           zoom,
           attributionControl: false,
-          logoPosition: 'bottom-right'
+          logoPosition: 'bottom-right',
+          // Disable double click zoom to prevent zoom conflicts
+          doubleClickZoom: false,
+          // Set max bounds to prevent excessive panning
+          maxBounds: [
+            [-180, -85], // Southwest coordinates
+            [180, 85]    // Northeast coordinates
+          ]
         });
 
         // Add navigation controls
@@ -118,6 +125,20 @@ export function useSimpleMapbox({
           console.error("[SimpleMapbox] Map error:", e);
           setError("Failed to load map");
           setIsLoading(false);
+        });
+
+        // Prevent zoom conflicts
+        mapInstance.on('wheel', (e: any) => {
+          // Allow normal zoom behavior
+          if (!e.originalEvent.ctrlKey && !e.originalEvent.metaKey) {
+            e.preventDefault();
+            const zoomLevel = mapInstance.getZoom();
+            const delta = e.originalEvent.deltaY > 0 ? -0.5 : 0.5;
+            mapInstance.easeTo({
+              zoom: Math.max(1, Math.min(18, zoomLevel + delta)),
+              duration: 200
+            });
+          }
         });
 
       } catch (error: any) {
