@@ -39,7 +39,7 @@ export const CourseInfoTab = ({ course, isOpen, onClose }: CourseInfoTabProps) =
         <>
           {/* Backdrop */}
           <motion.div
-            className="fixed inset-0 bg-black/20 z-40"
+            className="fixed inset-0 bg-black/20 z-[200]"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -48,7 +48,7 @@ export const CourseInfoTab = ({ course, isOpen, onClose }: CourseInfoTabProps) =
           
           {/* Slide-down tab */}
           <motion.div
-            className="fixed top-0 left-0 right-0 z-50 bg-white border-b shadow-lg max-w-md mx-auto"
+            className="fixed top-0 left-0 right-0 z-[250] bg-white border-b shadow-lg max-w-md mx-auto"
             initial={{ y: "-100%" }}
             animate={{ y: 0 }}
             exit={{ y: "-100%" }}
@@ -143,7 +143,7 @@ export const CourseInfoTab = ({ course, isOpen, onClose }: CourseInfoTabProps) =
                 className="w-full bg-green-600 hover:bg-green-700"
                 onClick={handleDirections}
               >
-                <Navigation className="w-4 h-4 mr-2" />
+                <Navigation className="w-4 w-4 mr-2" />
                 Get Directions
               </Button>
             </div>
