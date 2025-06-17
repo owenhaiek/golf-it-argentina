@@ -89,10 +89,11 @@ const UserProfile = () => {
     );
   }
 
+  // Calculate stats safely
   const totalRoundsPlayed = recentRounds?.length || 0;
-  const averageScore = recentRounds?.length && recentRounds.length > 0
-    ? recentRounds.reduce((sum, round) => sum + round.score, 0) / recentRounds.length
-    : 0;
+  const averageScore = totalRoundsPlayed > 0
+    ? (recentRounds.reduce((sum, round) => sum + round.score, 0) / totalRoundsPlayed).toFixed(1)
+    : "N/A";
 
   const lastPlayedCourse = recentRounds?.[0]?.golf_courses?.name || "N/A";
   const lastPlayedDate = recentRounds?.[0]?.created_at
@@ -162,7 +163,7 @@ const UserProfile = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">{averageScore > 0 ? averageScore.toFixed(1) : '--'}</div>
+                    <div className="text-2xl font-bold">{averageScore}</div>
                     <p className="text-sm text-muted-foreground">Average Score</p>
                   </CardContent>
                 </Card>
@@ -193,9 +194,15 @@ const UserProfile = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               {roundsLoading ? (
-                <p>{t("common", "loading")}...</p>
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
               ) : !recentRounds || recentRounds.length === 0 ? (
-                <p className="text-muted-foreground">{t("profile", "noRoundsYet")}</p>
+                <div className="text-center py-8">
+                  <Trophy className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
+                  <p className="text-muted-foreground text-lg mb-2">No rounds recorded yet</p>
+                  <p className="text-sm text-muted-foreground">This player hasn't recorded any golf rounds</p>
+                </div>
               ) : (
                 recentRounds.map((round) => {
                   const coursePar = round.golf_courses?.par || 72;
