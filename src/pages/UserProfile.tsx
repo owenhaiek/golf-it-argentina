@@ -48,7 +48,8 @@ const UserProfile = () => {
           *,
           golf_courses (
             name,
-            par
+            par,
+            image_url
           )
         `)
         .eq("user_id", userId)
@@ -91,8 +92,24 @@ const UserProfile = () => {
 
   // Calculate stats safely
   const totalRoundsPlayed = recentRounds?.length || 0;
-  const averageScore = totalRoundsPlayed > 0
-    ? (recentRounds.reduce((sum, round) => sum + round.score, 0) / totalRoundsPlayed).toFixed(1)
+  
+  // Calculate best over/under par score
+  const bestScore = totalRoundsPlayed > 0
+    ? (() => {
+        const parDifferences = recentRounds.map(round => {
+          const coursePar = round.golf_courses?.par || 72;
+          return round.score - coursePar;
+        });
+        const bestDiff = Math.min(...parDifferences);
+        
+        if (bestDiff < 0) {
+          return `${Math.abs(bestDiff)} under par`;
+        } else if (bestDiff > 0) {
+          return `${bestDiff} over par`;
+        } else {
+          return "Even par";
+        }
+      })()
     : "N/A";
 
   const lastPlayedCourse = recentRounds?.[0]?.golf_courses?.name || "N/A";
@@ -159,12 +176,12 @@ const UserProfile = () => {
                   <CardHeader className="pb-2">
                     <CardTitle className="flex items-center gap-2 text-sm font-medium">
                       <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                      Avg. Score
+                      Best Score
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">{averageScore}</div>
-                    <p className="text-sm text-muted-foreground">Average Score</p>
+                    <div className="text-lg font-bold">{bestScore}</div>
+                    <p className="text-sm text-muted-foreground">vs Par</p>
                   </CardContent>
                 </Card>
 
@@ -227,28 +244,42 @@ const UserProfile = () => {
                   }
                   
                   return (
-                    <div key={round.id} className="border rounded-lg p-3">
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <p className="font-medium">{round.golf_courses?.name || "Unknown Course"}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {new Date(round.created_at).toLocaleDateString()}
-                          </p>
+                    <div key={round.id} className="border rounded-lg overflow-hidden">
+                      {/* Course Image */}
+                      {round.golf_courses?.image_url && (
+                        <div className="relative h-24 sm:h-32 md:h-40">
+                          <img 
+                            src={round.golf_courses.image_url} 
+                            alt={round.golf_courses.name}
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
                         </div>
-                        <div className="text-right">
-                          <p className="font-bold text-lg">{round.score}</p>
-                          <div className={`flex items-center justify-end gap-1 ${scoreColor}`}>
-                            <ScoreIcon className="h-3 w-3" />
-                            <span className="text-sm">{scoreStatus}</span>
+                      )}
+                      
+                      <div className="p-3">
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <p className="font-medium">{round.golf_courses?.name || "Unknown Course"}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {new Date(round.created_at).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-bold text-lg">{round.score}</p>
+                            <div className={`flex items-center justify-end gap-1 ${scoreColor}`}>
+                              <ScoreIcon className="h-3 w-3" />
+                              <span className="text-sm">{scoreStatus}</span>
+                            </div>
                           </div>
                         </div>
+                        {round.notes && (
+                          <>
+                            <Separator className="my-2" />
+                            <p className="text-sm">{round.notes}</p>
+                          </>
+                        )}
                       </div>
-                      {round.notes && (
-                        <>
-                          <Separator className="my-2" />
-                          <p className="text-sm">{round.notes}</p>
-                        </>
-                      )}
                     </div>
                   );
                 })
