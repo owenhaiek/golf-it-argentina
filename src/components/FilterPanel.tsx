@@ -5,7 +5,6 @@ import { FilterContent } from "./filters/FilterContent";
 import { FilterPanelBackdrop } from "./filters/FilterPanelBackdrop";
 import { FilterPanelDragHandle } from "./filters/FilterPanelDragHandle";
 import { FilterPanelHeader } from "./filters/FilterPanelHeader";
-import { FilterPanelActions } from "./filters/FilterPanelActions";
 import { useFilterPanelDrag } from "@/hooks/useFilterPanelDrag";
 import { useFilterPanelScrollPrevention } from "@/hooks/useFilterPanelScrollPrevention";
 
@@ -37,10 +36,12 @@ const FilterPanel = ({
     setFilters(currentFilters);
   }, [isOpen, currentFilters]);
 
-  const handleApplyFilters = () => {
-    onApplyFilters(filters);
-    onClose();
-  };
+  // Apply filters immediately when they change
+  useEffect(() => {
+    if (isOpen) {
+      onApplyFilters(filters);
+    }
+  }, [filters, isOpen, onApplyFilters]);
 
   const handleResetFilters = () => {
     const resetFilters = {
@@ -79,16 +80,11 @@ const FilterPanel = ({
             onMouseDown={handleMouseDown}
           />
           
-          <FilterPanelHeader onClose={onClose} />
+          <FilterPanelHeader onClose={onClose} onReset={handleResetFilters} />
 
-          <div className="px-4">
+          <div className="px-4 pb-8">
             <FilterContent filters={filters} setFilters={setFilters} />
           </div>
-
-          <FilterPanelActions 
-            onReset={handleResetFilters}
-            onApply={handleApplyFilters}
-          />
         </Card>
       </div>
     </>

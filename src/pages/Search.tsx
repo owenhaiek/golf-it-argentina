@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Search as SearchIcon, Filter, MapPin, Users, Star, Clock, Calendar as CalendarIcon } from "lucide-react";
 import { useGolfCourses } from "@/hooks/useGolfCourses";
 import CourseCard from "@/components/home/CourseCard";
-import FilterPanel from "@/components/FilterPanel";
+import { FilterContent } from "@/components/filters/FilterContent";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import {
@@ -42,10 +42,6 @@ const Search = () => {
   const [showFilters, setShowFilters] = useState(false);
 
   const { courses, isLoading, currentTime } = useGolfCourses(search, filters);
-
-  const handleFilterChange = (newFilters: FilterOptions) => {
-    setFilters(newFilters);
-  };
 
   const handleClearFilters = () => {
     setFilters({
@@ -132,12 +128,7 @@ const Search = () => {
 
           {showFilters && (
             <div className="border border-border rounded-lg p-4 bg-muted/30">
-              <FilterPanel
-                isOpen={true}
-                onClose={() => setShowFilters(false)}
-                onApplyFilters={handleFilterChange}
-                currentFilters={filters}
-              />
+              <FilterContent filters={filters} setFilters={setFilters} />
             </div>
           )}
         </div>
