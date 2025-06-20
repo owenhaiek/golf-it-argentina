@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -204,22 +203,17 @@ const FilterPanel = ({
         }}
       >
         <Card className="rounded-t-2xl border-b-0 shadow-2xl bg-card text-card-foreground w-full flex flex-col">
-          {/* Drag indicator */}
+          {/* Drag indicator - same design as drawer */}
           <div 
-            className="w-16 h-2 bg-muted rounded-full mx-auto mt-2 mb-2 cursor-pointer touch-none relative flex-shrink-0"
+            className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted cursor-pointer touch-none"
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
             onMouseDown={handleMouseDown}
-            style={{
-              padding: '8px 0'
-            }}
-          >
-            <div className="absolute inset-0 -top-4 -bottom-4 -left-4 -right-4 touch-none" />
-          </div>
+          />
           
           {/* Header */}
-          <div className="flex items-center justify-between mb-4 px-4 flex-shrink-0">
+          <div className="flex items-center justify-between mb-4 px-4 flex-shrink-0 mt-2">
             <h3 className="text-lg font-semibold text-foreground">Busca tu cancha indicada</h3>
             <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full">
               <X size={20} />
