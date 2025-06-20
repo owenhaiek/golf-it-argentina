@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -196,7 +197,7 @@ const FilterPanel = ({
         }`}
         style={{
           transform: `translateY(${isOpen ? dragOffset : 100}%)`,
-          bottom: '76px',
+          bottom: '0px',
           height: 'auto',
           maxHeight: '70vh',
           touchAction: 'none'
@@ -225,8 +226,8 @@ const FilterPanel = ({
             <FilterContent filters={filters} setFilters={setFilters} />
           </div>
 
-          {/* Fixed button area at bottom */}
-          <div className="flex-shrink-0 p-4 bg-card border-t">
+          {/* Fixed button area at bottom with navigation spacing */}
+          <div className="flex-shrink-0 p-4 bg-card border-t pb-20">
             <div className="flex space-x-3">
               <Button onClick={handleResetFilters} variant="outline" className="flex-1 h-12 text-base">
                 Reset
