@@ -121,14 +121,14 @@ const Auth = () => {
           </div>
         </div>
 
-        <Card className="animate-in border-0 shadow-xl bg-white">
+        <Card className="animate-in border-0 shadow-xl bg-primary">
           <CardHeader className="space-y-1 text-center pb-6">
-            <CardTitle className="text-2xl font-bold text-gray-900">
-              {isLogin ? t("auth", "welcomeBack") : t("auth", "createAccount")}
+            <CardTitle className="text-2xl font-bold text-white">
+              {isLogin ? "Bienvenido a GOLFIT" : t("auth", "createAccount")}
             </CardTitle>
-            <CardDescription className="text-gray-600">
+            <CardDescription className="text-white/90">
               {isLogin
-                ? t("auth", "emailSignInDescription")
+                ? "Ingresa tu correo electrónico y contraseña para iniciar sesión"
                 : t("auth", "emailSignUpDescription")}
             </CardDescription>
           </CardHeader>
@@ -141,7 +141,7 @@ const Auth = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="bg-white border-gray-300 text-gray-900"
+                  className="bg-white/10 border-white/20 text-white placeholder:text-white/70 focus:border-white/40 focus:ring-white/20"
                 />
                 <Input
                   type="password"
@@ -149,12 +149,12 @@ const Auth = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="bg-white border-gray-300 text-gray-900"
+                  className="bg-white/10 border-white/20 text-white placeholder:text-white/70 focus:border-white/40 focus:ring-white/20"
                 />
               </div>
               <Button 
                 type="submit" 
-                className="w-full bg-primary hover:bg-primary/90 text-white"
+                className="w-full bg-white hover:bg-white/90 text-primary font-semibold"
                 disabled={isLoading}
               >
                 {isLoading 
@@ -167,10 +167,10 @@ const Auth = () => {
             
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <Separator className="w-full" />
+                <Separator className="w-full bg-white/20" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-2 text-gray-500">
+                <span className="bg-primary px-2 text-white/70">
                   {t("auth", "orContinueWith")}
                 </span>
               </div>
@@ -179,7 +179,7 @@ const Auth = () => {
             <Button 
               variant="outline" 
               type="button" 
-              className="w-full border-gray-300 bg-white text-gray-900 hover:bg-gray-50" 
+              className="w-full border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white" 
               onClick={handleGoogleSignIn}
               disabled={isLoading}
             >
@@ -192,7 +192,7 @@ const Auth = () => {
                 variant="default"
                 type="button"
                 onClick={() => setIsLogin(!isLogin)}
-                className="w-full bg-gray-900 hover:bg-gray-800 text-white"
+                className="w-full bg-white/10 hover:bg-white/20 text-white border border-white/20"
               >
                 {isLogin 
                   ? t("auth", "createAccount")
