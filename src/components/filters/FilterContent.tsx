@@ -2,7 +2,6 @@
 import { FavoritesFilter } from "./FavoritesFilter";
 import { HolesFilter } from "./HolesFilter";
 import { StatusFilter } from "./StatusFilter";
-import { LocationFilter } from "./LocationFilter";
 
 type FilterOptions = {
   holes: string;
@@ -32,11 +31,6 @@ export const FilterContent = ({ filters, setFilters }: FilterContentProps) => {
       <StatusFilter 
         isOpen={filters.isOpen}
         onToggle={(value) => setFilters({ ...filters, isOpen: value })}
-      />
-      
-      <LocationFilter 
-        location={filters.location}
-        onChange={(location) => setFilters({ ...filters, location })}
       />
     </div>
   );

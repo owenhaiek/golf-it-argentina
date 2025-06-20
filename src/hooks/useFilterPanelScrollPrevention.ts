@@ -26,12 +26,21 @@ export const useFilterPanelScrollPrevention = (isOpen: boolean) => {
       body.style.height = '100vh';
       html.style.overflow = 'hidden';
       
-      // Prevent all touch and scroll events on background
+      // Prevent all touch and scroll events on background, but allow navigation interaction
       const preventTouch = (e: TouchEvent) => {
-        if (!panelRef.current?.contains(e.target as Node)) {
-          e.preventDefault();
-          e.stopPropagation();
+        const target = e.target as Element;
+        const navigation = document.querySelector('nav');
+        const navigationButtons = navigation?.querySelectorAll('a, button');
+        
+        // Allow touch events on navigation and filter panel
+        if (panelRef.current?.contains(target) || 
+            navigation?.contains(target) ||
+            Array.from(navigationButtons || []).some(btn => btn.contains(target))) {
+          return;
         }
+        
+        e.preventDefault();
+        e.stopPropagation();
       };
       
       const preventWheel = (e: WheelEvent) => {
