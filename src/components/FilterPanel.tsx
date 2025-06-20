@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -197,12 +198,12 @@ const FilterPanel = ({
         style={{
           transform: `translateY(${isOpen ? dragOffset : 100}%)`,
           bottom: '76px',
-          height: 'calc(100vh - 152px)',
-          maxHeight: 'calc(100vh - 152px)',
+          height: 'auto',
+          maxHeight: '70vh',
           touchAction: 'none'
         }}
       >
-        <Card className="rounded-t-2xl border-b-0 shadow-2xl bg-card text-card-foreground w-full h-full flex flex-col">
+        <Card className="rounded-t-2xl border-b-0 shadow-2xl bg-card text-card-foreground w-full flex flex-col">
           {/* Drag indicator */}
           <div 
             className="w-16 h-2 bg-muted rounded-full mx-auto mt-2 mb-2 cursor-pointer touch-none relative flex-shrink-0"
@@ -219,14 +220,14 @@ const FilterPanel = ({
           
           {/* Header */}
           <div className="flex items-center justify-between mb-4 px-4 flex-shrink-0">
-            <h3 className="text-lg font-semibold text-foreground">Filter Courses</h3>
+            <h3 className="text-lg font-semibold text-foreground">Busca tu cancha indicada</h3>
             <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full">
               <X size={20} />
             </Button>
           </div>
 
-          {/* Filter Content - flexible container */}
-          <div className="flex-1 min-h-0 flex flex-col">
+          {/* Filter Content - no scroll, compact */}
+          <div className="px-4">
             <FilterContent filters={filters} setFilters={setFilters} />
           </div>
 
