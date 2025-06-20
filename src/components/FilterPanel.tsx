@@ -1,9 +1,13 @@
 
-import { useState, useEffect, useRef } from "react";
-import { Button } from "@/components/ui/button";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
-import { X } from "lucide-react";
 import { FilterContent } from "./filters/FilterContent";
+import { FilterPanelBackdrop } from "./filters/FilterPanelBackdrop";
+import { FilterPanelDragHandle } from "./filters/FilterPanelDragHandle";
+import { FilterPanelHeader } from "./filters/FilterPanelHeader";
+import { FilterPanelActions } from "./filters/FilterPanelActions";
+import { useFilterPanelDrag } from "@/hooks/useFilterPanelDrag";
+import { useFilterPanelScrollPrevention } from "@/hooks/useFilterPanelScrollPrevention";
 
 type FilterOptions = {
   holes: string;
@@ -26,87 +30,12 @@ const FilterPanel = ({
   currentFilters
 }: FilterPanelProps) => {
   const [filters, setFilters] = useState<FilterOptions>(currentFilters);
-  const [dragStart, setDragStart] = useState<number | null>(null);
-  const [dragOffset, setDragOffset] = useState(0);
-  const panelRef = useRef<HTMLDivElement>(null);
+  const panelRef = useFilterPanelScrollPrevention(isOpen);
+  const { dragOffset, handleTouchStart, handleTouchMove, handleTouchEnd, handleMouseDown } = useFilterPanelDrag({ onClose });
 
   useEffect(() => {
     setFilters(currentFilters);
   }, [isOpen, currentFilters]);
-
-  // Comprehensive scroll prevention
-  useEffect(() => {
-    if (isOpen) {
-      const scrollY = window.scrollY;
-      const body = document.body;
-      const html = document.documentElement;
-      
-      // Store original styles
-      const originalBodyOverflow = body.style.overflow;
-      const originalBodyPosition = body.style.position;
-      const originalBodyTop = body.style.top;
-      const originalBodyWidth = body.style.width;
-      const originalBodyHeight = body.style.height;
-      const originalHtmlOverflow = html.style.overflow;
-      
-      // Apply comprehensive scroll prevention
-      body.style.overflow = 'hidden';
-      body.style.position = 'fixed';
-      body.style.top = `-${scrollY}px`;
-      body.style.width = '100%';
-      body.style.height = '100vh';
-      html.style.overflow = 'hidden';
-      
-      // Prevent all touch and scroll events on background
-      const preventTouch = (e: TouchEvent) => {
-        if (!panelRef.current?.contains(e.target as Node)) {
-          e.preventDefault();
-          e.stopPropagation();
-        }
-      };
-      
-      const preventWheel = (e: WheelEvent) => {
-        if (!panelRef.current?.contains(e.target as Node)) {
-          e.preventDefault();
-          e.stopPropagation();
-        }
-      };
-      
-      const preventScroll = (e: Event) => {
-        e.preventDefault();
-        e.stopPropagation();
-      };
-      
-      // Add event listeners with capture
-      document.addEventListener('touchstart', preventTouch, { passive: false, capture: true });
-      document.addEventListener('touchmove', preventTouch, { passive: false, capture: true });
-      document.addEventListener('touchend', preventTouch, { passive: false, capture: true });
-      document.addEventListener('wheel', preventWheel, { passive: false, capture: true });
-      document.addEventListener('scroll', preventScroll, { passive: false, capture: true });
-      window.addEventListener('scroll', preventScroll, { passive: false, capture: true });
-      
-      return () => {
-        // Restore original styles
-        body.style.overflow = originalBodyOverflow;
-        body.style.position = originalBodyPosition;
-        body.style.top = originalBodyTop;
-        body.style.width = originalBodyWidth;
-        body.style.height = originalBodyHeight;
-        html.style.overflow = originalHtmlOverflow;
-        
-        // Remove event listeners
-        document.removeEventListener('touchstart', preventTouch, { capture: true });
-        document.removeEventListener('touchmove', preventTouch, { capture: true });
-        document.removeEventListener('touchend', preventTouch, { capture: true });
-        document.removeEventListener('wheel', preventWheel, { capture: true });
-        document.removeEventListener('scroll', preventScroll, { capture: true });
-        window.removeEventListener('scroll', preventScroll, { capture: true });
-        
-        // Restore scroll position
-        window.scrollTo(0, scrollY);
-      };
-    }
-  }, [isOpen]);
 
   const handleApplyFilters = () => {
     onApplyFilters(filters);
@@ -125,71 +54,10 @@ const FilterPanel = ({
     onClose();
   };
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setDragStart(e.touches[0].clientY);
-    setDragOffset(0);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (dragStart === null) return;
-    
-    const currentY = e.touches[0].clientY;
-    const offset = Math.max(0, currentY - dragStart);
-    setDragOffset(offset);
-  };
-
-  const handleTouchEnd = () => {
-    if (dragOffset > 100) {
-      onClose();
-    }
-    setDragStart(null);
-    setDragOffset(0);
-  };
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    setDragStart(e.clientY);
-    setDragOffset(0);
-  };
-
-  const handleMouseMove = (e: MouseEvent) => {
-    if (dragStart === null) return;
-    
-    const offset = Math.max(0, e.clientY - dragStart);
-    setDragOffset(offset);
-  };
-
-  const handleMouseUp = () => {
-    if (dragOffset > 100) {
-      onClose();
-    }
-    setDragStart(null);
-    setDragOffset(0);
-  };
-
-  useEffect(() => {
-    if (dragStart !== null) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-      
-      return () => {
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
-      };
-    }
-  }, [dragStart, dragOffset]);
-
   return (
     <>
-      {/* Backdrop */}
-      <div 
-        className={`fixed inset-0 z-[100] bg-black/50 transition-opacity duration-300 ${
-          isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-        }`}
-        onClick={onClose}
-        style={{ touchAction: 'none' }}
-      />
+      <FilterPanelBackdrop isOpen={isOpen} onClick={onClose} />
       
-      {/* Filter Panel */}
       <div 
         ref={panelRef}
         className={`fixed inset-x-0 z-[110] w-full transform transition-transform duration-500 ease-out ${
@@ -204,39 +72,23 @@ const FilterPanel = ({
         }}
       >
         <Card className="rounded-t-2xl border-b-0 shadow-2xl bg-card text-card-foreground w-full flex flex-col">
-          {/* Drag indicator - same design as drawer */}
-          <div 
-            className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted cursor-pointer touch-none"
+          <FilterPanelDragHandle
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
             onMouseDown={handleMouseDown}
           />
           
-          {/* Header */}
-          <div className="flex items-center justify-between mb-4 px-4 flex-shrink-0 mt-2">
-            <h3 className="text-lg font-semibold text-foreground">Busca tu cancha indicada</h3>
-            <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full">
-              <X size={20} />
-            </Button>
-          </div>
+          <FilterPanelHeader onClose={onClose} />
 
-          {/* Filter Content - no scroll, compact */}
           <div className="px-4">
             <FilterContent filters={filters} setFilters={setFilters} />
           </div>
 
-          {/* Fixed button area at bottom with navigation spacing */}
-          <div className="flex-shrink-0 p-4 bg-card border-t pb-20">
-            <div className="flex space-x-3">
-              <Button onClick={handleResetFilters} variant="outline" className="flex-1 h-12 text-base">
-                Reset
-              </Button>
-              <Button onClick={handleApplyFilters} className="flex-1 h-12 text-base">
-                Apply Filters
-              </Button>
-            </div>
-          </div>
+          <FilterPanelActions 
+            onReset={handleResetFilters}
+            onApply={handleApplyFilters}
+          />
         </Card>
       </div>
     </>
