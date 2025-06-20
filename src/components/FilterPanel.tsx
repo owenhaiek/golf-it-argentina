@@ -197,16 +197,16 @@ const FilterPanel = ({
         }`}
         style={{
           transform: `translateY(${isOpen ? dragOffset : 100}%)`,
-          bottom: '0px',
+          bottom: '76px',
           height: 'auto',
-          maxHeight: '70vh',
+          maxHeight: 'calc(100vh - 152px)',
           touchAction: 'none'
         }}
       >
-        <Card className="rounded-t-2xl border-b-0 shadow-2xl bg-card text-card-foreground w-full flex flex-col">
-          {/* Drag indicator - same design as drawer */}
+        <Card className="rounded-t-2xl border-b-0 shadow-2xl bg-card text-card-foreground w-full flex flex-col h-full">
+          {/* Drag indicator */}
           <div 
-            className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted cursor-pointer touch-none"
+            className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted cursor-pointer touch-none flex-shrink-0"
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
@@ -221,13 +221,13 @@ const FilterPanel = ({
             </Button>
           </div>
 
-          {/* Filter Content - no scroll, compact */}
-          <div className="px-4">
+          {/* Filter Content - scrollable if needed */}
+          <div className="px-4 flex-1 overflow-y-auto">
             <FilterContent filters={filters} setFilters={setFilters} />
           </div>
 
-          {/* Fixed button area at bottom with navigation spacing */}
-          <div className="flex-shrink-0 p-4 bg-card border-t pb-20">
+          {/* Fixed button area at bottom */}
+          <div className="flex-shrink-0 p-4 bg-card border-t">
             <div className="flex space-x-3">
               <Button onClick={handleResetFilters} variant="outline" className="flex-1 h-12 text-base">
                 Reset
