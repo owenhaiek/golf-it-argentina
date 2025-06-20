@@ -202,43 +202,43 @@ const FilterPanel = ({
           touchAction: 'none'
         }}
       >
-        <Card className="rounded-t-2xl border-b-0 shadow-2xl bg-card text-card-foreground w-full h-full">
-          <div className="h-full flex flex-col">
-            {/* Drag indicator */}
-            <div 
-              className="w-16 h-2 bg-muted rounded-full mx-auto mt-2 mb-2 cursor-pointer touch-none relative"
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={handleTouchEnd}
-              onMouseDown={handleMouseDown}
-              style={{
-                padding: '8px 0'
-              }}
-            >
-              <div className="absolute inset-0 -top-4 -bottom-4 -left-4 -right-4 touch-none" />
-            </div>
-            
-            {/* Header */}
-            <div className="flex items-center justify-between mb-3 px-4 flex-shrink-0">
-              <h3 className="text-lg font-semibold text-foreground">Filter Courses</h3>
-              <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full">
-                <X size={20} />
-              </Button>
-            </div>
+        <Card className="rounded-t-2xl border-b-0 shadow-2xl bg-card text-card-foreground w-full h-full flex flex-col">
+          {/* Drag indicator */}
+          <div 
+            className="w-16 h-2 bg-muted rounded-full mx-auto mt-2 mb-2 cursor-pointer touch-none relative flex-shrink-0"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            onMouseDown={handleMouseDown}
+            style={{
+              padding: '8px 0'
+            }}
+          >
+            <div className="absolute inset-0 -top-4 -bottom-4 -left-4 -right-4 touch-none" />
+          </div>
+          
+          {/* Header */}
+          <div className="flex items-center justify-between mb-4 px-4 flex-shrink-0">
+            <h3 className="text-lg font-semibold text-foreground">Filter Courses</h3>
+            <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full">
+              <X size={20} />
+            </Button>
+          </div>
 
-            {/* Filter Content */}
+          {/* Filter Content - flexible container */}
+          <div className="flex-1 min-h-0 flex flex-col">
             <FilterContent filters={filters} setFilters={setFilters} />
+          </div>
 
-            {/* Fixed button area at bottom */}
-            <div className="flex-shrink-0 p-4 bg-card border-t" style={{ paddingBottom: '32px' }}>
-              <div className="flex space-x-3">
-                <Button onClick={handleResetFilters} variant="outline" className="flex-1 h-12 text-base">
-                  Reset
-                </Button>
-                <Button onClick={handleApplyFilters} className="flex-1 h-12 text-base">
-                  Apply Filters
-                </Button>
-              </div>
+          {/* Fixed button area at bottom */}
+          <div className="flex-shrink-0 p-4 bg-card border-t">
+            <div className="flex space-x-3">
+              <Button onClick={handleResetFilters} variant="outline" className="flex-1 h-12 text-base">
+                Reset
+              </Button>
+              <Button onClick={handleApplyFilters} className="flex-1 h-12 text-base">
+                Apply Filters
+              </Button>
             </div>
           </div>
         </Card>

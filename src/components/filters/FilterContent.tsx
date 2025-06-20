@@ -18,8 +18,8 @@ interface FilterContentProps {
 
 export const FilterContent = ({ filters, setFilters }: FilterContentProps) => {
   return (
-    <div className="flex-1 px-4" style={{ touchAction: 'pan-y' }}>
-      <div className="space-y-4 pb-4">
+    <div className="flex-1 overflow-y-auto px-4" style={{ touchAction: 'pan-y' }}>
+      <div className="space-y-6 py-2">
         <FavoritesFilter 
           favoritesOnly={filters.favoritesOnly}
           onToggle={(value) => setFilters({ ...filters, favoritesOnly: value })}
