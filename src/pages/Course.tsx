@@ -1,94 +1,28 @@
 
 import { useParams, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, Flag } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import CourseStats from "@/components/course/CourseStats";
-import CourseMap from "@/components/course/CourseMap";
-import CoursePhotos from "@/components/course/CoursePhotos";
-import CourseHoleDetails from "@/components/course/CourseHoleDetails";
-import CourseWeather from "@/components/course/CourseWeather";
-import AddReviewForm from "@/components/course/AddReviewForm";
-import CourseReviews from "@/components/course/CourseReviews";
-import ReservationForm from "@/components/course/ReservationForm";
-import OpeningHoursDisplay from "@/components/course/OpeningHoursDisplay";
 import { isCurrentlyOpen } from "@/utils/openingHours";
-import FavoriteButton from "@/components/ui/FavoriteButton";
-import { cn } from "@/lib/utils";
 import { CourseHero } from "@/components/course/CourseHero";
 import { CourseStatsHeader } from "@/components/course/CourseStatsHeader";
 import { CourseCTARow } from "@/components/course/CourseCTARow";
 import { CourseTabs } from "@/components/course/CourseTabs";
+import ReservationForm from "@/components/course/ReservationForm";
+import OpeningHoursDisplay from "@/components/course/OpeningHoursDisplay";
+import { useCourseData } from "@/hooks/useCourseData";
+import { useCourseReviews } from "@/hooks/useCourseReviews";
+import { useCourseRounds } from "@/hooks/useCourseRounds";
 
 const Course = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { t, language } = useLanguage();
+  const { language } = useLanguage();
 
-  const { data: course, isLoading: isLoadingCourse } = useQuery({
-    queryKey: ['course', id],
-    queryFn: async () => {
-      if (!id) throw new Error('Course ID is required');
-      const { data, error } = await supabase
-        .from('golf_courses')
-        .select('*')
-        .eq('id', id)
-        .single();
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!id,
-  });
-
-  const { data: reviews = [], isLoading: isLoadingReviews, refetch: refetchReviews } = useQuery({
-    queryKey: ['course-reviews', id],
-    queryFn: async () => {
-      if (!id) return [];
-      const { data, error } = await supabase
-        .from('course_reviews')
-        .select(`
-          *,
-          profiles:user_id (
-            username,
-            full_name,
-            avatar_url
-          )
-        `)
-        .eq('course_id', id)
-        .order('created_at', { ascending: false });
-      if (error) throw error;
-      return data?.map((review: any) => ({
-        ...review,
-        profiles: Array.isArray(review.profiles) ? review.profiles[0] : review.profiles
-      })) || [];
-    },
-    enabled: !!id,
-  });
-
-  const { data: rounds = [], isLoading: isLoadingRounds } = useQuery({
-    queryKey: ['course-rounds', id],
-    queryFn: async () => {
-      if (!id) return [];
-      const { data, error } = await supabase
-        .from('rounds')
-        .select(`
-          *,
-          profiles:user_id (
-            username,
-            avatar_url
-          )
-        `)
-        .eq('course_id', id)
-        .order('score', { ascending: true });
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!id,
-  });
+  const { data: course, isLoading: isLoadingCourse } = useCourseData(id);
+  const { data: reviews = [], isLoading: isLoadingReviews, refetch: refetchReviews } = useCourseReviews(id);
+  const { data: rounds = [], isLoading: isLoadingRounds } = useCourseRounds(id);
 
   if (isLoadingCourse) {
     return (
@@ -157,10 +91,8 @@ const Course = () => {
     <div className="h-screen flex flex-col">
       <ScrollArea className="flex-1">
         <div className="pb-28">
-          {/* Hero Section */}
           <CourseHero course={course} language={language} isOpen={isOpen} />
           <div className="p-4 space-y-6">
-            {/* Description */}
             {course.description && (
               <p className="text-muted-foreground text-sm sm:text-base">{course.description}</p>
             )}
@@ -173,7 +105,6 @@ const Course = () => {
               onWebsiteClick={handleWebsiteClick}
             />
             <OpeningHoursDisplay openingHours={openingHoursData} />
-            {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-3">
               <ReservationForm
                 courseId={course.id}
@@ -187,7 +118,6 @@ const Course = () => {
                 </a>
               </Button>
             </div>
-            {/* Tabs */}
             <CourseTabs
               course={course}
               rounds={rounds}

@@ -12,10 +12,11 @@ export interface Review {
   comment: string;
   created_at: string;
   profiles?: {
+    id?: string;
     username?: string;
     full_name?: string;
     avatar_url?: string;
-  };
+  } | null;
 }
 
 interface CourseReviewsProps {
@@ -25,6 +26,8 @@ interface CourseReviewsProps {
 }
 
 const CourseReviews = ({ courseId, reviews, isLoading }: CourseReviewsProps) => {
+  console.log("CourseReviews rendering with:", { courseId, reviewsCount: reviews?.length, isLoading });
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
