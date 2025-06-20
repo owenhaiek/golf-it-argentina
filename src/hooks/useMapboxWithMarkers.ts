@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { useSimpleMapbox } from "@/hooks/useSimpleMapbox";
 import { useMapMarkers } from "@/hooks/useMapMarkers";
@@ -46,7 +45,23 @@ export const useMapboxWithMarkers = ({
     zoom,
     accessToken,
     onMapReady: (mapInstance) => {
-      console.log("[MapboxWithMarkers] Map ready, waiting for courses");
+      console.log("[MapboxWithMarkers] Map ready, setting Argentina bounds");
+      
+      // Set bounds to keep focus on Argentina and prevent unwanted zooming
+      const argentinaBounds = [
+        [-73.5605, -55.0610], // Southwest coordinates
+        [-53.6374, -21.7810]  // Northeast coordinates
+      ];
+      
+      mapInstance.setMaxBounds(argentinaBounds);
+      
+      // Ensure map stays centered on Argentina
+      mapInstance.flyTo({
+        center: [-58.3816, -34.6118],
+        zoom: 6,
+        essential: true,
+        duration: 1000
+      });
     }
   });
 

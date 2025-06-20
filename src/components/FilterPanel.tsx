@@ -66,7 +66,7 @@ const FilterPanel = ({
         }`}
         style={{
           transform: `translateY(${isOpen ? dragOffset : 100}%)`,
-          bottom: '80px',
+          bottom: '64px',
           height: 'auto',
           maxHeight: '60vh',
           touchAction: 'none'
