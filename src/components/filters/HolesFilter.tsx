@@ -1,6 +1,7 @@
 
 import { Label } from "@/components/ui/label";
 import { Flag } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface HolesFilterProps {
   selectedHoles: string;
@@ -8,8 +9,10 @@ interface HolesFilterProps {
 }
 
 export const HolesFilter = ({ selectedHoles, onSelect }: HolesFilterProps) => {
+  const { t } = useLanguage();
+
   const holesOptions = [
-    { value: "", label: "All" },
+    { value: "", label: t("filters", "all") },
     { value: "9", label: "9" },
     { value: "18", label: "18" },
     { value: "27", label: "27" }
@@ -17,7 +20,7 @@ export const HolesFilter = ({ selectedHoles, onSelect }: HolesFilterProps) => {
 
   return (
     <div className="space-y-2">
-      <Label className="text-sm font-medium text-foreground">Number of Holes</Label>
+      <Label className="text-sm font-medium text-foreground">{t("filters", "numberOfHoles")}</Label>
       <div className="grid grid-cols-4 gap-2">
         {holesOptions.map((option) => (
           <div

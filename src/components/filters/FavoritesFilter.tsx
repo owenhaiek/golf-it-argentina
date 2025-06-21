@@ -1,6 +1,7 @@
 
 import { Label } from "@/components/ui/label";
 import { Heart } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface FavoritesFilterProps {
   favoritesOnly: boolean;
@@ -8,9 +9,11 @@ interface FavoritesFilterProps {
 }
 
 export const FavoritesFilter = ({ favoritesOnly, onToggle }: FavoritesFilterProps) => {
+  const { t } = useLanguage();
+
   return (
     <div className="space-y-2">
-      <Label className="text-sm font-medium text-foreground">Show Favorites</Label>
+      <Label className="text-sm font-medium text-foreground">{t("filters", "showFavorites")}</Label>
       <div 
         className={`flex items-center space-x-3 p-3 rounded-lg border-2 transition-all cursor-pointer ${
           favoritesOnly 
@@ -39,10 +42,10 @@ export const FavoritesFilter = ({ favoritesOnly, onToggle }: FavoritesFilterProp
               ? 'text-red-700 dark:text-red-300' 
               : 'text-foreground'
           }`}>
-            Favorites Only
+            {t("filters", "favoritesOnly")}
           </p>
           <p className="text-xs text-muted-foreground">
-            {favoritesOnly ? 'Show only your favorite courses' : 'Show all courses including favorites'}
+            {favoritesOnly ? t("filters", "showOnlyFavorites") : t("filters", "showAllCourses")}
           </p>
         </div>
         <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${

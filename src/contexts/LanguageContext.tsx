@@ -63,7 +63,9 @@ const translations: Record<LanguageType, TranslationDictionary> = {
       searchCourses: "Search Courses",
       golfCourses: "Golf Courses",
       noCoursesFound: "No courses found",
-      resetFilters: "Reset Filters"
+      resetFilters: "Reset Filters",
+      openNow: "Open Now",
+      closed: "Closed"
     },
     course: {
       holes: "Holes",
@@ -90,6 +92,19 @@ const translations: Record<LanguageType, TranslationDictionary> = {
       noRounds: "You haven't recorded any rounds yet.",
       addRound: "Add Round",
       account: "Account",
+      holes: "Holes"
+    },
+    filters: {
+      showFavorites: "Show Favorites",
+      numberOfHoles: "Number of Holes",
+      status: "Status",
+      favoritesOnly: "Favorites Only",
+      currentlyOpen: "Currently Open",
+      all: "All",
+      showOnlyFavorites: "Show only your favorite courses",
+      showAllCourses: "Show all courses including favorites",
+      showOnlyOpen: "Show only open courses",
+      showAllStatus: "Show all courses regardless of status"
     },
     addRound: {
       title: "Add Your Round",
@@ -186,7 +201,9 @@ const translations: Record<LanguageType, TranslationDictionary> = {
       searchCourses: "Buscar Campos",
       golfCourses: "Campos de Golf",
       noCoursesFound: "No se encontraron campos",
-      resetFilters: "Restablecer Filtros"
+      resetFilters: "Restablecer Filtros",
+      openNow: "Abierto Ahora",
+      closed: "Cerrado"
     },
     course: {
       holes: "Hoyos",
@@ -213,6 +230,19 @@ const translations: Record<LanguageType, TranslationDictionary> = {
       noRounds: "Aún no has registrado ninguna ronda.",
       addRound: "Añadir Ronda",
       account: "Cuenta",
+      holes: "Hoyos"
+    },
+    filters: {
+      showFavorites: "Mostrar Canchas Favoritas",
+      numberOfHoles: "Cantidad de Hoyos",
+      status: "Estado",
+      favoritesOnly: "Solo Favoritas",
+      currentlyOpen: "Actualmente Abierto",
+      all: "Todas",
+      showOnlyFavorites: "Mostrar solo tus canchas favoritas",
+      showAllCourses: "Mostrar todas las canchas incluyendo favoritas",
+      showOnlyOpen: "Mostrar solo canchas abiertas",
+      showAllStatus: "Mostrar todas las canchas sin importar el estado"
     },
     addRound: {
       title: "Agrega tu ronda",
@@ -284,7 +314,7 @@ interface LanguageProviderProps {
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
   const [language, setLanguage] = useState<LanguageType>(() => {
     const savedLanguage = localStorage.getItem("language");
-    return (savedLanguage as LanguageType) || "en";
+    return (savedLanguage as LanguageType) || "es";
   });
 
   // Save language preference to localStorage when it changes

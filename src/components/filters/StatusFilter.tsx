@@ -1,6 +1,7 @@
 
 import { Label } from "@/components/ui/label";
 import { Clock } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface StatusFilterProps {
   isOpen: boolean;
@@ -8,9 +9,11 @@ interface StatusFilterProps {
 }
 
 export const StatusFilter = ({ isOpen, onToggle }: StatusFilterProps) => {
+  const { t } = useLanguage();
+
   return (
     <div className="space-y-2">
-      <Label className="text-sm font-medium text-foreground">Status</Label>
+      <Label className="text-sm font-medium text-foreground">{t("filters", "status")}</Label>
       <div 
         className={`flex items-center space-x-3 p-3 rounded-lg border-2 transition-all cursor-pointer ${
           isOpen 
@@ -39,10 +42,10 @@ export const StatusFilter = ({ isOpen, onToggle }: StatusFilterProps) => {
               ? 'text-blue-700 dark:text-blue-300' 
               : 'text-foreground'
           }`}>
-            Currently Open
+            {t("filters", "currentlyOpen")}
           </p>
           <p className="text-xs text-muted-foreground">
-            {isOpen ? 'Show only open courses' : 'Show all courses regardless of status'}
+            {isOpen ? t("filters", "showOnlyOpen") : t("filters", "showAllStatus")}
           </p>
         </div>
         <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
