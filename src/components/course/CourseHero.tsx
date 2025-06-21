@@ -60,7 +60,7 @@ export const CourseHero = ({ course, language, isOpen }: any) => {
             variant={isOpen ? "default" : "secondary"}
             className={cn(
               "text-xs font-medium",
-              isOpen ? "bg-green-500 hover:bg-green-600" : "bg-amber-500 hover:bg-amber-600"
+              isOpen ? "bg-green-500 hover:bg-green-600" : "bg-red-500 hover:bg-red-600 text-white"
             )}
           >
             {isOpen ? t("home", "openNow") : t("home", "closed")}
