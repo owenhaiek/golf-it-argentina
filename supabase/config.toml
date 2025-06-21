@@ -23,7 +23,7 @@ enabled = true
 
 [auth]
 enabled = true
-site_url = "http://localhost:3000"
+site_url = "https://golfitargentina.com"
 
 [realtime]
 enabled = true
