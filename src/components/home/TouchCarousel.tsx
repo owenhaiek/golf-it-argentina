@@ -48,12 +48,20 @@ const TouchCarousel = ({ images, courseName, courseId }: TouchCarouselProps) => 
     }
   }, [images.length]);
 
-  const goToPrevious = useCallback(() => {
+  const goToPrevious = useCallback((e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     const newIndex = currentIndex === 0 ? images.length - 1 : currentIndex - 1;
     goToSlide(newIndex);
   }, [currentIndex, images.length, goToSlide]);
 
-  const goToNext = useCallback(() => {
+  const goToNext = useCallback((e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     const newIndex = currentIndex === images.length - 1 ? 0 : currentIndex + 1;
     goToSlide(newIndex);
   }, [currentIndex, images.length, goToSlide]);
@@ -105,6 +113,8 @@ const TouchCarousel = ({ images, courseName, courseId }: TouchCarouselProps) => 
   // Mouse handlers for desktop
   const handleMouseDown = (e: React.MouseEvent) => {
     if (isMobile || images.length <= 1) return;
+    e.preventDefault();
+    e.stopPropagation();
     setIsDragging(true);
     setStartX(e.clientX);
     setInitialTranslateX(translateX);
@@ -112,14 +122,20 @@ const TouchCarousel = ({ images, courseName, courseId }: TouchCarouselProps) => 
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!isDragging || isMobile) return;
+    e.preventDefault();
+    e.stopPropagation();
     const currentX = e.clientX;
     const diff = currentX - startX;
     const percentage = (diff / (carouselRef.current?.offsetWidth || 300)) * 100;
     setTranslateX(initialTranslateX + percentage);
   };
 
-  const handleMouseUp = () => {
+  const handleMouseUp = (e?: React.MouseEvent) => {
     if (!isDragging || isMobile) return;
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     setIsDragging(false);
     
     const diff = translateX - initialTranslateX;
@@ -132,6 +148,13 @@ const TouchCarousel = ({ images, courseName, courseId }: TouchCarouselProps) => 
     } else {
       setTranslateX(-currentIndex * 100);
     }
+  };
+
+  // Handle dot clicks
+  const handleDotClick = (e: React.MouseEvent, index: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    goToSlide(index);
   };
 
   // Update translateX when currentIndex changes
@@ -226,7 +249,7 @@ const TouchCarousel = ({ images, courseName, courseId }: TouchCarouselProps) => 
             <button
               key={`dot-${index}`}
               className="focus:outline-none"
-              onClick={() => goToSlide(index)}
+              onClick={(e) => handleDotClick(e, index)}
               aria-label={`Ir a imagen ${index + 1}`}
             >
               <div
