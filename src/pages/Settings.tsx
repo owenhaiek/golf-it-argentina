@@ -258,7 +258,7 @@ Si necesita más ayuda, comuníquese con nuestro equipo de soporte en:
                   <div className="mt-6 pb-6">
                     <SheetClose asChild>
                       <Button 
-                        className="w-full bg-green-600 hover:bg-green-700 text-white"
+                        className="w-full bg-primary hover:bg-primary/90 text-white"
                       >
                         {language === "en" ? "Close" : "Cerrar"}
                       </Button>
@@ -301,7 +301,7 @@ Si necesita más ayuda, comuníquese con nuestro equipo de soporte en:
                   <div className="mt-6 pb-6">
                     <SheetClose asChild>
                       <Button 
-                        className="w-full bg-green-600 hover:bg-green-700 text-white"
+                        className="w-full bg-primary hover:bg-primary/90 text-white"
                       >
                         {language === "en" ? "Close" : "Cerrar"}
                       </Button>
@@ -344,7 +344,7 @@ Si necesita más ayuda, comuníquese con nuestro equipo de soporte en:
                   <div className="mt-6 pb-6">
                     <SheetClose asChild>
                       <Button 
-                        className="w-full bg-green-600 hover:bg-green-700 text-white"
+                        className="w-full bg-primary hover:bg-primary/90 text-white"
                       >
                         {language === "en" ? "Close" : "Cerrar"}
                       </Button>

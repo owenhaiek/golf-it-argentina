@@ -104,7 +104,8 @@ const translations: Record<LanguageType, TranslationDictionary> = {
       showOnlyFavorites: "Show only your favorite courses",
       showAllCourses: "Show all courses including favorites",
       showOnlyOpen: "Show only open courses",
-      showAllStatus: "Show all courses regardless of status"
+      showAllStatus: "Show all courses regardless of status",
+      findYourCourse: "Find your ideal course"
     },
     addRound: {
       title: "Add Your Round",
@@ -242,7 +243,8 @@ const translations: Record<LanguageType, TranslationDictionary> = {
       showOnlyFavorites: "Mostrar solo tus canchas favoritas",
       showAllCourses: "Mostrar todas las canchas incluyendo favoritas",
       showOnlyOpen: "Mostrar solo canchas abiertas",
-      showAllStatus: "Mostrar todas las canchas sin importar el estado"
+      showAllStatus: "Mostrar todas las canchas sin importar el estado",
+      findYourCourse: "Busca tu cancha indicada"
     },
     addRound: {
       title: "Agrega tu ronda",
