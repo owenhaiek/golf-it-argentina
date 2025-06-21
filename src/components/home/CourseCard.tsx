@@ -56,10 +56,10 @@ const CourseCard = ({ course, currentTime }: CourseCardProps) => {
             <div className={`px-3 py-1 rounded-full text-xs font-medium backdrop-blur-sm border transition-all duration-200 ${
               isOpen 
                 ? "bg-green-500/90 text-white border-green-400/50 shadow-lg" 
-                : "bg-amber-500/90 text-white border-amber-400/50 shadow-lg"
+                : "bg-red-500/90 text-white border-red-400/50 shadow-lg"
             }`}>
               <div className="flex items-center gap-1.5">
-                <div className={`w-1.5 h-1.5 rounded-full ${isOpen ? "bg-green-200" : "bg-amber-200"} animate-pulse`} />
+                <div className={`w-1.5 h-1.5 rounded-full ${isOpen ? "bg-green-200" : "bg-red-200"} animate-pulse`} />
                 <span>{isOpen ? t("home", "openNow") : t("home", "closed")}</span>
               </div>
             </div>
