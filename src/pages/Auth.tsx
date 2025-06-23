@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -71,10 +70,17 @@ const Auth = () => {
       setIsLoading(true);
       console.log("Starting Google OAuth");
       
+      // Clear any existing session first to prevent conflicts
+      await supabase.auth.signOut({ scope: 'local' });
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/home`,
+          redirectTo: `${window.location.origin}/`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
         }
       });
       
@@ -83,6 +89,7 @@ const Auth = () => {
         throw error;
       }
       
+      // Don't set loading to false here as the page will redirect
     } catch (error: any) {
       console.error('Google sign in error:', error);
       toast({

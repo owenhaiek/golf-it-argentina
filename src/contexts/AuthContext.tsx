@@ -44,17 +44,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     let mounted = true;
 
-    // Get initial session
+    // Get initial session with better error handling
     const getInitialSession = async () => {
       try {
+        console.log('Getting initial session...');
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
           console.error('Error getting session:', error);
+          if (mounted) {
+            setUser(null);
+            setLoading(false);
+          }
+          return;
         }
         
+        console.log('Initial session retrieved:', session?.user?.id || 'No session');
+        
         if (mounted) {
-          console.log('Initial session:', session?.user?.id || 'No session');
           setUser(session?.user ?? null);
           setLoading(false);
         }
@@ -67,21 +74,35 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     };
 
-    // Set up auth state listener
+    // Set up auth state listener with improved handling
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth state changed:', event, session?.user?.id);
       
       if (!mounted) return;
       
-      setUser(session?.user ?? null);
-      setLoading(false);
-      
+      // Handle different auth events
       if (event === 'SIGNED_IN' && session?.user) {
-        console.log("User successfully signed in");
-      }
-      
-      if (event === 'SIGNED_OUT') {
+        console.log("User successfully signed in:", session.user.email);
+        setUser(session.user);
+        setLoading(false);
+        
+        // For OAuth flows, ensure we're on the correct page
+        if (window.location.pathname === '/' || window.location.pathname === '/auth') {
+          console.log("OAuth signin detected, redirecting to home");
+          window.location.href = '/home';
+        }
+      } else if (event === 'SIGNED_OUT') {
         console.log("User signed out");
+        setUser(null);
+        setLoading(false);
+      } else if (event === 'TOKEN_REFRESHED' && session?.user) {
+        console.log("Token refreshed for user:", session.user.email);
+        setUser(session.user);
+        setLoading(false);
+      } else {
+        // For other events, just update the user state
+        setUser(session?.user ?? null);
+        setLoading(false);
       }
     });
 
