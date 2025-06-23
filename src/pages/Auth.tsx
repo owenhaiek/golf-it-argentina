@@ -21,7 +21,7 @@ const Auth = () => {
   const { t } = useLanguage();
   const { user, loading } = useAuth();
 
-  // Redirect authenticated users immediately
+  // Redirect authenticated users
   React.useEffect(() => {
     if (!loading && user) {
       console.log("User already authenticated, redirecting to home");
@@ -40,7 +40,6 @@ const Auth = () => {
           password,
         });
         if (error) throw error;
-        navigate("/home", { replace: true });
       } else {
         const { error } = await supabase.auth.signUp({
           email,
@@ -56,6 +55,7 @@ const Auth = () => {
         });
       }
     } catch (error: any) {
+      console.error('Auth error:', error);
       toast({
         variant: "destructive",
         title: t("common", "error"),
@@ -69,78 +69,32 @@ const Auth = () => {
   const handleGoogleSignIn = async () => {
     try {
       setIsLoading(true);
+      console.log("Starting Google OAuth");
       
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/home`,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-          }
         }
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Google OAuth error:', error);
+        throw error;
+      }
       
     } catch (error: any) {
+      console.error('Google sign in error:', error);
       toast({
         variant: "destructive",
         title: t("common", "error"),
         description: error.message,
       });
-    } finally {
       setIsLoading(false);
     }
   };
 
-  // Check for auth confirmation or handle OAuth callback
-  React.useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const confirmed = urlParams.get('confirmed');
-    
-    if (confirmed === 'true') {
-      toast({
-        title: t("auth", "emailConfirmed") || "Email Confirmed",
-        description: t("auth", "accountConfirmed") || "Your account has been confirmed. You can now sign in.",
-      });
-      // Clear the URL parameter
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
-    
-    // Enhanced OAuth callback handling
-    const handleOAuthCallback = async () => {
-      // Check if we're returning from OAuth
-      const hashParams = new URLSearchParams(window.location.hash.substring(1));
-      const accessToken = hashParams.get('access_token');
-      const refreshToken = hashParams.get('refresh_token');
-      
-      if (accessToken || refreshToken) {
-        console.log("OAuth callback detected, checking session...");
-        
-        // Wait a bit for Supabase to process the tokens
-        setTimeout(async () => {
-          const { data: { session }, error } = await supabase.auth.getSession();
-          if (session && !error) {
-            console.log("OAuth session confirmed, redirecting to home");
-            localStorage.setItem('golfit_auth_success', 'true');
-            navigate("/home", { replace: true });
-          }
-        }, 500);
-      } else {
-        // Check for existing session on regular page load
-        const { data: { session }, error } = await supabase.auth.getSession();
-        if (session && !error) {
-          console.log("Existing session found, redirecting to home");
-          navigate("/home", { replace: true });
-        }
-      }
-    };
-    
-    handleOAuthCallback();
-  }, [navigate, toast, t]);
-
-  // Don't render auth form if user is already authenticated
+  // Don't render if user is already authenticated
   if (!loading && user) {
     return null;
   }
@@ -148,7 +102,6 @@ const Auth = () => {
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-primary">
       <div className="w-full max-w-md space-y-6">
-        {/* Logo Section with larger golf flag image */}
         <div className="flex justify-center mb-8">
           <div className="w-32 h-32 flex items-center justify-center">
             <img 
