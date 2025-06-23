@@ -60,19 +60,35 @@ const Auth = () => {
   const handleGoogleSignIn = async () => {
     try {
       setIsLoading(true);
+      
+      // For mobile, we want to open in the same window to avoid browser navigation
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: 'https://golfitargentina.com/home',
+          redirectTo: `${window.location.origin}/home`,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
           },
-          skipBrowserRedirect: false
+          // Skip browser redirect on mobile to prevent navigation bars
+          skipBrowserRedirect: isMobile
         }
       });
       
       if (error) throw error;
+      
+      // If we're on mobile and skipBrowserRedirect is true, handle the auth manually
+      if (isMobile) {
+        // Listen for auth state changes
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+          if (event === 'SIGNED_IN' && session) {
+            subscription.unsubscribe();
+            navigate("/home");
+          }
+        });
+      }
       
     } catch (error: any) {
       toast({
@@ -100,16 +116,12 @@ const Auth = () => {
       window.history.replaceState({}, document.title, window.location.pathname);
     }
     
-    if (provider === 'google') {
-      // Handle Google OAuth callback
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session) {
-          navigate("/home");
-        }
-      });
-      // Clear the URL parameter
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
+    // Handle OAuth callback
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        navigate("/home");
+      }
+    });
   }, [navigate, toast, t]);
 
   return (

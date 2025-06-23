@@ -7,16 +7,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <meta name="theme-color" content="#000000" />
+    <meta name="apple-mobile-web-app-title" content="GOLFIT Argentina" />
     <title>GOLFIT Argentina</title>
     <style>
-      /* Hide browser UI on mobile */
+      /* Hide browser UI on mobile and force full screen */
       @media (max-width: 768px) {
         html, body {
           overflow-x: hidden;
           -webkit-overflow-scrolling: touch;
           height: 100vh;
           height: -webkit-fill-available;
+          -webkit-touch-callout: none;
+          -webkit-user-select: none;
+          -khtml-user-select: none;
+          -moz-user-select: none;
+          -ms-user-select: none;
+          user-select: none;
         }
         
         body {
@@ -24,6 +32,7 @@
           width: 100%;
           top: 0;
           left: 0;
+          background: #000;
         }
         
         #root {
@@ -31,7 +40,21 @@
           height: -webkit-fill-available;
           overflow-y: auto;
           -webkit-overflow-scrolling: touch;
+          position: relative;
+          z-index: 1;
         }
+        
+        /* Hide address bar on mobile browsers */
+        @supports (-webkit-touch-callout: none) {
+          html {
+            height: -webkit-fill-available;
+          }
+        }
+      }
+      
+      /* Prevent zoom on input focus */
+      input, select, textarea {
+        font-size: 16px !important;
       }
     </style>
   </head>
