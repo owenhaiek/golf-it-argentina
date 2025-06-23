@@ -61,9 +61,6 @@ const Auth = () => {
     try {
       setIsLoading(true);
       
-      // For mobile, we want to open in the same window to avoid browser navigation
-      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -71,24 +68,11 @@ const Auth = () => {
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
-          },
-          // Skip browser redirect on mobile to prevent navigation bars
-          skipBrowserRedirect: isMobile
+          }
         }
       });
       
       if (error) throw error;
-      
-      // If we're on mobile and skipBrowserRedirect is true, handle the auth manually
-      if (isMobile) {
-        // Listen for auth state changes
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-          if (event === 'SIGNED_IN' && session) {
-            subscription.unsubscribe();
-            navigate("/home");
-          }
-        });
-      }
       
     } catch (error: any) {
       toast({
@@ -105,7 +89,6 @@ const Auth = () => {
   React.useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const confirmed = urlParams.get('confirmed');
-    const provider = urlParams.get('provider');
     
     if (confirmed === 'true') {
       toast({
