@@ -24,6 +24,7 @@ enabled = true
 [auth]
 enabled = true
 site_url = "https://golfitargentina.com"
+additional_redirect_urls = ["https://golfitargentina.com/auth"]
 
 [realtime]
 enabled = true

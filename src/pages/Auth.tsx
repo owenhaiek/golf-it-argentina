@@ -63,7 +63,12 @@ const Auth = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth?provider=google`
+          redirectTo: 'https://golfitargentina.com/home',
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+          skipBrowserRedirect: false
         }
       });
       
@@ -99,7 +104,7 @@ const Auth = () => {
       // Handle Google OAuth callback
       supabase.auth.getSession().then(({ data: { session } }) => {
         if (session) {
-          navigate("/");
+          navigate("/home");
         }
       });
       // Clear the URL parameter

@@ -1,41 +1,42 @@
 
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/lovable-uploads/b6585f6c-4c9f-4a38-8e96-cd5c6457a497.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui, viewport-fit=cover" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="theme-color" content="#2A4746" />
-    <meta name="apple-mobile-web-app-title" content="GolfIt - Encontrá donde jugar!" />
-    <meta name="description" content="Encontrá donde jugar golf, reservá campos y mejorá tu juego" />
-    
-    <!-- Apple specific app icon -->
-    <link rel="apple-touch-icon" href="/lovable-uploads/b6585f6c-4c9f-4a38-8e96-cd5c6457a497.png" />
-    <link rel="apple-touch-icon" sizes="152x152" href="/lovable-uploads/b6585f6c-4c9f-4a38-8e96-cd5c6457a497.png" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/lovable-uploads/b6585f6c-4c9f-4a38-8e96-cd5c6457a497.png" />
-    <link rel="apple-touch-icon" sizes="167x167" href="/lovable-uploads/b6585f6c-4c9f-4a38-8e96-cd5c6457a497.png" />
-    
-    <!-- Android app icon -->
-    <link rel="shortcut icon" sizes="192x192" href="/lovable-uploads/b6585f6c-4c9f-4a38-8e96-cd5c6457a497.png" />
-    <link rel="shortcut icon" sizes="512x512" href="/lovable-uploads/b6585f6c-4c9f-4a38-8e96-cd5c6457a497.png" />
-    
-    <!-- Web app manifest for PWA -->
-    <link rel="manifest" href="/manifest.json" />
-    
-    <!-- Mapbox GL JS CSS -->
-    <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
-    
-    <title>GolfIt - Encontrá donde jugar!</title>
+    <meta name="theme-color" content="#000000" />
+    <title>GOLFIT Argentina</title>
+    <style>
+      /* Hide browser UI on mobile */
+      @media (max-width: 768px) {
+        html, body {
+          overflow-x: hidden;
+          -webkit-overflow-scrolling: touch;
+          height: 100vh;
+          height: -webkit-fill-available;
+        }
+        
+        body {
+          position: fixed;
+          width: 100%;
+          top: 0;
+          left: 0;
+        }
+        
+        #root {
+          height: 100vh;
+          height: -webkit-fill-available;
+          overflow-y: auto;
+          -webkit-overflow-scrolling: touch;
+        }
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
-    <!-- Mapbox GL JS -->
-    <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
-    <!-- Added the required Lovable script tag -->
-    <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
