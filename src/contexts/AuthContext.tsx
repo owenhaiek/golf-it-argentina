@@ -65,9 +65,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   useEffect(() => {
+    let mounted = true;
+
     // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth state changed:', event, session?.user?.id);
+      
+      if (!mounted) return;
+      
+      // Always update user state
       setUser(session?.user ?? null);
       setLoading(false);
       
@@ -75,19 +81,42 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (event === 'SIGNED_OUT') {
         cleanupAuthState();
       }
+      
+      // Handle successful sign in from OAuth
+      if (event === 'SIGNED_IN' && session?.user) {
+        console.log("User successfully signed in via OAuth");
+        // Don't redirect here, let the Auth page handle it
+      }
     });
 
     // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
-      if (error) {
-        console.error('Error getting session:', error);
-        cleanupAuthState();
+    const checkInitialSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) {
+          console.error('Error getting session:', error);
+          cleanupAuthState();
+        }
+        
+        if (mounted) {
+          setUser(session?.user ?? null);
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error('Error in initial session check:', error);
+        if (mounted) {
+          setUser(null);
+          setLoading(false);
+        }
       }
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    };
 
-    return () => subscription.unsubscribe();
+    checkInitialSession();
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   return (

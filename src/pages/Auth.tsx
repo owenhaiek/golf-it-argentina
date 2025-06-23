@@ -99,12 +99,33 @@ const Auth = () => {
       window.history.replaceState({}, document.title, window.location.pathname);
     }
     
-    // Handle OAuth callback
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        navigate("/home");
+    // Enhanced session handling for OAuth callback
+    const checkSession = async () => {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (session && !error) {
+        console.log("Session found, redirecting to home");
+        navigate("/home", { replace: true });
+      }
+    };
+    
+    checkSession();
+    
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state changed:', event, session?.user?.id);
+      
+      if (event === 'SIGNED_IN' && session) {
+        console.log("User signed in, redirecting to home");
+        navigate("/home", { replace: true });
+      }
+      
+      if (event === 'SIGNED_OUT') {
+        console.log("User signed out");
+        navigate("/auth", { replace: true });
       }
     });
+
+    return () => subscription.unsubscribe();
   }, [navigate, toast, t]);
 
   return (
