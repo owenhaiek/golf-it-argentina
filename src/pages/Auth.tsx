@@ -9,7 +9,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Separator } from "@/components/ui/separator";
 import { FcGoogle } from "react-icons/fc";
-import { AppLogo } from "@/components/ui/AppLogo";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -19,6 +19,15 @@ const Auth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { t } = useLanguage();
+  const { user, loading } = useAuth();
+
+  // Redirect authenticated users immediately
+  React.useEffect(() => {
+    if (!loading && user) {
+      console.log("User already authenticated, redirecting to home");
+      navigate("/home", { replace: true });
+    }
+  }, [user, loading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,13 +40,13 @@ const Auth = () => {
           password,
         });
         if (error) throw error;
-        navigate("/");
+        navigate("/home", { replace: true });
       } else {
         const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/auth?confirmed=true`,
+            emailRedirectTo: `${window.location.origin}/home`,
           },
         });
         if (error) throw error;
@@ -85,7 +94,7 @@ const Auth = () => {
     }
   };
 
-  // Check for auth confirmation or OAuth callback
+  // Check for auth confirmation or handle OAuth callback
   React.useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const confirmed = urlParams.get('confirmed');
@@ -99,34 +108,42 @@ const Auth = () => {
       window.history.replaceState({}, document.title, window.location.pathname);
     }
     
-    // Enhanced session handling for OAuth callback
-    const checkSession = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      if (session && !error) {
-        console.log("Session found, redirecting to home");
-        navigate("/home", { replace: true });
+    // Enhanced OAuth callback handling
+    const handleOAuthCallback = async () => {
+      // Check if we're returning from OAuth
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const accessToken = hashParams.get('access_token');
+      const refreshToken = hashParams.get('refresh_token');
+      
+      if (accessToken || refreshToken) {
+        console.log("OAuth callback detected, checking session...");
+        
+        // Wait a bit for Supabase to process the tokens
+        setTimeout(async () => {
+          const { data: { session }, error } = await supabase.auth.getSession();
+          if (session && !error) {
+            console.log("OAuth session confirmed, redirecting to home");
+            localStorage.setItem('golfit_auth_success', 'true');
+            navigate("/home", { replace: true });
+          }
+        }, 500);
+      } else {
+        // Check for existing session on regular page load
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (session && !error) {
+          console.log("Existing session found, redirecting to home");
+          navigate("/home", { replace: true });
+        }
       }
     };
     
-    checkSession();
-    
-    // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', event, session?.user?.id);
-      
-      if (event === 'SIGNED_IN' && session) {
-        console.log("User signed in, redirecting to home");
-        navigate("/home", { replace: true });
-      }
-      
-      if (event === 'SIGNED_OUT') {
-        console.log("User signed out");
-        navigate("/auth", { replace: true });
-      }
-    });
-
-    return () => subscription.unsubscribe();
+    handleOAuthCallback();
   }, [navigate, toast, t]);
+
+  // Don't render auth form if user is already authenticated
+  if (!loading && user) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-primary">

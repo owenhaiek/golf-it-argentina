@@ -66,52 +66,70 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     let mounted = true;
+    let authStateChangeHandled = false;
 
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', event, session?.user?.id);
-      
-      if (!mounted) return;
-      
-      // Always update user state
-      setUser(session?.user ?? null);
-      setLoading(false);
-      
-      // Clean up on sign out
-      if (event === 'SIGNED_OUT') {
-        cleanupAuthState();
-      }
-      
-      // Handle successful sign in from OAuth
-      if (event === 'SIGNED_IN' && session?.user) {
-        console.log("User successfully signed in via OAuth");
-        // Don't redirect here, let the Auth page handle it
-      }
-    });
-
-    // THEN check for existing session
-    const checkInitialSession = async () => {
+    // Enhanced session checking with retry logic
+    const checkSession = async (retries = 3) => {
       try {
+        console.log('Checking for existing session...');
         const { data: { session }, error } = await supabase.auth.getSession();
+        
         if (error) {
           console.error('Error getting session:', error);
+          if (retries > 0) {
+            console.log(`Retrying session check... (${retries} attempts left)`);
+            setTimeout(() => checkSession(retries - 1), 500);
+            return;
+          }
           cleanupAuthState();
         }
         
-        if (mounted) {
+        if (mounted && !authStateChangeHandled) {
+          console.log('Initial session check:', session?.user?.id || 'No session');
           setUser(session?.user ?? null);
           setLoading(false);
         }
       } catch (error) {
-        console.error('Error in initial session check:', error);
-        if (mounted) {
+        console.error('Error in session check:', error);
+        if (mounted && !authStateChangeHandled) {
           setUser(null);
           setLoading(false);
         }
       }
     };
 
-    checkInitialSession();
+    // Set up auth state listener with improved handling
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state changed:', event, session?.user?.id);
+      
+      if (!mounted) return;
+      
+      authStateChangeHandled = true;
+      
+      // Always update user state immediately
+      setUser(session?.user ?? null);
+      setLoading(false);
+      
+      // Handle different auth events
+      if (event === 'SIGNED_IN' && session?.user) {
+        console.log("User successfully signed in");
+        // Store a flag to indicate successful login
+        localStorage.setItem('golfit_auth_success', 'true');
+      }
+      
+      if (event === 'SIGNED_OUT') {
+        console.log("User signed out");
+        cleanupAuthState();
+        localStorage.removeItem('golfit_auth_success');
+      }
+      
+      if (event === 'TOKEN_REFRESHED') {
+        console.log("Token refreshed successfully");
+      }
+    });
+
+    // Check for existing session
+    checkSession();
 
     return () => {
       mounted = false;
