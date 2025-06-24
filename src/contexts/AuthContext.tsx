@@ -1,40 +1,22 @@
 
 import { createContext, useContext, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import type { User, Session } from '@supabase/supabase-js';
+import type { User } from '@supabase/supabase-js';
 
 type AuthContextType = {
   user: User | null;
-  session: Session | null;
   loading: boolean;
   signOut: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType>({ 
   user: null, 
-  session: null,
   loading: true, 
   signOut: async () => {} 
 });
 
-// Smart cleanup that preserves active OAuth sessions
-const smartCleanupAuthState = (preserveActive = false) => {
-  if (preserveActive) {
-    // Only clean up if there's no active session being processed
-    setTimeout(() => {
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        if (!session) {
-          performCleanup();
-        }
-      });
-    }, 1000);
-  } else {
-    performCleanup();
-  }
-};
-
-const performCleanup = () => {
+// Helper function to clean up auth tokens to prevent auth limbo states
+const cleanupAuthState = () => {
   // Remove standard auth tokens
   localStorage.removeItem('supabase.auth.token');
   // Remove all Supabase auth keys from localStorage
@@ -53,122 +35,63 @@ const performCleanup = () => {
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
 
-  // Enhanced sign out function
+  // Enhanced sign out function with better error handling and cleanup
   const signOut = async () => {
     try {
       console.log("Starting signOut process");
       
-      // Clean up auth state
-      performCleanup();
+      // Clean up auth state first
+      cleanupAuthState();
       
-      // Attempt global sign out
+      // Attempt global sign out with better error handling
       const { error } = await supabase.auth.signOut({ scope: 'global' });
       
       if (error) {
         console.error('Supabase signOut error:', error);
+        // Even if signOut fails, we should still redirect since we've cleaned up local state
       }
       
-      console.log("SignOut completed, navigating to auth");
+      console.log("SignOut completed, redirecting to auth");
       
-      // Use React Router navigation instead of hard redirect
-      navigate('/auth', { replace: true });
+      // Force page reload for a clean state
+      window.location.href = '/auth';
     } catch (error) {
       console.error('Error during signOut process:', error);
-      navigate('/auth', { replace: true });
+      // Still redirect even if there's an error
+      window.location.href = '/auth';
     }
   };
 
   useEffect(() => {
-    let mounted = true;
-    let retryCount = 0;
-    const maxRetries = 3;
-
-    const initializeAuth = async () => {
-      try {
-        // Set up auth state listener FIRST
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-          console.log('Auth state changed:', event, session?.user?.id);
-          
-          if (!mounted) return;
-          
-          if (event === 'SIGNED_IN' && session) {
-            console.log('User signed in successfully');
-            setSession(session);
-            setUser(session.user);
-            setLoading(false);
-          } else if (event === 'SIGNED_OUT') {
-            console.log('User signed out');
-            smartCleanupAuthState();
-            setSession(null);
-            setUser(null);
-            setLoading(false);
-          } else if (event === 'TOKEN_REFRESHED' && session) {
-            console.log('Token refreshed');
-            setSession(session);
-            setUser(session.user);
-          } else {
-            setSession(session);
-            setUser(session?.user ?? null);
-            setLoading(false);
-          }
-        });
-
-        // THEN check for existing session with retry logic
-        const checkSession = async () => {
-          try {
-            const { data: { session }, error } = await supabase.auth.getSession();
-            
-            if (error) {
-              console.error('Error getting session:', error);
-              if (retryCount < maxRetries) {
-                retryCount++;
-                console.log(`Retrying session check (${retryCount}/${maxRetries})`);
-                setTimeout(checkSession, 1000 * retryCount);
-                return;
-              }
-              smartCleanupAuthState();
-            }
-            
-            if (mounted) {
-              console.log('Initial session check:', session?.user?.id || 'No session');
-              setSession(session);
-              setUser(session?.user ?? null);
-              setLoading(false);
-            }
-          } catch (error) {
-            console.error('Session check error:', error);
-            if (mounted) {
-              setLoading(false);
-            }
-          }
-        };
-
-        await checkSession();
-
-        return () => {
-          subscription.unsubscribe();
-        };
-      } catch (error) {
-        console.error('Auth initialization error:', error);
-        if (mounted) {
-          setLoading(false);
-        }
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth state changed:', event, session?.user?.id);
+      setUser(session?.user ?? null);
+      setLoading(false);
+      
+      // Clean up on sign out
+      if (event === 'SIGNED_OUT') {
+        cleanupAuthState();
       }
-    };
+    });
 
-    initializeAuth();
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        console.error('Error getting session:', error);
+        cleanupAuthState();
+      }
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
 
-    return () => {
-      mounted = false;
-    };
+    return () => subscription.unsubscribe();
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signOut }}>
+    <AuthContext.Provider value={{ user, loading, signOut }}>
       {children}
     </AuthContext.Provider>
   );
