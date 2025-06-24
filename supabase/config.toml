@@ -24,9 +24,6 @@ enabled = true
 [auth]
 enabled = true
 site_url = "https://golfitargentina.com"
-additional_redirect_urls = ["https://golfitargentina.com/auth", "https://golfitargentina.com/home"]
-# Set custom application name instead of showing project ID
-external_labels = { "app_name" = "GOLFIT Argentina" }
 
 [realtime]
 enabled = true

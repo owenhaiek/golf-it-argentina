@@ -14,11 +14,11 @@ export const AuthGuard = ({ children }: AuthGuardProps) => {
 
   useEffect(() => {
     if (!loading && !user) {
-      console.log("AuthGuard: No user found, redirecting to auth");
       navigate('/auth', { replace: true });
     }
   }, [user, loading, navigate]);
 
+  // Show loading while checking authentication
   if (loading) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-background z-50">
@@ -27,12 +27,9 @@ export const AuthGuard = ({ children }: AuthGuardProps) => {
     );
   }
 
+  // If user is not authenticated, don't render children (redirect will happen)
   if (!user) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center bg-background z-50">
-        <GolfAnimationLoader />
-      </div>
-    );
+    return null;
   }
 
   return <>{children}</>;

@@ -9,7 +9,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Separator } from "@/components/ui/separator";
 import { FcGoogle } from "react-icons/fc";
-import { useAuth } from "@/contexts/AuthContext";
+import { AppLogo } from "@/components/ui/AppLogo";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -19,15 +19,6 @@ const Auth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { t } = useLanguage();
-  const { user, loading } = useAuth();
-
-  // Redirect authenticated users
-  React.useEffect(() => {
-    if (!loading && user) {
-      console.log("User already authenticated, redirecting to home");
-      navigate("/home", { replace: true });
-    }
-  }, [user, loading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,12 +31,13 @@ const Auth = () => {
           password,
         });
         if (error) throw error;
+        navigate("/");
       } else {
         const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/home`,
+            emailRedirectTo: `${window.location.origin}/auth?confirmed=true`,
           },
         });
         if (error) throw error;
@@ -55,7 +47,6 @@ const Auth = () => {
         });
       }
     } catch (error: any) {
-      console.error('Auth error:', error);
       toast({
         variant: "destructive",
         title: t("common", "error"),
@@ -69,44 +60,57 @@ const Auth = () => {
   const handleGoogleSignIn = async () => {
     try {
       setIsLoading(true);
-      console.log("Starting Google OAuth");
-      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/home`,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-          },
+          redirectTo: `${window.location.origin}/auth?provider=google`
         }
       });
       
-      if (error) {
-        console.error('Google OAuth error:', error);
-        throw error;
-      }
+      if (error) throw error;
       
-      // Don't set loading to false here as the page will redirect
     } catch (error: any) {
-      console.error('Google sign in error:', error);
       toast({
         variant: "destructive",
         title: t("common", "error"),
         description: error.message,
       });
+    } finally {
       setIsLoading(false);
     }
   };
 
-  // Don't render if user is already authenticated
-  if (!loading && user) {
-    return null;
-  }
+  // Check for auth confirmation or OAuth callback
+  React.useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const confirmed = urlParams.get('confirmed');
+    const provider = urlParams.get('provider');
+    
+    if (confirmed === 'true') {
+      toast({
+        title: t("auth", "emailConfirmed") || "Email Confirmed",
+        description: t("auth", "accountConfirmed") || "Your account has been confirmed. You can now sign in.",
+      });
+      // Clear the URL parameter
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+    
+    if (provider === 'google') {
+      // Handle Google OAuth callback
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+          navigate("/");
+        }
+      });
+      // Clear the URL parameter
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, [navigate, toast, t]);
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-primary">
       <div className="w-full max-w-md space-y-6">
+        {/* Logo Section with larger golf flag image */}
         <div className="flex justify-center mb-8">
           <div className="w-32 h-32 flex items-center justify-center">
             <img 

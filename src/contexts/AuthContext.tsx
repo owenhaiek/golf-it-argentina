@@ -15,103 +15,79 @@ const AuthContext = createContext<AuthContextType>({
   signOut: async () => {} 
 });
 
+// Helper function to clean up auth tokens to prevent auth limbo states
+const cleanupAuthState = () => {
+  // Remove standard auth tokens
+  localStorage.removeItem('supabase.auth.token');
+  // Remove all Supabase auth keys from localStorage
+  Object.keys(localStorage).forEach((key) => {
+    if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+      localStorage.removeItem(key);
+    }
+  });
+  // Remove from sessionStorage if in use
+  Object.keys(sessionStorage || {}).forEach((key) => {
+    if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+      sessionStorage.removeItem(key);
+    }
+  });
+};
+
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Enhanced sign out function with better error handling and cleanup
   const signOut = async () => {
     try {
       console.log("Starting signOut process");
       
-      // Clear local storage first
-      localStorage.clear();
-      sessionStorage.clear();
+      // Clean up auth state first
+      cleanupAuthState();
       
+      // Attempt global sign out with better error handling
       const { error } = await supabase.auth.signOut({ scope: 'global' });
       
       if (error) {
         console.error('Supabase signOut error:', error);
+        // Even if signOut fails, we should still redirect since we've cleaned up local state
       }
       
       console.log("SignOut completed, redirecting to auth");
+      
+      // Force page reload for a clean state
       window.location.href = '/auth';
     } catch (error) {
       console.error('Error during signOut process:', error);
+      // Still redirect even if there's an error
       window.location.href = '/auth';
     }
   };
 
   useEffect(() => {
-    let mounted = true;
-
-    // Get initial session with better error handling
-    const getInitialSession = async () => {
-      try {
-        console.log('Getting initial session...');
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error('Error getting session:', error);
-          if (mounted) {
-            setUser(null);
-            setLoading(false);
-          }
-          return;
-        }
-        
-        console.log('Initial session retrieved:', session?.user?.id || 'No session');
-        
-        if (mounted) {
-          setUser(session?.user ?? null);
-          setLoading(false);
-        }
-      } catch (error) {
-        console.error('Error in getInitialSession:', error);
-        if (mounted) {
-          setUser(null);
-          setLoading(false);
-        }
-      }
-    };
-
-    // Set up auth state listener with improved handling
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('Auth state changed:', event, session?.user?.id);
+      setUser(session?.user ?? null);
+      setLoading(false);
       
-      if (!mounted) return;
-      
-      // Handle different auth events
-      if (event === 'SIGNED_IN' && session?.user) {
-        console.log("User successfully signed in:", session.user.email);
-        setUser(session.user);
-        setLoading(false);
-        
-        // For OAuth flows, ensure we're on the correct page
-        if (window.location.pathname === '/' || window.location.pathname === '/auth') {
-          console.log("OAuth signin detected, redirecting to home");
-          window.location.href = '/home';
-        }
-      } else if (event === 'SIGNED_OUT') {
-        console.log("User signed out");
-        setUser(null);
-        setLoading(false);
-      } else if (event === 'TOKEN_REFRESHED' && session?.user) {
-        console.log("Token refreshed for user:", session.user.email);
-        setUser(session.user);
-        setLoading(false);
-      } else {
-        // For other events, just update the user state
-        setUser(session?.user ?? null);
-        setLoading(false);
+      // Clean up on sign out
+      if (event === 'SIGNED_OUT') {
+        cleanupAuthState();
       }
     });
 
-    getInitialSession();
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        console.error('Error getting session:', error);
+        cleanupAuthState();
+      }
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
 
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
+    return () => subscription.unsubscribe();
   }, []);
 
   return (
