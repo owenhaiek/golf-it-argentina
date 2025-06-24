@@ -31,13 +31,13 @@ const Auth = () => {
           password,
         });
         if (error) throw error;
-        navigate("/");
+        navigate("/home");
       } else {
         const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/auth?confirmed=true`,
+            emailRedirectTo: `${window.location.origin}/home`,
           },
         });
         if (error) throw error;
@@ -60,52 +60,32 @@ const Auth = () => {
   const handleGoogleSignIn = async () => {
     try {
       setIsLoading(true);
+      console.log("Starting Google OAuth");
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth?provider=google`
+          redirectTo: `${window.location.origin}/home`
         }
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error("Google OAuth error:", error);
+        throw error;
+      }
+      
+      console.log("Google OAuth initiated successfully");
       
     } catch (error: any) {
+      console.error("Google sign-in error:", error);
       toast({
         variant: "destructive",
         title: t("common", "error"),
         description: error.message,
       });
-    } finally {
       setIsLoading(false);
     }
   };
-
-  // Check for auth confirmation or OAuth callback
-  React.useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const confirmed = urlParams.get('confirmed');
-    const provider = urlParams.get('provider');
-    
-    if (confirmed === 'true') {
-      toast({
-        title: t("auth", "emailConfirmed") || "Email Confirmed",
-        description: t("auth", "accountConfirmed") || "Your account has been confirmed. You can now sign in.",
-      });
-      // Clear the URL parameter
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
-    
-    if (provider === 'google') {
-      // Handle Google OAuth callback
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session) {
-          navigate("/");
-        }
-      });
-      // Clear the URL parameter
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
-  }, [navigate, toast, t]);
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-primary">
