@@ -15,7 +15,7 @@ const Index = () => {
     if (!loading) {
       if (user) {
         console.log("User authenticated, redirecting to home");
-        // Use navigate instead of window.location to avoid full page reload
+        // Use navigate to avoid full page reload on OAuth callback
         navigate("/home", { replace: true });
       } else {
         console.log("No user found, redirecting to auth");
