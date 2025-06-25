@@ -12,10 +12,38 @@ const ProfileContent = () => {
   const { profile, rounds } = useProfileQueries();
   const navigate = useNavigate();
 
+  // Helper function to calculate the correct par for a round
+  const calculateRoundPar = (round: any) => {
+    const fullCoursePar = round.golf_courses?.par || 72;
+    
+    // Check if this is a 9-hole round from the notes
+    if (round.notes && round.notes.includes('9 holes played')) {
+      if (round.golf_courses?.hole_pars && round.golf_courses.hole_pars.length >= 18) {
+        // Calculate front 9 or back 9 par based on notes
+        if (round.notes.includes('(front 9)')) {
+          return round.golf_courses.hole_pars.slice(0, 9).reduce((a: number, b: number) => a + b, 0);
+        } else if (round.notes.includes('(back 9)')) {
+          return round.golf_courses.hole_pars.slice(9, 18).reduce((a: number, b: number) => a + b, 0);
+        }
+      }
+      // Fallback: assume 9 holes is half the course par
+      return Math.round(fullCoursePar / 2);
+    }
+    
+    return fullCoursePar;
+  };
+
   const totalRoundsPlayed = rounds?.length || 0;
-  const averageScore = rounds?.length
-    ? rounds.reduce((sum, round) => sum + round.score, 0) / rounds.length
-    : 0;
+  
+  // Calculate average score relative to par
+  let totalScoreVsPar = 0;
+  if (rounds && rounds.length > 0) {
+    rounds.forEach(round => {
+      const roundPar = calculateRoundPar(round);
+      totalScoreVsPar += (round.score - roundPar);
+    });
+  }
+  const averageVsPar = rounds?.length ? totalScoreVsPar / rounds.length : 0;
 
   const lastPlayedCourse = rounds?.[0]?.golf_courses?.name || "N/A";
   const lastPlayedDate = rounds?.[0]?.date
@@ -43,12 +71,14 @@ const ProfileContent = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-sm font-medium">
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
-              Avg. Score
+              Avg vs Par
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{averageScore.toFixed(1)}</div>
-            <p className="text-sm text-muted-foreground">Average Score</p>
+            <div className={`text-3xl font-bold ${averageVsPar > 0 ? 'text-red-600' : averageVsPar < 0 ? 'text-green-600' : 'text-blue-600'}`}>
+              {averageVsPar > 0 ? `+${averageVsPar.toFixed(1)}` : averageVsPar.toFixed(1)}
+            </div>
+            <p className="text-sm text-muted-foreground">Average vs Par</p>
           </CardContent>
         </Card>
 

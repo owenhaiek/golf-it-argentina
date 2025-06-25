@@ -20,9 +20,29 @@ interface CourseStatsProps {
   rounds: Round[];
   isLoading: boolean;
   coursePar?: number;
+  courseHolePars?: number[];
 }
 
-const CourseStats = ({ rounds, isLoading, coursePar = 72 }: CourseStatsProps) => {
+const CourseStats = ({ rounds, isLoading, coursePar = 72, courseHolePars }: CourseStatsProps) => {
+  // Helper function to calculate the correct par for a round
+  const calculateRoundPar = (round: Round) => {
+    // Check if this is a 9-hole round from the notes
+    if (round.notes && round.notes.includes('9 holes played')) {
+      if (courseHolePars && courseHolePars.length >= 18) {
+        // Calculate front 9 or back 9 par based on notes
+        if (round.notes.includes('(front 9)')) {
+          return courseHolePars.slice(0, 9).reduce((a, b) => a + b, 0);
+        } else if (round.notes.includes('(back 9)')) {
+          return courseHolePars.slice(9, 18).reduce((a, b) => a + b, 0);
+        }
+      }
+      // Fallback: assume 9 holes is half the course par
+      return Math.round(coursePar / 2);
+    }
+    
+    return coursePar;
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -67,19 +87,40 @@ const CourseStats = ({ rounds, isLoading, coursePar = 72 }: CourseStatsProps) =>
   }
 
   const totalRounds = rounds.length;
-  const totalScore = rounds.reduce((sum, round) => sum + round.score, 0);
-  const averageScore = totalScore / totalRounds;
-  const vsPar = averageScore - coursePar;
+  
+  // Calculate weighted average score considering different par values
+  let totalScoreVsPar = 0;
+  rounds.forEach(round => {
+    const roundPar = calculateRoundPar(round);
+    totalScoreVsPar += (round.score - roundPar);
+  });
+  const averageVsPar = totalScoreVsPar / totalRounds;
 
-  // Calculate best and worst scores
-  const bestRound = rounds.reduce((min, round) => (round.score < min.score ? round : min), rounds[0]);
-  const worstRound = rounds.reduce((max, round) => (round.score > max.score ? round : max), rounds[0]);
+  // Calculate best and worst rounds with correct par calculations
+  const bestRound = rounds.reduce((min, round) => {
+    const minVsPar = min.score - calculateRoundPar(min);
+    const roundVsPar = round.score - calculateRoundPar(round);
+    return roundVsPar < minVsPar ? round : min;
+  }, rounds[0]);
+
+  const worstRound = rounds.reduce((max, round) => {
+    const maxVsPar = max.score - calculateRoundPar(max);
+    const roundVsPar = round.score - calculateRoundPar(round);
+    return roundVsPar > maxVsPar ? round : max;
+  }, rounds[0]);
 
   // Get unique players
   const uniquePlayers = new Set(rounds.map(round => round.user_id)).size;
 
-  // Sort rounds for leaderboard (best scores first)
-  const sortedRounds = [...rounds].sort((a, b) => a.score - b.score);
+  // Sort rounds for leaderboard (best scores relative to par first)
+  const sortedRounds = [...rounds].sort((a, b) => {
+    const aVsPar = a.score - calculateRoundPar(a);
+    const bVsPar = b.score - calculateRoundPar(b);
+    return aVsPar - bVsPar;
+  });
+
+  const bestRoundPar = calculateRoundPar(bestRound);
+  const worstRoundPar = calculateRoundPar(worstRound);
 
   return (
     <div className="space-y-6">
@@ -101,8 +142,10 @@ const CourseStats = ({ rounds, isLoading, coursePar = 72 }: CourseStatsProps) =>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-green-700 dark:text-green-300">Average Score</p>
-                <p className="text-2xl font-bold text-green-900 dark:text-green-100">{averageScore.toFixed(1)}</p>
+                <p className="text-sm font-medium text-green-700 dark:text-green-300">Avg vs Par</p>
+                <p className={`text-2xl font-bold ${averageVsPar > 0 ? 'text-red-600 dark:text-red-400' : averageVsPar < 0 ? 'text-green-600 dark:text-green-400' : 'text-blue-600 dark:text-blue-400'}`}>
+                  {averageVsPar > 0 ? `+${averageVsPar.toFixed(1)}` : averageVsPar.toFixed(1)}
+                </p>
               </div>
               <TrendingUp className="h-8 w-8 text-green-600 dark:text-green-400" />
             </div>
@@ -113,9 +156,9 @@ const CourseStats = ({ rounds, isLoading, coursePar = 72 }: CourseStatsProps) =>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-purple-700 dark:text-purple-300">vs Par</p>
-                <p className={`text-2xl font-bold ${vsPar > 0 ? 'text-red-600 dark:text-red-400' : vsPar < 0 ? 'text-green-600 dark:text-green-400' : 'text-blue-600 dark:text-blue-400'}`}>
-                  {vsPar > 0 ? `+${vsPar.toFixed(1)}` : vsPar.toFixed(1)}
+                <p className="text-sm font-medium text-purple-700 dark:text-purple-300">Best Round</p>
+                <p className={`text-2xl font-bold ${bestRound.score - bestRoundPar > 0 ? 'text-red-600 dark:text-red-400' : bestRound.score - bestRoundPar < 0 ? 'text-green-600 dark:text-green-400' : 'text-blue-600 dark:text-blue-400'}`}>
+                  {bestRound.score - bestRoundPar > 0 ? `+${bestRound.score - bestRoundPar}` : bestRound.score - bestRoundPar}
                 </p>
               </div>
               <Target className="h-8 w-8 text-purple-600 dark:text-purple-400" />
@@ -154,8 +197,13 @@ const CourseStats = ({ rounds, isLoading, coursePar = 72 }: CourseStatsProps) =>
                 </span>
               </div>
               <div className="text-sm text-muted-foreground">
-                {bestRound.score - coursePar > 0 ? `+${bestRound.score - coursePar}` : bestRound.score - coursePar} vs Par
+                {bestRound.score - bestRoundPar > 0 ? `+${bestRound.score - bestRoundPar}` : bestRound.score - bestRoundPar} vs Par ({bestRoundPar})
               </div>
+              {bestRound.notes && (
+                <div className="text-xs text-muted-foreground bg-muted p-2 rounded">
+                  {bestRound.notes}
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -176,8 +224,13 @@ const CourseStats = ({ rounds, isLoading, coursePar = 72 }: CourseStatsProps) =>
                 </span>
               </div>
               <div className="text-sm text-muted-foreground">
-                +{worstRound.score - coursePar} vs Par
+                +{worstRound.score - worstRoundPar} vs Par ({worstRoundPar})
               </div>
+              {worstRound.notes && (
+                <div className="text-xs text-muted-foreground bg-muted p-2 rounded">
+                  {worstRound.notes}
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>

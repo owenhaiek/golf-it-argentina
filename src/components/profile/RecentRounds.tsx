@@ -15,6 +15,27 @@ const RecentRounds = () => {
   const navigate = useNavigate();
   const { rounds, roundsLoading, deletingRoundId, handleDeleteRound } = useProfileQueries();
 
+  // Helper function to calculate the correct par for a round
+  const calculateRoundPar = (round: any) => {
+    const fullCoursePar = round.golf_courses?.par || 72;
+    
+    // Check if this is a 9-hole round from the notes
+    if (round.notes && round.notes.includes('9 holes played')) {
+      if (round.golf_courses?.hole_pars && round.golf_courses.hole_pars.length >= 18) {
+        // Calculate front 9 or back 9 par based on notes
+        if (round.notes.includes('(front 9)')) {
+          return round.golf_courses.hole_pars.slice(0, 9).reduce((a: number, b: number) => a + b, 0);
+        } else if (round.notes.includes('(back 9)')) {
+          return round.golf_courses.hole_pars.slice(9, 18).reduce((a: number, b: number) => a + b, 0);
+        }
+      }
+      // Fallback: assume 9 holes is half the course par
+      return Math.round(fullCoursePar / 2);
+    }
+    
+    return fullCoursePar;
+  };
+
   if (roundsLoading) {
     return (
       <Card>
@@ -52,7 +73,7 @@ const RecentRounds = () => {
       </CardHeader>
       <CardContent className="space-y-4">
         {rounds.map((round) => {
-          const coursePar = round.golf_courses?.par || 72;
+          const coursePar = calculateRoundPar(round);
           const scoreDiff = round.score - coursePar;
           
           let scoreStatus;
