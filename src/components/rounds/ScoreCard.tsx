@@ -17,16 +17,31 @@ interface ScoreCardProps {
   selectedCourseData: Course | undefined;
   scores: number[];
   onScoreChange: (index: number, value: number) => void;
+  selectedSide?: "front" | "back";
 }
 
-const ScoreCard = ({ selectedCourseData, scores, onScoreChange }: ScoreCardProps) => {
+const ScoreCard = ({ selectedCourseData, scores, onScoreChange, selectedSide }: ScoreCardProps) => {
   const [currentHoleIndex, setCurrentHoleIndex] = useState(0);
   const { toast } = useToast();
   
   const numberOfHoles = selectedCourseData?.holes || 18;
-  const totalPar = selectedCourseData?.hole_pars
-    ?.slice(0, numberOfHoles)
-    .reduce((a, b) => a + (b || 0), 0) || 0;
+  
+  // Calculate hole offset for front/back 9
+  const holeOffset = selectedSide === "back" ? 9 : 0;
+  
+  // Get the correct par values based on selected side
+  const getHolePars = () => {
+    if (!selectedCourseData?.hole_pars) return [];
+    if (selectedSide === "back" && selectedCourseData.hole_pars.length >= 18) {
+      return selectedCourseData.hole_pars.slice(9, 18);
+    } else if (selectedSide === "front" && selectedCourseData.hole_pars.length >= 9) {
+      return selectedCourseData.hole_pars.slice(0, 9);
+    }
+    return selectedCourseData.hole_pars.slice(0, numberOfHoles);
+  };
+
+  const holePars = getHolePars();
+  const totalPar = holePars.reduce((a, b) => a + (b || 0), 0);
   const currentTotal = scores.slice(0, numberOfHoles).reduce((a, b) => a + b, 0);
   const vsParScore = currentTotal - totalPar;
 
@@ -72,7 +87,6 @@ const ScoreCard = ({ selectedCourseData, scores, onScoreChange }: ScoreCardProps
     return '';
   };
 
-  // Get color based on score relative to par
   const getScoreColor = (score: number, par: number): string => {
     if (score === 0) return 'text-muted-foreground';
     
@@ -83,7 +97,7 @@ const ScoreCard = ({ selectedCourseData, scores, onScoreChange }: ScoreCardProps
     return 'text-red-500 dark:text-red-400';
   };
 
-  const currentPar = selectedCourseData?.hole_pars?.[currentHoleIndex] || 0;
+  const currentPar = holePars[currentHoleIndex] || 0;
   const currentScore = scores[currentHoleIndex];
   const scoreTerm = getScoreTerm(currentScore, currentPar);
   const scoreColor = getScoreColor(currentScore, currentPar);
@@ -98,7 +112,7 @@ const ScoreCard = ({ selectedCourseData, scores, onScoreChange }: ScoreCardProps
       case 5:
         return '/lovable-uploads/b49a1695-b905-4fe8-a00e-25b798e36009.png';
       default:
-        return '/lovable-uploads/733e8b06-d1ae-4521-8b31-d2525ba9bd35.png'; // Default to par 4
+        return '/lovable-uploads/733e8b06-d1ae-4521-8b31-d2525ba9bd35.png';
     }
   };
 
@@ -125,7 +139,10 @@ const ScoreCard = ({ selectedCourseData, scores, onScoreChange }: ScoreCardProps
         <div className="absolute top-3 left-3 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm px-3 py-2 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600">
           <div className="flex items-center gap-2">
             <Flag className="h-4 w-4 text-primary" />
-            <span className="font-semibold text-sm">Hole {currentHoleIndex + 1}</span>
+            <span className="font-semibold text-sm">
+              Hole {currentHoleIndex + 1 + holeOffset}
+              {selectedSide && ` (${selectedSide === 'front' ? 'Front' : 'Back'} 9)`}
+            </span>
           </div>
           <div className="text-xs text-muted-foreground mt-1">
             Par {currentPar}
@@ -165,7 +182,14 @@ const ScoreCard = ({ selectedCourseData, scores, onScoreChange }: ScoreCardProps
   return (
     <Card className="w-full">
       <CardHeader className="pb-4">
-        <CardTitle className="text-lg sm:text-xl text-center">{selectedCourseData?.name}</CardTitle>
+        <CardTitle className="text-lg sm:text-xl text-center">
+          {selectedCourseData?.name}
+          {selectedSide && (
+            <div className="text-sm text-muted-foreground font-normal mt-1">
+              {selectedSide === 'front' ? 'Front 9 (Holes 1-9)' : 'Back 9 (Holes 10-18)'}
+            </div>
+          )}
+        </CardTitle>
         <div className="w-full bg-gray-200 dark:bg-gray-700 h-2 rounded-full">
           <div 
             className="bg-primary h-2 rounded-full transition-all duration-300"
@@ -291,6 +315,7 @@ const ScoreCard = ({ selectedCourseData, scores, onScoreChange }: ScoreCardProps
           {Array.from({ length: numberOfHoles }).map((_, index) => {
             const isCompleted = scores[index] > 0;
             const isCurrent = index === currentHoleIndex;
+            const displayHoleNumber = index + 1 + holeOffset;
             
             return (
               <button
@@ -306,7 +331,7 @@ const ScoreCard = ({ selectedCourseData, scores, onScoreChange }: ScoreCardProps
                   }
                 `}
               >
-                {index + 1}
+                {displayHoleNumber}
               </button>
             );
           })}

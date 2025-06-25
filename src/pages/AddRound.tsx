@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,6 +10,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import CourseSelector from "@/components/course/CourseSelector";
 import ScoreCard from "@/components/rounds/ScoreCard";
+import FrontBackSelector from "@/components/rounds/FrontBackSelector";
 
 const AddRound = () => {
   const { user } = useAuth();
@@ -20,6 +20,7 @@ const AddRound = () => {
   const queryClient = useQueryClient();
   const [selectedCourse, setSelectedCourse] = useState<string>("");
   const [holesPlayed, setHolesPlayed] = useState<"9" | "18" | "27">("18");
+  const [selectedSide, setSelectedSide] = useState<"front" | "back">("front");
   const [scores, setScores] = useState<number[]>(Array(18).fill(0));
   const [notes, setNotes] = useState("");
 
@@ -48,6 +49,17 @@ const AddRound = () => {
     // Reset scores when changing holes played
     const holesCount = value === "9" ? 9 : value === "18" ? 18 : (selectedCourseData?.holes || 27);
     setScores(Array(holesCount).fill(0));
+    
+    // Reset side selection when changing from 9 holes
+    if (value !== "9") {
+      setSelectedSide("front");
+    }
+  };
+
+  const handleSideChange = (side: "front" | "back") => {
+    setSelectedSide(side);
+    // Reset scores when changing side
+    setScores(Array(9).fill(0));
   };
 
   const addRoundMutation = useMutation({
@@ -122,12 +134,21 @@ const AddRound = () => {
     // Calculate total score only for the holes actually played
     const totalScore = scores.slice(0, holesCount).reduce((a, b) => a + b, 0);
     
+    // Create notes with holes info
+    let roundNotes = `${holesCount} holes played`;
+    if (holesCount === 9 && selectedCourseData && selectedCourseData.holes >= 18) {
+      roundNotes += ` (${selectedSide} 9)`;
+    }
+    if (notes.trim()) {
+      roundNotes += `. ${notes}`;
+    }
+    
     try {
       addRoundMutation.mutate({
         user_id: user.id,
         course_id: selectedCourse,
         score: totalScore,
-        notes: `${holesCount} holes played. ${notes}`.trim(),
+        notes: roundNotes,
         date: new Date().toISOString().split('T')[0] // Add today's date
       });
     } catch (error) {
@@ -146,6 +167,9 @@ const AddRound = () => {
       }
     }
   };
+
+  // Check if we should show front/back selector
+  const shouldShowFrontBackSelector = holesPlayed === "9" && selectedCourseData && selectedCourseData.holes >= 18;
 
   return (
     <div className="h-screen flex flex-col">
@@ -186,6 +210,13 @@ const AddRound = () => {
                   )}
                 </ToggleGroup>
               </div>
+
+              {shouldShowFrontBackSelector && (
+                <FrontBackSelector
+                  selectedSide={selectedSide}
+                  onSideChange={handleSideChange}
+                />
+              )}
             </div>
           )}
 
@@ -197,6 +228,7 @@ const AddRound = () => {
               }}
               scores={scores}
               onScoreChange={handleScoreChange}
+              selectedSide={shouldShowFrontBackSelector ? selectedSide : undefined}
             />
           )}
 
