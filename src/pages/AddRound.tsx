@@ -6,11 +6,11 @@ import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import CourseSelector from "@/components/course/CourseSelector";
 import ScoreCard from "@/components/rounds/ScoreCard";
 import FrontBackSelector from "@/components/rounds/FrontBackSelector";
+import HolesPlayedSelector from "@/components/rounds/HolesPlayedSelector";
 
 const AddRound = () => {
   const { user } = useAuth();
@@ -189,27 +189,11 @@ const AddRound = () => {
 
           {selectedCourse && (
             <div className="space-y-4">
-              <div className="space-y-3">
-                <h3 className="text-lg font-medium">Holes Played</h3>
-                <ToggleGroup 
-                  type="single" 
-                  value={holesPlayed} 
-                  onValueChange={(value) => value && handleHolesPlayedChange(value as "9" | "18" | "27")}
-                  className="justify-start"
-                >
-                  <ToggleGroupItem value="9" aria-label="9 holes" className="px-6">
-                    9 Holes
-                  </ToggleGroupItem>
-                  <ToggleGroupItem value="18" aria-label="18 holes" className="px-6">
-                    18 Holes
-                  </ToggleGroupItem>
-                  {selectedCourseData?.holes === 27 && (
-                    <ToggleGroupItem value="27" aria-label="27 holes" className="px-6">
-                      27 Holes
-                    </ToggleGroupItem>
-                  )}
-                </ToggleGroup>
-              </div>
+              <HolesPlayedSelector
+                holesPlayed={holesPlayed}
+                onHolesPlayedChange={handleHolesPlayedChange}
+                maxHoles={selectedCourseData?.holes}
+              />
 
               {shouldShowFrontBackSelector && (
                 <FrontBackSelector
