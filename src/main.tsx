@@ -5,42 +5,40 @@ import App from './App.tsx'
 import './index.css'
 import AppLoadingScreen from './components/ui/AppLoadingScreen.tsx'
 
-// Root component with optimized loading state
+// Root component with ultra-fast loading
 const Root = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Optimized preload assets with faster loading
-    const preloadAssets = async () => {
-      // Reduced minimum delay for faster perceived loading
-      const minDelay = new Promise(resolve => setTimeout(resolve, 1500));
+    // Ultra-fast loading with minimal delay
+    const quickLoad = async () => {
+      // Very short minimum delay - just enough for smooth animation
+      const minDelay = new Promise(resolve => setTimeout(resolve, 800));
       
-      // Wait for DOM content to be loaded (faster than full page load)
-      const domLoaded = new Promise(resolve => {
-        if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', () => resolve(true), { once: true });
-        } else {
-          resolve(true);
-        }
-      });
+      // Quick DOM check
+      const domReady = document.readyState !== 'loading' 
+        ? Promise.resolve(true)
+        : new Promise(resolve => {
+            document.addEventListener('DOMContentLoaded', () => resolve(true), { once: true });
+          });
       
-      // Check if critical resources are available
-      const criticalResourcesReady = new Promise(resolve => {
-        // Check if the app logo is accessible
+      // Preload logo quickly
+      const logoReady = new Promise(resolve => {
         const img = new Image();
         img.onload = () => resolve(true);
-        img.onerror = () => resolve(true); // Continue even if image fails
+        img.onerror = () => resolve(true);
         img.src = '/lovable-uploads/3dc401b2-fdd6-4815-a300-aa3c9b61ed9d.png';
+        // Don't wait too long for the image
+        setTimeout(() => resolve(true), 200);
       });
       
-      // Wait for DOM and critical resources, with minimum delay
-      await Promise.all([minDelay, domLoaded, criticalResourcesReady]);
+      // Wait for the shortest necessary time
+      await Promise.all([minDelay, domReady, logoReady]);
       
-      // Add smooth transition
       setIsLoading(false);
     };
     
-    preloadAssets();
+    quickLoad();
   }, []);
 
   return (

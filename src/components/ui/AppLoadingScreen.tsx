@@ -9,12 +9,12 @@ const AppLoadingScreen = () => {
       style={{ backgroundColor: '#092820' }}
     >
       <div className="flex flex-col items-center justify-center space-y-6">
-        {/* App Logo - Optimized for faster loading */}
+        {/* App Logo - Instant appearance */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
+          initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ 
-            duration: 0.5,
+            duration: 0.3,
             ease: "easeOut"
           }}
           className="relative"
@@ -28,11 +28,11 @@ const AppLoadingScreen = () => {
           />
         </motion.div>
         
-        {/* Loading spinner - Appears faster */}
+        {/* Loading spinner - Quick appearance */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.2, duration: 0.3 }}
+          transition={{ delay: 0.1, duration: 0.2 }}
         >
           <motion.div 
             className="w-8 h-8 border-4 border-gray-400 border-t-white rounded-full"
@@ -45,12 +45,12 @@ const AppLoadingScreen = () => {
           />
         </motion.div>
         
-        {/* App name - Appears faster */}
+        {/* App name - Quick appearance */}
         <motion.div
           className="text-white text-sm font-medium tracking-wide"
-          initial={{ opacity: 0, y: 10 }}
+          initial={{ opacity: 0, y: 5 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, duration: 0.3 }}
+          transition={{ delay: 0.2, duration: 0.2 }}
         >
           GolfIt
         </motion.div>
