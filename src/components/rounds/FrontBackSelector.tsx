@@ -1,7 +1,6 @@
 
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, ArrowRight } from "lucide-react";
 
 interface FrontBackSelectorProps {
   selectedSide: "front" | "back";
@@ -22,29 +21,42 @@ const FrontBackSelector = ({ selectedSide, onSideChange }: FrontBackSelectorProp
           type="single" 
           value={selectedSide} 
           onValueChange={(value) => value && onSideChange(value as "front" | "back")}
-          className="grid grid-cols-2 gap-3"
+          className="grid grid-cols-1 sm:grid-cols-2 gap-4"
         >
           <ToggleGroupItem 
             value="front" 
             aria-label="Front 9 holes" 
-            className="flex items-center gap-2 h-12 px-4 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+            className="relative h-32 sm:h-40 p-0 overflow-hidden rounded-lg border-2 data-[state=on]:border-primary data-[state=on]:border-4 transition-all duration-200 hover:scale-[1.02]"
           >
-            <ArrowLeft className="h-4 w-4" />
-            <div className="text-center">
-              <div className="font-medium">Front 9</div>
-              <div className="text-xs opacity-80">Holes 1-9</div>
+            <div 
+              className="absolute inset-0 bg-cover bg-center"
+              style={{
+                backgroundImage: 'url(/lovable-uploads/b66b4122-bff1-40db-96f3-cd86d8a903af.png)'
+              }}
+            />
+            <div className="absolute inset-0 bg-black/40 data-[state=on]:bg-black/20 transition-colors" />
+            <div className="relative z-10 flex flex-col items-center justify-center h-full text-white">
+              <div className="text-lg sm:text-xl font-bold mb-1">Front 9</div>
+              <div className="text-sm sm:text-base opacity-90">Holes 1-9</div>
             </div>
           </ToggleGroupItem>
+          
           <ToggleGroupItem 
             value="back" 
             aria-label="Back 9 holes" 
-            className="flex items-center gap-2 h-12 px-4 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+            className="relative h-32 sm:h-40 p-0 overflow-hidden rounded-lg border-2 data-[state=on]:border-primary data-[state=on]:border-4 transition-all duration-200 hover:scale-[1.02]"
           >
-            <div className="text-center">
-              <div className="font-medium">Back 9</div>
-              <div className="text-xs opacity-80">Holes 10-18</div>
+            <div 
+              className="absolute inset-0 bg-cover bg-center"
+              style={{
+                backgroundImage: 'url(/lovable-uploads/8de2faff-5c71-4c09-a5e7-217d1b2a4534.png)'
+              }}
+            />
+            <div className="absolute inset-0 bg-black/40 data-[state=on]:bg-black/20 transition-colors" />
+            <div className="relative z-10 flex flex-col items-center justify-center h-full text-white">
+              <div className="text-lg sm:text-xl font-bold mb-1">Back 9</div>
+              <div className="text-sm sm:text-base opacity-90">Holes 10-18</div>
             </div>
-            <ArrowRight className="h-4 w-4" />
           </ToggleGroupItem>
         </ToggleGroup>
       </CardContent>
