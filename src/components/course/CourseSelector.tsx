@@ -81,7 +81,7 @@ const CourseSelector = ({
           </div>
 
           <ScrollArea className="h-[400px]">
-            <div className="space-y-3">
+            <div className="space-y-4">
               {filteredCourses.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   <Flag className="h-12 w-12 mx-auto mb-4 opacity-50" />
@@ -104,52 +104,63 @@ const CourseSelector = ({
                     )}
                     onClick={() => onSelectCourse(course.id)}
                   >
-                    <CardContent className="p-4">
-                      <div className="flex items-start gap-3">
-                        <div className="flex-shrink-0">
-                          <div className={cn(
-                            "w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all",
-                            selectedCourse === course.id
-                              ? "border-primary bg-primary"
-                              : "border-border"
-                          )}>
-                            {selectedCourse === course.id && (
-                              <Check className="h-3 w-3 text-white" />
-                            )}
-                          </div>
-                        </div>
-                        
+                    <CardContent className="p-0">
+                      {/* Mobile-first layout with bigger image */}
+                      <div className="flex flex-col sm:flex-row">
+                        {/* Image Section - Full width on mobile */}
                         {course.image_url && (
-                          <img 
-                            src={course.image_url} 
-                            alt={course.name}
-                            className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
-                          />
+                          <div className="w-full sm:w-32 h-32 sm:h-24 flex-shrink-0">
+                            <img 
+                              src={course.image_url} 
+                              alt={course.name}
+                              className="w-full h-full object-cover rounded-t-lg sm:rounded-l-lg sm:rounded-t-none"
+                            />
+                          </div>
                         )}
                         
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-semibold text-foreground text-lg truncate mb-1">
-                            {course.name}
-                          </h4>
-                          
-                          {(course.city || course.state) && (
-                            <div className="flex items-center gap-2 mb-2 text-sm text-muted-foreground">
-                              <MapPin className="h-3 w-3" />
-                              <span className="truncate">
-                                {[course.city, course.state].filter(Boolean).join(', ')}
-                              </span>
+                        {/* Content Section */}
+                        <div className="flex-1 p-4 relative">
+                          {/* Selection indicator */}
+                          <div className="absolute top-3 right-3">
+                            <div className={cn(
+                              "w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all",
+                              selectedCourse === course.id
+                                ? "border-primary bg-primary"
+                                : "border-border"
+                            )}>
+                              {selectedCourse === course.id && (
+                                <Check className="h-3 w-3 text-white" />
+                              )}
                             </div>
-                          )}
+                          </div>
                           
-                          <div className="flex items-center gap-3">
-                            <Badge variant="secondary" className="text-xs">
-                              {course.holes} {language === "en" ? "Holes" : "Hoyos"}
-                            </Badge>
-                            {course.par && (
-                              <Badge variant="outline" className="text-xs">
-                                Par {course.par}
-                              </Badge>
+                          {/* Course Info */}
+                          <div className="pr-10">
+                            <h4 className="font-bold text-foreground text-lg sm:text-xl mb-2 leading-tight">
+                              {course.name}
+                            </h4>
+                            
+                            {(course.city || course.state) && (
+                              <div className="flex items-center gap-2 mb-3 text-sm text-muted-foreground">
+                                <MapPin className="h-4 w-4 flex-shrink-0" />
+                                <span className="truncate">
+                                  {[course.city, course.state].filter(Boolean).join(', ')}
+                                </span>
+                              </div>
                             )}
+                            
+                            {/* Course details - larger badges for mobile */}
+                            <div className="flex items-center gap-3">
+                              <Badge variant="secondary" className="text-sm font-medium px-3 py-1">
+                                <Flag className="h-3 w-3 mr-1" />
+                                {course.holes} {language === "en" ? "Holes" : "Hoyos"}
+                              </Badge>
+                              {course.par && (
+                                <Badge variant="outline" className="text-sm font-medium px-3 py-1">
+                                  Par {course.par}
+                                </Badge>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>
