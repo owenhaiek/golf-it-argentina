@@ -1,4 +1,3 @@
-
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Flag } from "lucide-react";
@@ -11,6 +10,7 @@ import { CourseCTARow } from "@/components/course/CourseCTARow";
 import { CourseTabs } from "@/components/course/CourseTabs";
 import ReservationForm from "@/components/course/ReservationForm";
 import OpeningHoursDisplay from "@/components/course/OpeningHoursDisplay";
+import ShareButton from "@/components/ui/ShareButton";
 import { useCourseData } from "@/hooks/useCourseData";
 import { useCourseReviews } from "@/hooks/useCourseReviews";
 import { useCourseRounds } from "@/hooks/useCourseRounds";

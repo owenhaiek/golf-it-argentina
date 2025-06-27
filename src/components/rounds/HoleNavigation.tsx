@@ -18,7 +18,7 @@ const HoleNavigation = ({
   onNext 
 }: HoleNavigationProps) => {
   return (
-    <div className="flex gap-3 mt-6 sm:mt-8">
+    <div className="flex gap-3 mt-6 sm:mt-8 pb-6">
       <Button
         variant="outline"
         onClick={onPrevious}

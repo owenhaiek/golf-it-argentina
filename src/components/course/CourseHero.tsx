@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Flag, MapPin } from "lucide-react";
 import FavoriteButton from "@/components/ui/FavoriteButton";
+import ShareButton from "@/components/ui/ShareButton";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
@@ -43,7 +44,13 @@ export const CourseHero = ({ course, language, isOpen }: any) => {
             {language === "en" ? "Back" : "Volver"}
           </Button>
           <div className="flex items-center gap-2">
-            <FavoriteButton courseId={course.id} size="sm" />
+            <ShareButton 
+              course={course}
+              size="sm" 
+              variant="ghost"
+              className="text-white hover:bg-white/20"
+            />
+            <FavoriteButton courseId={course.id} size="sm" variant="ghost" className="text-white hover:bg-white/20" />
           </div>
         </div>
       </div>
