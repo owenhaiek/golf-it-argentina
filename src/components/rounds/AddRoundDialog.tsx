@@ -176,10 +176,10 @@ const AddRoundDialog = ({ open, onOpenChange }: AddRoundDialogProps) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] max-w-2xl h-[90vh] max-h-[90vh] flex flex-col p-0">
-        <DialogHeader className="flex-shrink-0 p-6 pb-4 border-b">
+      <DialogContent className="w-[95vw] max-w-2xl h-[95vh] sm:h-[90vh] max-h-screen flex flex-col p-0 m-0">
+        <DialogHeader className="flex-shrink-0 p-4 sm:p-6 pb-3 sm:pb-4 border-b">
           <div className="flex items-center justify-between">
-            <DialogTitle className="text-xl font-bold">
+            <DialogTitle className="text-lg sm:text-xl font-bold">
               Add Round - Step {currentStep} of 3
             </DialogTitle>
             <button
@@ -191,7 +191,7 @@ const AddRoundDialog = ({ open, onOpenChange }: AddRoundDialogProps) => {
           </div>
         </DialogHeader>
         
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 min-h-0">
           {currentStep === 1 && (
             <AddRoundStep1
               courses={courses}
