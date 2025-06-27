@@ -6,6 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useUserProfileData } from "@/hooks/useUserProfileData";
 import UserProfileCard from "@/components/profile/UserProfileCard";
+import UserStatsCard from "@/components/profile/UserStatsCard";
 import UserRecentRounds from "@/components/profile/UserRecentRounds";
 
 const UserProfile = () => {
@@ -59,6 +60,10 @@ const UserProfile = () => {
           <UserProfileCard 
             profile={profile || {}} 
             profileLoading={profileLoading} 
+          />
+          <UserStatsCard 
+            rounds={rounds || []}
+            roundsLoading={roundsLoading}
           />
           <UserRecentRounds 
             rounds={rounds || []}
