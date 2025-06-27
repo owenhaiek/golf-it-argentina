@@ -39,19 +39,6 @@ const AddRoundStep2 = ({
           How many holes did you play?
         </p>
       </div>
-      
-      <HolesPlayedSelector
-        holesPlayed={holesPlayed}
-        onHolesPlayedChange={onHolesPlayedChange}
-        maxHoles={selectedCourseData?.holes}
-      />
-
-      {shouldShowFrontBackSelector && (
-        <FrontBackSelector
-          selectedSide={selectedSide}
-          onSideChange={onSideChange}
-        />
-      )}
 
       {/* Selected Course Display */}
       {selectedCourseData && (
@@ -105,6 +92,19 @@ const AddRoundStep2 = ({
             </div>
           </CardContent>
         </Card>
+      )}
+      
+      <HolesPlayedSelector
+        holesPlayed={holesPlayed}
+        onHolesPlayedChange={onHolesPlayedChange}
+        maxHoles={selectedCourseData?.holes}
+      />
+
+      {shouldShowFrontBackSelector && (
+        <FrontBackSelector
+          selectedSide={selectedSide}
+          onSideChange={onSideChange}
+        />
       )}
       
       <div className="flex gap-3">
