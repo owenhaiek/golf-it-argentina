@@ -24,7 +24,7 @@ const ScoreInput = ({ currentScore, onIncrement, onDecrement, scoreColor, scoreT
             disabled={currentScore === 0}
             className="h-12 w-12 sm:h-16 sm:w-16 rounded-full"
           >
-            <MinusCircle className="h-6 w-6 sm:h-8 sm:w-8" />
+            <MinusCircle className="h-8 w-8 sm:h-10 sm:w-10" />
           </Button>
           
           <div className={`text-4xl sm:text-6xl font-bold mx-6 sm:mx-8 min-w-[80px] sm:min-w-[120px] text-center ${scoreColor}`}>
@@ -37,7 +37,7 @@ const ScoreInput = ({ currentScore, onIncrement, onDecrement, scoreColor, scoreT
             onClick={onIncrement}
             className="h-12 w-12 sm:h-16 sm:w-16 rounded-full"
           >
-            <PlusCircle className="h-6 w-6 sm:h-8 sm:w-8" />
+            <PlusCircle className="h-8 w-8 sm:h-10 sm:w-10" />
           </Button>
         </div>
         
