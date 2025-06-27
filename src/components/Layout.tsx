@@ -4,15 +4,22 @@ import { Navigation } from "./Navigation";
 import { useState, useRef, useEffect } from "react";
 import GolfAnimationLoader from "./ui/GolfAnimationLoader";
 import { motion } from "framer-motion";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 
 export const Layout = () => {
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [startY, setStartY] = useState(0);
-  const [pullDistance, setPullDistance] = useState(0);
-  const [isPulling, setIsPulling] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
   const navigationRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
+
+  const {
+    isRefreshing,
+    pullDistance,
+    handleTouchStart,
+    handleTouchMove,
+    handleTouchEnd
+  } = usePullToRefresh({
+    disabled: location.pathname === '/courses-map'
+  });
 
   // Scroll to top when route changes
   useEffect(() => {
@@ -21,84 +28,39 @@ export const Layout = () => {
     }
   }, [location.pathname]);
 
-  // Clean up event listeners on component unmount
+  // Set up event listeners
   useEffect(() => {
     const mainElement = mainRef.current;
     if (!mainElement) return;
 
-    const handleTouchStart = (e: TouchEvent) => {
-      // Only allow pull to refresh on specific pages, not on map
-      if (location.pathname === '/courses-map') return;
-      
+    const wrappedTouchStart = (e: TouchEvent) => {
       // Check if touch started on navigation area
       const navigation = navigationRef.current;
       if (navigation && navigation.contains(e.target as Node)) {
-        return; // Don't start pull to refresh if touching navigation
+        return;
       }
-      
-      if (mainElement.scrollTop <= 0) {
-        setStartY(e.touches[0].clientY);
-        setIsPulling(true);
-        setPullDistance(0);
-      }
+      handleTouchStart(e, mainElement);
     };
 
-    const handleTouchMove = (e: TouchEvent) => {
-      if (!isPulling || location.pathname === '/courses-map') return;
-      
+    const wrappedTouchMove = (e: TouchEvent) => {
       // Check if touch is on navigation area
       const navigation = navigationRef.current;
       if (navigation && navigation.contains(e.target as Node)) {
-        setIsPulling(false);
-        setPullDistance(0);
         return;
       }
-      
-      if (mainElement.scrollTop <= 0) {
-        const currentY = e.touches[0].clientY;
-        const newPullDistance = Math.sqrt(Math.max(0, currentY - startY) * 8);
-        
-        setPullDistance(newPullDistance);
-        
-        if (newPullDistance > 10) {
-          e.preventDefault();
-        }
-        
-        if (newPullDistance > 100 && !isRefreshing) {
-          if (window.navigator && window.navigator.vibrate) {
-            window.navigator.vibrate(50);
-          }
-          
-          setIsRefreshing(true);
-          setTimeout(() => {
-            window.location.reload();
-          }, 300);
-        }
-      } else {
-        setIsPulling(false);
-        setPullDistance(0);
-      }
-    };
-    
-    const handleTouchEnd = () => {
-      setIsPulling(false);
-      setPullDistance(0);
-      
-      if (pullDistance < 100) {
-        setIsRefreshing(false);
-      }
+      handleTouchMove(e, mainElement);
     };
 
-    mainElement.addEventListener('touchstart', handleTouchStart, { passive: true });
-    mainElement.addEventListener('touchmove', handleTouchMove, { passive: false });
+    mainElement.addEventListener('touchstart', wrappedTouchStart, { passive: true });
+    mainElement.addEventListener('touchmove', wrappedTouchMove, { passive: false });
     mainElement.addEventListener('touchend', handleTouchEnd, { passive: true });
 
     return () => {
-      mainElement.removeEventListener('touchstart', handleTouchStart);
-      mainElement.removeEventListener('touchmove', handleTouchMove);
+      mainElement.removeEventListener('touchstart', wrappedTouchStart);
+      mainElement.removeEventListener('touchmove', wrappedTouchMove);
       mainElement.removeEventListener('touchend', handleTouchEnd);
     };
-  }, [isPulling, startY, pullDistance, isRefreshing, location.pathname]);
+  }, [handleTouchStart, handleTouchMove, handleTouchEnd]);
 
   return (
     <div className="fixed inset-0 flex flex-col bg-background h-screen w-screen overflow-hidden">

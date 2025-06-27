@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import CourseCard from "./CourseCard";
@@ -29,29 +29,50 @@ const CourseList = ({
   currentTime,
   handleResetFilters
 }: CourseListProps) => {
+  // Memoize loading skeleton to prevent unnecessary re-renders
+  const loadingSkeleton = useMemo(() => (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {[...Array(8)].map((_, i) => (
+        <div key={i} className="animate-pulse">
+          <div className="bg-gray-200 rounded-lg h-48 mb-4"></div>
+          <div className="bg-gray-200 rounded h-4 mb-2"></div>
+          <div className="bg-gray-200 rounded h-4 w-2/3"></div>
+        </div>
+      ))}
+    </div>
+  ), []);
+
+  // Memoize empty state to prevent unnecessary re-renders
+  const emptyState = useMemo(() => (
+    <div className="text-center py-12">
+      <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+      <h3 className="text-lg font-semibold text-foreground mb-2">No courses found</h3>
+      <p className="text-muted-foreground">
+        No golf courses available at the moment
+      </p>
+    </div>
+  ), []);
+
   if (isLoading) {
-    return <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {[...Array(8)].map((_, i) => <div key={i} className="animate-pulse">
-            <div className="bg-gray-200 rounded-lg h-48 mb-4"></div>
-            <div className="bg-gray-200 rounded h-4 mb-2"></div>
-            <div className="bg-gray-200 rounded h-4 w-2/3"></div>
-          </div>)}
-      </div>;
+    return loadingSkeleton;
   }
 
-  return <div className="space-y-6">
+  return (
+    <div className="space-y-6">
       {/* Course Grid - Updated for 4 columns on desktop */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {courses.map(course => <CourseCard key={course.id} course={course} currentTime={currentTime} />)}
+        {courses.map(course => (
+          <CourseCard 
+            key={course.id} 
+            course={course} 
+            currentTime={currentTime} 
+          />
+        ))}
       </div>
 
-      {courses.length === 0 && !isLoading && <div className="text-center py-12">
-          <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-foreground mb-2">No courses found</h3>
-          <p className="text-muted-foreground">
-            No golf courses available at the moment
-          </p>
-        </div>}
-    </div>;
+      {courses.length === 0 && !isLoading && emptyState}
+    </div>
+  );
 };
+
 export default CourseList;

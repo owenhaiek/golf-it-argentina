@@ -4,18 +4,11 @@ import { Flag, User, UserSearch, Map } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { AddMenu } from "./AddMenu";
+import { useNavigationTouch } from "@/hooks/useNavigationTouch";
 
 export const Navigation = () => {
   const { t } = useLanguage();
-  
-  const handleTouchStart = (e: React.TouchEvent) => {
-    e.stopPropagation();
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-  };
+  const { handleTouchStart, handleTouchMove } = useNavigationTouch();
   
   return (
     <div 
