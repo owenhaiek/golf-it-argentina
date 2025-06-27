@@ -1,10 +1,13 @@
 
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { Trophy, Calendar, Loader2, Eye, Plus, Minus, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Round {
   id: string;
@@ -29,6 +32,58 @@ interface UserRecentRoundsProps {
 
 const UserRecentRounds = ({ rounds, roundsLoading }: UserRecentRoundsProps) => {
   const navigate = useNavigate();
+  const [showAllRounds, setShowAllRounds] = useState(false);
+  const [displayLimit, setDisplayLimit] = useState(5);
+
+  // Get the user ID from the first round to fetch all rounds for this user
+  const userId = rounds?.[0]?.user_id;
+
+  // Query to fetch all rounds when "View All Rounds" is clicked
+  const {
+    data: allRounds,
+    isLoading: allRoundsLoading,
+    refetch: fetchAllRounds
+  } = useQuery({
+    queryKey: ['allUserRounds', userId],
+    queryFn: async () => {
+      if (!userId) return [];
+      
+      const { data, error } = await supabase
+        .from('rounds')
+        .select(`
+          *,
+          golf_courses (
+            name,
+            hole_pars,
+            holes,
+            image_url,
+            address,
+            city,
+            state,
+            par
+          )
+        `)
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+        
+      if (error) {
+        console.error("All rounds fetch error:", error);
+        throw error;
+      }
+      
+      return data || [];
+    },
+    enabled: false // Only fetch when explicitly requested
+  });
+
+  const handleViewAllRounds = async () => {
+    if (!showAllRounds) {
+      await fetchAllRounds();
+      setShowAllRounds(true);
+    } else {
+      setDisplayLimit(prev => prev + 10); // Load 10 more rounds
+    }
+  };
 
   // Helper function to calculate the correct par for a round
   const calculateRoundPar = (round: Round) => {
@@ -78,13 +133,22 @@ const UserRecentRounds = ({ rounds, roundsLoading }: UserRecentRoundsProps) => {
     );
   }
 
+  // Determine which rounds to display
+  const roundsToShow = showAllRounds 
+    ? (allRounds?.slice(0, displayLimit) || rounds)
+    : rounds;
+
+  const hasMoreRounds = showAllRounds 
+    ? (allRounds?.length || 0) > displayLimit
+    : rounds.length >= 5;
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="text-lg">Recent Rounds</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {rounds.map((round) => {
+        {roundsToShow.map((round) => {
           const coursePar = calculateRoundPar(round);
           const scoreDiff = round.score - coursePar;
           
@@ -167,9 +231,24 @@ const UserRecentRounds = ({ rounds, roundsLoading }: UserRecentRoundsProps) => {
           );
         })}
         
-        {rounds.length >= 5 && (
+        {hasMoreRounds && (
           <div className="text-center">
-            <Button variant="link">View All Rounds</Button>
+            <Button 
+              variant="link" 
+              onClick={handleViewAllRounds}
+              disabled={allRoundsLoading}
+            >
+              {allRoundsLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Loading...
+                </>
+              ) : showAllRounds ? (
+                "Load More Rounds"
+              ) : (
+                "View All Rounds"
+              )}
+            </Button>
           </div>
         )}
       </CardContent>
