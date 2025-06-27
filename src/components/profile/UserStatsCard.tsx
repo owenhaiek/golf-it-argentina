@@ -1,6 +1,6 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Trophy, TrendingUp, Calendar, Target } from "lucide-react";
+import { Trophy, TrendingUp, Flag, Star } from "lucide-react";
 
 interface Round {
   id: string;
@@ -41,17 +41,17 @@ const UserStatsCard = ({ rounds, roundsLoading }: UserStatsCardProps) => {
 
   if (roundsLoading) {
     return (
-      <Card>
-        <CardHeader className="pb-4">
-          <CardTitle className="text-lg">Player Statistics</CardTitle>
+      <Card className="mx-4 sm:mx-0">
+        <CardHeader className="pb-3 px-4 sm:px-6">
+          <CardTitle className="text-base sm:text-lg">Player Statistics</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+        <CardContent className="px-4 sm:px-6">
+          <div className="grid grid-cols-3 gap-2 sm:gap-4">
             {[...Array(3)].map((_, i) => (
               <div key={i} className="text-center animate-pulse">
-                <div className="w-12 h-12 bg-muted rounded-full mx-auto mb-2" />
-                <div className="h-4 w-16 bg-muted rounded mx-auto mb-1" />
-                <div className="h-3 w-12 bg-muted rounded mx-auto" />
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-muted rounded-full mx-auto mb-2" />
+                <div className="h-3 w-8 bg-muted rounded mx-auto mb-1" />
+                <div className="h-2 w-6 bg-muted rounded mx-auto" />
               </div>
             ))}
           </div>
@@ -62,13 +62,13 @@ const UserStatsCard = ({ rounds, roundsLoading }: UserStatsCardProps) => {
 
   if (!rounds || rounds.length === 0) {
     return (
-      <Card>
-        <CardHeader className="pb-4">
-          <CardTitle className="text-lg">Player Statistics</CardTitle>
+      <Card className="mx-4 sm:mx-0">
+        <CardHeader className="pb-3 px-4 sm:px-6">
+          <CardTitle className="text-base sm:text-lg">Player Statistics</CardTitle>
         </CardHeader>
-        <CardContent className="text-center py-6">
-          <Trophy className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-          <p className="text-muted-foreground text-sm">No statistics available yet</p>
+        <CardContent className="text-center py-4 px-4 sm:px-6">
+          <Trophy className="h-8 w-8 sm:h-10 sm:w-10 mx-auto mb-3 text-muted-foreground" />
+          <p className="text-muted-foreground text-xs sm:text-sm">No statistics available yet</p>
         </CardContent>
       </Card>
     );
@@ -97,7 +97,7 @@ const UserStatsCard = ({ rounds, roundsLoading }: UserStatsCardProps) => {
 
   const stats = [
     {
-      icon: Calendar,
+      icon: Flag,
       label: "Total Rounds",
       value: totalRounds.toString(),
       color: "text-blue-600 dark:text-blue-400",
@@ -111,7 +111,7 @@ const UserStatsCard = ({ rounds, roundsLoading }: UserStatsCardProps) => {
       bgColor: averageVsPar > 0 ? "bg-red-50 dark:bg-red-950" : averageVsPar < 0 ? "bg-green-50 dark:bg-green-950" : "bg-blue-50 dark:bg-blue-950"
     },
     {
-      icon: Target,
+      icon: Star,
       label: "Best Round",
       value: bestRoundVsPar > 0 ? `+${bestRoundVsPar}` : bestRoundVsPar.toString(),
       color: bestRoundVsPar > 0 ? "text-red-600 dark:text-red-400" : bestRoundVsPar < 0 ? "text-green-600 dark:text-green-400" : "text-blue-600 dark:text-blue-400",
@@ -120,21 +120,21 @@ const UserStatsCard = ({ rounds, roundsLoading }: UserStatsCardProps) => {
   ];
 
   return (
-    <Card>
-      <CardHeader className="pb-4">
-        <CardTitle className="text-lg">Player Statistics</CardTitle>
+    <Card className="mx-4 sm:mx-0">
+      <CardHeader className="pb-3 px-4 sm:px-6">
+        <CardTitle className="text-base sm:text-lg">Player Statistics</CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+      <CardContent className="px-4 sm:px-6">
+        <div className="grid grid-cols-3 gap-2 sm:gap-4">
           {stats.map((stat, index) => (
             <div key={index} className="text-center">
-              <div className={`w-10 h-10 sm:w-12 sm:h-12 ${stat.bgColor} rounded-full flex items-center justify-center mx-auto mb-2`}>
-                <stat.icon className={`h-5 w-5 sm:h-6 sm:w-6 ${stat.color}`} />
+              <div className={`w-8 h-8 sm:w-10 sm:h-10 ${stat.bgColor} rounded-full flex items-center justify-center mx-auto mb-2`}>
+                <stat.icon className={`h-4 w-4 sm:h-5 sm:w-5 ${stat.color}`} />
               </div>
-              <div className={`text-lg sm:text-xl font-bold ${stat.color} mb-1`}>
+              <div className={`text-sm sm:text-lg font-bold ${stat.color} mb-1 leading-tight`}>
                 {stat.value}
               </div>
-              <div className="text-xs sm:text-sm text-muted-foreground">
+              <div className="text-xs text-muted-foreground leading-tight">
                 {stat.label}
               </div>
             </div>
