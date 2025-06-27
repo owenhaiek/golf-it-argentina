@@ -1,11 +1,12 @@
 
 import { Link } from "react-router-dom";
-import { MapPin, Flag, Clock } from "lucide-react";
+import { MapPin, Flag, Clock, Share } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { isCurrentlyOpen, formatOpeningHours } from "@/utils/openingHours";
 import { validateOpeningHours } from "@/utils/openingHoursValidation";
 import CourseImageCarousel from "./CourseImageCarousel";
 import FavoriteButton from "@/components/ui/FavoriteButton";
+import ShareButton from "@/components/ui/ShareButton";
 
 interface CourseCardProps {
   course: any;
@@ -65,14 +66,24 @@ const CourseCard = ({ course, currentTime }: CourseCardProps) => {
             </div>
           </div>
           
-          {/* Favorite Button Overlay */}
-          <div className="absolute top-2 right-2">
-            <FavoriteButton 
-              courseId={course.id} 
-              size="sm" 
-              variant="ghost"
-              className="bg-white/80 backdrop-blur-sm hover:bg-white/90"
-            />
+          {/* Action Buttons Overlay */}
+          <div className="absolute top-2 right-2 flex gap-2">
+            <div onClick={(e) => e.preventDefault()}>
+              <ShareButton 
+                course={course}
+                size="sm" 
+                variant="ghost"
+                className="bg-white/80 backdrop-blur-sm hover:bg-white/90"
+              />
+            </div>
+            <div onClick={(e) => e.preventDefault()}>
+              <FavoriteButton 
+                courseId={course.id} 
+                size="sm" 
+                variant="ghost"
+                className="bg-white/80 backdrop-blur-sm hover:bg-white/90"
+              />
+            </div>
           </div>
         </div>
         

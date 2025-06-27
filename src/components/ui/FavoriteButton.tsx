@@ -20,11 +20,17 @@ export const FavoriteButton = ({
   const { isFavorite, toggleFavorite, isLoading } = useFavorites();
   const isCurrentlyFavorite = isFavorite(courseId);
 
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleFavorite(courseId);
+  };
+
   return (
     <Button
       variant={variant}
       size={size}
-      onClick={() => toggleFavorite(courseId)}
+      onClick={handleClick}
       disabled={isLoading}
       className={cn(className, isCurrentlyFavorite && variant === "outline" ? "text-red-500 border-red-500" : "")}
     >
