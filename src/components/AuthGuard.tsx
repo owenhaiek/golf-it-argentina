@@ -2,7 +2,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import GolfAnimationLoader from '@/components/ui/GolfAnimationLoader';
+import AppLoadingScreen from '@/components/ui/AppLoadingScreen';
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -20,11 +20,7 @@ export const AuthGuard = ({ children }: AuthGuardProps) => {
 
   // Show loading while checking authentication
   if (loading) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center bg-background z-50">
-        <GolfAnimationLoader />
-      </div>
-    );
+    return <AppLoadingScreen />;
   }
 
   // If user is not authenticated, don't render children (redirect will happen)

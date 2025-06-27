@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { useState, useEffect } from 'react'
 import App from './App.tsx'
 import './index.css'
-import GolfAnimationLoader from './components/ui/GolfAnimationLoader.tsx'
+import AppLoadingScreen from './components/ui/AppLoadingScreen.tsx'
 
 // Root component with improved loading state
 const Root = () => {
@@ -40,9 +40,7 @@ const Root = () => {
   return (
     <div className="min-h-screen">
       {isLoading ? (
-        <div className="fixed inset-0 flex items-center justify-center bg-background z-50">
-          <GolfAnimationLoader />
-        </div>
+        <AppLoadingScreen />
       ) : (
         <div className="animate-fadeIn">
           <App />

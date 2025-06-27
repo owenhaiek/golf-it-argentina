@@ -74,11 +74,15 @@ export const Layout = () => {
           }}
           style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
         >
-          <div className="w-12 h-12">
-            <img 
-              src="https://i.imgur.com/XuU1zUr.gif" 
-              alt="Golf pull to refresh"
-              className="w-full h-full object-contain"
+          <div className="w-8 h-8">
+            <motion.div 
+              className="w-full h-full border-4 border-gray-200 border-t-primary rounded-full"
+              animate={{ rotate: 360 }}
+              transition={{ 
+                duration: 1,
+                repeat: Infinity,
+                ease: "linear"
+              }}
             />
           </div>
         </motion.div>
