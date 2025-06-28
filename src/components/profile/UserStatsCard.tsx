@@ -41,17 +41,21 @@ const UserStatsCard = ({ rounds, roundsLoading }: UserStatsCardProps) => {
 
   if (roundsLoading) {
     return (
-      <Card className="mx-4 sm:mx-0">
-        <CardHeader className="pb-3 px-4 sm:px-6">
-          <CardTitle className="text-base sm:text-lg">Player Statistics</CardTitle>
+      <Card className="mx-4 sm:mx-0 overflow-hidden">
+        <CardHeader className="pb-4 px-4 sm:px-6 bg-gradient-to-r from-primary/5 to-secondary/5">
+          <CardTitle className="text-lg sm:text-xl font-bold text-center">Player Statistics</CardTitle>
         </CardHeader>
-        <CardContent className="px-4 sm:px-6">
-          <div className="grid grid-cols-3 gap-2 sm:gap-4">
+        <CardContent className="px-4 sm:px-6 py-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="text-center animate-pulse">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-muted rounded-full mx-auto mb-2" />
-                <div className="h-3 w-8 bg-muted rounded mx-auto mb-1" />
-                <div className="h-2 w-6 bg-muted rounded mx-auto" />
+              <div key={i} className="bg-gradient-to-br from-muted/50 to-muted/30 rounded-xl p-4 animate-pulse">
+                <div className="flex items-center justify-center mb-3">
+                  <div className="w-12 h-12 bg-muted rounded-full" />
+                </div>
+                <div className="text-center space-y-2">
+                  <div className="h-6 w-16 bg-muted rounded mx-auto" />
+                  <div className="h-4 w-20 bg-muted rounded mx-auto" />
+                </div>
               </div>
             ))}
           </div>
@@ -62,13 +66,16 @@ const UserStatsCard = ({ rounds, roundsLoading }: UserStatsCardProps) => {
 
   if (!rounds || rounds.length === 0) {
     return (
-      <Card className="mx-4 sm:mx-0">
-        <CardHeader className="pb-3 px-4 sm:px-6">
-          <CardTitle className="text-base sm:text-lg">Player Statistics</CardTitle>
+      <Card className="mx-4 sm:mx-0 overflow-hidden">
+        <CardHeader className="pb-4 px-4 sm:px-6 bg-gradient-to-r from-primary/5 to-secondary/5">
+          <CardTitle className="text-lg sm:text-xl font-bold text-center">Player Statistics</CardTitle>
         </CardHeader>
-        <CardContent className="text-center py-4 px-4 sm:px-6">
-          <Trophy className="h-8 w-8 sm:h-10 sm:w-10 mx-auto mb-3 text-muted-foreground" />
-          <p className="text-muted-foreground text-xs sm:text-sm">No statistics available yet</p>
+        <CardContent className="text-center py-8 px-4 sm:px-6">
+          <div className="bg-gradient-to-br from-muted/50 to-muted/30 rounded-xl p-8">
+            <Trophy className="h-12 w-12 sm:h-16 sm:w-16 mx-auto mb-4 text-muted-foreground" />
+            <p className="text-muted-foreground text-sm sm:text-base font-medium">No statistics available yet</p>
+            <p className="text-muted-foreground/70 text-xs sm:text-sm mt-1">Start playing to see your stats!</p>
+          </div>
         </CardContent>
       </Card>
     );
@@ -100,45 +107,76 @@ const UserStatsCard = ({ rounds, roundsLoading }: UserStatsCardProps) => {
       icon: Flag,
       label: "Total Rounds",
       value: totalRounds.toString(),
+      subtitle: "Rounds Played",
       color: "text-blue-600 dark:text-blue-400",
-      bgColor: "bg-blue-50 dark:bg-blue-950"
+      bgGradient: "from-blue-500/10 to-blue-600/5",
+      iconBg: "bg-blue-500/10",
+      hoverEffect: "hover:from-blue-500/20 hover:to-blue-600/10"
     },
     {
       icon: TrendingUp,
       label: "Avg vs Par",
       value: averageVsPar > 0 ? `+${averageVsPar.toFixed(1)}` : averageVsPar.toFixed(1),
+      subtitle: averageVsPar > 0 ? "Over Par" : averageVsPar < 0 ? "Under Par" : "At Par",
       color: averageVsPar > 0 ? "text-red-600 dark:text-red-400" : averageVsPar < 0 ? "text-green-600 dark:text-green-400" : "text-blue-600 dark:text-blue-400",
-      bgColor: averageVsPar > 0 ? "bg-red-50 dark:bg-red-950" : averageVsPar < 0 ? "bg-green-50 dark:bg-green-950" : "bg-blue-50 dark:bg-blue-950"
+      bgGradient: averageVsPar > 0 ? "from-red-500/10 to-red-600/5" : averageVsPar < 0 ? "from-green-500/10 to-green-600/5" : "from-blue-500/10 to-blue-600/5",
+      iconBg: averageVsPar > 0 ? "bg-red-500/10" : averageVsPar < 0 ? "bg-green-500/10" : "bg-blue-500/10",
+      hoverEffect: averageVsPar > 0 ? "hover:from-red-500/20 hover:to-red-600/10" : averageVsPar < 0 ? "hover:from-green-500/20 hover:to-green-600/10" : "hover:from-blue-500/20 hover:to-blue-600/10"
     },
     {
       icon: Star,
       label: "Best Round",
       value: bestRoundVsPar > 0 ? `+${bestRoundVsPar}` : bestRoundVsPar.toString(),
+      subtitle: bestRoundVsPar > 0 ? "Over Par" : bestRoundVsPar < 0 ? "Under Par" : "At Par",
       color: bestRoundVsPar > 0 ? "text-red-600 dark:text-red-400" : bestRoundVsPar < 0 ? "text-green-600 dark:text-green-400" : "text-blue-600 dark:text-blue-400",
-      bgColor: bestRoundVsPar > 0 ? "bg-red-50 dark:bg-red-950" : bestRoundVsPar < 0 ? "bg-green-50 dark:bg-green-950" : "bg-blue-50 dark:bg-blue-950"
+      bgGradient: bestRoundVsPar > 0 ? "from-red-500/10 to-red-600/5" : bestRoundVsPar < 0 ? "from-green-500/10 to-green-600/5" : "from-blue-500/10 to-blue-600/5",
+      iconBg: bestRoundVsPar > 0 ? "bg-red-500/10" : bestRoundVsPar < 0 ? "bg-green-500/10" : "bg-blue-500/10",
+      hoverEffect: bestRoundVsPar > 0 ? "hover:from-red-500/20 hover:to-red-600/10" : bestRoundVsPar < 0 ? "hover:from-green-500/20 hover:to-green-600/10" : "hover:from-blue-500/20 hover:to-blue-600/10"
     }
   ];
 
   return (
-    <Card className="mx-4 sm:mx-0">
-      <CardHeader className="pb-3 px-4 sm:px-6">
-        <CardTitle className="text-base sm:text-lg">Player Statistics</CardTitle>
+    <Card className="mx-4 sm:mx-0 overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300">
+      <CardHeader className="pb-4 px-4 sm:px-6 bg-gradient-to-r from-primary/10 via-primary/5 to-secondary/10">
+        <CardTitle className="text-lg sm:text-xl font-bold text-center bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+          Player Statistics
+        </CardTitle>
       </CardHeader>
-      <CardContent className="px-4 sm:px-6">
-        <div className="grid grid-cols-3 gap-2 sm:gap-4">
+      <CardContent className="px-4 sm:px-6 py-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
           {stats.map((stat, index) => (
-            <div key={index} className="text-center">
-              <div className={`w-8 h-8 sm:w-10 sm:h-10 ${stat.bgColor} rounded-full flex items-center justify-center mx-auto mb-2`}>
-                <stat.icon className={`h-4 w-4 sm:h-5 sm:w-5 ${stat.color}`} />
-              </div>
-              <div className={`text-sm sm:text-lg font-bold ${stat.color} mb-1 leading-tight`}>
-                {stat.value}
-              </div>
-              <div className="text-xs text-muted-foreground leading-tight">
-                {stat.label}
+            <div 
+              key={index} 
+              className={`bg-gradient-to-br ${stat.bgGradient} ${stat.hoverEffect} rounded-xl p-4 sm:p-5 transition-all duration-300 transform hover:scale-105 hover:shadow-md cursor-pointer border border-border/20`}
+            >
+              <div className="flex flex-col items-center text-center space-y-3">
+                <div className={`w-12 h-12 sm:w-14 sm:h-14 ${stat.iconBg} rounded-full flex items-center justify-center transition-transform duration-300 hover:rotate-12`}>
+                  <stat.icon className={`h-6 w-6 sm:h-7 sm:w-7 ${stat.color} transition-colors duration-300`} />
+                </div>
+                
+                <div className="space-y-1">
+                  <div className={`text-xl sm:text-2xl font-bold ${stat.color} transition-colors duration-300`}>
+                    {stat.value}
+                  </div>
+                  <div className="text-xs sm:text-sm font-medium text-foreground/80">
+                    {stat.label}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {stat.subtitle}
+                  </div>
+                </div>
               </div>
             </div>
           ))}
+        </div>
+        
+        {/* Additional visual separator */}
+        <div className="mt-6 pt-4 border-t border-border/20">
+          <div className="flex items-center justify-center space-x-2 text-muted-foreground/60">
+            <div className="w-2 h-2 bg-primary/30 rounded-full animate-pulse" />
+            <div className="w-2 h-2 bg-primary/50 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }} />
+            <div className="w-2 h-2 bg-primary/30 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }} />
+          </div>
         </div>
       </CardContent>
     </Card>
