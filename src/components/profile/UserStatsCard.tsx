@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Trophy, TrendingUp, Flag, Star } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -98,7 +97,7 @@ const UserStatsCard = ({ rounds, roundsLoading, userId }: UserStatsCardProps) =>
         <CardContent className="px-4 sm:px-6 py-6">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="bg-gradient-to-br from-muted/50 to-muted/30 rounded-xl p-4 sm:p-5 animate-pulse">
+              <div key={i} className="bg-gray-100 dark:bg-gray-800 rounded-xl p-4 sm:p-5 animate-pulse">
                 <div className="flex flex-col items-center text-center space-y-3">
                   <div className="w-12 h-12 sm:w-14 sm:h-14 bg-muted rounded-full" />
                   <div className="space-y-2">
@@ -117,14 +116,14 @@ const UserStatsCard = ({ rounds, roundsLoading, userId }: UserStatsCardProps) =>
 
   if (!roundsForStats || roundsForStats.length === 0) {
     return (
-      <Card className="mx-4 sm:mx-0 overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300">
+      <Card className="mx-4 sm:mx-0 overflow-hidden shadow-lg">
         <CardHeader className="pb-4 px-4 sm:px-6 bg-gradient-to-r from-primary/10 via-primary/5 to-secondary/10">
           <CardTitle className="text-lg sm:text-xl font-bold text-center bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
             Player Statistics
           </CardTitle>
         </CardHeader>
         <CardContent className="text-center py-8 px-4 sm:px-6">
-          <div className="bg-gradient-to-br from-muted/50 to-muted/30 rounded-xl p-8 hover:from-muted/60 hover:to-muted/40 transition-all duration-300">
+          <div className="bg-gray-100 dark:bg-gray-800 hover:bg-green-100 dark:hover:bg-green-900 rounded-xl p-8 transition-colors duration-300">
             <Trophy className="h-12 w-12 sm:h-16 sm:w-16 mx-auto mb-4 text-muted-foreground" />
             <p className="text-muted-foreground text-sm sm:text-base font-medium">No statistics available yet</p>
             <p className="text-muted-foreground/70 text-xs sm:text-sm mt-1">Start playing to see your stats!</p>
@@ -162,10 +161,6 @@ const UserStatsCard = ({ rounds, roundsLoading, userId }: UserStatsCardProps) =>
       value: totalRounds.toString(),
       subtitle: "Rounds Played",
       color: "text-blue-600 dark:text-blue-400",
-      bgGradient: "from-blue-500/10 to-blue-600/5",
-      iconBg: "bg-blue-500/10",
-      hoverEffect: "hover:from-blue-500/20 hover:to-blue-600/10",
-      pulseColor: "bg-blue-500/30"
     },
     {
       icon: TrendingUp,
@@ -173,10 +168,6 @@ const UserStatsCard = ({ rounds, roundsLoading, userId }: UserStatsCardProps) =>
       value: averageVsPar > 0 ? `+${averageVsPar.toFixed(1)}` : averageVsPar.toFixed(1),
       subtitle: averageVsPar > 0 ? "Over Par" : averageVsPar < 0 ? "Under Par" : "At Par",
       color: averageVsPar > 0 ? "text-red-600 dark:text-red-400" : averageVsPar < 0 ? "text-green-600 dark:text-green-400" : "text-blue-600 dark:text-blue-400",
-      bgGradient: averageVsPar > 0 ? "from-red-500/10 to-red-600/5" : averageVsPar < 0 ? "from-green-500/10 to-green-600/5" : "from-blue-500/10 to-blue-600/5",
-      iconBg: averageVsPar > 0 ? "bg-red-500/10" : averageVsPar < 0 ? "bg-green-500/10" : "bg-blue-500/10",
-      hoverEffect: averageVsPar > 0 ? "hover:from-red-500/20 hover:to-red-600/10" : averageVsPar < 0 ? "hover:from-green-500/20 hover:to-green-600/10" : "hover:from-blue-500/20 hover:to-blue-600/10",
-      pulseColor: averageVsPar > 0 ? "bg-red-500/30" : averageVsPar < 0 ? "bg-green-500/30" : "bg-blue-500/30"
     },
     {
       icon: Star,
@@ -184,18 +175,13 @@ const UserStatsCard = ({ rounds, roundsLoading, userId }: UserStatsCardProps) =>
       value: bestRoundVsPar > 0 ? `+${bestRoundVsPar}` : bestRoundVsPar.toString(),
       subtitle: bestRoundVsPar > 0 ? "Over Par" : bestRoundVsPar < 0 ? "Under Par" : "At Par",
       color: bestRoundVsPar > 0 ? "text-red-600 dark:text-red-400" : bestRoundVsPar < 0 ? "text-green-600 dark:text-green-400" : "text-blue-600 dark:text-blue-400",
-      bgGradient: bestRoundVsPar > 0 ? "from-red-500/10 to-red-600/5" : bestRoundVsPar < 0 ? "from-green-500/10 to-green-600/5" : "from-blue-500/10 to-blue-600/5",
-      iconBg: bestRoundVsPar > 0 ? "bg-red-500/10" : bestRoundVsPar < 0 ? "bg-green-500/10" : "bg-blue-500/10",
-      hoverEffect: bestRoundVsPar > 0 ? "hover:from-red-500/20 hover:to-red-600/10" : bestRoundVsPar < 0 ? "hover:from-green-500/20 hover:to-green-600/10" : "hover:from-blue-500/20 hover:to-blue-600/10",
-      pulseColor: bestRoundVsPar > 0 ? "bg-red-500/30" : bestRoundVsPar < 0 ? "bg-green-500/30" : "bg-blue-500/30"
     }
   ];
 
   return (
-    <Card className="mx-4 sm:mx-0 overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50">
-      <CardHeader className="pb-4 px-4 sm:px-6 bg-gradient-to-r from-primary/10 via-primary/5 to-secondary/10 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-secondary/5 animate-pulse opacity-50" />
-        <CardTitle className="text-lg sm:text-xl font-bold text-center bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent relative z-10">
+    <Card className="mx-4 sm:mx-0 overflow-hidden shadow-lg border border-border/50">
+      <CardHeader className="pb-4 px-4 sm:px-6 bg-gradient-to-r from-primary/10 via-primary/5 to-secondary/10">
+        <CardTitle className="text-lg sm:text-xl font-bold text-center bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
           Player Statistics
         </CardTitle>
       </CardHeader>
@@ -204,26 +190,21 @@ const UserStatsCard = ({ rounds, roundsLoading, userId }: UserStatsCardProps) =>
           {stats.map((stat, index) => (
             <div 
               key={index} 
-              className={`bg-gradient-to-br ${stat.bgGradient} ${stat.hoverEffect} rounded-xl p-4 sm:p-5 transition-all duration-300 transform hover:scale-105 hover:shadow-lg cursor-pointer border border-border/20 group relative overflow-hidden`}
+              className="bg-gray-100 dark:bg-gray-800 hover:bg-green-100 dark:hover:bg-green-900 rounded-xl p-4 sm:p-5 transition-colors duration-300 cursor-pointer border border-border/20"
             >
-              {/* Animated background effect */}
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
-              
-              <div className="flex flex-col items-center text-center space-y-3 relative z-10">
-                <div className={`w-12 h-12 sm:w-14 sm:h-14 ${stat.iconBg} rounded-full flex items-center justify-center transition-all duration-300 group-hover:rotate-12 group-hover:scale-110 relative overflow-hidden`}>
-                  {/* Icon pulse effect */}
-                  <div className={`absolute inset-0 ${stat.pulseColor} rounded-full animate-ping opacity-20 group-hover:opacity-40`} />
-                  <stat.icon className={`h-6 w-6 sm:h-7 sm:w-7 ${stat.color} transition-all duration-300 relative z-10 group-hover:drop-shadow-sm`} />
+              <div className="flex flex-col items-center text-center space-y-3">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white dark:bg-gray-700 rounded-full flex items-center justify-center">
+                  <stat.icon className={`h-6 w-6 sm:h-7 sm:w-7 ${stat.color}`} />
                 </div>
                 
                 <div className="space-y-1">
-                  <div className={`text-xl sm:text-2xl font-bold ${stat.color} transition-all duration-300 group-hover:scale-110`}>
+                  <div className={`text-xl sm:text-2xl font-bold ${stat.color}`}>
                     {stat.value}
                   </div>
-                  <div className="text-xs sm:text-sm font-medium text-foreground/80 group-hover:text-foreground transition-colors duration-300">
+                  <div className="text-xs sm:text-sm font-medium text-foreground/80">
                     {stat.label}
                   </div>
-                  <div className="text-xs text-muted-foreground group-hover:text-muted-foreground/80 transition-colors duration-300">
+                  <div className="text-xs text-muted-foreground">
                     {stat.subtitle}
                   </div>
                 </div>
@@ -232,18 +213,8 @@ const UserStatsCard = ({ rounds, roundsLoading, userId }: UserStatsCardProps) =>
           ))}
         </div>
         
-        {/* Enhanced visual separator */}
-        <div className="mt-6 pt-4 border-t border-gradient-to-r from-transparent via-border to-transparent">
-          <div className="flex items-center justify-center space-x-2">
-            {stats.map((stat, index) => (
-              <div 
-                key={index}
-                className={`w-2 h-2 ${stat.pulseColor} rounded-full animate-pulse`}
-                style={{ animationDelay: `${index * 0.2}s` }}
-              />
-            ))}
-          </div>
-          <div className="text-center mt-2">
+        <div className="mt-6 pt-4 border-t border-border">
+          <div className="text-center">
             <p className="text-xs text-muted-foreground/60">
               Based on {totalRounds} round{totalRounds !== 1 ? 's' : ''}
             </p>
