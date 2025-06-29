@@ -4,6 +4,16 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { format } from "date-fns";
 import { Trophy, Calendar, MapPin, Loader2, Trash2, Eye, Plus, Minus, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -17,6 +27,7 @@ const RecentRounds = () => {
   const { rounds, roundsLoading, deletingRoundId, handleDeleteRound } = useProfileQueries();
   const [selectedRound, setSelectedRound] = useState<any>(null);
   const [isScoreDialogOpen, setIsScoreDialogOpen] = useState(false);
+  const [roundToDelete, setRoundToDelete] = useState<string | null>(null);
 
   // Helper function to calculate the correct par for a round
   const calculateRoundPar = (round: any) => {
@@ -42,6 +53,21 @@ const RecentRounds = () => {
   const handleViewRoundScore = (round: any) => {
     setSelectedRound(round);
     setIsScoreDialogOpen(true);
+  };
+
+  const handleDeleteClick = (roundId: string) => {
+    setRoundToDelete(roundId);
+  };
+
+  const confirmDelete = () => {
+    if (roundToDelete) {
+      handleDeleteRound(roundToDelete);
+      setRoundToDelete(null);
+    }
+  };
+
+  const cancelDelete = () => {
+    setRoundToDelete(null);
   };
 
   if (roundsLoading) {
@@ -140,7 +166,7 @@ const RecentRounds = () => {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleDeleteRound(round.id)}
+                        onClick={() => handleDeleteClick(round.id)}
                         disabled={deletingRoundId === round.id}
                         className="text-destructive hover:text-destructive"
                       >
@@ -191,6 +217,23 @@ const RecentRounds = () => {
         isOpen={isScoreDialogOpen}
         onClose={() => setIsScoreDialogOpen(false)}
       />
+
+      <AlertDialog open={!!roundToDelete} onOpenChange={(open) => !open && cancelDelete()}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Round</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this round? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={cancelDelete}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive hover:bg-destructive/90">
+              Delete Round
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };
