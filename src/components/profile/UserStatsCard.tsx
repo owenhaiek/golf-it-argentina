@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Trophy, TrendingUp, Flag, Star } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -123,7 +124,7 @@ const UserStatsCard = ({ rounds, roundsLoading, userId }: UserStatsCardProps) =>
           </CardTitle>
         </CardHeader>
         <CardContent className="text-center py-8 px-4 sm:px-6">
-          <div className="bg-gray-100 dark:bg-gray-800 hover:bg-green-100 dark:hover:bg-green-900 rounded-xl p-8 transition-colors duration-300">
+          <div className="bg-gray-100 dark:bg-gray-800 hover:bg-primary/10 dark:hover:bg-primary/20 rounded-xl p-8 transition-colors duration-300">
             <Trophy className="h-12 w-12 sm:h-16 sm:w-16 mx-auto mb-4 text-muted-foreground" />
             <p className="text-muted-foreground text-sm sm:text-base font-medium">No statistics available yet</p>
             <p className="text-muted-foreground/70 text-xs sm:text-sm mt-1">Start playing to see your stats!</p>
@@ -190,7 +191,7 @@ const UserStatsCard = ({ rounds, roundsLoading, userId }: UserStatsCardProps) =>
           {stats.map((stat, index) => (
             <div 
               key={index} 
-              className="bg-gray-100 dark:bg-gray-800 hover:bg-green-100 dark:hover:bg-green-900 rounded-xl p-4 sm:p-5 transition-colors duration-300 cursor-pointer border border-border/20"
+              className="bg-gray-100 dark:bg-gray-800 hover:bg-primary/10 dark:hover:bg-primary/20 rounded-xl p-4 sm:p-5 transition-colors duration-300 cursor-pointer border border-border/20"
             >
               <div className="flex flex-col items-center text-center space-y-3">
                 <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white dark:bg-gray-700 rounded-full flex items-center justify-center">
