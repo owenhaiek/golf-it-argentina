@@ -22,11 +22,25 @@ const CourseHoleDetails = ({
   const generateHoleData = () => {
     const holeData = [];
     
+    // Handle 9-hole courses by duplicating data for 18 holes if needed
+    let actualHolePars = holePars;
+    let actualHoleHandicaps = holeHandicaps;
+    
+    // If we have 9 hole pars but need 18 holes, duplicate them
+    if (holePars.length === 9 && holes === 18) {
+      actualHolePars = [...holePars, ...holePars];
+    }
+    
+    // If we have 9 hole handicaps but need 18 holes, duplicate them
+    if (holeHandicaps.length === 9 && holes === 18) {
+      actualHoleHandicaps = [...holeHandicaps, ...holeHandicaps];
+    }
+    
     for (let i = 1; i <= holes; i++) {
       // Use actual hole par if available, otherwise generate realistic defaults
       let par;
-      if (holePars && holePars[i - 1]) {
-        par = holePars[i - 1];
+      if (actualHolePars && actualHolePars[i - 1]) {
+        par = actualHolePars[i - 1];
       } else {
         // Generate realistic par distribution as fallback
         if (i % 6 === 0 || i % 12 === 0) {
@@ -40,8 +54,8 @@ const CourseHoleDetails = ({
       
       // Use actual handicap if available, otherwise generate defaults
       let handicap;
-      if (holeHandicaps && holeHandicaps[i - 1]) {
-        handicap = holeHandicaps[i - 1];
+      if (actualHoleHandicaps && actualHoleHandicaps[i - 1]) {
+        handicap = actualHoleHandicaps[i - 1];
       } else {
         // Generate handicap (difficulty rating 1-18)
         handicap = i <= 9 ? i * 2 - 1 : (i - 9) * 2;

@@ -31,15 +31,33 @@ const ScoreCard = ({ selectedCourseData, scores, onScoreChange, selectedSide }: 
   // Calculate hole offset for front/back 9
   const holeOffset = selectedSide === "back" ? 9 : 0;
   
-  // Get the correct par values based on selected side
+  // Get the correct par values based on selected side and handle 9-hole courses
   const getHolePars = () => {
     if (!selectedCourseData?.hole_pars) return [];
-    if (selectedSide === "back" && selectedCourseData.hole_pars.length >= 18) {
-      return selectedCourseData.hole_pars.slice(9, 18);
-    } else if (selectedSide === "front" && selectedCourseData.hole_pars.length >= 9) {
-      return selectedCourseData.hole_pars.slice(0, 9);
+    
+    const originalHolePars = selectedCourseData.hole_pars;
+    
+    // If this is a 9-hole course but we're playing 18 holes
+    if (originalHolePars.length === 9 && numberOfHoles === 18) {
+      // Duplicate the 9-hole pars to create 18 holes
+      const duplicatedPars = [...originalHolePars, ...originalHolePars];
+      
+      if (selectedSide === "back") {
+        return duplicatedPars.slice(9, 18);
+      } else if (selectedSide === "front") {
+        return duplicatedPars.slice(0, 9);
+      }
+      return duplicatedPars.slice(0, numberOfHoles);
     }
-    return selectedCourseData.hole_pars.slice(0, numberOfHoles);
+    
+    // Normal handling for courses with full hole par data
+    if (selectedSide === "back" && originalHolePars.length >= 18) {
+      return originalHolePars.slice(9, 18);
+    } else if (selectedSide === "front" && originalHolePars.length >= 9) {
+      return originalHolePars.slice(0, 9);
+    }
+    
+    return originalHolePars.slice(0, numberOfHoles);
   };
 
   const holePars = getHolePars();
