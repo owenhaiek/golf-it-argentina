@@ -3,7 +3,8 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Trophy, Flag, Plus, Minus, Check } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Calendar, Trophy, Flag, Plus, Minus, Check, X } from "lucide-react";
 import { format } from "date-fns";
 
 interface Round {
@@ -107,8 +108,16 @@ const RoundScoreDialog = ({ round, isOpen, onClose }: RoundScoreDialogProps) => 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-center">
+        <DialogHeader className="relative">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onClose}
+            className="absolute right-0 top-0 h-6 w-6 p-0 hover:bg-gray-100"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+          <DialogTitle className="text-xl font-bold text-center pr-8">
             Round Scorecard
           </DialogTitle>
         </DialogHeader>
@@ -117,6 +126,17 @@ const RoundScoreDialog = ({ round, isOpen, onClose }: RoundScoreDialogProps) => 
           {/* Round Info Header */}
           <Card>
             <CardContent className="p-4">
+              {/* Course Image */}
+              {round.golf_courses?.image_url && (
+                <div className="mb-4">
+                  <img 
+                    src={round.golf_courses.image_url} 
+                    alt={round.golf_courses.name}
+                    className="w-full h-32 object-cover rounded-lg"
+                  />
+                </div>
+              )}
+              
               <div className="flex justify-between items-start mb-4">
                 <div>
                   <h3 className="font-semibold text-lg">
