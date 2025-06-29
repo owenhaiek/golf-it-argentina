@@ -64,6 +64,7 @@ const UserProfile = () => {
           <UserStatsCard 
             rounds={rounds || []}
             roundsLoading={roundsLoading}
+            userId={userId}
           />
           <UserRecentRounds 
             rounds={rounds || []}
