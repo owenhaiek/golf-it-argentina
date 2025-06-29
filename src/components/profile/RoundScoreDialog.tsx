@@ -259,7 +259,7 @@ const RoundScoreDialog = ({ round, isOpen, onClose }: RoundScoreDialogProps) => 
 
               {/* Summary */}
               <div className="mt-6 pt-4 border-t">
-                <div className="grid grid-cols-3 gap-4 text-center">
+                <div className="grid grid-cols-3 gap-6 text-center">
                   <div>
                     <div className="text-2xl font-bold text-primary">{numberOfHoles}</div>
                     <div className="text-sm text-muted-foreground">Holes</div>
@@ -274,7 +274,7 @@ const RoundScoreDialog = ({ round, isOpen, onClose }: RoundScoreDialogProps) => 
                     }`}>
                       {scoreDiff > 0 ? `+${scoreDiff}` : scoreDiff}
                     </div>
-                    <div className="text-sm text-muted-foreground">vs Par</div>
+                    <div className="text-sm text-muted-foreground whitespace-nowrap">vs Par</div>
                   </div>
                 </div>
               </div>
