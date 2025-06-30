@@ -12,7 +12,7 @@ interface UseSimpleMapboxOptions {
 export function useSimpleMapbox({
   containerRef,
   center = [-58.3816, -34.6118],
-  zoom = 4,
+  zoom = 6,
   accessToken,
   onMapReady
 }: UseSimpleMapboxOptions) {
