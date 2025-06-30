@@ -67,10 +67,11 @@
   html {
     height: 100%;
     height: 100dvh;
+    background-color: #092820; /* Immediate green background */
   }
   
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
     font-feature-settings:
       "rlig" 1,
       "calt" 1;
@@ -80,12 +81,13 @@
     height: 100dvh;
     margin: 0;
     padding: 0;
+    background-color: #092820; /* Immediate green background */
   }
 
   #root {
     height: 100%;
     height: 100dvh;
-    @apply bg-background;
+    background-color: #092820; /* Immediate green background */
   }
 
   /* Ensure all buttons and inputs have consistent border radius */
@@ -105,6 +107,8 @@
     border-radius: calc(var(--radius) - 4px) !important;
   }
 }
+
+/* ... keep existing code (animation classes and other styles) */
 
 /*
   The animation utility classes are defined using CSS variables,

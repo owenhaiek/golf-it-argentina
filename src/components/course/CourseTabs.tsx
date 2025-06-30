@@ -21,7 +21,12 @@ export function CourseTabs({ course, rounds, isLoadingRounds, reviews, isLoading
       <TabsContent value="overview" className="space-y-4 mt-4">
         <CourseStats rounds={rounds} isLoading={isLoadingRounds} coursePar={course.par} />
         {course.latitude && course.longitude && (
-          <CourseMap latitude={course.latitude} longitude={course.longitude} />
+          <CourseMap 
+            latitude={course.latitude} 
+            longitude={course.longitude} 
+            name={course.name}
+            courseId={course.id}
+          />
         )}
       </TabsContent>
       <TabsContent value="holes" className="mt-4">

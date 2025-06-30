@@ -5,17 +5,20 @@ import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useSimpleMapbox } from "@/hooks/useSimpleMapbox";
+import { useNavigate } from "react-router-dom";
 
 interface CourseMapProps {
   latitude?: number | null;
   longitude?: number | null;
   name?: string;
+  courseId?: string;
 }
 
 const MAPBOX_TOKEN = 'pk.eyJ1Ijoib3dlbmhhaWVrIiwiYSI6ImNtYW8zbWZpajAyeGsyaXB3Z2NrOG9yeWsifQ.EutakvlH6R5Hala3cVTEYw';
 
-export const CourseMap = ({ latitude, longitude, name }: CourseMapProps) => {
+export const CourseMap = ({ latitude, longitude, name, courseId }: CourseMapProps) => {
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const mapContainerRef = useRef<HTMLDivElement>(null);
   
   const { map, isLoading, error } = useSimpleMapbox({
@@ -44,6 +47,12 @@ export const CourseMap = ({ latitude, longitude, name }: CourseMapProps) => {
         .addTo(mapInstance);
     }
   });
+
+  const handleMapClick = () => {
+    if (courseId) {
+      navigate(`/courses-map?focus=${courseId}`);
+    }
+  };
   
   // Handle missing location data
   if (!latitude || !longitude) {
@@ -66,7 +75,10 @@ export const CourseMap = ({ latitude, longitude, name }: CourseMapProps) => {
         <CardTitle className="text-lg">{t("course", "courseLocation")}</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="bg-gray-200 h-[300px] rounded-md relative overflow-hidden">
+        <div 
+          className="bg-gray-200 h-[300px] rounded-md relative overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
+          onClick={handleMapClick}
+        >
           <div
             ref={mapContainerRef}
             className="absolute inset-0 w-full h-full"
@@ -105,7 +117,28 @@ export const CourseMap = ({ latitude, longitude, name }: CourseMapProps) => {
               © Mapbox © OpenStreetMap
             </div>
           )}
+
+          {/* Tap to open overlay */}
+          {!error && !isLoading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 hover:opacity-100 transition-opacity">
+              <div className="bg-white/90 px-3 py-2 rounded-md text-sm font-medium">
+                Tap to open in map
+              </div>
+            </div>
+          )}
         </div>
+
+        {courseId && (
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="w-full mt-3"
+            onClick={handleMapClick}
+          >
+            <Map className="w-4 h-4 mr-2" />
+            Open in Map
+          </Button>
+        )}
       </CardContent>
     </Card>
   );
