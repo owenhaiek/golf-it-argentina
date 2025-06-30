@@ -69,11 +69,13 @@ export const useMapMarkers = (onCourseSelect: (course: GolfCourse) => void) => {
       console.log(`Adding marker for ${course.name} at [${lng}, ${lat}]`);
 
       try {
-        // Use 'center' anchor to ensure marker stays precisely positioned
+        // Use 'bottom' anchor to ensure marker stays precisely positioned during zoom
         const marker = new (window as any).mapboxgl.Marker({
           element: el,
-          anchor: "center",
-          draggable: false
+          anchor: "bottom",
+          draggable: false,
+          pitchAlignment: "map",
+          rotationAlignment: "map"
         })
           .setLngLat(coordinates)
           .addTo(mapInstance);
