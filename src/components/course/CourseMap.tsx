@@ -1,21 +1,24 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MapPin, Map, Globe } from "lucide-react";
+import { MapPin, Map, Globe, ExternalLink } from "lucide-react";
 import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useSimpleMapbox } from "@/hooks/useSimpleMapbox";
+import { useNavigate } from "react-router-dom";
 
 interface CourseMapProps {
   latitude?: number | null;
   longitude?: number | null;
   name?: string;
+  courseId?: string;
 }
 
 const MAPBOX_TOKEN = 'pk.eyJ1Ijoib3dlbmhhaWVrIiwiYSI6ImNtYW8zbWZpajAyeGsyaXB3Z2NrOG9yeWsifQ.EutakvlH6R5Hala3cVTEYw';
 
-export const CourseMap = ({ latitude, longitude, name }: CourseMapProps) => {
+export const CourseMap = ({ latitude, longitude, name, courseId }: CourseMapProps) => {
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const mapContainerRef = useRef<HTMLDivElement>(null);
   
   const { map, isLoading, error } = useSimpleMapbox({
@@ -44,6 +47,16 @@ export const CourseMap = ({ latitude, longitude, name }: CourseMapProps) => {
         .addTo(mapInstance);
     }
   });
+
+  const handleOpenFullMap = () => {
+    if (courseId) {
+      // Navigate to map page with course ID as URL parameter
+      navigate(`/map?courseId=${courseId}`);
+    } else {
+      // Fallback to map page with coordinates
+      navigate(`/map?lat=${latitude}&lng=${longitude}`);
+    }
+  };
   
   // Handle missing location data
   if (!latitude || !longitude) {
@@ -62,11 +75,23 @@ export const CourseMap = ({ latitude, longitude, name }: CourseMapProps) => {
 
   return (
     <Card className="mb-4">
-      <CardHeader className="pb-2">
+      <CardHeader className="pb-2 flex flex-row items-center justify-between">
         <CardTitle className="text-lg">{t("course", "courseLocation")}</CardTitle>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleOpenFullMap}
+          className="flex items-center gap-2 text-primary hover:text-primary/80"
+        >
+          <ExternalLink className="h-4 w-4" />
+          <span className="text-sm">Open Map</span>
+        </Button>
       </CardHeader>
       <CardContent>
-        <div className="bg-gray-200 h-[300px] rounded-md relative overflow-hidden">
+        <div 
+          className="bg-gray-200 h-[300px] rounded-md relative overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
+          onClick={handleOpenFullMap}
+        >
           <div
             ref={mapContainerRef}
             className="absolute inset-0 w-full h-full"
@@ -99,11 +124,18 @@ export const CourseMap = ({ latitude, longitude, name }: CourseMapProps) => {
             </div>
           )}
           
-          {/* Map attribution */}
+          {/* Click overlay indicator */}
           {!error && !isLoading && (
-            <div className="absolute bottom-1 right-1 text-[8px] text-muted-foreground bg-white/80 px-1 rounded">
-              © Mapbox © OpenStreetMap
-            </div>
+            <>
+              <div className="absolute top-2 right-2 bg-black/60 text-white px-2 py-1 rounded text-xs flex items-center gap-1">
+                <ExternalLink className="h-3 w-3" />
+                <span>Open Full Map</span>
+              </div>
+              {/* Map attribution */}
+              <div className="absolute bottom-1 right-1 text-[8px] text-muted-foreground bg-white/80 px-1 rounded">
+                © Mapbox © OpenStreetMap
+              </div>
+            </>
           )}
         </div>
       </CardContent>
