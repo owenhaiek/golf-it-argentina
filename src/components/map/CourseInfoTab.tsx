@@ -1,8 +1,9 @@
 
-import { X, MapPin, Phone, Globe, Flag, Navigation } from "lucide-react";
+import { X, MapPin, Phone, Globe, Flag, Navigation, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 interface CourseInfoTabProps {
   course: {
@@ -24,6 +25,8 @@ interface CourseInfoTabProps {
 }
 
 export const CourseInfoTab = ({ course, isOpen, onClose }: CourseInfoTabProps) => {
+  const navigate = useNavigate();
+
   if (!course) return null;
 
   const defaultImageUrl = 'https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80';
@@ -31,6 +34,10 @@ export const CourseInfoTab = ({ course, isOpen, onClose }: CourseInfoTabProps) =
   const handleDirections = () => {
     const query = encodeURIComponent(`${course.name}, ${[course.address, course.city, course.state].filter(Boolean).join(', ')}`);
     window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
+  };
+
+  const handleViewCourse = () => {
+    navigate(`/course/${course.id}`);
   };
 
   return (
@@ -111,6 +118,15 @@ export const CourseInfoTab = ({ course, isOpen, onClose }: CourseInfoTabProps) =
                 )}
               </div>
 
+              {/* View Course button */}
+              <Button 
+                className="w-full bg-primary hover:bg-primary/90"
+                onClick={handleViewCourse}
+              >
+                <Eye className="w-4 w-4 mr-2" />
+                View Course
+              </Button>
+
               {/* Action buttons */}
               <div className="flex gap-2">
                 {course.phone && (
@@ -140,7 +156,8 @@ export const CourseInfoTab = ({ course, isOpen, onClose }: CourseInfoTabProps) =
 
               {/* Directions button */}
               <Button 
-                className="w-full bg-green-600 hover:bg-green-700"
+                variant="outline"
+                className="w-full"
                 onClick={handleDirections}
               >
                 <Navigation className="w-4 w-4 mr-2" />
