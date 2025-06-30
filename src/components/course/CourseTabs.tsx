@@ -76,7 +76,6 @@ export const CourseTabs = ({
       
       <TabsContent value="stats" className="mt-6">
         <CourseStats
-          course={course}
           rounds={rounds}
           isLoading={isLoadingRounds}
           language={language}
