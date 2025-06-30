@@ -1,7 +1,6 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { CourseInfoTab } from "@/components/map/CourseInfoTab";
 import { MapContainer } from "@/components/map/MapContainer";
@@ -27,10 +26,6 @@ interface GolfCourse {
 
 const CoursesMap = () => {
   const [selectedCourse, setSelectedCourse] = useState<GolfCourse | null>(null);
-  const [searchParams] = useSearchParams();
-  
-  // Get courseId from URL parameters
-  const courseIdFromUrl = searchParams.get('courseId');
 
   // Fetch courses data
   const { data: courses, isLoading: coursesLoading, error: coursesError } = useQuery({
@@ -48,17 +43,6 @@ const CoursesMap = () => {
       return data || [];
     }
   });
-
-  // Auto-select course if courseId is provided in URL
-  useEffect(() => {
-    if (courseIdFromUrl && courses && courses.length > 0) {
-      const courseToSelect = courses.find(course => course.id === courseIdFromUrl);
-      if (courseToSelect) {
-        console.log("[CoursesMap] Auto-selecting course from URL:", courseToSelect.name);
-        setSelectedCourse(courseToSelect);
-      }
-    }
-  }, [courseIdFromUrl, courses]);
 
   const handleRetry = () => {
     window.location.reload();
@@ -91,7 +75,6 @@ const CoursesMap = () => {
         <MapContainer 
           courses={courses || []}
           onCourseSelect={setSelectedCourse}
-          focusCourseId={courseIdFromUrl}
         />
         
         {/* Empty state */}

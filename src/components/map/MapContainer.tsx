@@ -21,41 +21,20 @@ interface GolfCourse {
 interface MapContainerProps {
   courses: GolfCourse[];
   onCourseSelect: (course: GolfCourse) => void;
-  focusCourseId?: string | null;
 }
 
 const MAPBOX_TOKEN = 'pk.eyJ1Ijoib3dlbmhhaWVrIiwiYSI6ImNtYW8zbWZpajAyeGsyaXB3Z2NrOG9yeWsifQ.EutakvlH6R5Hala3cVTEYw';
 
-export const MapContainer = ({ courses, onCourseSelect, focusCourseId }: MapContainerProps) => {
+export const MapContainer = ({ courses, onCourseSelect }: MapContainerProps) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
-
-  // Find the course to focus on
-  const focusCourse = focusCourseId ? courses.find(course => course.id === focusCourseId) : null;
-  
-  // Determine initial center and zoom based on focus course
-  const getInitialMapSettings = () => {
-    if (focusCourse && focusCourse.latitude && focusCourse.longitude) {
-      return {
-        center: [focusCourse.longitude, focusCourse.latitude] as [number, number],
-        zoom: 14
-      };
-    }
-    return {
-      center: [-58.3816, -34.6118] as [number, number],
-      zoom: 6
-    };
-  };
-
-  const { center, zoom } = getInitialMapSettings();
 
   const { map, isLoading, error, cleanup } = useMapboxWithMarkers({
     containerRef: mapContainerRef,
-    center,
-    zoom,
+    center: [-58.3816, -34.6118],
+    zoom: 6,
     accessToken: MAPBOX_TOKEN,
     courses,
-    onCourseSelect,
-    focusCourse
+    onCourseSelect
   });
 
   // Cleanup on unmount

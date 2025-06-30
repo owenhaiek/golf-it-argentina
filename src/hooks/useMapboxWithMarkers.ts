@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { useSimpleMapbox } from "@/hooks/useSimpleMapbox";
 import { useMapMarkers } from "@/hooks/useMapMarkers";
@@ -26,7 +25,6 @@ interface UseMapboxWithMarkersOptions {
   accessToken: string;
   courses: GolfCourse[];
   onCourseSelect: (course: GolfCourse) => void;
-  focusCourse?: GolfCourse | null;
 }
 
 export const useMapboxWithMarkers = ({
@@ -35,8 +33,7 @@ export const useMapboxWithMarkers = ({
   zoom = 6,
   accessToken,
   courses,
-  onCourseSelect,
-  focusCourse
+  onCourseSelect
 }: UseMapboxWithMarkersOptions) => {
   const [markersInitialized, setMarkersInitialized] = useState(false);
   const coursesVersionRef = useRef<string>('');
@@ -58,24 +55,13 @@ export const useMapboxWithMarkers = ({
       
       mapInstance.setMaxBounds(argentinaBounds);
       
-      // If there's a focus course, center on it
-      if (focusCourse && focusCourse.latitude && focusCourse.longitude) {
-        console.log("[MapboxWithMarkers] Focusing on course:", focusCourse.name);
-        mapInstance.flyTo({
-          center: [focusCourse.longitude, focusCourse.latitude],
-          zoom: 14,
-          essential: true,
-          duration: 1500
-        });
-      } else {
-        // Ensure map stays centered on Argentina
-        mapInstance.flyTo({
-          center: [-58.3816, -34.6118],
-          zoom: 6,
-          essential: true,
-          duration: 1000
-        });
-      }
+      // Ensure map stays centered on Argentina
+      mapInstance.flyTo({
+        center: [-58.3816, -34.6118],
+        zoom: 6,
+        essential: true,
+        duration: 1000
+      });
     }
   });
 

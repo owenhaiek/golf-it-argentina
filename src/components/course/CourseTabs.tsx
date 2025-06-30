@@ -1,89 +1,57 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MapPin, BarChart3, MessageSquare, Calendar, Flag } from "lucide-react";
-import CourseStats from "./CourseStats";
-import CourseReviews from "./CourseReviews";
-import CourseHoleDetails from "./CourseHoleDetails";
-import CourseMap from "./CourseMap";
+import CourseStats from "@/components/course/CourseStats";
+import CourseMap from "@/components/course/CourseMap";
+import CourseHoleDetails from "@/components/course/CourseHoleDetails";
+import CoursePhotos from "@/components/course/CoursePhotos";
+import CourseWeather from "@/components/course/CourseWeather";
+import AddReviewForm from "@/components/course/AddReviewForm";
+import CourseReviews from "@/components/course/CourseReviews";
 
-interface CourseTabsProps {
-  course: any;
-  rounds: any[];
-  isLoadingRounds: boolean;
-  reviews: any[];
-  isLoadingReviews: boolean;
-  onReviewSuccess: () => void;
-  language: string;
-  courseId: string;
-}
-
-export const CourseTabs = ({
-  course,
-  rounds,
-  isLoadingRounds,
-  reviews,
-  isLoadingReviews,
-  onReviewSuccess,
-  language,
-  courseId
-}: CourseTabsProps) => {
+export function CourseTabs({ course, rounds, isLoadingRounds, reviews, isLoadingReviews, onReviewSuccess, language }: any) {
   return (
-    <Tabs defaultValue="details" className="w-full">
-      <TabsList className="grid w-full grid-cols-4">
-        <TabsTrigger value="details" className="flex items-center gap-1 text-xs">
-          <Flag className="h-4 w-4" />
-          <span className="hidden sm:inline">
-            {language === "en" ? "Details" : "Detalles"}
-          </span>
-        </TabsTrigger>
-        <TabsTrigger value="map" className="flex items-center gap-1 text-xs">
-          <MapPin className="h-4 w-4" />
-          <span className="hidden sm:inline">
-            {language === "en" ? "Map" : "Mapa"}
-          </span>
-        </TabsTrigger>
-        <TabsTrigger value="stats" className="flex items-center gap-1 text-xs">
-          <BarChart3 className="h-4 w-4" />
-          <span className="hidden sm:inline">
-            {language === "en" ? "Stats" : "Stats"}
-          </span>
-        </TabsTrigger>
-        <TabsTrigger value="reviews" className="flex items-center gap-1 text-xs">
-          <MessageSquare className="h-4 w-4" />
-          <span className="hidden sm:inline">
-            {language === "en" ? "Reviews" : "Reseñas"}
-          </span>
-        </TabsTrigger>
+    <Tabs defaultValue="overview" className="w-full">
+      <TabsList className="grid w-full grid-cols-5 text-xs">
+        <TabsTrigger value="overview">{language === "en" ? "Overview" : "Resumen"}</TabsTrigger>
+        <TabsTrigger value="holes">{language === "en" ? "Holes" : "Hoyos"}</TabsTrigger>
+        <TabsTrigger value="images">{language === "en" ? "Images" : "Imágenes"}</TabsTrigger>
+        <TabsTrigger value="weather">{language === "en" ? "Weather" : "Clima"}</TabsTrigger>
+        <TabsTrigger value="reviews">{language === "en" ? "Reviews" : "Reseñas"}</TabsTrigger>
       </TabsList>
-      
-      <TabsContent value="details" className="mt-6">
-        <CourseHoleDetails
-          coursePar={course.par}
+      <TabsContent value="overview" className="space-y-4 mt-4">
+        <CourseStats rounds={rounds} isLoading={isLoadingRounds} coursePar={course.par} />
+        {course.latitude && course.longitude && (
+          <CourseMap latitude={course.latitude} longitude={course.longitude} />
+        )}
+      </TabsContent>
+      <TabsContent value="holes" className="mt-4">
+        <CourseHoleDetails 
+          coursePar={course.par} 
           holes={course.holes}
           holePars={course.hole_pars}
           holeHandicaps={course.hole_handicaps}
         />
       </TabsContent>
-      
-      <TabsContent value="map" className="mt-6">
-        <CourseMap
+      <TabsContent value="images" className="mt-4">
+        <CoursePhotos
+          courseId={course.id}
+          courseName={course.name}
+          imageUrl={course.image_url}
+          imageGallery={course.image_gallery}
+        />
+      </TabsContent>
+      <TabsContent value="weather" className="mt-4">
+        <CourseWeather
           latitude={course.latitude}
           longitude={course.longitude}
-          name={course.name}
-          courseId={courseId}
         />
       </TabsContent>
-      
-      <TabsContent value="stats" className="mt-6">
-        <CourseStats
-          rounds={rounds}
-          isLoading={isLoadingRounds}
-          coursePar={course.par}
-          courseHolePars={course.hole_pars}
+      <TabsContent value="reviews" className="space-y-4 mt-4">
+        <AddReviewForm 
+          courseId={course.id} 
+          onSuccess={onReviewSuccess}
+          onCancel={() => {}}
         />
-      </TabsContent>
-      
-      <TabsContent value="reviews" className="mt-6">
         <CourseReviews
           courseId={course.id}
           reviews={reviews}
@@ -92,4 +60,4 @@ export const CourseTabs = ({
       </TabsContent>
     </Tabs>
   );
-};
+}

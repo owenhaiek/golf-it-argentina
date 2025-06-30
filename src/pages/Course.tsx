@@ -1,4 +1,3 @@
-
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Flag } from "lucide-react";
@@ -127,7 +126,6 @@ const Course = () => {
               isLoadingReviews={isLoadingReviews}
               onReviewSuccess={handleReviewSuccess}
               language={language}
-              courseId={course.id}
             />
           </div>
         </div>
