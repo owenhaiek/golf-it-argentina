@@ -78,7 +78,8 @@ export const CourseTabs = ({
         <CourseStats
           rounds={rounds}
           isLoading={isLoadingRounds}
-          language={language}
+          coursePar={course.par}
+          courseHolePars={course.hole_pars}
         />
       </TabsContent>
       
@@ -87,8 +88,6 @@ export const CourseTabs = ({
           courseId={course.id}
           reviews={reviews}
           isLoading={isLoadingReviews}
-          onReviewSuccess={onReviewSuccess}
-          language={language}
         />
       </TabsContent>
     </Tabs>
