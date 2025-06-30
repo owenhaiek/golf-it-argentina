@@ -32,7 +32,7 @@ interface UseMapboxWithMarkersOptions {
 export const useMapboxWithMarkers = ({
   containerRef,
   center = [-58.3816, -34.6118],
-  zoom = 6,
+  zoom = 8,
   accessToken,
   courses,
   onCourseSelect,
@@ -50,18 +50,18 @@ export const useMapboxWithMarkers = ({
     onMapReady: (mapInstance) => {
       console.log("[MapboxWithMarkers] Map ready, setting Argentina bounds");
       
-      // Set bounds to keep focus on Argentina and prevent unwanted zooming
+      // Set tighter bounds focused on main Argentina populated areas
       const argentinaBounds = [
-        [-73.5605, -55.0610], // Southwest coordinates
-        [-53.6374, -21.7810]  // Northeast coordinates
+        [-68.5605, -45.0610], // Southwest coordinates (more focused)
+        [-55.6374, -25.7810]  // Northeast coordinates (more focused)
       ];
       
       mapInstance.setMaxBounds(argentinaBounds);
       
-      // Ensure map stays centered on Argentina
+      // Start with a more zoomed view of Argentina
       mapInstance.flyTo({
-        center: [-58.3816, -34.6118],
-        zoom: 6,
+        center: [-58.3816, -34.6118], // Buenos Aires area
+        zoom: 8,
         essential: true,
         duration: 1000
       });
