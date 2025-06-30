@@ -21,11 +21,12 @@ interface GolfCourse {
 interface MapContainerProps {
   courses: GolfCourse[];
   onCourseSelect: (course: GolfCourse) => void;
+  focusCourseId?: string | null;
 }
 
 const MAPBOX_TOKEN = 'pk.eyJ1Ijoib3dlbmhhaWVrIiwiYSI6ImNtYW8zbWZpajAyeGsyaXB3Z2NrOG9yeWsifQ.EutakvlH6R5Hala3cVTEYw';
 
-export const MapContainer = ({ courses, onCourseSelect }: MapContainerProps) => {
+export const MapContainer = ({ courses, onCourseSelect, focusCourseId }: MapContainerProps) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
 
   const { map, isLoading, error, cleanup } = useMapboxWithMarkers({
@@ -34,7 +35,8 @@ export const MapContainer = ({ courses, onCourseSelect }: MapContainerProps) => 
     zoom: 6,
     accessToken: MAPBOX_TOKEN,
     courses,
-    onCourseSelect
+    onCourseSelect,
+    focusCourseId
   });
 
   // Cleanup on unmount

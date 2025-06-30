@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from "react";
 import { useSimpleMapbox } from "@/hooks/useSimpleMapbox";
 import { useMapMarkers } from "@/hooks/useMapMarkers";
@@ -25,6 +26,7 @@ interface UseMapboxWithMarkersOptions {
   accessToken: string;
   courses: GolfCourse[];
   onCourseSelect: (course: GolfCourse) => void;
+  focusCourseId?: string | null;
 }
 
 export const useMapboxWithMarkers = ({
@@ -33,7 +35,8 @@ export const useMapboxWithMarkers = ({
   zoom = 6,
   accessToken,
   courses,
-  onCourseSelect
+  onCourseSelect,
+  focusCourseId
 }: UseMapboxWithMarkersOptions) => {
   const [markersInitialized, setMarkersInitialized] = useState(false);
   const coursesVersionRef = useRef<string>('');
@@ -64,6 +67,26 @@ export const useMapboxWithMarkers = ({
       });
     }
   });
+
+  // Handle focus course functionality
+  useEffect(() => {
+    if (!map || !focusCourseId || !courses || courses.length === 0 || isLoading) return;
+
+    const courseToFocus = courses.find(course => course.id === focusCourseId);
+    if (courseToFocus && courseToFocus.latitude && courseToFocus.longitude) {
+      console.log("[MapboxWithMarkers] Focusing on course:", courseToFocus.name);
+      
+      // Wait for map to be ready then fly to the course location
+      setTimeout(() => {
+        map.flyTo({
+          center: [courseToFocus.longitude!, courseToFocus.latitude!],
+          zoom: 15,
+          essential: true,
+          duration: 2000
+        });
+      }, 1000);
+    }
+  }, [map, focusCourseId, courses, isLoading]);
 
   // Handle courses and map initialization
   useEffect(() => {
