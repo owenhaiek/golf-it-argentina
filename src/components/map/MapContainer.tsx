@@ -32,7 +32,7 @@ export const MapContainer = ({ courses, onCourseSelect, focusCourseId }: MapCont
   const { map, isLoading, error, cleanup } = useMapboxWithMarkers({
     containerRef: mapContainerRef,
     center: [-58.3816, -34.6118],
-    zoom: 8,
+    zoom: 4,
     accessToken: MAPBOX_TOKEN,
     courses,
     onCourseSelect,

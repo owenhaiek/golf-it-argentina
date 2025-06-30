@@ -32,7 +32,7 @@ interface UseMapboxWithMarkersOptions {
 export const useMapboxWithMarkers = ({
   containerRef,
   center = [-58.3816, -34.6118],
-  zoom = 8,
+  zoom = 4,
   accessToken,
   courses,
   onCourseSelect,
@@ -61,7 +61,7 @@ export const useMapboxWithMarkers = ({
       // Start with a more zoomed view of Argentina
       mapInstance.flyTo({
         center: [-58.3816, -34.6118], // Buenos Aires area
-        zoom: 8,
+        zoom: 4,
         essential: true,
         duration: 1000
       });
