@@ -58,13 +58,8 @@ export const useMapboxWithMarkers = ({
       
       mapInstance.setMaxBounds(argentinaBounds);
       
-      // Start with a more zoomed view of Argentina
-      mapInstance.flyTo({
-        center: [-58.3816, -34.6118], // Buenos Aires area
-        zoom: 4,
-        essential: true,
-        duration: 1000
-      });
+      // Don't animate - just set the initial view directly
+      // The map will already be initialized with the correct center and zoom
     }
   });
 
