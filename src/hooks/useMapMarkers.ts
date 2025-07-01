@@ -67,9 +67,11 @@ export const useMapMarkers = (onCourseSelect: (course: GolfCourse) => void) => {
       console.log(`Adding marker for ${course.name} at [${lng}, ${lat}]`);
 
       try {
+        // Create marker with proper anchoring
         const marker = new (window as any).mapboxgl.Marker({
           element: markerElement,
-          anchor: 'center'
+          anchor: 'center', // Anchor to center to prevent movement
+          offset: [0, 0] // No offset to ensure exact positioning
         })
           .setLngLat(coordinates)
           .addTo(mapInstance);
@@ -89,14 +91,14 @@ export const useMapMarkers = (onCourseSelect: (course: GolfCourse) => void) => {
       setTimeout(() => {
         try {
           mapInstance.fitBounds(bounds, {
-            padding: { top: 60, bottom: 60, left: 60, right: 60 },
-            maxZoom: 10,
-            duration: 1000,
+            padding: { top: 80, bottom: 80, left: 80, right: 80 },
+            maxZoom: 12,
+            duration: 1200,
           });
         } catch (error) {
           console.warn("[MapMarkers] Error fitting bounds:", error);
         }
-      }, 300);
+      }, 400);
     }
   }, [onCourseSelect, clearMarkers]);
 
@@ -109,13 +111,13 @@ export const useMapMarkers = (onCourseSelect: (course: GolfCourse) => void) => {
     const coordinates: [number, number] = [Number(course.longitude), Number(course.latitude)];
     console.log("[MapMarkers] Focusing on course:", course.name, "at coordinates:", coordinates);
 
-    // Smooth focus animation
+    // Smooth focus animation with proper center anchoring
     mapInstance.flyTo({
       center: coordinates,
-      zoom: 16,
-      duration: 2000,
+      zoom: 15,
+      duration: 1800,
       essential: true,
-      curve: 1.42,
+      curve: 1.2,
       easing: (t: number) => {
         return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
       }
@@ -123,7 +125,7 @@ export const useMapMarkers = (onCourseSelect: (course: GolfCourse) => void) => {
 
     // Call completion callback after animation
     if (onComplete) {
-      setTimeout(onComplete, 2200);
+      setTimeout(onComplete, 2000);
     }
   }, []);
 
