@@ -38,9 +38,10 @@ export const useMapboxWithMarkers = ({
   onCourseSelect,
   focusCourseId
 }: UseMapboxWithMarkersOptions) => {
-  const [markersLoaded, setMarkersLoaded] = useState(false);
-  const [focusHandled, setFocusHandled] = useState(false);
-  const focusTimeoutRef = useRef<NodeJS.Timeout>();
+  const [isInitialized, setIsInitialized] = useState(false);
+  const hasFocusedRef = useRef<string | null>(null);
+  const initTimeoutRef = useRef<NodeJS.Timeout>();
+  
   const { addMarkersToMap, focusOnCourse, cleanup } = useMapMarkers(onCourseSelect);
 
   const { map, isLoading, error } = useSimpleMapbox({
@@ -58,50 +59,41 @@ export const useMapboxWithMarkers = ({
       ];
       
       mapInstance.setMaxBounds(argentinaBounds);
+      
+      // Mark as initialized after a short delay to ensure map is fully ready
+      if (initTimeoutRef.current) {
+        clearTimeout(initTimeoutRef.current);
+      }
+      
+      initTimeoutRef.current = setTimeout(() => {
+        setIsInitialized(true);
+      }, 300);
     }
   });
 
-  // Load markers when map and courses are ready
+  // Initialize markers when map and courses are ready
   useEffect(() => {
-    if (!map || !courses || courses.length === 0 || isLoading) {
+    if (!map || !courses || courses.length === 0 || isLoading || !isInitialized) {
       return;
     }
 
-    console.log("[MapboxWithMarkers] Loading markers for", courses.length, "courses");
+    console.log("[MapboxWithMarkers] Initializing markers for", courses.length, "courses");
     
-    // Wait for map to be fully loaded
-    if (map.isStyleLoaded()) {
-      addMarkersToMap(map, courses, !markersLoaded);
-      if (!markersLoaded) {
-        setMarkersLoaded(true);
-      }
-    } else {
-      const handleStyleLoad = () => {
-        addMarkersToMap(map, courses, !markersLoaded);
-        if (!markersLoaded) {
-          setMarkersLoaded(true);
-        }
-        map.off('style.load', handleStyleLoad);
-      };
-      map.on('style.load', handleStyleLoad);
-    }
-  }, [map, courses, addMarkersToMap, markersLoaded, isLoading]);
+    // Add markers with bounds fitting only if no focus course
+    const shouldFitBounds = !focusCourseId;
+    addMarkersToMap(map, courses, shouldFitBounds);
+    
+  }, [map, courses, isLoading, isInitialized, addMarkersToMap, focusCourseId]);
 
-  // Handle course focus from URL parameter - only once when everything is ready
+  // Handle course focus - separate effect with simpler logic
   useEffect(() => {
-    // Clear any existing timeout
-    if (focusTimeoutRef.current) {
-      clearTimeout(focusTimeoutRef.current);
-    }
-
-    // Reset focus handled when focusCourseId changes
-    if (focusCourseId && !focusHandled) {
-      setFocusHandled(false);
-    }
-
-    // Only proceed if we have all required conditions and haven't handled this focus yet
     if (!map || !focusCourseId || !courses || courses.length === 0 || 
-        !markersLoaded || isLoading || focusHandled) {
+        !isInitialized || isLoading) {
+      return;
+    }
+
+    // Prevent duplicate focus on same course
+    if (hasFocusedRef.current === focusCourseId) {
       return;
     }
 
@@ -111,31 +103,33 @@ export const useMapboxWithMarkers = ({
       return;
     }
 
-    console.log("[MapboxWithMarkers] Focusing on course from URL:", courseToFocus.name);
+    console.log("[MapboxWithMarkers] Focusing on course:", courseToFocus.name);
     
-    // Mark as handled immediately to prevent duplicates
-    setFocusHandled(true);
+    // Mark this course as focused to prevent duplicates
+    hasFocusedRef.current = focusCourseId;
     
-    // Focus with a delay to ensure markers are visible
-    focusTimeoutRef.current = setTimeout(() => {
+    // Focus with proper timing
+    setTimeout(() => {
       focusOnCourse(map, courseToFocus, () => {
         console.log("[MapboxWithMarkers] Focus complete, selecting course");
         onCourseSelect(courseToFocus);
       });
-    }, 800);
+    }, 600);
 
-  }, [map, focusCourseId, courses, markersLoaded, isLoading, focusHandled, focusOnCourse, onCourseSelect]);
+  }, [map, focusCourseId, courses, isInitialized, isLoading, focusOnCourse, onCourseSelect]);
 
-  // Reset focus handled when focusCourseId changes
+  // Reset focus tracking when focusCourseId changes
   useEffect(() => {
-    setFocusHandled(false);
+    if (!focusCourseId) {
+      hasFocusedRef.current = null;
+    }
   }, [focusCourseId]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
-      if (focusTimeoutRef.current) {
-        clearTimeout(focusTimeoutRef.current);
+      if (initTimeoutRef.current) {
+        clearTimeout(initTimeoutRef.current);
       }
     };
   }, []);
