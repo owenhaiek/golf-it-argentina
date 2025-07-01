@@ -9,34 +9,29 @@ interface GolfCourse {
 export const createMarkerElement = (course: GolfCourse, onCourseSelect: (course: GolfCourse) => void) => {
   const el = document.createElement("div");
   
-  // Use more precise positioning to prevent movement during zoom
+  // Simplified styling for stable positioning
   el.style.cssText = `
-    width: 32px;
-    height: 32px;
+    width: 30px;
+    height: 30px;
     background-color: #10b981;
     border: 2px solid white;
     border-radius: 50%;
     cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
     display: flex;
     align-items: center;
     justify-content: center;
-    position: absolute;
-    transform: translate(-50%, -50%);
     user-select: none;
-    -webkit-user-select: none;
-    touch-action: manipulation;
     pointer-events: auto;
-    z-index: 100;
+    transition: background-color 0.2s ease;
   `;
   
   el.innerHTML = `
-    <svg width="16" height="16" fill="white" viewBox="0 0 24 24" style="pointer-events: none;">
+    <svg width="14" height="14" fill="white" viewBox="0 0 24 24" style="pointer-events: none;">
       <path d="M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z"/>
     </svg>
   `;
 
-  // Remove any transform effects that could cause movement
   el.addEventListener("mouseenter", () => {
     el.style.backgroundColor = "#059669";
   });

@@ -22,17 +22,15 @@ export const useMapMarkers = (onCourseSelect: (course: GolfCourse) => void) => {
   const markersRef = useRef<any[]>([]);
 
   const clearMarkers = useCallback(() => {
-    if (markersRef.current && markersRef.current.length > 0) {
-      markersRef.current.forEach(marker => {
-        try {
-          if (marker && typeof marker.remove === 'function') {
-            marker.remove();
-          }
-        } catch (e) {
-          console.warn("Error removing marker:", e);
+    markersRef.current.forEach(marker => {
+      try {
+        if (marker && typeof marker.remove === 'function') {
+          marker.remove();
         }
-      });
-    }
+      } catch (e) {
+        console.warn("Error removing marker:", e);
+      }
+    });
     markersRef.current = [];
   }, []);
 
@@ -69,10 +67,9 @@ export const useMapMarkers = (onCourseSelect: (course: GolfCourse) => void) => {
       console.log(`Adding marker for ${course.name} at [${lng}, ${lat}]`);
 
       try {
-        // Use 'center' anchor to ensure marker stays precisely positioned
+        // Use default anchor for stable positioning
         const marker = new (window as any).mapboxgl.Marker({
           element: el,
-          anchor: "center",
           draggable: false
         })
           .setLngLat(coordinates)
@@ -95,12 +92,37 @@ export const useMapMarkers = (onCourseSelect: (course: GolfCourse) => void) => {
     }
   }, [onCourseSelect, clearMarkers]);
 
+  const focusOnCourse = useCallback((mapInstance: any, course: GolfCourse, onComplete?: () => void) => {
+    if (!validateCoordinates(course.latitude, course.longitude)) {
+      console.warn("Cannot focus on course with invalid coordinates:", course.name);
+      return;
+    }
+
+    const coordinates: [number, number] = [Number(course.longitude), Number(course.latitude)];
+    console.log("[MapMarkers] Focusing on course:", course.name, "at coordinates:", coordinates);
+
+    mapInstance.flyTo({
+      center: coordinates,
+      zoom: 16,
+      essential: true,
+      duration: 2000,
+      curve: 1.2,
+      easing: (t: number) => t * (2 - t)
+    });
+
+    // Call completion callback after animation
+    if (onComplete) {
+      setTimeout(onComplete, 2200); // Slightly longer than animation duration
+    }
+  }, []);
+
   const cleanup = useCallback(() => {
     clearMarkers();
   }, [clearMarkers]);
 
   return {
     addMarkersToMap,
+    focusOnCourse,
     clearMarkers,
     cleanup
   };
