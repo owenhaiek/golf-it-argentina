@@ -9,7 +9,7 @@ interface GolfCourse {
 export const createMarkerElement = (course: GolfCourse, onCourseSelect: (course: GolfCourse) => void) => {
   const el = document.createElement("div");
   
-  // Fixed positioning and styling to prevent movement
+  // Minimal CSS - let Mapbox handle all positioning
   el.style.cssText = `
     width: 32px;
     height: 32px;
@@ -23,10 +23,6 @@ export const createMarkerElement = (course: GolfCourse, onCourseSelect: (course:
     justify-content: center;
     user-select: none;
     pointer-events: auto;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    position: relative;
-    z-index: 10;
-    transform-origin: center center;
   `;
   
   // Golf flag icon
@@ -36,17 +32,15 @@ export const createMarkerElement = (course: GolfCourse, onCourseSelect: (course:
     </svg>
   `;
 
-  // Hover effects that only change scale and shadow, not position
+  // Simple hover effects - only visual changes, no transforms
   el.addEventListener("mouseenter", () => {
-    el.style.transform = "scale(1.15)";
+    el.style.backgroundColor = "#059669";
     el.style.boxShadow = "0 4px 12px rgba(0,0,0,0.4)";
-    el.style.zIndex = "20";
   });
 
   el.addEventListener("mouseleave", () => {
-    el.style.transform = "scale(1)";
+    el.style.backgroundColor = "#10b981";
     el.style.boxShadow = "0 2px 8px rgba(0,0,0,0.3)";
-    el.style.zIndex = "10";
   });
 
   // Click handler

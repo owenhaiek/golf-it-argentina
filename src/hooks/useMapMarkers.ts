@@ -67,11 +67,10 @@ export const useMapMarkers = (onCourseSelect: (course: GolfCourse) => void) => {
       console.log(`Adding marker for ${course.name} at [${lng}, ${lat}]`);
 
       try {
-        // Create marker with proper anchoring
+        // Create marker with strict center anchoring - no offsets or custom positioning
         const marker = new (window as any).mapboxgl.Marker({
           element: markerElement,
-          anchor: 'center', // Anchor to center to prevent movement
-          offset: [0, 0] // No offset to ensure exact positioning
+          anchor: 'center'
         })
           .setLngLat(coordinates)
           .addTo(mapInstance);
@@ -111,21 +110,17 @@ export const useMapMarkers = (onCourseSelect: (course: GolfCourse) => void) => {
     const coordinates: [number, number] = [Number(course.longitude), Number(course.latitude)];
     console.log("[MapMarkers] Focusing on course:", course.name, "at coordinates:", coordinates);
 
-    // Smooth focus animation with proper center anchoring
+    // Simple flyTo without complex easing
     mapInstance.flyTo({
       center: coordinates,
       zoom: 15,
-      duration: 1800,
-      essential: true,
-      curve: 1.2,
-      easing: (t: number) => {
-        return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
-      }
+      duration: 1500,
+      essential: true
     });
 
     // Call completion callback after animation
     if (onComplete) {
-      setTimeout(onComplete, 2000);
+      setTimeout(onComplete, 1800);
     }
   }, []);
 
