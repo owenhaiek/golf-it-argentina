@@ -67,9 +67,10 @@ export const useMapMarkers = (onCourseSelect: (course: GolfCourse) => void) => {
       console.log(`Adding marker for ${course.name} at [${lng}, ${lat}]`);
 
       try {
-        // Use default anchor for stable positioning
+        // Create marker with precise positioning
         const marker = new (window as any).mapboxgl.Marker({
           element: el,
+          anchor: 'bottom',
           draggable: false
         })
           .setLngLat(coordinates)
@@ -82,13 +83,13 @@ export const useMapMarkers = (onCourseSelect: (course: GolfCourse) => void) => {
       }
     });
 
-    console.log("[MapMarkers] Added", validCourses, "valid markers");
+    console.log("[MapMarkers] Successfully added", validCourses, "valid markers");
 
     // Only fit bounds on initial load
     if (shouldFitBounds && validCourses > 0) {
       setTimeout(() => {
         fitMapToBounds(mapInstance, bounds, validCourses);
-      }, 300);
+      }, 500);
     }
   }, [onCourseSelect, clearMarkers]);
 
@@ -101,18 +102,21 @@ export const useMapMarkers = (onCourseSelect: (course: GolfCourse) => void) => {
     const coordinates: [number, number] = [Number(course.longitude), Number(course.latitude)];
     console.log("[MapMarkers] Focusing on course:", course.name, "at coordinates:", coordinates);
 
+    // Enhanced focus animation
     mapInstance.flyTo({
       center: coordinates,
-      zoom: 16,
+      zoom: 17,
       essential: true,
-      duration: 2000,
-      curve: 1.2,
-      easing: (t: number) => t * (2 - t)
+      duration: 2500,
+      curve: 1.5,
+      easing: (t: number) => {
+        return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+      }
     });
 
-    // Call completion callback after animation
+    // Call completion callback after animation with proper timing
     if (onComplete) {
-      setTimeout(onComplete, 2200); // Slightly longer than animation duration
+      setTimeout(onComplete, 2800);
     }
   }, []);
 
