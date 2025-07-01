@@ -41,6 +41,7 @@ export const useMapboxWithMarkers = ({
   const [markersInitialized, setMarkersInitialized] = useState(false);
   const coursesVersionRef = useRef<string>('');
   const focusHandledRef = useRef<string | null>(null);
+  const mapReadyRef = useRef(false);
   const { addMarkersToMap, cleanup } = useMapMarkers(onCourseSelect);
 
   const { map, isLoading, error } = useSimpleMapbox({
@@ -58,59 +59,13 @@ export const useMapboxWithMarkers = ({
       ];
       
       mapInstance.setMaxBounds(argentinaBounds);
+      mapReadyRef.current = true;
     }
   });
 
-  // Handle focus course functionality - this runs after map and courses are ready
+  // Handle courses and map initialization first
   useEffect(() => {
-    if (!map || !focusCourseId || !courses || courses.length === 0 || isLoading) {
-      return;
-    }
-
-    // Prevent handling the same focus course multiple times
-    if (focusHandledRef.current === focusCourseId) {
-      return;
-    }
-
-    const courseToFocus = courses.find(course => course.id === focusCourseId);
-    if (courseToFocus && courseToFocus.latitude && courseToFocus.longitude) {
-      console.log("[MapboxWithMarkers] Focusing on course:", courseToFocus.name, "at coordinates:", [courseToFocus.longitude, courseToFocus.latitude]);
-      
-      // Mark this focus as handled
-      focusHandledRef.current = focusCourseId;
-      
-      // Wait for map to be fully ready and markers to be added, then fly to the course location
-      const focusTimeout = setTimeout(() => {
-        if (map.isStyleLoaded()) {
-          console.log("[MapboxWithMarkers] Flying to course location");
-          map.flyTo({
-            center: [courseToFocus.longitude!, courseToFocus.latitude!],
-            zoom: 15,
-            essential: true,
-            duration: 2000
-          });
-          
-          // Auto-select the focused course after flying to it
-          setTimeout(() => {
-            onCourseSelect(courseToFocus);
-          }, 2500);
-        }
-      }, 1500); // Increased delay to ensure markers are added first
-      
-      return () => clearTimeout(focusTimeout);
-    }
-  }, [map, focusCourseId, courses, isLoading, onCourseSelect, markersInitialized]);
-
-  // Reset focus handler when focusCourseId changes
-  useEffect(() => {
-    if (focusCourseId !== focusHandledRef.current) {
-      focusHandledRef.current = null;
-    }
-  }, [focusCourseId]);
-
-  // Handle courses and map initialization
-  useEffect(() => {
-    if (!map || !courses || courses.length === 0 || isLoading) return;
+    if (!map || !courses || courses.length === 0 || isLoading || !mapReadyRef.current) return;
 
     // Create a version string to detect actual course changes
     const currentVersion = courses
@@ -140,6 +95,59 @@ export const useMapboxWithMarkers = ({
       }
     }
   }, [map, courses, addMarkersToMap, markersInitialized, isLoading]);
+
+  // Handle focus course functionality - runs after markers are initialized
+  useEffect(() => {
+    if (!map || !focusCourseId || !courses || courses.length === 0 || 
+        isLoading || !markersInitialized || !mapReadyRef.current) {
+      return;
+    }
+
+    // Prevent handling the same focus course multiple times
+    if (focusHandledRef.current === focusCourseId) {
+      return;
+    }
+
+    const courseToFocus = courses.find(course => course.id === focusCourseId);
+    if (courseToFocus && courseToFocus.latitude && courseToFocus.longitude) {
+      console.log("[MapboxWithMarkers] Focusing on course:", courseToFocus.name, "at coordinates:", [courseToFocus.longitude, courseToFocus.latitude]);
+      
+      // Mark this focus as handled
+      focusHandledRef.current = focusCourseId;
+      
+      // Ensure map is ready and then fly to course with smooth animation
+      const focusTimeout = setTimeout(() => {
+        if (map.isStyleLoaded()) {
+          console.log("[MapboxWithMarkers] Flying to course location with animation");
+          
+          // First fly to the course location with a smooth animation
+          map.flyTo({
+            center: [courseToFocus.longitude!, courseToFocus.latitude!],
+            zoom: 16,
+            essential: true,
+            duration: 2500,
+            curve: 1.2, // Makes the flight path more curved for better visual effect
+            easing: (t) => t * (2 - t) // Smooth easing function
+          });
+          
+          // Auto-select the focused course after the animation completes
+          setTimeout(() => {
+            console.log("[MapboxWithMarkers] Auto-selecting focused course");
+            onCourseSelect(courseToFocus);
+          }, 3000); // Wait for fly animation to complete
+        }
+      }, 500); // Small delay to ensure everything is ready
+      
+      return () => clearTimeout(focusTimeout);
+    }
+  }, [map, focusCourseId, courses, isLoading, onCourseSelect, markersInitialized]);
+
+  // Reset focus handler when focusCourseId changes
+  useEffect(() => {
+    if (focusCourseId !== focusHandledRef.current) {
+      focusHandledRef.current = null;
+    }
+  }, [focusCourseId]);
 
   return {
     map,
