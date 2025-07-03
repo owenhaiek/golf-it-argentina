@@ -79,7 +79,7 @@ export const useMapboxWithMarkers = ({
 
     console.log("[MapboxWithMarkers] Initializing markers for", courses.length, "courses");
     
-    // Add markers with bounds fitting only if no focus course
+    // Always add markers, but only fit bounds if no focus course is specified
     const shouldFitBounds = !focusCourseId;
     addMarkersToMap(map, courses, shouldFitBounds);
     
