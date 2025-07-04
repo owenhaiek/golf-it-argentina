@@ -23,6 +23,9 @@ export const createMarkerElement = (course: GolfCourse, onCourseSelect: (course:
     justify-content: center;
     user-select: none;
     pointer-events: auto;
+    transform-origin: center center;
+    position: relative;
+    transition: all 0.2s ease-in-out;
   `;
   
   // Golf flag icon
