@@ -7,6 +7,7 @@ interface UseSimpleMapboxOptions {
   zoom?: number;
   accessToken: string;
   onMapReady?: (map: any) => void;
+  mapStyle?: 'satellite' | 'street';
 }
 
 export function useSimpleMapbox({
@@ -14,7 +15,8 @@ export function useSimpleMapbox({
   center = [-58.3816, -34.6118],
   zoom = 6,
   accessToken,
-  onMapReady
+  onMapReady,
+  mapStyle = 'satellite'
 }: UseSimpleMapboxOptions) {
   const [map, setMap] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -76,9 +78,13 @@ export function useSimpleMapbox({
         (window as any).mapboxgl.accessToken = accessToken;
         
         // Create map with improved settings for stability
+        const styleUrl = mapStyle === 'satellite' 
+          ? 'mapbox://styles/mapbox/satellite-v9' 
+          : 'mapbox://styles/mapbox/light-v11';
+        
         const mapInstance = new (window as any).mapboxgl.Map({
           container: container,
-          style: 'mapbox://styles/mapbox/light-v11',
+          style: styleUrl,
           center,
           zoom,
           attributionControl: false,
@@ -130,7 +136,7 @@ export function useSimpleMapbox({
         map.remove();
       }
     };
-  }, [accessToken, center, zoom]);
+  }, [accessToken, center, zoom, mapStyle]);
 
   return { map, isLoading, error };
 }

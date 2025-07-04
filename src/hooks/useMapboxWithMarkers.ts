@@ -27,6 +27,7 @@ interface UseMapboxWithMarkersOptions {
   courses: GolfCourse[];
   onCourseSelect: (course: GolfCourse) => void;
   focusCourseId?: string | null;
+  mapStyle?: 'satellite' | 'street';
 }
 
 export const useMapboxWithMarkers = ({
@@ -36,7 +37,8 @@ export const useMapboxWithMarkers = ({
   accessToken,
   courses,
   onCourseSelect,
-  focusCourseId
+  focusCourseId,
+  mapStyle = 'satellite'
 }: UseMapboxWithMarkersOptions) => {
   const [isInitialized, setIsInitialized] = useState(false);
   const hasFocusedRef = useRef<string | null>(null);
@@ -49,6 +51,7 @@ export const useMapboxWithMarkers = ({
     center,
     zoom,
     accessToken,
+    mapStyle,
     onMapReady: (mapInstance) => {
       console.log("[MapboxWithMarkers] Map ready, setting Argentina bounds");
       

@@ -1,6 +1,7 @@
 
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { useMapboxWithMarkers } from "@/hooks/useMapboxWithMarkers";
+import { MapControls } from "./MapControls";
 
 interface GolfCourse {
   id: string;
@@ -28,6 +29,7 @@ const MAPBOX_TOKEN = 'pk.eyJ1Ijoib3dlbmhhaWVrIiwiYSI6ImNtYW8zbWZpajAyeGsyaXB3Z2N
 
 export const MapContainer = ({ courses, onCourseSelect, focusCourseId }: MapContainerProps) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
+  const [mapStyle, setMapStyle] = useState<'satellite' | 'street'>('satellite');
 
   const { map, isLoading, error, cleanup } = useMapboxWithMarkers({
     containerRef: mapContainerRef,
@@ -36,7 +38,8 @@ export const MapContainer = ({ courses, onCourseSelect, focusCourseId }: MapCont
     accessToken: MAPBOX_TOKEN,
     courses,
     onCourseSelect,
-    focusCourseId
+    focusCourseId,
+    mapStyle
   });
 
   // Cleanup on unmount
@@ -59,14 +62,25 @@ export const MapContainer = ({ courses, onCourseSelect, focusCourseId }: MapCont
   }, []);
 
   return (
-    <div
-      ref={mapContainerRef}
-      className="absolute inset-0 w-full h-full"
-      style={{ 
-        cursor: 'grab',
-        minHeight: '100vh',
-        minWidth: '100vw'
-      }}
-    />
+    <div className="relative w-full h-full">
+      <div
+        ref={mapContainerRef}
+        className="absolute inset-0 w-full h-full"
+        style={{ 
+          cursor: 'grab',
+          minHeight: '100vh',
+          minWidth: '100vw'
+        }}
+      />
+      
+      {/* Map Controls */}
+      {map && !isLoading && !error && (
+        <MapControls 
+          map={map}
+          onStyleChange={setMapStyle}
+          currentStyle={mapStyle}
+        />
+      )}
+    </div>
   );
 };

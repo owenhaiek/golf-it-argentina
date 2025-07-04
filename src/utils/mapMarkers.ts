@@ -9,15 +9,15 @@ interface GolfCourse {
 export const createMarkerElement = (course: GolfCourse, onCourseSelect: (course: GolfCourse) => void) => {
   const el = document.createElement("div");
   
-  // Minimal CSS - let Mapbox handle all positioning
+  // Enhanced styling for visibility on satellite imagery
   el.style.cssText = `
     width: 32px;
     height: 32px;
-    background-color: #10b981;
+    background: linear-gradient(135deg, #10b981, #059669);
     border: 3px solid white;
     border-radius: 50%;
     cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4), 0 2px 4px rgba(16,185,129,0.3);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -32,15 +32,17 @@ export const createMarkerElement = (course: GolfCourse, onCourseSelect: (course:
     </svg>
   `;
 
-  // Simple hover effects - only visual changes, no transforms
+  // Enhanced hover effects for satellite visibility
   el.addEventListener("mouseenter", () => {
-    el.style.backgroundColor = "#059669";
-    el.style.boxShadow = "0 4px 12px rgba(0,0,0,0.4)";
+    el.style.background = "linear-gradient(135deg, #059669, #047857)";
+    el.style.boxShadow = "0 6px 16px rgba(0,0,0,0.5), 0 2px 6px rgba(16,185,129,0.4)";
+    el.style.transform = "scale(1.1)";
   });
 
   el.addEventListener("mouseleave", () => {
-    el.style.backgroundColor = "#10b981";
-    el.style.boxShadow = "0 2px 8px rgba(0,0,0,0.3)";
+    el.style.background = "linear-gradient(135deg, #10b981, #059669)";
+    el.style.boxShadow = "0 4px 12px rgba(0,0,0,0.4), 0 2px 4px rgba(16,185,129,0.3)";
+    el.style.transform = "scale(1)";
   });
 
   // Click handler
