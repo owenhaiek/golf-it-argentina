@@ -9,7 +9,7 @@ interface GolfCourse {
 export const createMarkerElement = (course: GolfCourse, onCourseSelect: (course: GolfCourse) => void) => {
   const el = document.createElement("div");
   
-  // Enhanced styling for visibility on satellite imagery
+  // Simple, clean styling that doesn't interfere with Mapbox positioning
   el.style.cssText = `
     width: 32px;
     height: 32px;
@@ -23,9 +23,7 @@ export const createMarkerElement = (course: GolfCourse, onCourseSelect: (course:
     justify-content: center;
     user-select: none;
     pointer-events: auto;
-    transform-origin: center center;
-    position: relative;
-    transition: all 0.2s ease-in-out;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out, background 0.2s ease-in-out;
   `;
   
   // Golf flag icon
@@ -35,26 +33,24 @@ export const createMarkerElement = (course: GolfCourse, onCourseSelect: (course:
     </svg>
   `;
 
-  // Enhanced hover effects for satellite visibility
+  // Hover effects that preserve positioning
   el.addEventListener("mouseenter", () => {
     el.style.background = "linear-gradient(135deg, #059669, #047857)";
     el.style.boxShadow = "0 6px 16px rgba(0,0,0,0.5), 0 2px 6px rgba(16,185,129,0.4)";
     el.style.transform = "scale(1.1)";
-    el.style.transformOrigin = "center center";
   });
 
   el.addEventListener("mouseleave", () => {
     el.style.background = "linear-gradient(135deg, #10b981, #059669)";
     el.style.boxShadow = "0 4px 12px rgba(0,0,0,0.4), 0 2px 4px rgba(16,185,129,0.3)";
     el.style.transform = "scale(1)";
-    el.style.transformOrigin = "center center";
   });
 
   // Click handler
   el.addEventListener("click", (e) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log("[MapMarkers] Marker clicked:", course.name);
+    console.log("[MapMarkers] Marker clicked:", course.name, "at coordinates:", [course.longitude, course.latitude]);
     onCourseSelect(course);
   });
 
@@ -66,9 +62,26 @@ export const validateCoordinates = (latitude?: number, longitude?: number): bool
   const lng = Number(longitude);
   
   if (!latitude || !longitude || isNaN(lat) || isNaN(lng)) {
+    console.warn("[MapMarkers] Invalid coordinates:", { latitude, longitude, lat, lng });
     return false;
   }
   
-  // Validate Argentina coordinates
-  return lat >= -55 && lat <= -21 && lng >= -74 && lng <= -53;
+  // Validate Argentina coordinates with more detailed logging
+  const isValidLat = lat >= -55 && lat <= -21;
+  const isValidLng = lng >= -74 && lng <= -53;
+  
+  if (!isValidLat || !isValidLng) {
+    console.warn("[MapMarkers] Coordinates outside Argentina bounds:", { 
+      lat, 
+      lng, 
+      isValidLat, 
+      isValidLng,
+      expectedLatRange: "[-55, -21]",
+      expectedLngRange: "[-74, -53]"
+    });
+    return false;
+  }
+  
+  console.log("[MapMarkers] Valid coordinates:", { lat, lng });
+  return true;
 };
