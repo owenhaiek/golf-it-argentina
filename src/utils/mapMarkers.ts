@@ -37,12 +37,14 @@ export const createMarkerElement = (course: GolfCourse, onCourseSelect: (course:
     el.style.background = "linear-gradient(135deg, #059669, #047857)";
     el.style.boxShadow = "0 6px 16px rgba(0,0,0,0.5), 0 2px 6px rgba(16,185,129,0.4)";
     el.style.transform = "scale(1.1)";
+    el.style.transformOrigin = "center center";
   });
 
   el.addEventListener("mouseleave", () => {
     el.style.background = "linear-gradient(135deg, #10b981, #059669)";
     el.style.boxShadow = "0 4px 12px rgba(0,0,0,0.4), 0 2px 4px rgba(16,185,129,0.3)";
     el.style.transform = "scale(1)";
+    el.style.transformOrigin = "center center";
   });
 
   // Click handler

@@ -159,9 +159,9 @@ export const MapControls = ({ map, onStyleChange, currentStyle }: MapControlsPro
         onClick={handleStyleToggle}
         size="sm"
         variant="secondary"
-        className="bg-white/90 backdrop-blur-sm hover:bg-white border shadow-lg"
+        className="bg-white/90 backdrop-blur-sm hover:bg-white border shadow-lg text-black"
       >
-        <Map className="w-4 h-4 mr-2" />
+        <Map className="w-4 h-4 mr-2 text-black" />
         {currentStyle === 'satellite' ? 'Street' : 'Satellite'}
       </Button>
       
@@ -171,12 +171,12 @@ export const MapControls = ({ map, onStyleChange, currentStyle }: MapControlsPro
         size="sm"
         variant="secondary"
         disabled={locationLoading}
-        className="bg-white/90 backdrop-blur-sm hover:bg-white border shadow-lg"
+        className="bg-white/90 backdrop-blur-sm hover:bg-white border shadow-lg text-black"
       >
         {locationLoading ? (
-          <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-black border-t-transparent" />
         ) : (
-          <Crosshair className="w-4 h-4 mr-2" />
+          <Crosshair className="w-4 h-4 mr-2 text-black" />
         )}
         My Location
       </Button>
