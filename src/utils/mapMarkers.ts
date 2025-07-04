@@ -9,7 +9,7 @@ interface GolfCourse {
 export const createMarkerElement = (course: GolfCourse, onCourseSelect: (course: GolfCourse) => void) => {
   const el = document.createElement("div");
   
-  // Simple, clean styling that doesn't interfere with Mapbox positioning
+  // Minimal styling that doesn't interfere with Mapbox positioning
   el.style.cssText = `
     width: 32px;
     height: 32px;
@@ -23,7 +23,6 @@ export const createMarkerElement = (course: GolfCourse, onCourseSelect: (course:
     justify-content: center;
     user-select: none;
     pointer-events: auto;
-    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out, background 0.2s ease-in-out;
   `;
   
   // Golf flag icon
@@ -33,17 +32,17 @@ export const createMarkerElement = (course: GolfCourse, onCourseSelect: (course:
     </svg>
   `;
 
-  // Hover effects that preserve positioning
+  // Hover effects using only opacity and box-shadow (no transforms)
   el.addEventListener("mouseenter", () => {
     el.style.background = "linear-gradient(135deg, #059669, #047857)";
-    el.style.boxShadow = "0 6px 16px rgba(0,0,0,0.5), 0 2px 6px rgba(16,185,129,0.4)";
-    el.style.transform = "scale(1.1)";
+    el.style.boxShadow = "0 6px 20px rgba(0,0,0,0.6), 0 2px 8px rgba(16,185,129,0.5)";
+    el.style.opacity = "0.9";
   });
 
   el.addEventListener("mouseleave", () => {
     el.style.background = "linear-gradient(135deg, #10b981, #059669)";
     el.style.boxShadow = "0 4px 12px rgba(0,0,0,0.4), 0 2px 4px rgba(16,185,129,0.3)";
-    el.style.transform = "scale(1)";
+    el.style.opacity = "1";
   });
 
   // Click handler
