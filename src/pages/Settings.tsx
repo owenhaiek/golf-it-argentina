@@ -1,18 +1,12 @@
 import { useState, useEffect } from "react";
-import { Settings as SettingsIcon, Moon, Sun, Languages, Shield, FileText, HelpCircle } from "lucide-react";
+import { Settings as SettingsIcon, Moon, Sun, Languages, FileText, HelpCircle } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { 
-  Sheet, 
-  SheetContent, 
-  SheetHeader, 
-  SheetTitle, 
-  SheetTrigger,
-  SheetClose
-} from "@/components/ui/sheet";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 type LanguageType = "en" | "es";
@@ -58,308 +52,244 @@ const Settings = () => {
     
     toast({
       title: checked 
-        ? (language === "en" ? "Dark mode enabled" : "Modo oscuro activado") 
-        : (language === "en" ? "Light mode enabled" : "Modo claro activado"),
+        ? t("settings", "darkMode") + " " + (language === "en" ? "enabled" : "activado")
+        : t("settings", "darkMode") + " " + (language === "en" ? "disabled" : "desactivado"),
       description: checked 
         ? (language === "en" ? "The app will now use a dark theme" : "La aplicación ahora usará un tema oscuro") 
         : (language === "en" ? "The app will now use a light theme" : "La aplicación ahora usará un tema claro"),
     });
   };
 
-  const privacyPolicyContent = language === "en" 
-    ? `# Privacy Policy
-    
-## Information Collection
-We collect minimal information necessary to provide our services.
-
-## Data Usage
-Your data is used only to improve your experience and not shared with third parties.
-
-## Data Protection
-We use industry-standard methods to protect your information.
-
-## Cookies
-We use cookies to enhance your experience and analyze app usage.
-
-## Updates to This Policy
-We may update this policy occasionally, and will notify you of significant changes.`
-    : `# Política de Privacidad
-    
-## Recolección de Información
-Recolectamos la información mínima necesaria para proporcionar nuestros servicios.
-
-## Uso de Datos
-Sus datos se utilizan solo para mejorar su experiencia y no se comparten con terceros.
-
-## Protección de Datos
-Utilizamos métodos estándar de la industria para proteger su información.
-
-## Cookies
-Utilizamos cookies para mejorar su experiencia y analizar el uso de la aplicación.
-
-## Actualizaciones a Esta Política
-Podemos actualizar esta política ocasionalmente y le notificaremos de cambios significativos.`;
-
-  const termsContent = language === "en"
-    ? `# Terms and Conditions
-
-## Acceptance of Terms
-By accessing and using this app, you agree to be bound by these Terms and Conditions.
-
-## User Accounts
-You are responsible for maintaining the confidentiality of your account information.
-
-## Intellectual Property
-All content in this app is the property of the company and protected by copyright laws.
-
-## Limitation of Liability
-We are not liable for any damages arising from the use of our app.
-
-## Governing Law
-These terms shall be governed by and construed in accordance with applicable laws.`
-    : `# Términos y Condiciones
-
-## Aceptación de Términos
-Al acceder y utilizar esta aplicación, acepta estar sujeto a estos Términos y Condiciones.
-
-## Cuentas de Usuario
-Usted es responsable de mantener la confidencialidad de la información de su cuenta.
-
-## Propiedad Intelectual
-Todo el contenido de esta aplicación es propiedad de la empresa y está protegido por leyes de derechos de autor.
-
-## Limitación de Responsabilidad
-No somos responsables por ningún daño que surja del uso de nuestra aplicación.
-
-## Ley Aplicable
-Estos términos se regirán e interpretarán de acuerdo con las leyes aplicables.`;
-
-  const helpContent = language === "en"
-    ? `# Help & Support
-
-## Frequently Asked Questions
-
-### How do I track my golf scores?
-Use the "Add Round" button to record a new round of golf.
-
-### Can I view my past rounds?
-Yes, all your previous rounds are available in your Profile section.
-
-### How do I change my account settings?
-You can modify your account settings in the Profile section.
-
-## Contact Support
-
-If you need further assistance, please contact our support team at:
-- Email: support@golfitargentina.com
-- Hours: Monday-Friday, 9am-5pm EST`
-    : `# Ayuda y Soporte
-
-## Preguntas Frecuentes
-
-### ¿Cómo registro mis puntuaciones de golf?
-Use el botón "Añadir Ronda" para registrar una nueva ronda de golf.
-
-### ¿Puedo ver mis rondas anteriores?
-Sí, todas sus rondas anteriores están disponibles en su sección de Perfil.
-
-### ¿Cómo cambio la configuración de mi cuenta?
-Puede modificar la configuración de su cuenta en la sección Perfil.
-
-## Contactar a Soporte
-
-Si necesita más ayuda, comuníquese con nuestro equipo de soporte en:
-- Correo electrónico: support@golfitargentina.com
-- Horario: Lunes a Viernes, 9am-5pm EST`;
-
   return (
     <div className="max-w-7xl mx-auto animate-fadeIn">
       <div className="flex items-center mb-6 gap-2 px-4">
         <SettingsIcon className="text-primary h-6 w-6" />
         <h1 className="text-2xl font-bold text-primary">
-          {language === "en" ? "Settings" : "Ajustes"}
+          {t("settings", "settings")}
         </h1>
       </div>
       
-      <div className="w-full px-4 space-y-4">
-        {/* Language Settings */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Languages size={18} className="text-primary" />
-              {language === "en" ? "Language" : "Idioma"}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex gap-2">
-            <Button 
-              variant={language === "en" ? "default" : "outline"} 
-              size="sm"
-              onClick={() => handleLanguageChange("en")}
-              className="flex-1"
-            >
-              {language === "en" ? "English" : "Inglés"}
-            </Button>
-            <Button 
-              variant={language === "es" ? "default" : "outline"} 
-              size="sm"
-              onClick={() => handleLanguageChange("es")}
-              className="flex-1"
-            >
-              {language === "en" ? "Spanish" : "Español"}
-            </Button>
-          </CardContent>
-        </Card>
-        
-        {/* Dark Mode Toggle */}
-        <Card>
-          <CardContent className="py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                {darkMode ? (
-                  <Moon size={18} className="text-primary" />
-                ) : (
-                  <Sun size={18} className="text-primary" />
-                )}
-                <span>{language === "en" ? "Dark Mode" : "Modo Oscuro"}</span>
-              </div>
-              <Switch 
-                checked={darkMode} 
-                onCheckedChange={handleDarkModeToggle}
-              />
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Separator className="my-1" />
-        
-        {/* Privacy Policy */}
-        <Card>
-          <CardContent className="py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Shield size={18} className="text-primary" />
-                <span>{language === "en" ? "Privacy Policy" : "Política de Privacidad"}</span>
-              </div>
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    {language === "en" ? "View" : "Ver"}
-                  </Button>
-                </SheetTrigger>
-                <SheetContent className="overflow-auto max-w-full w-full sm:max-w-xl pt-safe">
-                  <SheetHeader className="pt-12 sm:pt-6">
-                    <SheetTitle>
-                      {language === "en" ? "Privacy Policy" : "Política de Privacidad"}
-                    </SheetTitle>
-                  </SheetHeader>
-                  <div className="mt-4 prose prose-sm max-w-none">
-                    <pre className="whitespace-pre-wrap text-sm">{privacyPolicyContent}</pre>
+      <div className="w-full px-4">
+        <Tabs defaultValue="settings" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="settings">{t("settings", "settings")}</TabsTrigger>
+            <TabsTrigger value="legal">{t("settings", "legalNotice")}</TabsTrigger>
+            <TabsTrigger value="faq">{t("settings", "faq")}</TabsTrigger>
+          </TabsList>
+          
+          {/* Settings Tab */}
+          <TabsContent value="settings" className="space-y-4 mt-6">
+            {/* Language Settings */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Languages size={18} className="text-primary" />
+                  {t("settings", "language")}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex gap-2">
+                <Button 
+                  variant={language === "en" ? "default" : "outline"} 
+                  size="sm"
+                  onClick={() => handleLanguageChange("en")}
+                  className="flex-1"
+                >
+                  {language === "en" ? "English" : "Inglés"}
+                </Button>
+                <Button 
+                  variant={language === "es" ? "default" : "outline"} 
+                  size="sm"
+                  onClick={() => handleLanguageChange("es")}
+                  className="flex-1"
+                >
+                  {language === "en" ? "Spanish" : "Español"}
+                </Button>
+              </CardContent>
+            </Card>
+            
+            {/* Dark Mode Toggle */}
+            <Card>
+              <CardContent className="py-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    {darkMode ? (
+                      <Moon size={18} className="text-primary" />
+                    ) : (
+                      <Sun size={18} className="text-primary" />
+                    )}
+                    <span>{t("settings", "darkMode")}</span>
                   </div>
-                  <div className="mt-6 pb-6">
-                    <SheetClose asChild>
-                      <Button 
-                        className="w-full bg-primary hover:bg-primary/90 text-white"
-                      >
-                        {language === "en" ? "Close" : "Cerrar"}
-                      </Button>
-                    </SheetClose>
+                  <Switch 
+                    checked={darkMode} 
+                    onCheckedChange={handleDarkModeToggle}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Legal Notice Tab */}
+          <TabsContent value="legal" className="space-y-4 mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText size={20} className="text-primary" />
+                  {t("legal", "legalNoticeTitle")}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="text-sm text-muted-foreground">
+                  {t("legal", "effectiveDate")}
+                </div>
+                
+                <div className="prose prose-sm max-w-none dark:prose-invert">
+                  <p className="mb-4">{t("legal", "welcomeText")}</p>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <p className="whitespace-pre-line">{t("legal", "appUsage")}</p>
+                    </div>
+                    <div>
+                      <p className="whitespace-pre-line">{t("legal", "userAccounts")}</p>
+                    </div>
+                    <div>
+                      <p className="whitespace-pre-line">{t("legal", "userContent")}</p>
+                    </div>
+                    <div>
+                      <p className="whitespace-pre-line">{t("legal", "courseInfo")}</p>
+                    </div>
+                    <div>
+                      <p className="whitespace-pre-line">{t("legal", "prohibitedConduct")}</p>
+                    </div>
+                    <div>
+                      <p className="whitespace-pre-line">{t("legal", "intellectualProperty")}</p>
+                    </div>
+                    <div>
+                      <p className="whitespace-pre-line">{t("legal", "modifications")}</p>
+                    </div>
+                    <div>
+                      <p className="whitespace-pre-line">{t("legal", "termination")}</p>
+                    </div>
+                    <div>
+                      <p className="whitespace-pre-line">{t("legal", "contact")}</p>
+                    </div>
                   </div>
-                </SheetContent>
-              </Sheet>
-            </div>
-            <p className="text-sm text-muted-foreground mt-2">
-              {language === "en" 
-                ? "Our Privacy Policy explains how we collect, use, and protect your information." 
-                : "Nuestra Política de Privacidad explica cómo recopilamos, usamos y protegemos su información."}
-            </p>
-          </CardContent>
-        </Card>
-        
-        {/* Terms & Conditions */}
-        <Card>
-          <CardContent className="py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <FileText size={18} className="text-primary" />
-                <span>{language === "en" ? "Terms & Conditions" : "Términos y Condiciones"}</span>
-              </div>
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    {language === "en" ? "View" : "Ver"}
-                  </Button>
-                </SheetTrigger>
-                <SheetContent className="overflow-auto max-w-full w-full sm:max-w-xl pt-safe">
-                  <SheetHeader className="pt-12 sm:pt-6">
-                    <SheetTitle>
-                      {language === "en" ? "Terms & Conditions" : "Términos y Condiciones"}
-                    </SheetTitle>
-                  </SheetHeader>
-                  <div className="mt-4 prose prose-sm max-w-none">
-                    <pre className="whitespace-pre-wrap text-sm">{termsContent}</pre>
+
+                  <Separator className="my-6" />
+
+                  <h3 className="text-lg font-semibold mb-4">{t("legal", "privacyTitle")}</h3>
+                  <div className="text-sm text-muted-foreground mb-4">
+                    {t("legal", "privacyEffectiveDate")}
                   </div>
-                  <div className="mt-6 pb-6">
-                    <SheetClose asChild>
-                      <Button 
-                        className="w-full bg-primary hover:bg-primary/90 text-white"
-                      >
-                        {language === "en" ? "Close" : "Cerrar"}
-                      </Button>
-                    </SheetClose>
+                  
+                  <div className="space-y-4">
+                    <p>{t("legal", "privacyIntro")}</p>
+                    <p className="whitespace-pre-line">{t("legal", "infoCollection")}</p>
+                    <p className="whitespace-pre-line">{t("legal", "infoUsage")}</p>
+                    <p className="whitespace-pre-line">{t("legal", "dataSharing")}</p>
+                    <p className="whitespace-pre-line">{t("legal", "security")}</p>
+                    <p className="whitespace-pre-line">{t("legal", "userRights")}</p>
+                    <p className="whitespace-pre-line">{t("legal", "cookies")}</p>
+                    <p className="whitespace-pre-line">{t("legal", "minorPrivacy")}</p>
+                    <p className="whitespace-pre-line">{t("legal", "privacyContact")}</p>
                   </div>
-                </SheetContent>
-              </Sheet>
-            </div>
-            <p className="text-sm text-muted-foreground mt-2">
-              {language === "en" 
-                ? "By using our app, you agree to our Terms and Conditions of use." 
-                : "Al usar nuestra aplicación, acepta nuestros Términos y Condiciones de uso."}
-            </p>
-          </CardContent>
-        </Card>
-        
-        {/* Help & Support */}
-        <Card>
-          <CardContent className="py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <HelpCircle size={18} className="text-primary" />
-                <span>{language === "en" ? "Help & Support" : "Ayuda y Soporte"}</span>
-              </div>
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    {language === "en" ? "View" : "Ver"}
-                  </Button>
-                </SheetTrigger>
-                <SheetContent className="overflow-auto max-w-full w-full sm:max-w-xl pt-safe">
-                  <SheetHeader className="pt-12 sm:pt-6">
-                    <SheetTitle>
-                      {language === "en" ? "Help & Support" : "Ayuda y Soporte"}
-                    </SheetTitle>
-                  </SheetHeader>
-                  <div className="mt-4 prose prose-sm max-w-none">
-                    <pre className="whitespace-pre-wrap text-sm">{helpContent}</pre>
+
+                  <Separator className="my-6" />
+
+                  <div className="space-y-4">
+                    <p className="whitespace-pre-line font-medium">{t("legal", "ownerInfo")}</p>
+                    <p className="whitespace-pre-line">{t("legal", "appPurpose")}</p>
+                    <p className="whitespace-pre-line">{t("legal", "disclaimer")}</p>
+                    <p className="whitespace-pre-line">{t("legal", "intellectualPropertyNotice")}</p>
                   </div>
-                  <div className="mt-6 pb-6">
-                    <SheetClose asChild>
-                      <Button 
-                        className="w-full bg-primary hover:bg-primary/90 text-white"
-                      >
-                        {language === "en" ? "Close" : "Cerrar"}
-                      </Button>
-                    </SheetClose>
-                  </div>
-                </SheetContent>
-              </Sheet>
-            </div>
-            <p className="text-sm text-muted-foreground mt-2">
-              {language === "en" 
-                ? "Need help? Check our FAQ or contact our support team." 
-                : "¿Necesita ayuda? Consulte nuestras preguntas frecuentes o contacte a nuestro equipo de soporte."}
-            </p>
-          </CardContent>
-        </Card>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* FAQ Tab */}
+          <TabsContent value="faq" className="space-y-4 mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <HelpCircle size={20} className="text-primary" />
+                  {t("settings", "faq")}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Accordion type="single" collapsible className="w-full">
+                  <AccordionItem value="account">
+                    <AccordionTrigger className="text-left">
+                      <span className="font-medium">{t("faq", "accountManagement")}</span>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="space-y-4">
+                        <div>
+                          <h4 className="font-medium text-sm mb-2">{t("faq", "q1")}</h4>
+                          <p className="text-sm text-muted-foreground">{t("faq", "a1")}</p>
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-sm mb-2">{t("faq", "q6")}</h4>
+                          <p className="text-sm text-muted-foreground">{t("faq", "a6")}</p>
+                        </div>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+
+                  <AccordionItem value="rounds">
+                    <AccordionTrigger className="text-left">
+                      <span className="font-medium">{t("faq", "golfRounds")}</span>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="space-y-4">
+                        <div>
+                          <h4 className="font-medium text-sm mb-2">{t("faq", "q2")}</h4>
+                          <p className="text-sm text-muted-foreground">{t("faq", "a2")}</p>
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-sm mb-2">{t("faq", "q3")}</h4>
+                          <p className="text-sm text-muted-foreground">{t("faq", "a3")}</p>
+                        </div>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+
+                  <AccordionItem value="courses">
+                    <AccordionTrigger className="text-left">
+                      <span className="font-medium">{t("faq", "courseInfo")}</span>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="space-y-4">
+                        <div>
+                          <h4 className="font-medium text-sm mb-2">{t("faq", "q4")}</h4>
+                          <p className="text-sm text-muted-foreground">{t("faq", "a4")}</p>
+                        </div>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+
+                  <AccordionItem value="technical">
+                    <AccordionTrigger className="text-left">
+                      <span className="font-medium">{t("faq", "technicalSupport")}</span>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="space-y-4">
+                        <div>
+                          <h4 className="font-medium text-sm mb-2">{t("faq", "q5")}</h4>
+                          <p className="text-sm text-muted-foreground">{t("faq", "a5")}</p>
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-sm mb-2">{t("faq", "q7")}</h4>
+                          <p className="text-sm text-muted-foreground">{t("faq", "a7")}</p>
+                        </div>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
 
         <div className="h-20"></div> {/* Space for bottom navigation */}
       </div>
