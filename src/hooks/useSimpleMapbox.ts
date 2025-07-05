@@ -89,8 +89,8 @@ export function useSimpleMapbox({
           zoom,
           attributionControl: false,
           logoPosition: 'bottom-right',
-          minZoom: 2,
-          maxZoom: 18,
+          minZoom: 0.5,
+          maxZoom: 20,
           dragRotate: false,
           pitchWithRotate: false,
           touchZoomRotate: true
