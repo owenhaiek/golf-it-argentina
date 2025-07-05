@@ -53,15 +53,7 @@ export const useMapboxWithMarkers = ({
     accessToken,
     mapStyle,
     onMapReady: (mapInstance) => {
-      console.log("[MapboxWithMarkers] Map ready, setting Argentina bounds");
-      
-      // Set Argentina bounds
-      const argentinaBounds = [
-        [-68.5605, -45.0610], // Southwest coordinates
-        [-55.6374, -25.7810]  // Northeast coordinates
-      ];
-      
-      mapInstance.setMaxBounds(argentinaBounds);
+      console.log("[MapboxWithMarkers] Map ready");
       
       // Mark as initialized after a short delay to ensure map is fully ready
       if (initTimeoutRef.current) {
