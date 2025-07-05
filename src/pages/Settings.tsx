@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
-import { Settings as SettingsIcon, Moon, Sun, Languages, Shield, FileText, HelpCircle } from "lucide-react";
+import { Settings as SettingsIcon, Languages, Shield, FileText, HelpCircle } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { 
   Sheet, 
@@ -14,6 +13,7 @@ import {
   SheetClose
 } from "@/components/ui/sheet";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { DarkModeToggle } from "@/components/ui/DarkModeToggle";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 type LanguageType = "en" | "es";
@@ -21,22 +21,6 @@ type LanguageType = "en" | "es";
 const Settings = () => {
   const { toast } = useToast();
   const { language, setLanguage, t } = useLanguage();
-  const [darkMode, setDarkMode] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem("darkMode") === "true" || 
-             document.documentElement.classList.contains("dark");
-    }
-    return false;
-  });
-
-  useEffect(() => {
-    // Apply dark mode class immediately when component mounts
-    if (darkMode) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, []);
 
   const handleLanguageChange = (lang: string) => {
     setLanguage(lang as LanguageType);
@@ -44,26 +28,6 @@ const Settings = () => {
     toast({
       title: lang === "en" ? "Language changed to English" : "Idioma cambiado a Español",
       description: lang === "en" ? "All app content will display in English" : "Todo el contenido se mostrará en Español",
-    });
-  };
-
-  const handleDarkModeToggle = (checked: boolean) => {
-    setDarkMode(checked);
-    localStorage.setItem("darkMode", checked.toString());
-    
-    if (checked) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-    
-    toast({
-      title: checked 
-        ? t("settings", "darkMode") + " " + (language === "en" ? "enabled" : "activado")
-        : t("settings", "darkMode") + " " + (language === "en" ? "disabled" : "desactivado"),
-      description: checked 
-        ? (language === "en" ? "The app will now use a dark theme" : "La aplicación ahora usará un tema oscuro") 
-        : (language === "en" ? "The app will now use a light theme" : "La aplicación ahora usará un tema claro"),
     });
   };
 
@@ -79,15 +43,7 @@ const Settings = () => {
         </div>
         
         {/* Enhanced Dark Mode Toggle */}
-        <div className="flex items-center gap-3 bg-muted/50 rounded-full p-2 hover-scale">
-          <Sun size={16} className={`transition-colors ${!darkMode ? 'text-primary' : 'text-muted-foreground'}`} />
-          <Switch 
-            checked={darkMode} 
-            onCheckedChange={handleDarkModeToggle}
-            className="data-[state=checked]:bg-primary"
-          />
-          <Moon size={16} className={`transition-colors ${darkMode ? 'text-primary' : 'text-muted-foreground'}`} />
-        </div>
+        <DarkModeToggle />
       </div>
       
       <div className="w-full px-4 space-y-4">

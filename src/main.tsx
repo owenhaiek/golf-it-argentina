@@ -5,6 +5,14 @@ import App from './App.tsx'
 import './index.css'
 import AppLoadingScreen from './components/ui/AppLoadingScreen.tsx'
 
+// Initialize dark mode immediately before React renders
+if (typeof window !== 'undefined') {
+  const isDarkMode = localStorage.getItem("darkMode") === "true";
+  if (isDarkMode) {
+    document.documentElement.classList.add("dark");
+  }
+}
+
 // Root component with immediate green background
 const Root = () => {
   const [isLoading, setIsLoading] = useState(true);

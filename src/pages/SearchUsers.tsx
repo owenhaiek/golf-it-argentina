@@ -10,6 +10,7 @@ import { UserSearch, Clock, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
+import { DarkModeToggle } from "@/components/ui/DarkModeToggle";
 
 // Define the profile type
 interface Profile {
@@ -99,7 +100,10 @@ const SearchUsers = () => {
     <div className="h-screen flex flex-col">
       {/* Header */}
       <div className="flex-shrink-0 p-4 bg-background border-b border-border">
-        <h1 className="text-2xl font-bold">{t("searchUsers", "findPlayers")}</h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold">{t("searchUsers", "findPlayers")}</h1>
+          <DarkModeToggle />
+        </div>
       </div>
 
       <div className="flex-1 overflow-auto">

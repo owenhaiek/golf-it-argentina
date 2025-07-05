@@ -4,6 +4,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useProfileData } from "@/hooks/useProfileData";
 import ProfileCard from "@/components/profile/ProfileCard";
 import RecentRounds from "@/components/profile/RecentRounds";
+import { DarkModeToggle } from "@/components/ui/DarkModeToggle";
 
 const Profile = () => {
   const { user, loading } = useAuth();
@@ -30,7 +31,10 @@ const Profile = () => {
   return (
     <div className="h-screen flex flex-col">
       <div className="flex-shrink-0 p-4 bg-background border-b border-border">
-        <h1 className="text-2xl font-bold text-foreground">Profile</h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-foreground">Profile</h1>
+          <DarkModeToggle />
+        </div>
       </div>
       
       <ScrollArea className="flex-1">

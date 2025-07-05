@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { LanguageProvider } from "./contexts/LanguageContext";
+import { DarkModeProvider } from "./contexts/DarkModeContext";
 import { AuthGuard } from "./components/AuthGuard";
 import { AdminGuard } from "./components/security/AdminGuard";
 import { Layout } from "./components/Layout";
@@ -33,9 +34,10 @@ const queryClient = new QueryClient();
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <LanguageProvider>
-          <TooltipProvider>
+      <DarkModeProvider>
+        <AuthProvider>
+          <LanguageProvider>
+            <TooltipProvider>
             <Toaster />
             <Sonner />
             <BrowserRouter>
@@ -83,6 +85,7 @@ function App() {
           </TooltipProvider>
         </LanguageProvider>
       </AuthProvider>
+    </DarkModeProvider>
     </QueryClientProvider>
   );
 }
