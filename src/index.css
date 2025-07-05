@@ -303,16 +303,3 @@ html, body {
 .dark .text-muted-foreground {
   color: hsl(215 20.2% 65.1%) !important;
 }
-
-/* Fix course slide-down tab in dark mode */
-.dark .course-info-tab {
-  @apply bg-background text-foreground border-border;
-}
-
-.dark .course-info-tab h2 {
-  @apply text-foreground;
-}
-
-.dark .course-info-tab .badge {
-  @apply bg-background/90 text-foreground border-border;
-}
