@@ -55,7 +55,7 @@ export const CourseInfoTab = ({ course, isOpen, onClose }: CourseInfoTabProps) =
           
           {/* Slide-down tab */}
           <motion.div
-            className="fixed top-0 left-0 right-0 z-[250] bg-white border-b shadow-lg max-w-md mx-auto"
+            className="fixed top-0 left-0 right-0 z-[250] bg-background border-b border-border shadow-lg max-w-md mx-auto"
             initial={{ y: "-100%" }}
             animate={{ y: 0 }}
             exit={{ y: "-100%" }}
@@ -76,7 +76,7 @@ export const CourseInfoTab = ({ course, isOpen, onClose }: CourseInfoTabProps) =
                 variant="ghost"
                 size="sm"
                 onClick={onClose}
-                className="rounded-full h-8 w-8 p-0 hover:bg-gray-100"
+                className="rounded-full h-8 w-8 p-0 hover:bg-muted"
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -93,7 +93,7 @@ export const CourseInfoTab = ({ course, isOpen, onClose }: CourseInfoTabProps) =
                 }}
               />
               <div className="absolute top-3 right-3">
-                <Badge variant="secondary" className="text-xs bg-white/90">
+                <Badge variant="secondary" className="text-xs bg-background/90 border border-border">
                   <Flag className="w-3 h-3 mr-1" />
                   {course.holes} holes
                   {course.par && ` • Par ${course.par}`}

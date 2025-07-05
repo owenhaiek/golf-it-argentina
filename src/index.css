@@ -33,11 +33,11 @@
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
+    --background: 210 18% 7%;
     --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
+    --card: 210 18% 7%;
     --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
+    --popover: 210 18% 7%;
     --popover-foreground: 210 40% 98%;
     --primary: 120 64% 21%;
     --primary-foreground: 355.7 100% 97.3%;
@@ -302,4 +302,17 @@ html, body {
 
 .dark .text-muted-foreground {
   color: hsl(215 20.2% 65.1%) !important;
+}
+
+/* Fix course slide-down tab in dark mode */
+.dark .course-info-tab {
+  @apply bg-background text-foreground border-border;
+}
+
+.dark .course-info-tab h2 {
+  @apply text-foreground;
+}
+
+.dark .course-info-tab .badge {
+  @apply bg-background/90 text-foreground border-border;
 }
