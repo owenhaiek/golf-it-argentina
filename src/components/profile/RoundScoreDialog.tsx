@@ -87,9 +87,8 @@ const RoundScoreDialog = ({ round, isOpen, onClose }: RoundScoreDialogProps) => 
     
     return holePars.map((par, index) => {
       const baseScore = par + Math.round(averageOverUnder);
-      // Add some variation to make it more realistic
-      const variation = Math.floor(Math.random() * 3) - 1; // -1, 0, or 1
-      return Math.max(1, baseScore + variation);
+      // Consistent scores based on par and average performance
+      return Math.max(1, baseScore);
     });
   };
 

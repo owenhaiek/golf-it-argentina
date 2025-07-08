@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
-import { Plus, Calendar, Flag } from "lucide-react";
+import { Plus, Flag } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export const AddMenu = () => {
@@ -16,10 +16,6 @@ export const AddMenu = () => {
     navigate('/add-round');
   };
 
-  const handleAddReservation = () => {
-    setOpen(false);
-    navigate('/add-reservation');
-  };
 
   return (
     <Drawer open={open} onOpenChange={setOpen}>
@@ -47,22 +43,6 @@ export const AddMenu = () => {
               <div className="font-semibold">{t("addRound", "title")}</div>
               <div className="text-sm opacity-90">
                 {language === "en" ? "Record your golf round" : "Registra tu ronda de golf"}
-              </div>
-            </div>
-          </Button>
-          
-          <Button 
-            onClick={handleAddReservation}
-            variant="outline"
-            className="w-full h-16 border-primary text-primary hover:bg-primary/5 flex items-center justify-start gap-4 text-lg"
-          >
-            <Calendar size={24} />
-            <div className="text-left">
-              <div className="font-semibold">
-                {language === "en" ? "Book Tee Time" : "Reservar Horario"}
-              </div>
-              <div className="text-sm opacity-90">
-                {language === "en" ? "Make a course reservation" : "Hacer una reserva en el campo"}
               </div>
             </div>
           </Button>

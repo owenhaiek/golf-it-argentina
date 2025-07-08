@@ -13,6 +13,7 @@ import { AppLogo } from "@/components/ui/AppLogo";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -80,11 +81,40 @@ const Auth = () => {
     }
   };
 
-  // Check for auth confirmation or OAuth callback
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth?reset=true`,
+      });
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Password Reset Email Sent",
+        description: "Check your email for password reset instructions.",
+      });
+      
+      setShowForgotPassword(false);
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: t("common", "error"),
+        description: error.message,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Check for auth confirmation, OAuth callback, or password reset
   React.useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const confirmed = urlParams.get('confirmed');
     const provider = urlParams.get('provider');
+    const reset = urlParams.get('reset');
     
     if (confirmed === 'true') {
       toast({
@@ -102,6 +132,16 @@ const Auth = () => {
           navigate("/");
         }
       });
+      // Clear the URL parameter
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+    
+    if (reset === 'true') {
+      toast({
+        title: "Password Reset",
+        description: "You can now enter a new password.",
+      });
+      setIsLogin(true);
       // Clear the URL parameter
       window.history.replaceState({}, document.title, window.location.pathname);
     }
@@ -124,16 +164,20 @@ const Auth = () => {
         <Card className="animate-in border-0 shadow-xl bg-primary">
           <CardHeader className="space-y-1 text-center pb-6">
             <CardTitle className="text-2xl font-bold text-white">
-              {isLogin ? "Bienvenido a GOLFIT" : t("auth", "createAccount")}
+              {showForgotPassword 
+                ? "Recuperar Contraseña" 
+                : (isLogin ? "Bienvenido a GOLFIT" : t("auth", "createAccount"))}
             </CardTitle>
             <CardDescription className="text-white/90">
-              {isLogin
-                ? "Ingresa tu correo electrónico y contraseña para iniciar sesión"
-                : t("auth", "emailSignUpDescription")}
+              {showForgotPassword
+                ? "Ingresa tu correo electrónico para recuperar tu contraseña"
+                : (isLogin
+                  ? "Ingresa tu correo electrónico y contraseña para iniciar sesión"
+                  : t("auth", "emailSignUpDescription"))}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={showForgotPassword ? handleForgotPassword : handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Input
                   type="email"
@@ -143,14 +187,16 @@ const Auth = () => {
                   required
                   className="bg-white/10 border-white/20 text-white placeholder:text-white/70 focus:border-white/40 focus:ring-white/20"
                 />
-                <Input
-                  type="password"
-                  placeholder={t("auth", "password")}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="bg-white/10 border-white/20 text-white placeholder:text-white/70 focus:border-white/40 focus:ring-white/20"
-                />
+                {!showForgotPassword && (
+                  <Input
+                    type="password"
+                    placeholder={t("auth", "password")}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="bg-white/10 border-white/20 text-white placeholder:text-white/70 focus:border-white/40 focus:ring-white/20"
+                  />
+                )}
               </div>
               <Button 
                 type="submit" 
@@ -159,44 +205,70 @@ const Auth = () => {
               >
                 {isLoading 
                   ? t("common", "loading") 
-                  : isLogin 
-                    ? t("auth", "signIn") 
-                    : t("auth", "signUp")}
+                  : showForgotPassword
+                    ? "Enviar Email de Recuperación"
+                    : (isLogin 
+                      ? t("auth", "signIn") 
+                      : t("auth", "signUp"))}
               </Button>
             </form>
             
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <Separator className="w-full bg-white/20" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-primary px-2 text-white/70">
-                  {t("auth", "orContinueWith")}
-                </span>
-              </div>
-            </div>
+            {!showForgotPassword && (
+              <>
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <Separator className="w-full bg-white/20" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-primary px-2 text-white/70">
+                      {t("auth", "orContinueWith")}
+                    </span>
+                  </div>
+                </div>
+                
+                <Button 
+                  variant="outline" 
+                  type="button" 
+                  className="w-full border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white" 
+                  onClick={handleGoogleSignIn}
+                  disabled={isLoading}
+                >
+                  <FcGoogle className="mr-2 h-5 w-5" />
+                  Google
+                </Button>
+              </>
+            )}
             
-            <Button 
-              variant="outline" 
-              type="button" 
-              className="w-full border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white" 
-              onClick={handleGoogleSignIn}
-              disabled={isLoading}
-            >
-              <FcGoogle className="mr-2 h-5 w-5" />
-              Google
-            </Button>
+            {isLogin && !showForgotPassword && (
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={() => setShowForgotPassword(true)}
+                  className="text-white/70 hover:text-white underline text-sm"
+                >
+                  ¿Olvidaste tu contraseña?
+                </button>
+              </div>
+            )}
             
             <div className="text-center pt-4">
               <Button
                 variant="default"
                 type="button"
-                onClick={() => setIsLogin(!isLogin)}
+                onClick={() => {
+                  if (showForgotPassword) {
+                    setShowForgotPassword(false);
+                  } else {
+                    setIsLogin(!isLogin);
+                  }
+                }}
                 className="w-full bg-white/10 hover:bg-white/20 text-white border border-white/20"
               >
-                {isLogin 
-                  ? t("auth", "createAccount")
-                  : t("auth", "haveAccount")}
+                {showForgotPassword
+                  ? "Volver al inicio de sesión"
+                  : (isLogin 
+                    ? t("auth", "createAccount")
+                    : t("auth", "haveAccount"))}
               </Button>
             </div>
           </CardContent>

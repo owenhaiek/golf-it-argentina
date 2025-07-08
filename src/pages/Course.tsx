@@ -106,11 +106,6 @@ const Course = () => {
             />
             <OpeningHoursDisplay openingHours={openingHoursData} />
             <div className="flex flex-col sm:flex-row gap-3">
-              <ReservationForm
-                courseId={course.id}
-                courseName={course.name}
-                courseLocation={`${course.city}, ${course.state}`}
-              />
               <Button asChild variant="outline" className="w-full flex gap-2 items-center">
                 <a href="/add-round">
                   <span className="material-icons"><Flag size={16} /></span>
