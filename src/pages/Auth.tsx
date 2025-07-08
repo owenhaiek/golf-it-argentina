@@ -178,17 +178,14 @@ const Auth = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <form onSubmit={showForgotPassword ? handleForgotPassword : handleSubmit} className="space-y-4">
-              <div className="space-y-3">
+              <div className="space-y-2">
                 <Input
                   type="email"
                   placeholder={t("auth", "email")}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  autoComplete="email"
-                  inputMode="email"
-                  className="bg-white/10 border-white/20 text-white placeholder:text-white/70 focus:border-white/40 focus:ring-white/20 h-12 text-base touch-manipulation"
-                  style={{ fontSize: '16px' }}
+                  className="bg-white/10 border-white/20 text-white placeholder:text-white/70 focus:border-white/40 focus:ring-white/20"
                 />
                 {!showForgotPassword && (
                   <Input
@@ -197,9 +194,7 @@ const Auth = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    autoComplete={isLogin ? "current-password" : "new-password"}
-                    className="bg-white/10 border-white/20 text-white placeholder:text-white/70 focus:border-white/40 focus:ring-white/20 h-12 text-base touch-manipulation"
-                    style={{ fontSize: '16px' }}
+                    className="bg-white/10 border-white/20 text-white placeholder:text-white/70 focus:border-white/40 focus:ring-white/20"
                   />
                 )}
               </div>
