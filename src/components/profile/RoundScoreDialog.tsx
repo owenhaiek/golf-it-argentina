@@ -83,8 +83,11 @@ const RoundScoreDialog = ({ round, isOpen, onClose }: RoundScoreDialogProps) => 
   const getHoleScores = () => {
     // If we have stored hole scores, use them
     if (round.hole_scores && round.hole_scores.length > 0) {
-      return round.hole_scores;
+      console.log('Using actual hole scores:', round.hole_scores);
+      return round.hole_scores.slice(0, numberOfHoles);
     }
+    
+    console.log('No hole scores found, simulating scores for round:', round.id);
     
     // Fallback to simulation for older rounds without hole scores
     const totalScore = round.score;

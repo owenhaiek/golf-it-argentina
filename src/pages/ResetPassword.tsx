@@ -11,7 +11,7 @@ const ResetPassword = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [searchParams] = useSearchParams();
+  const [isValidToken, setIsValidToken] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -22,16 +22,31 @@ const ResetPassword = () => {
     const refreshToken = hashParams.get('refresh_token');
     const type = hashParams.get('type');
     
-    if (type === 'recovery' && accessToken) {
+    console.log('Reset password tokens:', { type, hasAccessToken: !!accessToken, hasRefreshToken: !!refreshToken });
+    
+    if (type === 'recovery' && accessToken && refreshToken) {
       // Set the session with the tokens from the URL
       supabase.auth.setSession({
         access_token: accessToken,
-        refresh_token: refreshToken || '',
+        refresh_token: refreshToken,
+      }).then(({ data, error }) => {
+        if (error) {
+          console.error('Error setting session:', error);
+          toast({
+            variant: "destructive",
+            title: "Invalid Reset Link",
+            description: "This password reset link is invalid or has expired. Please request a new one.",
+          });
+          navigate('/auth');
+        } else {
+          console.log('Session set successfully for password reset');
+          setIsValidToken(true);
+        }
       });
     } else {
       toast({
         variant: "destructive",
-        title: "Invalid Reset Link",
+        title: "Invalid Reset Link", 
         description: "This password reset link is invalid or has expired. Please request a new one.",
       });
       navigate('/auth');
@@ -75,9 +90,11 @@ const ResetPassword = () => {
         description: "Your password has been successfully updated. You can now sign in with your new password.",
       });
       
-      // Redirect to auth page
+      // Sign out and redirect to auth page
+      await supabase.auth.signOut();
       navigate('/auth');
     } catch (error: any) {
+      console.error('Password update error:', error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -87,6 +104,20 @@ const ResetPassword = () => {
       setIsLoading(false);
     }
   };
+
+  if (!isValidToken) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4 bg-primary">
+        <div className="w-full max-w-md">
+          <Card className="animate-in border-0 shadow-xl bg-primary">
+            <CardContent className="p-6 text-center">
+              <p className="text-white">Validating reset link...</p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-primary">
