@@ -16,13 +16,23 @@ const ResetPassword = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Supabase password reset tokens come as URL fragments, not search params
+    // Try both URL fragments and search params for compatibility
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    const accessToken = hashParams.get('access_token');
-    const refreshToken = hashParams.get('refresh_token');
-    const type = hashParams.get('type');
+    const searchParams = new URLSearchParams(window.location.search);
     
-    console.log('Reset password tokens:', { type, hasAccessToken: !!accessToken, hasRefreshToken: !!refreshToken });
+    // Try hash params first (new format), then search params (legacy format)
+    let accessToken = hashParams.get('access_token') || searchParams.get('access_token');
+    let refreshToken = hashParams.get('refresh_token') || searchParams.get('refresh_token');
+    let type = hashParams.get('type') || searchParams.get('type');
+    
+    console.log('Reset password URL:', window.location.href);
+    console.log('Reset password tokens:', { 
+      type, 
+      hasAccessToken: !!accessToken, 
+      hasRefreshToken: !!refreshToken,
+      hash: window.location.hash,
+      search: window.location.search
+    });
     
     if (type === 'recovery' && accessToken && refreshToken) {
       // Set the session with the tokens from the URL
@@ -44,12 +54,15 @@ const ResetPassword = () => {
         }
       });
     } else {
-      toast({
-        variant: "destructive",
-        title: "Invalid Reset Link", 
-        description: "This password reset link is invalid or has expired. Please request a new one.",
-      });
-      navigate('/auth');
+      // If no tokens found, wait a moment for potential URL changes
+      setTimeout(() => {
+        toast({
+          variant: "destructive",
+          title: "Invalid Reset Link", 
+          description: "This password reset link is invalid or has expired. Please request a new one.",
+        });
+        navigate('/auth');
+      }, 1000);
     }
   }, [navigate, toast]);
 
