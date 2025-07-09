@@ -16,52 +16,69 @@ const ResetPassword = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Listen for auth state changes to detect password reset sessions
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Auth state change:', event, session?.user?.id);
-      
-      if (event === 'PASSWORD_RECOVERY') {
-        console.log('Password recovery detected');
-        setIsValidToken(true);
-      } else if (event === 'SIGNED_IN' && session) {
-        // Check if this is a password recovery session
-        const urlParams = new URLSearchParams(window.location.hash.substring(1));
-        const type = urlParams.get('type');
+    let timeoutId: NodeJS.Timeout;
+    
+    const validateResetLink = async () => {
+      try {
+        // Check URL for recovery tokens
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const queryParams = new URLSearchParams(window.location.search);
         
-        if (type === 'recovery') {
-          console.log('Recovery session established');
-          setIsValidToken(true);
+        const accessToken = hashParams.get('access_token') || queryParams.get('access_token');
+        const refreshToken = hashParams.get('refresh_token') || queryParams.get('refresh_token');
+        const type = hashParams.get('type') || queryParams.get('type');
+        
+        console.log('Reset link validation:', { type, hasTokens: !!(accessToken && refreshToken) });
+        
+        // If we have recovery tokens, set the session
+        if (type === 'recovery' && accessToken && refreshToken) {
+          const { data, error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+          
+          if (error) {
+            console.error('Session error:', error);
+            throw error;
+          }
+          
+          if (data.session) {
+            console.log('Recovery session established');
+            setIsValidToken(true);
+            return;
+          }
         }
-      }
-    });
-
-    // Also check current session and URL params immediately
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      const urlParams = new URLSearchParams(window.location.hash.substring(1));
-      const type = urlParams.get('type');
-      
-      console.log('Current session:', session?.user?.id, 'URL type:', type);
-      
-      if (session && type === 'recovery') {
-        setIsValidToken(true);
-      } else if (!session && !type) {
-        // No valid session or recovery type found
-        setTimeout(() => {
+        
+        // Check if user already has a valid session (fallback)
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          console.log('Existing session found');
+          setIsValidToken(true);
+          return;
+        }
+        
+        // If no valid session or tokens, show error
+        throw new Error('No valid reset session found');
+        
+      } catch (error) {
+        console.error('Reset link validation failed:', error);
+        timeoutId = setTimeout(() => {
           toast({
             variant: "destructive",
             title: "Invalid Reset Link",
             description: "This password reset link is invalid or has expired. Please request a new one.",
           });
           navigate('/auth');
-        }, 2000);
+        }, 1000);
       }
     };
 
-    checkSession();
+    validateResetLink();
 
     return () => {
-      subscription.unsubscribe();
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
     };
   }, [navigate, toast]);
 
