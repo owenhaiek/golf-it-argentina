@@ -92,8 +92,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(session?.user ?? null);
       setLoading(false);
       
-      // Check profile setup for new users
-      if (event === 'SIGNED_IN' && session?.user) {
+      // Check if user is on password reset page - if so, don't redirect
+      const isPasswordReset = window.location.pathname === '/reset-password' || 
+                              window.location.hash.includes('access_token') ||
+                              window.location.hash.includes('type=recovery');
+      
+      // Check profile setup for new users - but NOT if they're doing password reset
+      if (event === 'SIGNED_IN' && session?.user && !isPasswordReset) {
         setTimeout(() => {
           checkProfileSetup(session.user.id);
         }, 0);
