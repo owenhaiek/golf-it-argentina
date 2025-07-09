@@ -153,8 +153,21 @@ const AddRoundDialog = ({ open, onOpenChange }: AddRoundDialogProps) => {
 
     const totalScore = scores.slice(0, holesCount).reduce((a, b) => a + b, 0);
     
-    // Get the actual scores that were entered (non-zero values)
-    const actualHoleScores = scores.slice(0, holesCount);
+    // For 9-hole rounds, we need to map scores to the correct holes (front 9 or back 9)
+    let actualHoleScores: number[];
+    
+    if (holesCount === 9 && selectedCourseData && selectedCourseData.holes >= 18) {
+      if (selectedSide === "back") {
+        // Create array with 18 holes, fill first 9 with 0s and last 9 with actual scores
+        actualHoleScores = Array(9).fill(0).concat(scores.slice(0, 9));
+      } else {
+        // Front 9: just use the scores as they are for holes 1-9
+        actualHoleScores = scores.slice(0, 9);
+      }
+    } else {
+      // For 18-hole rounds or other configurations, use scores as entered
+      actualHoleScores = scores.slice(0, holesCount);
+    }
     
     let roundNotes = `${holesCount} holes played`;
     if (holesCount === 9 && selectedCourseData && selectedCourseData.holes >= 18) {
@@ -165,6 +178,7 @@ const AddRoundDialog = ({ open, onOpenChange }: AddRoundDialogProps) => {
     }
     
     console.log('Saving round with hole scores:', actualHoleScores);
+    console.log('Round configuration:', { holesCount, selectedSide, totalScore });
     
     addRoundMutation.mutate({
       user_id: user.id,

@@ -79,50 +79,31 @@ const RoundScoreDialog = ({ round, isOpen, onClose }: RoundScoreDialogProps) => 
   const holePars = getHoleData();
   const numberOfHoles = holePars.length;
   
-  // Use actual hole scores if available, otherwise simulate for legacy rounds
+  // Use actual hole scores if available, otherwise show message for legacy rounds
   const getHoleScores = () => {
     // If we have stored hole scores, use them
     if (round.hole_scores && round.hole_scores.length > 0) {
       console.log('Using actual hole scores:', round.hole_scores);
+      
+      // For 9-hole rounds, extract the correct 9 holes
+      if (round.notes && round.notes.includes('9 holes played')) {
+        if (round.notes.includes('(back 9)') && round.hole_scores.length >= 18) {
+          // Return holes 10-18 (indexes 9-17)
+          return round.hole_scores.slice(9, 18);
+        } else {
+          // Return front 9 holes (indexes 0-8)
+          return round.hole_scores.slice(0, 9);
+        }
+      }
+      
+      // For full rounds, return all hole scores up to the number of holes played
       return round.hole_scores.slice(0, numberOfHoles);
     }
     
-    console.log('No hole scores found, simulating scores for round:', round.id);
+    console.log('No hole scores found for round:', round.id);
     
-    // Fallback to simulation for older rounds without hole scores
-    const totalScore = round.score;
-    const totalPar = holePars.reduce((a, b) => a + b, 0);
-    const totalStrokesOverPar = totalScore - totalPar;
-    
-    // Create a more realistic distribution of scores
-    const scores = [...holePars]; // Start with all pars
-    let remainingStrokes = totalStrokesOverPar;
-    
-    // Use round ID as seed for consistent results across renders
-    const seed = parseInt(round.id.slice(-8), 16) % 1000;
-    const random = (min: number, max: number, index: number) => {
-      const x = Math.sin((seed + index) * 12.9898) * 43758.5453;
-      return min + Math.floor((x - Math.floor(x)) * (max - min + 1));
-    };
-    
-    // Distribute extra strokes more realistically
-    const holeOrder = [...Array(numberOfHoles)].map((_, i) => i).sort(() => random(0, 1, seed) - 0.5);
-    
-    for (let i = 0; i < Math.abs(remainingStrokes) && i < numberOfHoles; i++) {
-      const holeIndex = holeOrder[i];
-      if (remainingStrokes > 0) {
-        // Add bogeys and doubles more realistically
-        const strokesToAdd = random(1, Math.min(2, remainingStrokes), holeIndex);
-        scores[holeIndex] += strokesToAdd;
-        remainingStrokes -= strokesToAdd;
-      } else {
-        // Add birdies for under par rounds
-        scores[holeIndex] = Math.max(1, scores[holeIndex] - 1);
-        remainingStrokes++;
-      }
-    }
-    
-    return scores;
+    // Return null for legacy rounds without hole scores
+    return null;
   };
 
   const holeScores = getHoleScores();
@@ -204,90 +185,106 @@ const RoundScoreDialog = ({ round, isOpen, onClose }: RoundScoreDialogProps) => 
                 Hole-by-Hole Scores
               </h4>
               
-              {/* Desktop View - Table */}
-              <div className="hidden md:block">
-                <div className="grid grid-cols-10 gap-2 text-sm">
-                  <div className="font-medium text-muted-foreground">Hole</div>
-                  {Array.from({ length: Math.min(9, numberOfHoles) }, (_, i) => (
-                    <div key={i} className="text-center font-medium">
-                      {i + 1}
+              {holeScores ? (
+                <>
+                  {/* Desktop View - Table */}
+                  <div className="hidden md:block">
+                    <div className="grid grid-cols-10 gap-2 text-sm">
+                      <div className="font-medium text-muted-foreground">Hole</div>
+                      {Array.from({ length: Math.min(9, numberOfHoles) }, (_, i) => (
+                        <div key={i} className="text-center font-medium">
+                          {i + 1}
+                        </div>
+                      ))}
+                      
+                      <div className="font-medium text-muted-foreground">Par</div>
+                      {holePars.slice(0, 9).map((par, i) => (
+                        <div key={i} className="text-center text-muted-foreground">
+                          {par}
+                        </div>
+                      ))}
+                      
+                      <div className="font-medium text-muted-foreground">Score</div>
+                      {holeScores.slice(0, 9).map((score, i) => {
+                        const par = holePars[i];
+                        const status = getScoreStatus(score, par);
+                        return (
+                          <div key={i} className={`text-center font-bold ${status.color}`}>
+                            {score}
+                          </div>
+                        );
+                      })}
                     </div>
-                  ))}
-                  
-                  <div className="font-medium text-muted-foreground">Par</div>
-                  {holePars.slice(0, 9).map((par, i) => (
-                    <div key={i} className="text-center text-muted-foreground">
-                      {par}
-                    </div>
-                  ))}
-                  
-                  <div className="font-medium text-muted-foreground">Score</div>
-                  {holeScores.slice(0, 9).map((score, i) => {
-                    const par = holePars[i];
-                    const status = getScoreStatus(score, par);
-                    return (
-                      <div key={i} className={`text-center font-bold ${status.color}`}>
-                        {score}
-                      </div>
-                    );
-                  })}
-                </div>
 
-                {numberOfHoles > 9 && (
-                  <div className="grid grid-cols-10 gap-2 text-sm mt-4 pt-4 border-t">
-                    <div className="font-medium text-muted-foreground">Hole</div>
-                    {Array.from({ length: numberOfHoles - 9 }, (_, i) => (
-                      <div key={i} className="text-center font-medium">
-                        {i + 10}
+                    {numberOfHoles > 9 && (
+                      <div className="grid grid-cols-10 gap-2 text-sm mt-4 pt-4 border-t">
+                        <div className="font-medium text-muted-foreground">Hole</div>
+                        {Array.from({ length: numberOfHoles - 9 }, (_, i) => (
+                          <div key={i} className="text-center font-medium">
+                            {i + 10}
+                          </div>
+                        ))}
+                        
+                        <div className="font-medium text-muted-foreground">Par</div>
+                        {holePars.slice(9).map((par, i) => (
+                          <div key={i} className="text-center text-muted-foreground">
+                            {par}
+                          </div>
+                        ))}
+                        
+                        <div className="font-medium text-muted-foreground">Score</div>
+                        {holeScores.slice(9).map((score, i) => {
+                          const par = holePars[i + 9];
+                          const status = getScoreStatus(score, par);
+                          return (
+                            <div key={i} className={`text-center font-bold ${status.color}`}>
+                              {score}
+                            </div>
+                          );
+                        })}
                       </div>
-                    ))}
-                    
-                    <div className="font-medium text-muted-foreground">Par</div>
-                    {holePars.slice(9).map((par, i) => (
-                      <div key={i} className="text-center text-muted-foreground">
-                        {par}
-                      </div>
-                    ))}
-                    
-                    <div className="font-medium text-muted-foreground">Score</div>
-                    {holeScores.slice(9).map((score, i) => {
-                      const par = holePars[i + 9];
+                    )}
+                  </div>
+
+                  {/* Mobile View - Cards */}
+                  <div className="md:hidden space-y-3">
+                    {holeScores.map((score, index) => {
+                      const par = holePars[index];
                       const status = getScoreStatus(score, par);
                       return (
-                        <div key={i} className={`text-center font-bold ${status.color}`}>
-                          {score}
+                        <div key={index} className="flex items-center justify-between p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                          <div className="flex items-center gap-3">
+                            <Flag className="h-4 w-4 text-primary" />
+                            <span className="font-medium">Hole {index + 1}</span>
+                            <span className="text-sm text-muted-foreground">Par {par}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className={`${status.color} border-current`}>
+                              {score}
+                            </Badge>
+                            <div className={`flex items-center gap-1 ${status.color}`}>
+                              <status.icon className="h-3 w-3" />
+                              <span className="text-xs font-medium">{status.term}</span>
+                            </div>
+                          </div>
                         </div>
                       );
                     })}
                   </div>
-                )}
-              </div>
-
-              {/* Mobile View - Cards */}
-              <div className="md:hidden space-y-3">
-                {holeScores.map((score, index) => {
-                  const par = holePars[index];
-                  const status = getScoreStatus(score, par);
-                  return (
-                    <div key={index} className="flex items-center justify-between p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <Flag className="h-4 w-4 text-primary" />
-                        <span className="font-medium">Hole {index + 1}</span>
-                        <span className="text-sm text-muted-foreground">Par {par}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className={`${status.color} border-current`}>
-                          {score}
-                        </Badge>
-                        <div className={`flex items-center gap-1 ${status.color}`}>
-                          <status.icon className="h-3 w-3" />
-                          <span className="text-xs font-medium">{status.term}</span>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                </>
+              ) : (
+                <div className="text-center py-8">
+                  <div className="text-muted-foreground">
+                    <Flag className="h-8 w-8 mx-auto mb-3 opacity-50" />
+                    <p className="text-lg font-medium mb-2">Hole-by-hole scores not available</p>
+                    <p className="text-sm">
+                      This round was played before detailed hole scoring was implemented.
+                      <br />
+                      Only the total score of <strong>{round.score}</strong> is available.
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {/* Summary */}
               <div className="mt-6 pt-4 border-t">
