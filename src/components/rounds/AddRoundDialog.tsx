@@ -47,6 +47,7 @@ const AddRoundDialog = ({ open, onOpenChange }: AddRoundDialogProps) => {
       user_id: string;
       course_id: string;
       score: number;
+      hole_scores: number[];
       notes: string;
       date: string;
     }) => {
@@ -164,6 +165,7 @@ const AddRoundDialog = ({ open, onOpenChange }: AddRoundDialogProps) => {
       user_id: user.id,
       course_id: selectedCourse,
       score: totalScore,
+      hole_scores: scores.slice(0, holesCount),
       notes: roundNotes,
       date: new Date().toISOString().split('T')[0]
     });

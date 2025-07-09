@@ -306,6 +306,7 @@ export type Database = {
           course_id: string
           created_at: string | null
           date: string
+          hole_scores: number[] | null
           id: string
           notes: string | null
           score: number
@@ -315,6 +316,7 @@ export type Database = {
           course_id: string
           created_at?: string | null
           date?: string
+          hole_scores?: number[] | null
           id?: string
           notes?: string | null
           score: number
@@ -324,6 +326,7 @@ export type Database = {
           course_id?: string
           created_at?: string | null
           date?: string
+          hole_scores?: number[] | null
           id?: string
           notes?: string | null
           score?: number

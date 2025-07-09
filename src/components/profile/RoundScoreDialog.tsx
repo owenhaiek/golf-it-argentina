@@ -13,6 +13,7 @@ interface Round {
   course_id: string;
   date: string;
   score: number;
+  hole_scores?: number[];
   notes?: string;
   created_at: string;
   golf_courses?: {
@@ -78,9 +79,14 @@ const RoundScoreDialog = ({ round, isOpen, onClose }: RoundScoreDialogProps) => 
   const holePars = getHoleData();
   const numberOfHoles = holePars.length;
   
-  // Since we don't have individual hole scores stored, we'll generate realistic scores
-  // In a real implementation, you'd store hole-by-hole scores
-  const generateRealisticScores = () => {
+  // Use actual hole scores if available, otherwise simulate for legacy rounds
+  const getHoleScores = () => {
+    // If we have stored hole scores, use them
+    if (round.hole_scores && round.hole_scores.length > 0) {
+      return round.hole_scores;
+    }
+    
+    // Fallback to simulation for older rounds without hole scores
     const totalScore = round.score;
     const totalPar = holePars.reduce((a, b) => a + b, 0);
     const totalStrokesOverPar = totalScore - totalPar;
@@ -116,7 +122,7 @@ const RoundScoreDialog = ({ round, isOpen, onClose }: RoundScoreDialogProps) => 
     return scores;
   };
 
-  const holeScores = generateRealisticScores();
+  const holeScores = getHoleScores();
   const coursePar = calculateRoundPar(round);
   const scoreDiff = round.score - coursePar;
 
