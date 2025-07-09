@@ -2,6 +2,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { User } from '@supabase/supabase-js';
+import { useNavigate } from 'react-router-dom';
 
 type AuthContextType = {
   user: User | null;
@@ -37,6 +38,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Check if user needs to complete profile setup
+  const checkProfileSetup = async (userId: string) => {
+    try {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name, username')
+        .eq('id', userId)
+        .single();
+      
+      // If no profile or missing required fields, redirect to setup
+      if (!profile || !profile.full_name || !profile.username) {
+        window.location.href = '/profile-setup';
+      }
+    } catch (error) {
+      console.error('Error checking profile:', error);
+      // If there's an error, assume they need to set up profile
+      window.location.href = '/profile-setup';
+    }
+  };
+
   // Enhanced sign out function with better error handling and cleanup
   const signOut = async () => {
     try {
@@ -70,6 +91,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       console.log('Auth state changed:', event, session?.user?.id);
       setUser(session?.user ?? null);
       setLoading(false);
+      
+      // Check profile setup for new users
+      if (event === 'SIGNED_IN' && session?.user) {
+        setTimeout(() => {
+          checkProfileSetup(session.user.id);
+        }, 0);
+      }
       
       // Clean up on sign out
       if (event === 'SIGNED_OUT') {

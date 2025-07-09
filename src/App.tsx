@@ -19,6 +19,7 @@ import AddRound from "./pages/AddRound";
 import AddReservation from "./pages/AddReservation";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
+import ProfileSetup from "./pages/ProfileSetup";
 import SearchUsers from "./pages/SearchUsers";
 import CoursesMap from "./pages/CoursesMap";
 import Settings from "./pages/Settings";
@@ -45,7 +46,8 @@ function App() {
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
-                <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/profile-setup" element={<ProfileSetup />} />
                 <Route path="/course-manager-auth" element={<CourseManagerAuth />} />
                 <Route path="/admin/course-edit/:id" element={
                   <AdminGuard>
