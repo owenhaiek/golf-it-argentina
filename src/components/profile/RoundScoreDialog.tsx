@@ -78,21 +78,45 @@ const RoundScoreDialog = ({ round, isOpen, onClose }: RoundScoreDialogProps) => 
   const holePars = getHoleData();
   const numberOfHoles = holePars.length;
   
-  // Since we don't have individual hole scores stored, we'll simulate them
+  // Since we don't have individual hole scores stored, we'll generate realistic scores
   // In a real implementation, you'd store hole-by-hole scores
-  const generateSimulatedScores = () => {
+  const generateRealisticScores = () => {
     const totalScore = round.score;
     const totalPar = holePars.reduce((a, b) => a + b, 0);
-    const averageOverUnder = (totalScore - totalPar) / numberOfHoles;
+    const totalStrokesOverPar = totalScore - totalPar;
     
-    return holePars.map((par, index) => {
-      const baseScore = par + Math.round(averageOverUnder);
-      // Consistent scores based on par and average performance
-      return Math.max(1, baseScore);
-    });
+    // Create a more realistic distribution of scores
+    const scores = [...holePars]; // Start with all pars
+    let remainingStrokes = totalStrokesOverPar;
+    
+    // Use round ID as seed for consistent results across renders
+    const seed = parseInt(round.id.slice(-8), 16) % 1000;
+    const random = (min: number, max: number, index: number) => {
+      const x = Math.sin((seed + index) * 12.9898) * 43758.5453;
+      return min + Math.floor((x - Math.floor(x)) * (max - min + 1));
+    };
+    
+    // Distribute extra strokes more realistically
+    const holeOrder = [...Array(numberOfHoles)].map((_, i) => i).sort(() => random(0, 1, seed) - 0.5);
+    
+    for (let i = 0; i < Math.abs(remainingStrokes) && i < numberOfHoles; i++) {
+      const holeIndex = holeOrder[i];
+      if (remainingStrokes > 0) {
+        // Add bogeys and doubles more realistically
+        const strokesToAdd = random(1, Math.min(2, remainingStrokes), holeIndex);
+        scores[holeIndex] += strokesToAdd;
+        remainingStrokes -= strokesToAdd;
+      } else {
+        // Add birdies for under par rounds
+        scores[holeIndex] = Math.max(1, scores[holeIndex] - 1);
+        remainingStrokes++;
+      }
+    }
+    
+    return scores;
   };
 
-  const holeScores = generateSimulatedScores();
+  const holeScores = generateRealisticScores();
   const coursePar = calculateRoundPar(round);
   const scoreDiff = round.score - coursePar;
 
