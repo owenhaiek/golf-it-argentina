@@ -119,39 +119,54 @@ const CourseCard = ({ course, currentTime }: CourseCardProps) => {
             )}
           </div>
           
-          <div className="space-y-3 text-sm sm:text-base">
+          <div className="space-y-4">
             {/* Address */}
             {course.address && (
-              <div className="flex items-start gap-2 text-muted-foreground">
-                <MapPin size={16} className="mt-0.5 flex-shrink-0" />
-                <span className="line-clamp-2">{[course.address, course.city, course.state].filter(Boolean).join(', ')}</span>
+              <div className="flex items-start gap-3 p-3 bg-muted/30 rounded-lg border border-border/50">
+                <div className="flex-shrink-0 w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                  <MapPin size={16} className="text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-foreground mb-1">Location</p>
+                  <p className="text-xs text-muted-foreground line-clamp-2">{[course.address, course.city, course.state].filter(Boolean).join(', ')}</p>
+                </div>
               </div>
             )}
             
-            {/* Opening Hours - Now below address */}
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Clock size={16} className="flex-shrink-0" />
-              <div className="text-left">
-                <span className="text-xs md:text-sm lg:text-base font-medium">{formattedHours}</span>
+            {/* Opening Hours */}
+            <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg border border-border/50">
+              <div className="flex-shrink-0 w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                <Clock size={16} className="text-primary" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-foreground mb-1">Hours</p>
+                <p className="text-xs text-muted-foreground font-medium">{formattedHours}</p>
               </div>
             </div>
             
-            {/* Course Info - Holes and Par closer together */}
-            <div className="flex items-center gap-6">
-              {/* Holes and Par grouped together */}
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2 text-primary">
-                  <Flag size={16} className="flex-shrink-0" />
-                  <span className="font-medium text-xs md:text-sm lg:text-base">{course.holes} {t("profile", "holes")}</span>
+            {/* Course Info - Holes and Par */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex items-center gap-2 p-3 bg-primary/5 rounded-lg border border-primary/20">
+                <div className="flex-shrink-0 w-6 h-6 bg-primary/20 rounded-full flex items-center justify-center">
+                  <Flag size={12} className="text-primary" />
                 </div>
-                
-                {course.par && (
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Flag size={16} className="flex-shrink-0" />
-                    <span className="font-medium text-xs md:text-sm lg:text-base">{t("course", "par")} {course.par}</span>
-                  </div>
-                )}
+                <div>
+                  <p className="text-xs text-muted-foreground">Holes</p>
+                  <p className="text-sm font-semibold text-primary">{course.holes}</p>
+                </div>
               </div>
+              
+              {course.par && (
+                <div className="flex items-center gap-2 p-3 bg-accent/50 rounded-lg border border-accent">
+                  <div className="flex-shrink-0 w-6 h-6 bg-accent/70 rounded-full flex items-center justify-center">
+                    <Flag size={12} className="text-accent-foreground" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Par</p>
+                    <p className="text-sm font-semibold text-accent-foreground">{course.par}</p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
