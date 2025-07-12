@@ -2,6 +2,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Calendar } from "lucide-react";
 import { OpeningHours, getDayName, getCurrentDayIndex } from "@/utils/openingHours";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { cn } from "@/lib/utils";
 
 interface OpeningHoursDisplayProps {
@@ -9,13 +10,15 @@ interface OpeningHoursDisplayProps {
 }
 
 const OpeningHoursDisplay = ({ openingHours }: OpeningHoursDisplayProps) => {
+  const { t } = useLanguage();
+  
   if (!openingHours || !Array.isArray(openingHours)) {
     return (
       <Card>
         <CardContent className="p-4">
           <div className="flex items-center gap-2 text-muted-foreground">
             <Calendar size={16} />
-            <span className="text-sm">Hours not available</span>
+            <span className="text-sm">{t("course", "hoursNotAvailable")}</span>
           </div>
         </CardContent>
       </Card>
@@ -29,7 +32,7 @@ const OpeningHoursDisplay = ({ openingHours }: OpeningHoursDisplayProps) => {
       <CardContent className="p-4">
         <div className="flex items-center gap-2 mb-3">
           <Calendar size={16} className="text-primary" />
-          <span className="text-sm font-medium">Opening Hours</span>
+          <span className="text-sm font-medium">{t("course", "openingHours")}</span>
         </div>
         <div className="space-y-2">
           {openingHours.map((day, index) => {
@@ -66,7 +69,7 @@ const OpeningHoursDisplay = ({ openingHours }: OpeningHoursDisplayProps) => {
                 )}>
                   {isDayOpen 
                     ? `${day.open} - ${day.close}`
-                    : "Closed"
+                    : t("course", "closed")
                   }
                 </span>
               </div>

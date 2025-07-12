@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface WeatherData {
   temperature: number;
@@ -123,6 +124,7 @@ const formatDate = (isoDate: string) => {
 };
 
 export const CourseWeather = ({ latitude, longitude }: CourseWeatherProps) => {
+  const { t } = useLanguage();
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [forecast, setForecast] = useState<ForecastData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -223,14 +225,14 @@ export const CourseWeather = ({ latitude, longitude }: CourseWeatherProps) => {
       <CardHeader className="pb-2">
         <CardTitle className="text-lg flex items-center gap-2">
           <Cloudy className="w-6 h-6 text-primary" />
-          Weather Forecast
+          {t("course", "weatherForecast")}
         </CardTitle>
       </CardHeader>
       <CardContent>
         {loading && (
           <div className="flex flex-col items-center justify-center min-h-[200px]">
             <Cloud className="h-10 w-10 animate-spin text-primary mb-2" />
-            <span className="text-muted-foreground">Loading weather...</span>
+            <span className="text-muted-foreground">{t("course", "loadingWeather")}</span>
           </div>
         )}
         
@@ -245,7 +247,7 @@ export const CourseWeather = ({ latitude, longitude }: CourseWeatherProps) => {
               className="flex items-center gap-2"
             >
               <RefreshCw className="h-4 w-4" />
-              Try Again
+              {t("course", "tryAgain")}
             </Button>
           </div>
         )}
@@ -261,10 +263,10 @@ export const CourseWeather = ({ latitude, longitude }: CourseWeatherProps) => {
               <div className="text-lg font-medium">{weather.description}</div>
               <div className="flex flex-row items-center gap-4 mt-2 text-sm text-muted-foreground">
                 <div className="flex items-center gap-1">
-                  <Droplets className="w-4 h-4" /> {weather.humidity}% Humidity
+                  <Droplets className="w-4 h-4" /> {weather.humidity}% {t("course", "humidity")}
                 </div>
                 <div className="flex items-center gap-1">
-                  <Wind className="w-4 h-4" /> {weather.windSpeed} km/h Wind
+                  <Wind className="w-4 h-4" /> {weather.windSpeed} km/h {t("course", "wind")}
                 </div>
               </div>
             </div>
@@ -272,7 +274,7 @@ export const CourseWeather = ({ latitude, longitude }: CourseWeatherProps) => {
             {/* Forecast */}
             {forecast.length > 0 && (
               <div>
-                <h4 className="text-sm font-medium mt-4 mb-2 text-primary">5-Day Forecast</h4>
+                <h4 className="text-sm font-medium mt-4 mb-2 text-primary">{t("course", "dayForecast")}</h4>
                 <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                   {forecast.map((day, idx) => (
                     <div

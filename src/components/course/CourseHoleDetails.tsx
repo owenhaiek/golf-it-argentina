@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Flag, Target } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CourseHoleDetailsProps {
   coursePar?: number;
@@ -17,6 +18,7 @@ const CourseHoleDetails = ({
   holePars = [],
   holeHandicaps = []
 }: CourseHoleDetailsProps) => {
+  const { t } = useLanguage();
   
   // Generate hole data using real course data when available
   const generateHoleData = () => {
@@ -141,7 +143,7 @@ const CourseHoleDetails = ({
             <div className="flex items-center space-x-2">
               <Flag className="h-5 w-5 text-primary" />
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Holes</p>
+                <p className="text-sm font-medium text-muted-foreground">{t("course", "totalHoles")}</p>
                 <p className="text-2xl font-bold">{holes}</p>
               </div>
             </div>
@@ -153,7 +155,7 @@ const CourseHoleDetails = ({
             <div className="flex items-center space-x-2">
               <Target className="h-5 w-5 text-primary" />
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Par</p>
+                <p className="text-sm font-medium text-muted-foreground">{t("course", "totalPar")}</p>
                 <p className="text-2xl font-bold">{totalPar}</p>
               </div>
             </div>
@@ -164,7 +166,7 @@ const CourseHoleDetails = ({
       {/* Front Nine */}
       <HoleTable 
         holes={frontNine} 
-        title="Front Nine" 
+        title={t("course", "frontNine")} 
         totalPar={frontNinePar}
       />
 
@@ -172,7 +174,7 @@ const CourseHoleDetails = ({
       {holes === 18 && (
         <HoleTable 
           holes={backNine} 
-          title="Back Nine" 
+          title={t("course", "backNine")} 
           totalPar={backNinePar}
         />
       )}
@@ -182,7 +184,7 @@ const CourseHoleDetails = ({
         <CardHeader className="pb-3">
           <CardTitle className="text-lg flex items-center gap-2">
             <Target className="h-5 w-5 text-primary" />
-            Course Totals
+            {t("course", "courseTotals")}
           </CardTitle>
         </CardHeader>
         <CardContent>

@@ -4,9 +4,11 @@ import { MapPin, Flag, Clock, Share } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { isCurrentlyOpen, formatOpeningHours } from "@/utils/openingHours";
 import { validateOpeningHours } from "@/utils/openingHoursValidation";
+import { useCourseReviews } from "@/hooks/useCourseReviews";
 import CourseImageCarousel from "./CourseImageCarousel";
 import FavoriteButton from "@/components/ui/FavoriteButton";
 import ShareButton from "@/components/ui/ShareButton";
+import StarRating from "@/components/ui/StarRating";
 
 interface CourseCardProps {
   course: any;
@@ -15,6 +17,12 @@ interface CourseCardProps {
 
 const CourseCard = ({ course, currentTime }: CourseCardProps) => {
   const { t } = useLanguage();
+
+  // Fetch course reviews for rating
+  const { data: reviews = [] } = useCourseReviews(course.id);
+  const averageRating = reviews.length > 0 
+    ? reviews.reduce((sum: number, review: any) => sum + review.rating, 0) / reviews.length 
+    : 0;
 
   const getCourseImages = (course: any): string[] => {
     const images: string[] = [];
@@ -90,7 +98,20 @@ const CourseCard = ({ course, currentTime }: CourseCardProps) => {
         {/* Content Section */}
         <div className="p-4 space-y-3">
           <div className="space-y-2">
-            <h2 className="text-xl sm:text-2xl font-semibold text-foreground line-clamp-1">{course.name}</h2>
+            <div className="flex items-start justify-between gap-2">
+              <h2 className="text-xl sm:text-2xl font-semibold text-foreground line-clamp-1 flex-1">{course.name}</h2>
+              {/* Rating Stars */}
+              {averageRating > 0 && (
+                <div className="flex-shrink-0">
+                  <StarRating 
+                    rating={averageRating} 
+                    size="sm" 
+                    showRating={false}
+                    className="justify-end"
+                  />
+                </div>
+              )}
+            </div>
             
             {course.description && (
               <p className="text-muted-foreground text-sm sm:text-base line-clamp-2">{course.description}</p>
