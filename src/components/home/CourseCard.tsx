@@ -120,15 +120,15 @@ const CourseCard = ({ course, currentTime }: CourseCardProps) => {
           </div>
           
           <div className="space-y-4">
-            {/* Address */}
-            {course.address && (
+            {/* Location - City only */}
+            {course.city && (
               <div className="flex items-start gap-3 p-3 bg-muted/30 rounded-lg border border-border/50">
                 <div className="flex-shrink-0 w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
                   <MapPin size={16} className="text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-foreground mb-1">Location</p>
-                  <p className="text-xs text-muted-foreground line-clamp-2">{[course.address, course.city, course.state].filter(Boolean).join(', ')}</p>
+                  <p className="text-xs text-muted-foreground line-clamp-2">{course.city}</p>
                 </div>
               </div>
             )}
