@@ -97,23 +97,23 @@ const getWeatherIcon = (code: number, isDay?: number) => {
   }
 };
 
-const getWeatherDesc = (code: number) => {
+const getWeatherDesc = (code: number, t: (section: string, key: string) => string) => {
   switch (code) {
-    case 0: return "Clear sky";
-    case 1: return "Mainly clear";
-    case 2: return "Partly cloudy";
-    case 3: return "Cloudy";
-    case 45: case 48: return "Fog";
-    case 51: case 53: case 55: return "Drizzle";
-    case 56: case 57: return "Freezing drizzle";
-    case 61: case 63: case 65: return "Rain";
-    case 66: case 67: return "Freezing rain";
-    case 71: case 73: case 75: return "Snow";
-    case 77: return "Snow grains";
-    case 80: case 81: case 82: return "Rain showers";
-    case 85: case 86: return "Snow showers";
-    case 95: return "Thunderstorm";
-    case 96: case 99: return "Thunderstorm with hail";
+    case 0: return t("course", "sunny");
+    case 1: return t("course", "sunny");
+    case 2: return t("course", "partlyCloudy");
+    case 3: return t("course", "cloudy");
+    case 45: case 48: return t("course", "fog");
+    case 51: case 53: case 55: return t("course", "drizzle");
+    case 56: case 57: return t("course", "drizzle");
+    case 61: case 63: case 65: return t("course", "rain");
+    case 66: case 67: return t("course", "rain");
+    case 71: case 73: case 75: return t("course", "snow");
+    case 77: return t("course", "snow");
+    case 80: case 81: case 82: return t("course", "rain");
+    case 85: case 86: return t("course", "snow");
+    case 95: return t("course", "thunderstorm");
+    case 96: case 99: return t("course", "thunderstorm");
     default: return "Unknown";
   }
 };
@@ -171,7 +171,7 @@ export const CourseWeather = ({ latitude, longitude }: CourseWeatherProps) => {
       const curr = data.current;
       const weatherData: WeatherData = {
         temperature: Math.round(curr.temperature_2m || 0),
-        description: getWeatherDesc(curr.weathercode || 0),
+        description: getWeatherDesc(curr.weathercode || 0, t),
         humidity: Math.round(curr.relative_humidity_2m || 0),
         windSpeed: Math.round(curr.wind_speed_10m || 0),
         icon: getWeatherIcon(curr.weathercode || 0, curr.is_day),
@@ -184,7 +184,7 @@ export const CourseWeather = ({ latitude, longitude }: CourseWeatherProps) => {
         min: Math.round(daily.temperature_2m_min[idx] || 0),
         max: Math.round(daily.temperature_2m_max[idx] || 0),
         icon: getWeatherIcon(daily.weathercode[idx] || 0, 1),
-        desc: getWeatherDesc(daily.weathercode[idx] || 0),
+        desc: getWeatherDesc(daily.weathercode[idx] || 0, t),
       }));
       
       setWeather(weatherData);

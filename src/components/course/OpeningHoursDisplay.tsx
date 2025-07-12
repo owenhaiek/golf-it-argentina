@@ -12,6 +12,16 @@ interface OpeningHoursDisplayProps {
 const OpeningHoursDisplay = ({ openingHours }: OpeningHoursDisplayProps) => {
   const { t } = useLanguage();
   
+  const dayNames = [
+    t("course", "sunday"), 
+    t("course", "monday"), 
+    t("course", "tuesday"), 
+    t("course", "wednesday"), 
+    t("course", "thursday"), 
+    t("course", "friday"), 
+    t("course", "saturday")
+  ];
+
   if (!openingHours || !Array.isArray(openingHours)) {
     return (
       <Card>
@@ -37,7 +47,7 @@ const OpeningHoursDisplay = ({ openingHours }: OpeningHoursDisplayProps) => {
         <div className="space-y-2">
           {openingHours.map((day, index) => {
             const isToday = index === currentDayIndex;
-            const dayName = getDayName(index);
+            const dayName = dayNames[index];
             
             // Improved validation logic for determining if a day is open
             const isDayOpen = day && 

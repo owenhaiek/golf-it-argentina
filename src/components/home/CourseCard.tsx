@@ -98,19 +98,20 @@ const CourseCard = ({ course, currentTime }: CourseCardProps) => {
         {/* Content Section */}
         <div className="p-4 space-y-3">
           <div className="space-y-2">
+            {/* Rating Stars above title */}
+            {averageRating > 0 && (
+              <div className="flex items-center">
+                <StarRating 
+                  rating={averageRating} 
+                  size="md" 
+                  showRating={false}
+                  className="justify-start"
+                />
+              </div>
+            )}
+            
             <div className="flex items-start justify-between gap-2">
               <h2 className="text-xl sm:text-2xl font-semibold text-foreground line-clamp-1 flex-1">{course.name}</h2>
-              {/* Rating Stars */}
-              {averageRating > 0 && (
-                <div className="flex-shrink-0">
-                  <StarRating 
-                    rating={averageRating} 
-                    size="sm" 
-                    showRating={false}
-                    className="justify-end"
-                  />
-                </div>
-              )}
             </div>
             
             {course.description && (

@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Star, MessageCircle } from "lucide-react";
 import { format } from "date-fns";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export interface Review {
   id: string;
@@ -26,6 +27,7 @@ interface CourseReviewsProps {
 }
 
 const CourseReviews = ({ courseId, reviews, isLoading }: CourseReviewsProps) => {
+  const { t } = useLanguage();
   console.log("CourseReviews rendering with:", { courseId, reviewsCount: reviews?.length, isLoading });
 
   if (isLoading) {
@@ -40,8 +42,8 @@ const CourseReviews = ({ courseId, reviews, isLoading }: CourseReviewsProps) => 
     return (
       <div className="text-center py-8 text-muted-foreground">
         <MessageCircle className="mx-auto h-12 w-12 mb-4 opacity-50" />
-        <p className="text-lg font-medium mb-2">No reviews yet</p>
-        <p className="text-sm">Be the first to add a review!</p>
+        <p className="text-lg font-medium mb-2">{t("course", "noReviewsYet")}</p>
+        <p className="text-sm">{t("course", "firstToAddReview")}</p>
       </div>
     );
   }

@@ -2,6 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp, TrendingDown, Target, Calendar, Trophy, Users } from "lucide-react";
 import { format } from "date-fns";
+import { useLanguage } from "@/contexts/LanguageContext";
 import CourseLeaderboard from "./CourseLeaderboard";
 
 interface Round {
@@ -24,6 +25,7 @@ interface CourseStatsProps {
 }
 
 const CourseStats = ({ rounds, isLoading, coursePar = 72, courseHolePars }: CourseStatsProps) => {
+  const { t } = useLanguage();
   // Helper function to calculate the correct par for a round
   const calculateRoundPar = (round: Round) => {
     // Check if this is a 9-hole round from the notes
@@ -71,14 +73,14 @@ const CourseStats = ({ rounds, isLoading, coursePar = 72, courseHolePars }: Cour
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Trophy className="h-5 w-5 text-primary" />
-              Course Statistics
+              {t("course", "courseStatistics")}
             </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col items-center justify-center py-12 text-center">
             <Users className="h-16 w-16 text-muted-foreground/50 mb-4" />
-            <h3 className="text-lg font-medium mb-2">No Rounds Recorded</h3>
+            <h3 className="text-lg font-medium mb-2">{t("course", "noRoundsRecorded")}</h3>
             <p className="text-muted-foreground max-w-md">
-              Be the first to play this course and record your score to see statistics and leaderboards!
+              {t("course", "firstToPlayCourse")}
             </p>
           </CardContent>
         </Card>
@@ -130,7 +132,7 @@ const CourseStats = ({ rounds, isLoading, coursePar = 72, courseHolePars }: Cour
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-blue-700 dark:text-blue-300">Total Rounds</p>
+                <p className="text-sm font-medium text-blue-700 dark:text-blue-300">{t("course", "totalRounds")}</p>
                 <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">{totalRounds}</p>
               </div>
               <Calendar className="h-8 w-8 text-blue-600 dark:text-blue-400" />
@@ -142,7 +144,7 @@ const CourseStats = ({ rounds, isLoading, coursePar = 72, courseHolePars }: Cour
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-green-700 dark:text-green-300">Avg vs Par</p>
+                <p className="text-sm font-medium text-green-700 dark:text-green-300">{t("course", "averageVsPar")}</p>
                 <p className={`text-2xl font-bold ${averageVsPar > 0 ? 'text-red-600 dark:text-red-400' : averageVsPar < 0 ? 'text-green-600 dark:text-green-400' : 'text-blue-600 dark:text-blue-400'}`}>
                   {averageVsPar > 0 ? `+${averageVsPar.toFixed(1)}` : averageVsPar.toFixed(1)}
                 </p>
@@ -156,7 +158,7 @@ const CourseStats = ({ rounds, isLoading, coursePar = 72, courseHolePars }: Cour
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-purple-700 dark:text-purple-300">Best Round</p>
+                <p className="text-sm font-medium text-purple-700 dark:text-purple-300">{t("course", "bestRound")}</p>
                 <p className={`text-2xl font-bold ${bestRound.score - bestRoundPar > 0 ? 'text-red-600 dark:text-red-400' : bestRound.score - bestRoundPar < 0 ? 'text-green-600 dark:text-green-400' : 'text-blue-600 dark:text-blue-400'}`}>
                   {bestRound.score - bestRoundPar > 0 ? `+${bestRound.score - bestRoundPar}` : bestRound.score - bestRoundPar}
                 </p>
@@ -170,7 +172,7 @@ const CourseStats = ({ rounds, isLoading, coursePar = 72, courseHolePars }: Cour
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-amber-700 dark:text-amber-300">Players</p>
+                <p className="text-sm font-medium text-amber-700 dark:text-amber-300">{t("course", "players")}</p>
                 <p className="text-2xl font-bold text-amber-900 dark:text-amber-100">{uniquePlayers}</p>
               </div>
               <Users className="h-8 w-8 text-amber-600 dark:text-amber-400" />
@@ -185,7 +187,7 @@ const CourseStats = ({ rounds, isLoading, coursePar = 72, courseHolePars }: Cour
           <CardHeader className="pb-3">
             <CardTitle className="text-lg flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-green-500" />
-              Best Round
+              {t("course", "bestRound")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -212,7 +214,7 @@ const CourseStats = ({ rounds, isLoading, coursePar = 72, courseHolePars }: Cour
           <CardHeader className="pb-3">
             <CardTitle className="text-lg flex items-center gap-2">
               <TrendingDown className="h-5 w-5 text-red-500" />
-              Highest Round
+              {t("course", "highestRound")}
             </CardTitle>
           </CardHeader>
           <CardContent>
