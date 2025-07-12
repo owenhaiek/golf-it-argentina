@@ -119,33 +119,23 @@ const CourseCard = ({ course, currentTime }: CourseCardProps) => {
             )}
           </div>
           
-          <div className="space-y-4">
-            {/* Location - City only */}
+          <div className="space-y-2">
+            {/* Location - City only (clean style) */}
             {course.city && (
-              <div className="flex items-start gap-3 p-3 bg-muted/30 rounded-lg border border-border/50">
-                <div className="flex-shrink-0 w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
-                  <MapPin size={16} className="text-primary" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground mb-1">Location</p>
-                  <p className="text-xs text-muted-foreground line-clamp-2">{course.city}</p>
-                </div>
+              <div className="flex items-center gap-2">
+                <MapPin size={14} className="text-primary flex-shrink-0" />
+                <span className="text-sm text-muted-foreground">{course.city}</span>
               </div>
             )}
             
-            {/* Opening Hours */}
-            <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg border border-border/50">
-              <div className="flex-shrink-0 w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
-                <Clock size={16} className="text-primary" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-medium text-foreground mb-1">Hours</p>
-                <p className="text-xs text-muted-foreground font-medium">{formattedHours}</p>
-              </div>
+            {/* Opening Hours (clean style) */}
+            <div className="flex items-center gap-2">
+              <Clock size={14} className="text-primary flex-shrink-0" />
+              <span className="text-sm text-muted-foreground">{formattedHours}</span>
             </div>
             
-            {/* Course Info - Holes and Par */}
-            <div className="grid grid-cols-2 gap-3">
+            {/* Course Info - Holes and Par (with boxes) */}
+            <div className="grid grid-cols-2 gap-3 mt-3">
               <div className="flex items-center gap-2 p-3 bg-primary/5 rounded-lg border border-primary/20">
                 <div className="flex-shrink-0 w-6 h-6 bg-primary/20 rounded-full flex items-center justify-center">
                   <Flag size={12} className="text-primary" />
