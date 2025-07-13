@@ -119,7 +119,7 @@ const CourseCard = ({ course, currentTime }: CourseCardProps) => {
             )}
           </div>
           
-          <div className="flex items-center justify-between bg-muted/30 rounded-lg p-3 border border-border/30">
+          <div className="space-y-3 bg-muted/30 rounded-lg p-3 border border-border/30">
             {/* Location */}
             {course.city && (
               <div className="flex items-center gap-2">
