@@ -97,10 +97,10 @@ const CourseCard = ({
             {/* Open in Map Button */}
             <button 
               onClick={handleMapClick}
-              className="inline-flex items-center gap-1.5 px-2 py-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:text-primary bg-muted/30 hover:bg-primary/10 rounded-md border border-border/30 hover:border-primary/20 transition-all duration-200"
             >
-              <Map size={14} />
-              Open in Map
+              <Map size={12} />
+              {t("home", "openInMap")}
             </button>
             
             {course.description && <p className="text-muted-foreground text-sm sm:text-base line-clamp-2">{course.description}</p>}
