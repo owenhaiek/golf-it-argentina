@@ -1,5 +1,5 @@
-import { Link } from "react-router-dom";
-import { MapPin, Flag, Clock, Share } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { MapPin, Flag, Clock, Share, Map } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { isCurrentlyOpen, formatOpeningHours } from "@/utils/openingHours";
 import { validateOpeningHours } from "@/utils/openingHoursValidation";
@@ -19,6 +19,7 @@ const CourseCard = ({
   const {
     t
   } = useLanguage();
+  const navigate = useNavigate();
 
   // Fetch course reviews for rating
   const {
@@ -48,6 +49,12 @@ const CourseCard = ({
   const openingHoursData = validateOpeningHours(course.opening_hours);
   const isOpen = isCurrentlyOpen(openingHoursData);
   const formattedHours = formatOpeningHours(openingHoursData);
+  
+  const handleMapClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigate(`/map?focus=${course.id}`);
+  };
   return <Link to={`/course/${course.id}`} className="block w-full">
       <div className="w-full bg-background hover:bg-accent/50 transition-colors duration-200 border-b md:border md:rounded-lg md:overflow-hidden md:shadow-sm last:border-b-0 md:last:border-b">
         {/* Image Section - Full Width with bottom spacing */}
@@ -66,6 +73,13 @@ const CourseCard = ({
           
           {/* Action Buttons Overlay */}
           <div className="absolute top-2 right-2 flex gap-2">
+            <button 
+              onClick={handleMapClick}
+              className="h-9 w-9 rounded-md bg-white/80 backdrop-blur-sm hover:bg-white/90 transition-colors border border-white/20 flex items-center justify-center"
+              title="View on Map"
+            >
+              <Map size={16} className="text-foreground" />
+            </button>
             <div onClick={e => e.preventDefault()}>
               <ShareButton course={course} size="sm" variant="ghost" className="bg-white/80 backdrop-blur-sm hover:bg-white/90" />
             </div>
