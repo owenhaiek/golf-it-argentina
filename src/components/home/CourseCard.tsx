@@ -90,12 +90,12 @@ const CourseCard = ({
             {course.description && <p className="text-muted-foreground text-sm sm:text-base line-clamp-2">{course.description}</p>}
           </div>
           
-          <div className="space-y-3 bg-muted/30 rounded-lg p-3 border border-border/30">
+          <div className="space-y-2 bg-muted/30 rounded-lg p-3 border border-border/30">
             {/* Location */}
             {course.city && <div className="flex items-center gap-2">
                 
                 <div>
-                  <p className="text-xs text-muted-foreground/70 uppercase tracking-wide">Location</p>
+                  <p className="text-xs text-muted-foreground/70 uppercase tracking-wide">{t("home", "location")}</p>
                   <p className="text-sm font-medium text-foreground">{course.city}</p>
                 </div>
               </div>}
@@ -104,7 +104,7 @@ const CourseCard = ({
             <div className="flex items-center gap-2">
               
               <div>
-                <p className="text-xs text-muted-foreground/70 uppercase tracking-wide">Hours</p>
+                <p className="text-xs text-muted-foreground/70 uppercase tracking-wide">{t("home", "hours")}</p>
                 <p className="text-sm font-medium text-foreground">{formattedHours}</p>
               </div>
             </div>
