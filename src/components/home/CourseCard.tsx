@@ -76,7 +76,7 @@ const CourseCard = ({
         </div>
         
         {/* Content Section */}
-        <div className="p-4 space-y-2">
+        <div className="px-4 pb-4 pt-2 space-y-2">
           <div className="space-y-1">
             {/* Rating Stars above title */}
             {averageRating > 0 && <div className="flex items-center">
