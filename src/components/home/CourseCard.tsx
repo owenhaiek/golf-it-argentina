@@ -53,7 +53,7 @@ const CourseCard = ({
   const handleMapClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    navigate(`/map?focus=${course.id}`);
+    navigate(`/courses-map?focus=${course.id}`);
   };
   return <Link to={`/course/${course.id}`} className="block w-full">
       <div className="w-full bg-background hover:bg-accent/50 transition-colors duration-200 border-b md:border md:rounded-lg md:overflow-hidden md:shadow-sm last:border-b-0 md:last:border-b">
@@ -97,9 +97,9 @@ const CourseCard = ({
             {/* Open in Map Button */}
             <button 
               onClick={handleMapClick}
-              className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-primary bg-primary/10 hover:bg-primary/20 rounded-lg border border-primary/20 transition-colors"
+              className="inline-flex items-center gap-1.5 px-2 py-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
-              <Map size={16} />
+              <Map size={14} />
               Open in Map
             </button>
             
