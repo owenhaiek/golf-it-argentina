@@ -120,7 +120,7 @@ const ProfileSetup = () => {
         <div className="p-4 flex items-center justify-center min-h-full">
           <div className="w-full max-w-md">
             <Card className="overflow-hidden border-0 shadow-md bg-gradient-to-br from-white to-muted dark:bg-black dark:from-black dark:to-gray-900">
-              <CardHeader className="pb-0 text-center">
+              <CardHeader className="pb-6 text-center">
                 {/* Logo Section */}
                 <div className="flex justify-center mb-6">
                   <div className="w-28 h-28 flex items-center justify-center">
