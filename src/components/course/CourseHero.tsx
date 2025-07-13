@@ -41,14 +41,14 @@ export const CourseHero = ({
       </div>
       <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent">
         <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">{course.name}</h1>
-        <div className="flex items-center justify-between text-white/90">
+        <div className="space-y-3 text-white/90">
           <div className="flex items-center gap-4">
             {course.address}
             <Badge variant={isOpen ? "default" : "secondary"} className={cn("text-xs font-medium", isOpen ? "bg-green-500 hover:bg-green-600" : "bg-red-500 hover:bg-red-600 text-white")}>
               {isOpen ? t("home", "openNow") : t("home", "closed")}
             </Badge>
           </div>
-          <div className="flex items-center gap-2 bg-black/30 rounded-lg px-3 py-2">
+          <div className="flex items-center gap-2 bg-black/30 rounded-lg px-3 py-2 w-fit">
             <Star size={16} className="text-yellow-400 fill-yellow-400" />
             <span className="font-semibold">
               {averageRating > 0 ? averageRating.toFixed(1) : '--'}
