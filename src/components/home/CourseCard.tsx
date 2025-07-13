@@ -73,13 +73,6 @@ const CourseCard = ({
           
           {/* Action Buttons Overlay */}
           <div className="absolute top-2 right-2 flex gap-2">
-            <button 
-              onClick={handleMapClick}
-              className="h-9 w-9 rounded-md bg-white/80 backdrop-blur-sm hover:bg-white/90 transition-colors border border-white/20 flex items-center justify-center"
-              title="View on Map"
-            >
-              <Map size={16} className="text-foreground" />
-            </button>
             <div onClick={e => e.preventDefault()}>
               <ShareButton course={course} size="sm" variant="ghost" className="bg-white/80 backdrop-blur-sm hover:bg-white/90" />
             </div>
@@ -100,6 +93,15 @@ const CourseCard = ({
             <div className="flex items-start justify-between gap-2">
               <h2 className="text-xl sm:text-2xl font-semibold text-foreground line-clamp-1 flex-1">{course.name}</h2>
             </div>
+            
+            {/* Open in Map Button */}
+            <button 
+              onClick={handleMapClick}
+              className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-primary bg-primary/10 hover:bg-primary/20 rounded-lg border border-primary/20 transition-colors"
+            >
+              <Map size={16} />
+              Open in Map
+            </button>
             
             {course.description && <p className="text-muted-foreground text-sm sm:text-base line-clamp-2">{course.description}</p>}
           </div>
