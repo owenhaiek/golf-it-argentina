@@ -65,7 +65,8 @@ const translations: Record<LanguageType, TranslationDictionary> = {
       noCoursesFound: "No courses found",
       resetFilters: "Reset Filters",
       openNow: "Open Now",
-      closed: "Closed"
+      closed: "Closed",
+      openInMap: "Open in Map"
     },
     course: {
       holes: "Holes",
@@ -306,7 +307,8 @@ const translations: Record<LanguageType, TranslationDictionary> = {
       noCoursesFound: "No se encontraron campos",
       resetFilters: "Restablecer Filtros",
       openNow: "Abierto Ahora",
-      closed: "Cerrado"
+      closed: "Cerrado",
+      openInMap: "Ver en Mapa"
     },
     course: {
       holes: "Hoyos",
