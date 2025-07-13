@@ -91,12 +91,18 @@ const Course = () => {
     <div className="h-screen flex flex-col">
       <ScrollArea className="flex-1">
         <div className="pb-28">
-          <CourseHero course={course} language={language} isOpen={isOpen} />
+          <CourseHero 
+            course={course} 
+            language={language} 
+            isOpen={isOpen} 
+            averageRating={averageRating}
+            reviewCount={reviewCount}
+          />
           <div className="p-4 space-y-6">
             {course.description && (
               <p className="text-muted-foreground text-sm sm:text-base">{course.description}</p>
             )}
-            <CourseStatsHeader course={course} averageRating={averageRating} reviewCount={reviewCount} />
+            <CourseStatsHeader course={course} />
             <CourseCTARow 
               course={course}
               language={language}
