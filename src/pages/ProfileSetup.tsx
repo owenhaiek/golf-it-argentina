@@ -123,7 +123,7 @@ const ProfileSetup = () => {
               <CardHeader className="pb-0 text-center">
                 {/* Logo Section */}
                 <div className="flex justify-center mb-6">
-                  <div className="w-20 h-20 flex items-center justify-center">
+                  <div className="w-28 h-28 flex items-center justify-center">
                     <img 
                       src="/lovable-uploads/0f8f9459-f386-41e8-a1f0-1466dcce96cc.png" 
                       alt="Golf Flag" 
@@ -162,7 +162,7 @@ const ProfileSetup = () => {
                 <CardTitle className="text-xl font-bold text-black dark:text-white mb-2">
                   Configura tu Perfil
                 </CardTitle>
-                <p className="text-sm text-muted-foreground mb-4">
+                <p className="text-sm text-muted-foreground mb-8">
                   Agrega tu información personal y foto de perfil
                 </p>
               </CardHeader>
