@@ -1,5 +1,4 @@
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
 import { Star } from "lucide-react";
 
 interface StarRatingFilterProps {
@@ -8,37 +7,44 @@ interface StarRatingFilterProps {
 }
 
 export const StarRatingFilter = ({ minRating, onChange }: StarRatingFilterProps) => {
-  const ratings = [0, 3, 4, 5]; // 0 = All, 3+ stars, 4+ stars, 5 stars
-
-  const getRatingLabel = (rating: number) => {
-    if (rating === 0) return "All Ratings";
-    if (rating === 5) return "5 Stars Only";
-    return `${rating}+ Stars`;
-  };
+  const ratings = [
+    { value: 0, label: "All" },
+    { value: 3, label: "3+" },
+    { value: 4, label: "4+" },
+    { value: 5, label: "5" }
+  ];
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       <Label className="text-sm font-medium text-foreground">Minimum Rating</Label>
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-4 gap-2">
         {ratings.map((rating) => (
-          <Button
-            key={rating}
-            variant={minRating === rating ? "default" : "outline"}
-            size="sm"
-            onClick={() => onChange(rating)}
-            className="h-10 flex items-center gap-1.5 text-sm"
+          <div
+            key={rating.value}
+            className={`flex flex-col items-center p-3 rounded-lg border-2 transition-all cursor-pointer ${
+              minRating === rating.value
+                ? 'bg-yellow-50 border-yellow-500 dark:bg-yellow-950/20 dark:border-yellow-500'
+                : 'bg-muted/50 border-border hover:bg-muted'
+            }`}
+            onClick={() => onChange(rating.value)}
           >
-            {rating > 0 && (
-              <>
-                <Star 
-                  className="h-3.5 w-3.5" 
-                  fill={minRating === rating ? "currentColor" : "none"}
-                />
-                <span>{rating}+</span>
-              </>
-            )}
-            {rating === 0 && <span>All</span>}
-          </Button>
+            <Star 
+              size={12} 
+              className={`mb-1 transition-all ${
+                minRating === rating.value
+                  ? 'text-yellow-600'
+                  : 'text-muted-foreground'
+              }`}
+              fill={minRating === rating.value ? "currentColor" : "none"}
+            />
+            <span className={`text-sm font-medium transition-all ${
+              minRating === rating.value
+                ? 'text-yellow-700 dark:text-yellow-300'
+                : 'text-foreground'
+            }`}>
+              {rating.label}
+            </span>
+          </div>
         ))}
       </div>
     </div>
