@@ -84,7 +84,7 @@ const FilterPanel = ({
           
           <FilterPanelHeader onClose={onClose} onReset={handleResetFilters} />
 
-          <div className="px-4 pb-20 overflow-y-auto">
+          <div className="px-6 pb-24 pt-2 overflow-y-auto">
             <FilterContent filters={filters} setFilters={setFilters} />
           </div>
         </Card>
