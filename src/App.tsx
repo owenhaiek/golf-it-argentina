@@ -31,22 +31,7 @@ import AdminCourseEdit from "./pages/AdminCourseEdit";
 import AdminCourseEditList from "./pages/AdminCourseEditList";
 import AdminPendingManagers from "./pages/AdminPendingManagers";
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      // Cache data for 5 minutes to reduce API calls
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      gcTime: 30 * 60 * 1000, // 30 minutes (was cacheTime)
-      // Retry failed requests
-      retry: 2,
-      retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
-      // Refetch on window focus for fresh data
-      refetchOnWindowFocus: false,
-      // Enable background refetching
-      refetchOnMount: true,
-    },
-  },
-});
+const queryClient = new QueryClient();
 
 function App() {
   return (

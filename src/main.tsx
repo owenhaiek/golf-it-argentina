@@ -30,27 +30,18 @@ const Root = () => {
             document.addEventListener('DOMContentLoaded', () => resolve(true), { once: true });
           });
       
-      // Preload critical images in parallel
-      const criticalImages = [
-        '/lovable-uploads/3dc401b2-fdd6-4815-a300-aa3c9b61ed9d.png', // Logo
-        '/lovable-uploads/419a6f14-cf7f-486d-b411-be08939987f8.png', // Header logo
-      ];
-      
-      const imagePromises = criticalImages.map(src => 
-        new Promise(resolve => {
-          const img = new Image();
-          img.onload = () => resolve(true);
-          img.onerror = () => resolve(true);
-          img.src = src;
-          // Don't wait too long for each image
-          setTimeout(() => resolve(true), 150);
-        })
-      );
-      
-      const imagesReady = Promise.all(imagePromises);
+      // Preload logo quickly
+      const logoReady = new Promise(resolve => {
+        const img = new Image();
+        img.onload = () => resolve(true);
+        img.onerror = () => resolve(true);
+        img.src = '/lovable-uploads/3dc401b2-fdd6-4815-a300-aa3c9b61ed9d.png';
+        // Don't wait too long for the image
+        setTimeout(() => resolve(true), 100);
+      });
       
       // Wait for the shortest necessary time
-      await Promise.all([minDelay, domReady, imagesReady]);
+      await Promise.all([minDelay, domReady, logoReady]);
       
       setIsLoading(false);
     };

@@ -4,7 +4,6 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { isCurrentlyOpen, formatOpeningHours } from "@/utils/openingHours";
 import { validateOpeningHours } from "@/utils/openingHoursValidation";
 import { useCourseReviews } from "@/hooks/useCourseReviews";
-import { useDataPrefetch } from "@/hooks/useDataPrefetch";
 import CourseImageCarousel from "./CourseImageCarousel";
 import FavoriteButton from "@/components/ui/FavoriteButton";
 import ShareButton from "@/components/ui/ShareButton";
@@ -21,14 +20,12 @@ const CourseCard = ({
     t
   } = useLanguage();
   const navigate = useNavigate();
-  const { prefetchCourseDetails } = useDataPrefetch();
 
-  // Use existing average rating if available, otherwise fetch reviews
+  // Fetch course reviews for rating
   const {
     data: reviews = []
   } = useCourseReviews(course.id);
-  // Use pre-calculated rating if available, otherwise calculate from reviews
-  const averageRating = course.averageRating || (reviews.length > 0 ? reviews.reduce((sum: number, review: any) => sum + review.rating, 0) / reviews.length : 0);
+  const averageRating = reviews.length > 0 ? reviews.reduce((sum: number, review: any) => sum + review.rating, 0) / reviews.length : 0;
   const getCourseImages = (course: any): string[] => {
     const images: string[] = [];
 
@@ -58,12 +55,7 @@ const CourseCard = ({
     e.stopPropagation();
     navigate(`/courses-map?focus=${course.id}`);
   };
-
-  // Prefetch course details on hover
-  const handleMouseEnter = () => {
-    prefetchCourseDetails(course.id);
-  };
-  return <Link to={`/course/${course.id}`} className="block w-full" onMouseEnter={handleMouseEnter}>
+  return <Link to={`/course/${course.id}`} className="block w-full">
       <div className="w-full bg-background hover:bg-accent/50 transition-colors duration-200 border-b md:border md:rounded-lg md:overflow-hidden md:shadow-sm last:border-b-0 md:last:border-b">
         {/* Image Section - Full Width with bottom spacing */}
         <div className="w-full h-48 sm:h-56 relative">

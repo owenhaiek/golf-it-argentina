@@ -10,52 +10,50 @@ export const useCourseReviews = (courseId: string | undefined) => {
       
       console.log("Fetching reviews for course:", courseId);
       
-      // Parallel queries for better performance
-      const [reviewsResult, profilesResult] = await Promise.all([
-        supabase
-          .from('course_reviews')
-          .select(`
-            id,
-            course_id,
-            user_id,
-            rating,
-            comment,
-            created_at
-          `)
-          .eq('course_id', courseId)
-          .order('created_at', { ascending: false }),
-        
-        // Fetch all profiles that might be needed (optimistic fetch)
-        supabase
-          .from('profiles')
-          .select('id, username, full_name, avatar_url')
-          .limit(100) // Cache common profiles
-      ]);
+      const { data: reviews, error } = await supabase
+        .from('course_reviews')
+        .select(`
+          id,
+          course_id,
+          user_id,
+          rating,
+          comment,
+          created_at
+        `)
+        .eq('course_id', courseId)
+        .order('created_at', { ascending: false });
 
-      if (reviewsResult.error) {
-        console.error("Error fetching reviews:", reviewsResult.error);
-        throw reviewsResult.error;
+      if (error) {
+        console.error("Error fetching reviews:", error);
+        throw error;
       }
 
-      const reviews = reviewsResult.data || [];
-      const allProfiles = profilesResult.data || [];
-
-      if (reviews.length === 0) {
+      // Now fetch profiles for each review separately
+      if (!reviews || reviews.length === 0) {
         return [];
       }
 
-      // Merge reviews with profiles using cached profiles
+      const userIds = [...new Set(reviews.map(review => review.user_id))];
+      
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, username, full_name, avatar_url')
+        .in('id', userIds);
+
+      if (profilesError) {
+        console.error("Error fetching profiles:", profilesError);
+        // Continue without profiles rather than failing completely
+      }
+
+      // Merge reviews with profiles
       const reviewsWithProfiles = reviews.map(review => ({
         ...review,
-        profiles: allProfiles.find(profile => profile.id === review.user_id) || null
+        profiles: profiles?.find(profile => profile.id === review.user_id) || null
       }));
 
       console.log("Reviews fetched successfully:", reviewsWithProfiles.length);
       return reviewsWithProfiles;
     },
     enabled: !!courseId,
-    // Optimized caching for reviews
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 15 * 60 * 1000, // 15 minutes
   });
 };
