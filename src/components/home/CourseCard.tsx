@@ -58,7 +58,7 @@ const CourseCard = ({
   return <Link to={`/course/${course.id}`} className="block w-full">
       <div className="w-full bg-background hover:bg-accent/50 transition-colors duration-200 border-b md:border md:rounded-lg md:overflow-hidden md:shadow-sm last:border-b-0 md:last:border-b">
         {/* Image Section - Full Width with bottom spacing */}
-        <div className="w-full h-48 sm:h-56 relative mb-4">
+        <div className="w-full h-48 sm:h-56 relative">
           <CourseImageCarousel images={courseImages} courseName={course.name} courseId={course.id} />
           
           {/* Top-left Status Badge */}
