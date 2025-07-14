@@ -4,11 +4,12 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useProfileData } from "@/hooks/useProfileData";
 import ProfileCard from "@/components/profile/ProfileCard";
 import RecentRounds from "@/components/profile/RecentRounds";
+import UserStatsCard from "@/components/profile/UserStatsCard";
 import { DarkModeToggle } from "@/components/ui/DarkModeToggle";
 
 const Profile = () => {
   const { user, loading } = useAuth();
-  const { profile, profileLoading } = useProfileData();
+  const { profile, profileLoading, rounds, roundsLoading } = useProfileData();
 
   if (loading || profileLoading) {
     return (
@@ -43,6 +44,11 @@ const Profile = () => {
             user={user} 
             profile={profile || {}} 
             profileLoading={profileLoading} 
+          />
+          <UserStatsCard 
+            rounds={rounds || []}
+            roundsLoading={roundsLoading}
+            userId={user.id}
           />
           <RecentRounds />
         </div>
