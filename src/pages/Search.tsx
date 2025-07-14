@@ -25,6 +25,7 @@ interface FilterOptions {
   holes: string;
   favoritesOnly: boolean;
   isOpen: boolean;
+  minRating: number;
 }
 
 const Search = () => {
@@ -36,7 +37,8 @@ const Search = () => {
     location: "",
     holes: "",
     favoritesOnly: false,
-    isOpen: false
+    isOpen: false,
+    minRating: 0
   });
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [showFilters, setShowFilters] = useState(false);
@@ -48,7 +50,8 @@ const Search = () => {
       location: "",
       holes: "",
       favoritesOnly: false,
-      isOpen: false
+      isOpen: false,
+      minRating: 0
     });
     setSelectedDate(undefined);
   };

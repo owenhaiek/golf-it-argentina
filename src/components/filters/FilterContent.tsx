@@ -2,12 +2,14 @@
 import { FavoritesFilter } from "./FavoritesFilter";
 import { HolesFilter } from "./HolesFilter";
 import { StatusFilter } from "./StatusFilter";
+import { StarRatingFilter } from "./StarRatingFilter";
 
 type FilterOptions = {
   holes: string;
   location: string;
   isOpen: boolean;
   favoritesOnly: boolean;
+  minRating: number;
 };
 
 interface FilterContentProps {
@@ -21,6 +23,11 @@ export const FilterContent = ({ filters, setFilters }: FilterContentProps) => {
       <FavoritesFilter 
         favoritesOnly={filters.favoritesOnly}
         onToggle={(value) => setFilters({ ...filters, favoritesOnly: value })}
+      />
+      
+      <StarRatingFilter 
+        minRating={filters.minRating}
+        onChange={(rating) => setFilters({ ...filters, minRating: rating })}
       />
       
       <HolesFilter 

@@ -15,6 +15,7 @@ interface FilterOptions {
   holes: string;
   favoritesOnly: boolean;
   isOpen: boolean;
+  minRating: number;
 }
 
 const Home = () => {
@@ -23,7 +24,8 @@ const Home = () => {
     location: "",
     holes: "",
     favoritesOnly: false,
-    isOpen: false
+    isOpen: false,
+    minRating: 0
   });
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
   const [isSearchVisible, setIsSearchVisible] = useState(false);
@@ -48,6 +50,7 @@ const Home = () => {
     if (filterName === 'holes') newFilters.holes = "";
     if (filterName === 'favoritesOnly') newFilters.favoritesOnly = false;
     if (filterName === 'isOpen') newFilters.isOpen = false;
+    if (filterName === 'minRating') newFilters.minRating = 0;
     setActiveFilters(newFilters);
   };
 
@@ -56,7 +59,8 @@ const Home = () => {
       location: "",
       holes: "",
       favoritesOnly: false,
-      isOpen: false
+      isOpen: false,
+      minRating: 0
     });
     setSearchTerm("");
   };

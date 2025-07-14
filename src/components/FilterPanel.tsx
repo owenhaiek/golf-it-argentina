@@ -13,6 +13,7 @@ type FilterOptions = {
   location: string;
   isOpen: boolean;
   favoritesOnly: boolean;
+  minRating: number;
 };
 
 interface FilterPanelProps {
@@ -48,7 +49,8 @@ const FilterPanel = ({
       holes: "",
       location: "",
       isOpen: false,
-      favoritesOnly: false
+      favoritesOnly: false,
+      minRating: 0
     };
     setFilters(resetFilters);
     onApplyFilters(resetFilters);

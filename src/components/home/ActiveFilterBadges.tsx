@@ -1,13 +1,14 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { X, Heart } from "lucide-react";
+import { X, Heart, Star } from "lucide-react";
 
 type FilterOptions = {
   holes: string;
   location: string;
   isOpen: boolean;
   favoritesOnly: boolean;
+  minRating: number;
 };
 
 interface ActiveFilterBadgesProps {
@@ -16,7 +17,7 @@ interface ActiveFilterBadgesProps {
 }
 
 const ActiveFilterBadges = ({ filters, handleResetFilters }: ActiveFilterBadgesProps) => {
-  const hasActiveFilters = filters.holes || filters.location || filters.isOpen || filters.favoritesOnly;
+  const hasActiveFilters = filters.holes || filters.location || filters.isOpen || filters.favoritesOnly || filters.minRating > 0;
 
   if (!hasActiveFilters) return null;
 
@@ -41,6 +42,12 @@ const ActiveFilterBadges = ({ filters, handleResetFilters }: ActiveFilterBadgesP
       {filters.isOpen && (
         <Badge variant="secondary" className="text-green-600">
           Currently Open
+        </Badge>
+      )}
+      {filters.minRating > 0 && (
+        <Badge variant="secondary" className="flex items-center gap-1">
+          <Star size={12} className="text-yellow-500" fill="currentColor" />
+          {filters.minRating === 5 ? "5 Stars" : `${filters.minRating}+ Stars`}
         </Badge>
       )}
       <Button 

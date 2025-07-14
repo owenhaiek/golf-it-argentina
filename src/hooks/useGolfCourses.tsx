@@ -10,6 +10,7 @@ interface FilterOptions {
   holes: string;
   favoritesOnly: boolean;
   isOpen: boolean;
+  minRating: number;
 }
 
 interface GolfCourse {
@@ -77,7 +78,7 @@ export const useGolfCourses = (search: string, filters: FilterOptions) => {
         filteredCourses = filteredCourses.filter(course => favorites.includes(course.id));
       }
 
-      // Apply "currently open" filter - this was the missing logic
+      // Apply "currently open" filter
       if (filters.isOpen) {
         filteredCourses = filteredCourses.filter(course => {
           if (!course.opening_hours) {
@@ -96,6 +97,39 @@ export const useGolfCourses = (search: string, filters: FilterOptions) => {
             return false;
           }
         });
+      }
+
+      // Apply rating filter (fetch and filter by average rating)
+      if (filters.minRating > 0) {
+        // Get course IDs for review query
+        const courseIds = filteredCourses.map(course => course.id);
+        
+        if (courseIds.length > 0) {
+          const { data: reviews, error: reviewError } = await supabase
+            .from('course_reviews')
+            .select('course_id, rating')
+            .in('course_id', courseIds);
+
+          if (!reviewError && reviews) {
+            // Calculate average ratings per course
+            const courseRatings = reviews.reduce((acc, review) => {
+              if (!acc[review.course_id]) {
+                acc[review.course_id] = { total: 0, count: 0 };
+              }
+              acc[review.course_id].total += review.rating;
+              acc[review.course_id].count += 1;
+              return acc;
+            }, {} as Record<string, { total: number; count: number }>);
+
+            // Filter courses by minimum rating
+            filteredCourses = filteredCourses.filter(course => {
+              const ratingData = courseRatings[course.id];
+              if (!ratingData) return false; // No reviews = doesn't meet rating filter
+              const avgRating = ratingData.total / ratingData.count;
+              return avgRating >= filters.minRating;
+            });
+          }
+        }
       }
 
       console.log(`Filtered courses count: ${filteredCourses.length}`);
