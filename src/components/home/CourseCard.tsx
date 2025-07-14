@@ -91,7 +91,7 @@ const CourseCard = ({
               </div>}
             
             <div className="flex items-center justify-between gap-3">
-              <h2 className="text-xl sm:text-2xl font-semibold text-foreground line-clamp-1" style={{ width: '65%' }}>{course.name}</h2>
+              <h2 className="text-xl sm:text-2xl font-semibold text-foreground" style={{ width: '65%' }}>{course.name}</h2>
               <button 
                 onClick={handleMapClick}
                 className="flex items-center justify-center w-10 h-10 text-primary/80 hover:text-white bg-gradient-to-r from-primary/10 to-primary/5 hover:from-primary hover:to-primary/90 rounded-lg border border-primary/20 hover:border-primary shadow-sm hover:shadow-md transition-all duration-300 transform hover:scale-[1.05]"
