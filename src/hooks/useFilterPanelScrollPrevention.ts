@@ -26,6 +26,13 @@ export const useFilterPanelScrollPrevention = (isOpen: boolean) => {
       body.style.height = '100vh';
       html.style.overflow = 'hidden';
       
+      // Also prevent scrolling on the main content area
+      const mainContent = document.querySelector('main');
+      if (mainContent) {
+        mainContent.style.overflow = 'hidden';
+        mainContent.style.height = '100vh';
+      }
+      
       // Prevent all touch and scroll events on background, but allow navigation interaction
       const preventTouch = (e: TouchEvent) => {
         const target = e.target as Element;
@@ -64,6 +71,13 @@ export const useFilterPanelScrollPrevention = (isOpen: boolean) => {
       window.addEventListener('scroll', preventScroll, { passive: false, capture: true });
       
       return () => {
+        // Restore main content styles
+        const mainContent = document.querySelector('main');
+        if (mainContent) {
+          mainContent.style.overflow = '';
+          mainContent.style.height = '';
+        }
+        
         // Restore original styles
         body.style.overflow = originalBodyOverflow;
         body.style.position = originalBodyPosition;

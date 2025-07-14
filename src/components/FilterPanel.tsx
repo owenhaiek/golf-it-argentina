@@ -68,13 +68,13 @@ const FilterPanel = ({
         }`}
         style={{
           transform: `translateY(${isOpen ? dragOffset : 100}%)`,
-          bottom: '80px',
+          bottom: '64px',
           height: 'auto',
-          maxHeight: 'calc(100vh - 160px)',
+          maxHeight: 'calc(100vh - 64px)',
           touchAction: 'none'
         }}
       >
-        <Card className="rounded-t-2xl border-b-0 shadow-2xl bg-card text-card-foreground w-full flex flex-col">
+        <Card className="rounded-t-2xl rounded-b-none border-b-0 shadow-2xl bg-card text-card-foreground w-full flex flex-col">
           <FilterPanelDragHandle
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
