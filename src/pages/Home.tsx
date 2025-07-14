@@ -8,7 +8,8 @@ import FilterPanel from "@/components/FilterPanel";
 import ActiveFilterBadges from "@/components/home/ActiveFilterBadges";
 import { Button } from "@/components/ui/button";
 import { Filter, Search } from "lucide-react";
-import { useGolfCourses } from "@/hooks/useGolfCourses";
+import { useOptimizedGolfCourses } from "@/hooks/useOptimizedGolfCourses";
+import { useDataPrefetch } from "@/hooks/useDataPrefetch";
 
 interface FilterOptions {
   location: string;
@@ -31,8 +32,11 @@ const Home = () => {
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const { user } = useAuth();
 
-  // Use the useGolfCourses hook instead of local filtering
-  const { courses, isLoading, currentTime } = useGolfCourses(searchTerm, activeFilters);
+  // Initialize data prefetching for background loading
+  useDataPrefetch();
+
+  // Use the optimized golf courses hook for better performance
+  const { courses, isLoading, currentTime } = useOptimizedGolfCourses(searchTerm, activeFilters);
 
   const handleSearch = (term: string) => {
     setSearchTerm(term);

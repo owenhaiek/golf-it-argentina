@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import OptimizedImage from "@/components/ui/OptimizedImage";
 
 interface TouchCarouselProps {
   images: string[];
@@ -189,19 +190,11 @@ const TouchCarousel = ({ images, courseName, courseId }: TouchCarouselProps) => 
       >
         {images.map((image, index) => (
           <div key={`${courseId}-${index}`} className="w-full h-full flex-shrink-0 relative">
-            {!imagesLoaded[index] && (
-              <div className="absolute inset-0 bg-secondary/10 flex items-center justify-center">
-                <div className="w-6 h-6 border-2 border-primary/30 border-t-transparent rounded-full animate-spin"></div>
-              </div>
-            )}
-            <img
+            <OptimizedImage
               src={image}
               alt={`${courseName} - imagen ${index + 1}`}
-              className={`w-full h-full object-cover transition-opacity duration-300 select-none ${
-                imagesLoaded[index] ? 'opacity-100' : 'opacity-0'
-              }`}
-              draggable={false}
-              loading="lazy"
+              className="w-full h-full object-cover select-none"
+              priority={index === 0} // Prioritize first image
               onLoad={() =>
                 setImagesLoaded(prev => {
                   const newState = [...prev];
@@ -209,14 +202,13 @@ const TouchCarousel = ({ images, courseName, courseId }: TouchCarouselProps) => 
                   return newState;
                 })
               }
-              onError={e => {
-                (e.target as HTMLImageElement).src = 'https://placehold.co/600x400?text=Image+Error';
+              onError={() =>
                 setImagesLoaded(prev => {
                   const newState = [...prev];
                   newState[index] = true;
                   return newState;
-                });
-              }}
+                })
+              }
             />
           </div>
         ))}
