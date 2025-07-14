@@ -68,9 +68,9 @@ const FilterPanel = ({
         }`}
         style={{
           transform: `translateY(${isOpen ? dragOffset : 100}%)`,
-          bottom: '64px',
+          bottom: '80px',
           height: 'auto',
-          maxHeight: '60vh',
+          maxHeight: 'calc(100vh - 160px)',
           touchAction: 'none'
         }}
       >
@@ -84,7 +84,7 @@ const FilterPanel = ({
           
           <FilterPanelHeader onClose={onClose} onReset={handleResetFilters} />
 
-          <div className="px-6 pb-24 pt-2 overflow-y-auto">
+          <div className="px-6 pb-6 pt-2 overflow-y-auto max-h-full">
             <FilterContent filters={filters} setFilters={setFilters} />
           </div>
         </Card>
