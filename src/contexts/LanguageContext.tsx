@@ -141,7 +141,11 @@ const translations: Record<LanguageType, TranslationDictionary> = {
       noRoundsRecorded: "No rounds recorded yet",
       addFirstRound: "Add your first round",
       noStatsAvailable: "No statistics available yet",
-      startPlayingStats: "Start playing to see your stats!"
+      startPlayingStats: "Start playing to see your stats!",
+      noHandicapYet: "No handicap yet",
+      playerStatistics: "Player Statistics",
+      recentRounds: "Recent Rounds",
+      recordFirstRound: "Record your first round"
     },
     filters: {
       showFavorites: "Show Favorites",
@@ -388,7 +392,11 @@ const translations: Record<LanguageType, TranslationDictionary> = {
       noRoundsRecorded: "Aún no hay rondas registradas",
       addFirstRound: "Añadir tu primera ronda",
       noStatsAvailable: "Aún no hay estadísticas disponibles",
-      startPlayingStats: "¡Empieza a jugar para ver tus estadísticas!"
+      startPlayingStats: "¡Empieza a jugar para ver tus estadísticas!",
+      noHandicapYet: "Aún sin hándicap",
+      playerStatistics: "Estadísticas del Jugador",
+      recentRounds: "Rondas Recientes",
+      recordFirstRound: "Registra tu primera ronda"
     },
     filters: {
       showFavorites: "Mostrar Canchas Favoritas",

@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import RoundScoreDialog from "./RoundScoreDialog";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Round {
   id: string;
@@ -32,6 +33,7 @@ interface UserRecentRoundsProps {
 
 const UserRecentRounds = ({ rounds, roundsLoading }: UserRecentRoundsProps) => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [showAllRounds, setShowAllRounds] = useState(false);
   const [displayLimit, setDisplayLimit] = useState(5);
   const [selectedRound, setSelectedRound] = useState<Round | null>(null);
@@ -117,7 +119,7 @@ const UserRecentRounds = ({ rounds, roundsLoading }: UserRecentRoundsProps) => {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Recent Rounds</CardTitle>
+          <CardTitle className="text-lg">{t("profile", "recentRounds")}</CardTitle>
         </CardHeader>
         <CardContent className="flex items-center justify-center py-8">
           <Loader2 className="h-8 w-8 animate-spin" />
@@ -130,11 +132,11 @@ const UserRecentRounds = ({ rounds, roundsLoading }: UserRecentRoundsProps) => {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Recent Rounds</CardTitle>
+          <CardTitle className="text-lg">{t("profile", "recentRounds")}</CardTitle>
         </CardHeader>
         <CardContent className="text-center py-8">
           <Trophy className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-          <p className="text-muted-foreground">No rounds recorded yet</p>
+          <p className="text-muted-foreground">{t("profile", "noRoundsRecorded")}</p>
         </CardContent>
       </Card>
     );
@@ -153,7 +155,7 @@ const UserRecentRounds = ({ rounds, roundsLoading }: UserRecentRoundsProps) => {
     <>
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Recent Rounds</CardTitle>
+          <CardTitle className="text-lg">{t("profile", "recentRounds")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {roundsToShow.map((round) => {

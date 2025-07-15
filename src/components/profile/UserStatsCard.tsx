@@ -91,7 +91,7 @@ const UserStatsCard = ({
     return <Card className="mx-4 sm:mx-0 overflow-hidden shadow-lg">
         <CardHeader className="pb-4 px-4 sm:px-6 bg-gradient-to-r from-primary/10 via-primary/5 to-secondary/10">
           <CardTitle className="text-lg sm:text-xl font-bold text-center bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            Player Statistics
+            {t("profile", "playerStatistics")}
           </CardTitle>
         </CardHeader>
         <CardContent className="px-4 sm:px-6 py-6">
@@ -114,7 +114,7 @@ const UserStatsCard = ({
     return <Card className="mx-4 sm:mx-0 overflow-hidden shadow-lg">
         <CardHeader className="pb-4 px-4 sm:px-6 bg-gradient-to-r from-primary/10 via-primary/5 to-secondary/10">
           <CardTitle className="text-lg sm:text-xl font-bold text-center bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            Player Statistics
+            {t("profile", "playerStatistics")}
           </CardTitle>
         </CardHeader>
         <CardContent className="text-center py-8 px-4 sm:px-6">
@@ -168,7 +168,7 @@ const UserStatsCard = ({
   return <Card className="mx-4 sm:mx-0 overflow-hidden shadow-lg border border-border/50">
       <CardHeader className="pb-4 px-4 sm:px-6 bg-gradient-to-r from-primary/10 via-primary/5 to-secondary/10">
         <CardTitle className="text-lg sm:text-xl font-bold text-center bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-          Player Statistics
+          {t("profile", "playerStatistics")}
         </CardTitle>
       </CardHeader>
       <CardContent className="px-4 sm:px-6 py-6">
