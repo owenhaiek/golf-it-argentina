@@ -31,7 +31,7 @@ const Profile = () => {
 
   return (
     <div className="h-screen flex flex-col">
-      <div className="flex-shrink-0 p-4 bg-background border-b border-border">
+      <div className="flex-shrink-0 p-4 bg-background border-b border-border sticky top-0 z-40">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold text-foreground">Profile</h1>
           <DarkModeToggle />
