@@ -68,7 +68,7 @@ const Home = () => {
   return (
     <div className="h-screen flex flex-col">
       {/* Sticky Header with logo, title and search */}
-      <div className="flex-shrink-0 p-4 bg-background border-b sticky top-0 z-40">
+      <div className="flex-shrink-0 p-4 bg-background border-b border-border sticky top-0 z-40 touch-none">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 relative">
