@@ -137,7 +137,11 @@ const translations: Record<LanguageType, TranslationDictionary> = {
       noRounds: "You haven't recorded any rounds yet.",
       addRound: "Add Round",
       account: "Account",
-      holes: "Holes"
+      holes: "Holes",
+      noRoundsRecorded: "No rounds recorded yet",
+      addFirstRound: "Add your first round",
+      noStatsAvailable: "No statistics available yet",
+      startPlayingStats: "Start playing to see your stats!"
     },
     filters: {
       showFavorites: "Show Favorites",
@@ -380,7 +384,11 @@ const translations: Record<LanguageType, TranslationDictionary> = {
       noRounds: "Aún no has registrado ninguna ronda.",
       addRound: "Añadir Ronda",
       account: "Cuenta",
-      holes: "Hoyos"
+      holes: "Hoyos",
+      noRoundsRecorded: "Aún no hay rondas registradas",
+      addFirstRound: "Añadir tu primera ronda",
+      noStatsAvailable: "Aún no hay estadísticas disponibles",
+      startPlayingStats: "¡Empieza a jugar para ver tus estadísticas!"
     },
     filters: {
       showFavorites: "Mostrar Canchas Favoritas",

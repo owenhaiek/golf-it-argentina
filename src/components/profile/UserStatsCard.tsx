@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Trophy, TrendingUp, Flag, Star } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Round {
   id: string;
@@ -21,6 +22,8 @@ interface UserStatsCardProps {
 }
 
 const UserStatsCard = ({ rounds, roundsLoading, userId }: UserStatsCardProps) => {
+  const { t } = useLanguage();
+  
   // Query to fetch ALL rounds for accurate statistics (when userId is provided)
   const {
     data: allRounds,
@@ -126,8 +129,8 @@ const UserStatsCard = ({ rounds, roundsLoading, userId }: UserStatsCardProps) =>
         <CardContent className="text-center py-8 px-4 sm:px-6">
           <div className="bg-gray-100 dark:bg-gray-800 hover:bg-primary/10 dark:hover:bg-primary/20 rounded-xl p-8 transition-colors duration-300">
             <Trophy className="h-12 w-12 sm:h-16 sm:w-16 mx-auto mb-4 text-muted-foreground" />
-            <p className="text-muted-foreground text-sm sm:text-base font-medium">No statistics available yet</p>
-            <p className="text-muted-foreground/70 text-xs sm:text-sm mt-1">Start playing to see your stats!</p>
+            <p className="text-muted-foreground text-sm sm:text-base font-medium">{t("profile", "noStatsAvailable")}</p>
+            <p className="text-muted-foreground/70 text-xs sm:text-sm mt-1">{t("profile", "startPlayingStats")}</p>
           </div>
         </CardContent>
       </Card>
