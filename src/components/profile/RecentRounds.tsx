@@ -20,10 +20,12 @@ import { useNavigate } from "react-router-dom";
 import { useProfileQueries } from "@/hooks/useProfileQueries";
 import { useState } from "react";
 import RoundScoreDialog from "./RoundScoreDialog";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const RecentRounds = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const { rounds, roundsLoading, deletingRoundId, handleDeleteRound } = useProfileQueries();
   const [selectedRound, setSelectedRound] = useState<any>(null);
   const [isScoreDialogOpen, setIsScoreDialogOpen] = useState(false);
@@ -109,7 +111,7 @@ const RecentRounds = () => {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Recent Rounds</CardTitle>
+          <CardTitle className="text-lg">{t("profile", "recentRounds")}</CardTitle>
         </CardHeader>
         <CardContent className="flex items-center justify-center py-8">
           <Loader2 className="h-8 w-8 animate-spin" />
@@ -122,13 +124,13 @@ const RecentRounds = () => {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Recent Rounds</CardTitle>
+          <CardTitle className="text-lg">{t("profile", "recentRounds")}</CardTitle>
         </CardHeader>
         <CardContent className="text-center py-8">
           <Trophy className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-          <p className="text-muted-foreground mb-4">No rounds recorded yet</p>
+          <p className="text-muted-foreground mb-4">{t("profile", "noRoundsRecorded")}</p>
           <Button onClick={() => navigate('/add-round')}>
-            Record Your First Round
+            {t("profile", "recordFirstRound")}
           </Button>
         </CardContent>
       </Card>
@@ -152,7 +154,7 @@ const RecentRounds = () => {
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">
-            {showAllRounds ? "All Rounds" : "Recent Rounds"}
+            {showAllRounds ? t("profile", "allRounds") : t("profile", "recentRounds")}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -170,15 +172,15 @@ const RecentRounds = () => {
               let ScoreIcon;
               
               if (scoreDiff < 0) {
-                scoreStatus = `${Math.abs(scoreDiff)} under par`;
+                scoreStatus = `${Math.abs(scoreDiff)} ${t("profile", "underPar")}`;
                 scoreColor = "text-green-600";
                 ScoreIcon = Minus;
               } else if (scoreDiff > 0) {
-                scoreStatus = `${scoreDiff} over par`;
+                scoreStatus = `${scoreDiff} ${t("profile", "overPar")}`;
                 scoreColor = "text-red-600";
                 ScoreIcon = Plus;
               } else {
-                scoreStatus = "At par";
+                scoreStatus = t("profile", "atPar");
                 scoreColor = "text-blue-600";
                 ScoreIcon = Check;
               }
@@ -236,7 +238,7 @@ const RecentRounds = () => {
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-2">
                         <Trophy className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm text-muted-foreground">Score:</span>
+                        <span className="text-sm text-muted-foreground">{t("profile", "score")}:</span>
                         <Badge variant="secondary" className="text-lg font-bold">
                           {round.score}
                         </Badge>
@@ -250,7 +252,7 @@ const RecentRounds = () => {
 
                     {round.notes && (
                       <div className="mt-3 p-2 bg-muted rounded text-sm">
-                        <strong>Notes:</strong> {round.notes}
+                        <strong>{t("profile", "notes")}:</strong> {round.notes}
                       </div>
                     )}
                   </CardContent>
@@ -262,7 +264,7 @@ const RecentRounds = () => {
           {!showAllRounds && rounds.length >= 5 && (
             <div className="text-center">
               <Button variant="link" onClick={handleViewAllRounds}>
-                View All Rounds
+                {t("profile", "viewAllRounds")}
               </Button>
             </div>
           )}
@@ -270,7 +272,7 @@ const RecentRounds = () => {
           {showAllRounds && (
             <div className="text-center">
               <Button variant="link" onClick={handleShowLess}>
-                Show Less
+                {t("profile", "showLess")}
               </Button>
             </div>
           )}
@@ -286,15 +288,15 @@ const RecentRounds = () => {
       <AlertDialog open={!!roundToDelete} onOpenChange={(open) => !open && cancelDelete()}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Round</AlertDialogTitle>
+            <AlertDialogTitle>{t("profile", "deleteRound")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this round? This action cannot be undone.
+              {t("profile", "deleteRoundConfirm")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={cancelDelete}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel onClick={cancelDelete}>{t("common", "cancel")}</AlertDialogCancel>
             <AlertDialogAction onClick={confirmDelete} className="bg-destructive hover:bg-destructive/90">
-              Delete Round
+              {t("profile", "deleteRound")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -6,10 +6,12 @@ import ProfileCard from "@/components/profile/ProfileCard";
 import RecentRounds from "@/components/profile/RecentRounds";
 import UserStatsCard from "@/components/profile/UserStatsCard";
 import { DarkModeToggle } from "@/components/ui/DarkModeToggle";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Profile = () => {
   const { user, loading } = useAuth();
   const { profile, profileLoading, rounds, roundsLoading } = useProfileData();
+  const { t } = useLanguage();
 
   if (loading || profileLoading) {
     return (
@@ -33,7 +35,7 @@ const Profile = () => {
     <div className="h-screen flex flex-col">
       <div className="flex-shrink-0 p-4 bg-background border-b border-border sticky top-0 z-40 touch-none">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-foreground">Profile</h1>
+          <h1 className="text-2xl font-bold text-foreground">{t("common", "profile")}</h1>
           <DarkModeToggle />
         </div>
       </div>
