@@ -32,7 +32,7 @@ const SearchBar = ({ search, setSearch, isVisible }: SearchBarProps) => {
         placeholder={t("common", "search")} 
         value={search} 
         onChange={e => setSearch(e.target.value)} 
-        className="w-full" 
+        className="w-full h-9 text-sm" 
       />
     </div>
   );
