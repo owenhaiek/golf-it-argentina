@@ -69,7 +69,7 @@ const Home = () => {
     <div className="h-screen flex flex-col">
       {/* Sticky Header with logo, title and search */}
       <div className="flex-shrink-0 p-4 bg-background border-b border-border sticky top-0 z-40 touch-none">
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center justify-between">
           {/* Logo and Title - always visible */}
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 relative">
@@ -78,17 +78,20 @@ const Home = () => {
             <h1 className="text-2xl font-bold text-foreground">GolfIt</h1>
           </div>
           
-          {/* Search Input - slides in when active, replacing search icon */}
-          {isSearchVisible ? (
-            <div className="flex-1 max-w-xs">
+          {/* Search Icon - always visible */}
+          <Button variant="ghost" size="icon" onClick={() => setIsSearchVisible(true)} className="flex-shrink-0">
+            <Search className="h-5 w-5" />
+          </Button>
+        </div>
+        
+        {/* Search Overlay - slides down elegantly */}
+        {isSearchVisible && (
+          <div className="absolute left-0 right-0 top-full bg-background/95 backdrop-blur-sm border-b border-border animate-slideDown z-50">
+            <div className="p-4">
               <SearchBar search={searchTerm} setSearch={handleSearch} isVisible={isSearchVisible} onClose={() => setIsSearchVisible(false)} />
             </div>
-          ) : (
-            <Button variant="ghost" size="icon" onClick={() => setIsSearchVisible(true)} className="flex-shrink-0">
-              <Search className="h-5 w-5" />
-            </Button>
-          )}
-        </div>
+          </div>
+        )}
         
         {/* Active Filter Badges */}
         <ActiveFilterBadges filters={activeFilters} handleResetFilters={handleResetFilters} />
