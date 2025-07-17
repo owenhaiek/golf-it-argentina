@@ -81,9 +81,9 @@ const Home = () => {
           </Button>
         </div>
         
-        {/* Search Bar - conditionally rendered */}
+        {/* Search Bar - conditionally rendered with better mobile positioning */}
         {isSearchVisible && (
-          <div className="mt-4">
+          <div className="mt-4 px-4">
             <SearchBar search={searchTerm} setSearch={handleSearch} isVisible={isSearchVisible} />
           </div>
         )}
