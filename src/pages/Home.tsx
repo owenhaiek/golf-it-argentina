@@ -70,27 +70,24 @@ const Home = () => {
       {/* Sticky Header with logo, title and search */}
       <div className="flex-shrink-0 p-4 bg-background border-b border-border sticky top-0 z-40 touch-none">
         <div className="flex items-center justify-between gap-3">
-          {/* Logo and Title - hidden when search is active */}
-          {!isSearchVisible && (
-            <div className="flex items-center gap-3 flex-1">
-              <div className="w-12 h-12 relative">
-                <img src="/lovable-uploads/419a6f14-cf7f-486d-b411-be08939987f8.png" alt="Golf App Logo" className="w-full h-full object-contain rounded-full" />
-              </div>
-              <h1 className="text-2xl font-bold text-foreground">GolfIt</h1>
+          {/* Logo and Title - always visible */}
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 relative">
+              <img src="/lovable-uploads/419a6f14-cf7f-486d-b411-be08939987f8.png" alt="Golf App Logo" className="w-full h-full object-contain rounded-full" />
             </div>
-          )}
+            <h1 className="text-2xl font-bold text-foreground">GolfIt</h1>
+          </div>
           
-          {/* Search Input - slides in when active */}
-          {isSearchVisible && (
-            <div className="flex-1">
-              <SearchBar search={searchTerm} setSearch={handleSearch} isVisible={isSearchVisible} />
+          {/* Search Input - slides in when active, replacing search icon */}
+          {isSearchVisible ? (
+            <div className="flex-1 max-w-xs">
+              <SearchBar search={searchTerm} setSearch={handleSearch} isVisible={isSearchVisible} onClose={() => setIsSearchVisible(false)} />
             </div>
+          ) : (
+            <Button variant="ghost" size="icon" onClick={() => setIsSearchVisible(true)} className="flex-shrink-0">
+              <Search className="h-5 w-5" />
+            </Button>
           )}
-          
-          {/* Search Icon - always visible on the right */}
-          <Button variant="ghost" size="icon" onClick={() => setIsSearchVisible(!isSearchVisible)} className="flex-shrink-0">
-            <Search className="h-5 w-5" />
-          </Button>
         </div>
         
         {/* Active Filter Badges */}
