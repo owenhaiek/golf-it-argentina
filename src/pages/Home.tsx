@@ -99,7 +99,7 @@ const Home = () => {
 
       <ScrollArea className="flex-1">
         {/* Mobile: no padding left/right, Desktop: normal padding */}
-        <div className="py-4 px-0 md:p-4 pb-28">
+        <div className={`py-4 px-0 md:p-4 pb-28 ${isSearchVisible ? 'pt-20' : ''}`}>
           <CourseList courses={courses} isLoading={isLoading} currentTime={currentTime} handleResetFilters={handleResetFilters} />
         </div>
       </ScrollArea>
