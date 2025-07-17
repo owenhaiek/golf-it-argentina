@@ -25,7 +25,7 @@ const SearchBar = ({ search, setSearch, isVisible }: SearchBarProps) => {
   if (!isVisible) return null;
   
   return (
-    <div className="animate-in slide-in-from-right duration-300">
+    <div className="animate-slideInRight">
       <Input 
         ref={inputRef}
         type="text" 
