@@ -18,10 +18,8 @@ const SearchBar = ({ search, setSearch, isVisible, onClose }: SearchBarProps) =>
   
   useEffect(() => {
     if (isVisible && inputRef.current) {
-      // Focus immediately to show keyboard
-      setTimeout(() => {
-        inputRef.current?.focus();
-      }, 200); // Delay to let animation play
+      // Focus immediately to show keyboard without delay
+      inputRef.current.focus();
     }
   }, [isVisible]);
   
@@ -29,7 +27,7 @@ const SearchBar = ({ search, setSearch, isVisible, onClose }: SearchBarProps) =>
   
   return (
     <div className="animate-scaleIn">
-      <div className="flex items-center gap-3 bg-muted/50 rounded-lg p-3 border border-border/50">
+      <div className="flex items-center gap-3 bg-muted/50 rounded-lg p-3 border border-border/50 relative">
         <Search className="h-4 w-4 text-muted-foreground" />
         <Input 
           ref={inputRef}
@@ -37,13 +35,13 @@ const SearchBar = ({ search, setSearch, isVisible, onClose }: SearchBarProps) =>
           placeholder={t("common", "search")} 
           value={search} 
           onChange={e => setSearch(e.target.value)} 
-          className="flex-1 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto text-base" 
+          className="flex-1 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto text-base pr-10" 
         />
         <Button 
           variant="ghost" 
           size="sm" 
           onClick={onClose} 
-          className="h-8 w-8 p-0 hover:bg-destructive/10 hover:text-destructive"
+          className="absolute right-2 h-8 w-8 p-0 hover:bg-destructive/10 hover:text-destructive"
         >
           <X className="h-4 w-4" />
         </Button>
