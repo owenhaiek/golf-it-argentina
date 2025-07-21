@@ -67,7 +67,10 @@ const translations: Record<LanguageType, TranslationDictionary> = {
       resetFilters: "Reset Filters",
       openNow: "Open Now",
       closed: "Closed",
-      openInMap: "Open in Map"
+      openInMap: "Open in Map",
+      location: "Location",
+      hours: "Hours",
+      today: "Today"
     },
     course: {
       holes: "Holes",
@@ -341,7 +344,10 @@ const translations: Record<LanguageType, TranslationDictionary> = {
       resetFilters: "Restablecer Filtros",
       openNow: "Abierto Ahora",
       closed: "Cerrado",
-      openInMap: "Ver en Mapa"
+      openInMap: "Ver en Mapa",
+      location: "Ubicación",
+      hours: "Horario",
+      today: "Hoy de"
     },
     course: {
       holes: "Hoyos",
