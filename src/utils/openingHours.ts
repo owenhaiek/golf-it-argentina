@@ -36,6 +36,15 @@ export const formatOpeningHoursForDisplay = (openingHours: OpeningHours | null):
 };
 
 /**
+ * Get current date and time in Argentina timezone (UTC-3)
+ */
+const getArgentinaTime = (): Date => {
+  const now = new Date();
+  const utcTime = now.getTime() + (now.getTimezoneOffset() * 60000);
+  return new Date(utcTime + (-3 * 3600000)); // UTC-3
+};
+
+/**
  * Checks if a golf course is currently open based on its opening hours
  * This is the unified function that will be used across the app
  */
@@ -43,10 +52,7 @@ export const isCurrentlyOpen = (openingHours: OpeningHours | null): boolean => {
   if (!openingHours || !Array.isArray(openingHours)) return false;
   
   // Get current day in Argentina timezone (UTC-3)
-  const now = new Date();
-  // Calculate Argentina time by adding UTC offset (-3 hours = -180 minutes)
-  const utcTime = now.getTime() + (now.getTimezoneOffset() * 60000);
-  const argentinaTime = new Date(utcTime + (-3 * 3600000)); // UTC-3
+  const argentinaTime = getArgentinaTime();
   const today = argentinaTime.getDay();
   
   // Convert to our array index (0 = Monday, 6 = Sunday)
@@ -91,9 +97,7 @@ export const formatOpeningHours = (openingHours: OpeningHours | null, dayIndex?:
   }
   
   // Otherwise return today's hours in Argentina timezone
-  const now = new Date();
-  const utcTime = now.getTime() + (now.getTimezoneOffset() * 60000);
-  const argentinaTime = new Date(utcTime + (-3 * 3600000)); // UTC-3
+  const argentinaTime = getArgentinaTime();
   const today = argentinaTime.getDay();
   // Convert Sunday (0) to our array index (6)
   const adjustedDay = today === 0 ? 6 : today - 1;
@@ -116,10 +120,7 @@ export const getDayName = (dayIndex: number): string => {
  */
 export const getCurrentDayIndex = (): number => {
   const now = new Date();
-  
-  // Calculate Argentina time by adding UTC offset (-3 hours = -180 minutes)
-  const utcTime = now.getTime() + (now.getTimezoneOffset() * 60000);
-  const argentinaTime = new Date(utcTime + (-3 * 3600000)); // UTC-3
+  const argentinaTime = getArgentinaTime();
   const today = argentinaTime.getDay();
   
   // Debug logging
