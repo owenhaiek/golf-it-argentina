@@ -36,30 +36,42 @@ export const formatOpeningHoursForDisplay = (openingHours: OpeningHours | null):
 };
 
 /**
- * Get current day index in Argentina timezone - SIMPLIFIED
+ * Get current day index in Argentina timezone - BASIC VERSION
  */
 const getArgentinaDayIndex = (): number => {
-  const now = new Date();
+  console.log('=== ARGENTINA TIMEZONE DEBUG START ===');
   
-  // Simple approach: Get current hour in UTC and adjust for Argentina (UTC-3)
-  const utcHour = now.getUTCHours();
-  const argentinaHour = utcHour - 3; // Argentina is UTC-3
-  
-  // If it's before midnight in Argentina (negative hour), it's the previous day
-  let argentinaDay = now.getUTCDay();
-  if (argentinaHour < 0) {
-    argentinaDay = argentinaDay === 0 ? 6 : argentinaDay - 1; // Previous day
+  try {
+    const now = new Date();
+    console.log('Current time object created successfully');
+    
+    // Simple approach: Get current hour in UTC and adjust for Argentina (UTC-3)
+    const utcHour = now.getUTCHours();
+    const argentinaHour = utcHour - 3; // Argentina is UTC-3
+    
+    console.log('UTC Hour:', utcHour);
+    console.log('Argentina Hour (UTC-3):', argentinaHour);
+    
+    // If it's before midnight in Argentina (negative hour), it's the previous day
+    let argentinaDay = now.getUTCDay();
+    if (argentinaHour < 0) {
+      argentinaDay = argentinaDay === 0 ? 6 : argentinaDay - 1; // Previous day
+      console.log('Adjusted for previous day');
+    }
+    
+    console.log('UTC Day:', now.getUTCDay());
+    console.log('Argentina Day:', argentinaDay);
+    
+    // Convert to our array format (0=Monday, 6=Sunday)
+    const dayIndex = argentinaDay === 0 ? 6 : argentinaDay - 1;
+    console.log('Final day index (0=Monday, 6=Sunday):', dayIndex);
+    console.log('=== ARGENTINA TIMEZONE DEBUG END ===');
+    
+    return dayIndex;
+  } catch (error) {
+    console.error('Error in timezone calculation:', error);
+    return 0; // Default to Monday
   }
-  
-  console.log('🕒 UTC time:', now.toUTCString());
-  console.log('🇦🇷 UTC hour:', utcHour, 'Argentina hour:', argentinaHour);
-  console.log('📅 UTC day:', now.getUTCDay(), 'Argentina day:', argentinaDay);
-  
-  // Convert to our array format (0=Monday, 6=Sunday)
-  const dayIndex = argentinaDay === 0 ? 6 : argentinaDay - 1;
-  console.log('📊 Final day index (0=Monday, 6=Sunday):', dayIndex);
-  
-  return dayIndex;
 };
 
 /**
@@ -136,6 +148,7 @@ export const getDayName = (dayIndex: number): string => {
  * Get current day index in Argentina timezone
  */
 export const getCurrentDayIndex = (): number => {
-  console.log('🚀 getCurrentDayIndex called - SIMPLIFIED VERSION');
+  console.log('🚀 getCurrentDayIndex called - BASIC VERSION');
+  console.log('Function exists and is being called');
   return getArgentinaDayIndex();
 };
