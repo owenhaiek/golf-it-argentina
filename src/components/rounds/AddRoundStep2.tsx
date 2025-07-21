@@ -33,10 +33,10 @@ const AddRoundStep2 = ({
     <div className="space-y-6">
       <div className="text-center">
         <h2 className="text-2xl font-bold text-foreground mb-2">
-          Round Details
+          {t("addRound", "roundDetails") || "Round Details"}
         </h2>
         <p className="text-muted-foreground">
-          How many holes did you play?
+          {t("addRound", "howManyHoles") || "How many holes did you play?"}
         </p>
       </div>
 
@@ -63,7 +63,7 @@ const AddRoundStep2 = ({
                     {selectedCourseData.name}
                   </h3>
                   <Badge variant="secondary" className="ml-2 text-xs">
-                    Selected
+                    {t("addRound", "selected") || "Selected"}
                   </Badge>
                 </div>
                 
@@ -112,13 +112,13 @@ const AddRoundStep2 = ({
           onClick={onBack}
           className="flex-1 bg-gray-200 text-gray-800 py-3 px-4 rounded-lg font-medium hover:bg-gray-300 transition-colors"
         >
-          Back
+          {t("common", "back") || "Back"}
         </button>
         <button
           onClick={onNext}
           className="flex-1 bg-primary text-white py-3 px-4 rounded-lg font-medium hover:bg-primary/90 transition-colors"
         >
-          Add Scores
+          {t("addRound", "addScores") || "Add Scores"}
         </button>
       </div>
     </div>

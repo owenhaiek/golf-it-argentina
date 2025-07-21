@@ -26,7 +26,7 @@ const AddRoundStep1 = ({
           {t("addRound", "selectCourse") || "Select Golf Course"}
         </h2>
         <p className="text-muted-foreground">
-          Choose the golf course where you played your round
+          {t("addRound", "chooseCourse") || "Choose the golf course where you played your round"}
         </p>
       </div>
       
@@ -35,7 +35,7 @@ const AddRoundStep1 = ({
         isLoading={isLoadingCourses}
         selectedCourse={selectedCourse}
         onSelectCourse={onSelectCourse}
-        placeholder="Search and select golf course..."
+        placeholder={t("addRound", "searchCourse") || "Search and select golf course..."}
       />
       
       {selectedCourse && (
@@ -43,7 +43,7 @@ const AddRoundStep1 = ({
           onClick={onNext}
           className="w-full bg-primary text-white py-3 px-4 rounded-lg font-medium hover:bg-primary/90 transition-colors"
         >
-          Continue
+          {t("common", "continue") || "Continue"}
         </button>
       )}
     </div>

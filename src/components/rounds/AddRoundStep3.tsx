@@ -31,10 +31,10 @@ const AddRoundStep3 = ({
   return <div className="space-y-6">
       <div className="text-center">
         <h2 className="text-2xl font-bold text-foreground mb-2">
-          Enter Your Scores
+          {t("addRound", "enterScores") || "Enter Your Scores"}
         </h2>
         <p className="text-muted-foreground">
-          Add your score for each hole
+          {t("addRound", "addScoreHole") || "Add your score for each hole"}
         </p>
       </div>
       
@@ -44,10 +44,10 @@ const AddRoundStep3 = ({
       
       <div className="flex gap-3">
         <Button onClick={onBack} variant="outline" className="flex-1" disabled={isSubmitting}>
-          Back
+          {t("common", "back") || "Back"}
         </Button>
         <Button onClick={handleSubmit} className="flex-1" disabled={isSubmitting}>
-          {isSubmitting ? "Saving..." : "Save Round"}
+          {isSubmitting ? (t("addRound", "saving") || "Saving...") : (t("addRound", "saveRound") || "Save Round")}
         </Button>
       </div>
     </div>;
