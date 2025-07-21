@@ -42,16 +42,17 @@ export const formatOpeningHoursForDisplay = (openingHours: OpeningHours | null):
 export const isCurrentlyOpen = (openingHours: OpeningHours | null): boolean => {
   if (!openingHours || !Array.isArray(openingHours)) return false;
   
-  // Get current day (0 = Sunday, 1 = Monday, etc.)
+  // Get current day in Argentina timezone (UTC-3)
   const now = new Date();
-  const today = now.getDay();
+  const argentinaTime = new Date(now.toLocaleString("en-US", {timeZone: "America/Argentina/Buenos_Aires"}));
+  const today = argentinaTime.getDay();
   
   // Convert to our array index (0 = Monday, 6 = Sunday)
   const dayIndex = today === 0 ? 6 : today - 1;
   
-  // Get current time
-  const currentHour = now.getHours();
-  const currentMinute = now.getMinutes();
+  // Get current time in Argentina timezone
+  const currentHour = argentinaTime.getHours();
+  const currentMinute = argentinaTime.getMinutes();
   
   // Get today's opening hours
   const todayHours = openingHours[dayIndex];
@@ -87,9 +88,10 @@ export const formatOpeningHours = (openingHours: OpeningHours | null, dayIndex?:
     return `${day.open} - ${day.close}`;
   }
   
-  // Otherwise return today's hours
+  // Otherwise return today's hours in Argentina timezone
   const now = new Date();
-  const today = now.getDay();
+  const argentinaTime = new Date(now.toLocaleString("en-US", {timeZone: "America/Argentina/Buenos_Aires"}));
+  const today = argentinaTime.getDay();
   // Convert Sunday (0) to our array index (6)
   const adjustedDay = today === 0 ? 6 : today - 1;
   const todayHours = openingHours[adjustedDay];
@@ -107,10 +109,12 @@ export const getDayName = (dayIndex: number): string => {
 };
 
 /**
- * Get current day index
+ * Get current day index in Argentina timezone
  */
 export const getCurrentDayIndex = (): number => {
-  const today = new Date().getDay();
+  const now = new Date();
+  const argentinaTime = new Date(now.toLocaleString("en-US", {timeZone: "America/Argentina/Buenos_Aires"}));
+  const today = argentinaTime.getDay();
   // Convert Sunday (0) to our array index (6)
   return today === 0 ? 6 : today - 1;
 };
