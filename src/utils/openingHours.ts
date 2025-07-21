@@ -44,16 +44,17 @@ export const isCurrentlyOpen = (openingHours: OpeningHours | null): boolean => {
   
   // Get current day in Argentina timezone (UTC-3)
   const now = new Date();
-  // Create a new date in Argentina timezone
-  const argentinaDate = new Date(now.toLocaleString("en-US", {timeZone: "America/Argentina/Buenos_Aires"}));
-  const today = argentinaDate.getDay();
+  // Calculate Argentina time by adding UTC offset (-3 hours = -180 minutes)
+  const utcTime = now.getTime() + (now.getTimezoneOffset() * 60000);
+  const argentinaTime = new Date(utcTime + (-3 * 3600000)); // UTC-3
+  const today = argentinaTime.getDay();
   
   // Convert to our array index (0 = Monday, 6 = Sunday)
   const dayIndex = today === 0 ? 6 : today - 1;
   
   // Get current time in Argentina timezone
-  const currentHour = argentinaDate.getHours();
-  const currentMinute = argentinaDate.getMinutes();
+  const currentHour = argentinaTime.getHours();
+  const currentMinute = argentinaTime.getMinutes();
   
   // Get today's opening hours
   const todayHours = openingHours[dayIndex];
@@ -91,8 +92,9 @@ export const formatOpeningHours = (openingHours: OpeningHours | null, dayIndex?:
   
   // Otherwise return today's hours in Argentina timezone
   const now = new Date();
-  const argentinaDate = new Date(now.toLocaleString("en-US", {timeZone: "America/Argentina/Buenos_Aires"}));
-  const today = argentinaDate.getDay();
+  const utcTime = now.getTime() + (now.getTimezoneOffset() * 60000);
+  const argentinaTime = new Date(utcTime + (-3 * 3600000)); // UTC-3
+  const today = argentinaTime.getDay();
   // Convert Sunday (0) to our array index (6)
   const adjustedDay = today === 0 ? 6 : today - 1;
   const todayHours = openingHours[adjustedDay];
@@ -115,12 +117,14 @@ export const getDayName = (dayIndex: number): string => {
 export const getCurrentDayIndex = (): number => {
   const now = new Date();
   
-  // Get current day in Argentina timezone
-  const argentinaDate = new Date(now.toLocaleString("en-US", {timeZone: "America/Argentina/Buenos_Aires"}));
-  const today = argentinaDate.getDay();
+  // Calculate Argentina time by adding UTC offset (-3 hours = -180 minutes)
+  const utcTime = now.getTime() + (now.getTimezoneOffset() * 60000);
+  const argentinaTime = new Date(utcTime + (-3 * 3600000)); // UTC-3
+  const today = argentinaTime.getDay();
   
   // Debug logging
   console.log('Current UTC time:', now);
+  console.log('Argentina time calculated:', argentinaTime);
   console.log('Argentina day (0=Sunday, 1=Monday, etc.):', today);
   
   // Convert Sunday (0) to our array index (6)
