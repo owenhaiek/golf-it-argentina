@@ -115,6 +115,15 @@ export const getCurrentDayIndex = (): number => {
   const now = new Date();
   const argentinaTime = new Date(now.toLocaleString("en-US", {timeZone: "America/Argentina/Buenos_Aires"}));
   const today = argentinaTime.getDay();
+  
+  // Debug logging
+  console.log('Current UTC time:', now);
+  console.log('Argentina time:', argentinaTime);
+  console.log('Argentina day (0=Sunday, 1=Monday, etc.):', today);
+  
   // Convert Sunday (0) to our array index (6)
-  return today === 0 ? 6 : today - 1;
+  const dayIndex = today === 0 ? 6 : today - 1;
+  console.log('Converted day index (0=Monday, 6=Sunday):', dayIndex);
+  
+  return dayIndex;
 };
