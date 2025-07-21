@@ -342,7 +342,7 @@ const translations: Record<LanguageType, TranslationDictionary> = {
       golfCourses: "Campos de Golf",
       noCoursesFound: "No se encontraron campos",
       resetFilters: "Restablecer Filtros",
-      openNow: "Abierto Ahora",
+      openNow: "Abierto",
       closed: "Cerrado",
       openInMap: "Ver en Mapa",
       location: "Ubicación",
