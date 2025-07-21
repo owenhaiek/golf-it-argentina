@@ -39,9 +39,28 @@ export const formatOpeningHoursForDisplay = (openingHours: OpeningHours | null):
  * Get current date and time in Argentina timezone (UTC-3)
  */
 const getArgentinaTime = (): Date => {
+  // Use Intl API for accurate timezone conversion
   const now = new Date();
-  const utcTime = now.getTime() + (now.getTimezoneOffset() * 60000);
-  return new Date(utcTime + (-3 * 3600000)); // UTC-3
+  const argentinaFormatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Argentina/Buenos_Aires',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  });
+  
+  const parts = argentinaFormatter.formatToParts(now);
+  const year = parseInt(parts.find(p => p.type === 'year')?.value || '0');
+  const month = parseInt(parts.find(p => p.type === 'month')?.value || '1') - 1; // Month is 0-indexed
+  const day = parseInt(parts.find(p => p.type === 'day')?.value || '1');
+  const hour = parseInt(parts.find(p => p.type === 'hour')?.value || '0');
+  const minute = parseInt(parts.find(p => p.type === 'minute')?.value || '0');
+  const second = parseInt(parts.find(p => p.type === 'second')?.value || '0');
+  
+  return new Date(year, month, day, hour, minute, second);
 };
 
 /**
