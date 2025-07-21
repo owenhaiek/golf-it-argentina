@@ -40,14 +40,15 @@ export const formatOpeningHoursForDisplay = (openingHours: OpeningHours | null):
  */
 const getArgentinaTime = (): Date => {
   const now = new Date();
-  // Convert to Argentina time: UTC-3 (subtract 3 hours from UTC)
-  const utcTime = now.getTime();
-  const argentinaOffset = -3 * 60 * 60 * 1000; // -3 hours in milliseconds
-  const argentinaTime = new Date(utcTime + argentinaOffset);
   
-  console.log('🕒 Current UTC time:', now.toISOString());
-  console.log('🇦🇷 Argentina time (UTC-3):', argentinaTime.toISOString());
+  // Get current UTC time and convert to Argentina time (UTC-3)
+  // Argentina is 3 hours behind UTC, so we subtract 3 hours
+  const argentinaTime = new Date(now.getTime() - (3 * 60 * 60 * 1000));
+  
+  console.log('🕒 Current UTC time:', now.toUTCString());
+  console.log('🇦🇷 Argentina time (UTC-3):', argentinaTime.toUTCString());
   console.log('📅 Argentina day number:', argentinaTime.getUTCDay());
+  console.log('🔢 Day conversion check - UTC day:', now.getUTCDay(), 'Argentina day:', argentinaTime.getUTCDay());
   
   return argentinaTime;
 };
