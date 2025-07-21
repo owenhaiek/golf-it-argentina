@@ -39,28 +39,17 @@ export const formatOpeningHoursForDisplay = (openingHours: OpeningHours | null):
  * Get current date and time in Argentina timezone (UTC-3)
  */
 const getArgentinaTime = (): Date => {
-  // Use Intl API for accurate timezone conversion
   const now = new Date();
-  const argentinaFormatter = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'America/Argentina/Buenos_Aires',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: false
-  });
+  // Convert to Argentina time: UTC-3 (subtract 3 hours from UTC)
+  const utcTime = now.getTime();
+  const argentinaOffset = -3 * 60 * 60 * 1000; // -3 hours in milliseconds
+  const argentinaTime = new Date(utcTime + argentinaOffset);
   
-  const parts = argentinaFormatter.formatToParts(now);
-  const year = parseInt(parts.find(p => p.type === 'year')?.value || '0');
-  const month = parseInt(parts.find(p => p.type === 'month')?.value || '1') - 1; // Month is 0-indexed
-  const day = parseInt(parts.find(p => p.type === 'day')?.value || '1');
-  const hour = parseInt(parts.find(p => p.type === 'hour')?.value || '0');
-  const minute = parseInt(parts.find(p => p.type === 'minute')?.value || '0');
-  const second = parseInt(parts.find(p => p.type === 'second')?.value || '0');
+  console.log('🕒 Current UTC time:', now.toISOString());
+  console.log('🇦🇷 Argentina time (UTC-3):', argentinaTime.toISOString());
+  console.log('📅 Argentina day number:', argentinaTime.getUTCDay());
   
-  return new Date(year, month, day, hour, minute, second);
+  return argentinaTime;
 };
 
 /**
@@ -72,14 +61,14 @@ export const isCurrentlyOpen = (openingHours: OpeningHours | null): boolean => {
   
   // Get current day in Argentina timezone (UTC-3)
   const argentinaTime = getArgentinaTime();
-  const today = argentinaTime.getDay();
+  const today = argentinaTime.getUTCDay(); // Use UTC methods since we already converted
   
   // Convert to our array index (0 = Monday, 6 = Sunday)
   const dayIndex = today === 0 ? 6 : today - 1;
   
   // Get current time in Argentina timezone
-  const currentHour = argentinaTime.getHours();
-  const currentMinute = argentinaTime.getMinutes();
+  const currentHour = argentinaTime.getUTCHours();
+  const currentMinute = argentinaTime.getUTCMinutes();
   
   // Get today's opening hours
   const todayHours = openingHours[dayIndex];
@@ -117,7 +106,7 @@ export const formatOpeningHours = (openingHours: OpeningHours | null, dayIndex?:
   
   // Otherwise return today's hours in Argentina timezone
   const argentinaTime = getArgentinaTime();
-  const today = argentinaTime.getDay();
+  const today = argentinaTime.getUTCDay();
   // Convert Sunday (0) to our array index (6)
   const adjustedDay = today === 0 ? 6 : today - 1;
   const todayHours = openingHours[adjustedDay];
@@ -138,12 +127,10 @@ export const getDayName = (dayIndex: number): string => {
  * Get current day index in Argentina timezone
  */
 export const getCurrentDayIndex = (): number => {
-  const now = new Date();
   const argentinaTime = getArgentinaTime();
-  const today = argentinaTime.getDay();
+  const today = argentinaTime.getUTCDay(); // Use UTC methods since we already converted
   
   // Debug logging to see what's happening
-  console.log('🕒 UTC time:', now.toISOString());
   console.log('🇦🇷 Argentina time:', argentinaTime.toISOString());
   console.log('📅 Argentina day (0=Sunday, 1=Monday, etc.):', today);
   
