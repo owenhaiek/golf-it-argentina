@@ -127,10 +127,11 @@ export const getDayName = (dayIndex: number): string => {
  * Get current day index in Argentina timezone
  */
 export const getCurrentDayIndex = (): number => {
+  console.log('🚀 getCurrentDayIndex called at:', Date.now());
+  
   const argentinaTime = getArgentinaTime();
   const today = argentinaTime.getUTCDay(); // Use UTC methods since we already converted
   
-  // Debug logging to see what's happening
   console.log('🇦🇷 Argentina time:', argentinaTime.toISOString());
   console.log('📅 Argentina day (0=Sunday, 1=Monday, etc.):', today);
   
