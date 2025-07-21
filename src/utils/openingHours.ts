@@ -119,11 +119,18 @@ export const getDayName = (dayIndex: number): string => {
  * Get current day index in Argentina timezone
  */
 export const getCurrentDayIndex = (): number => {
+  const now = new Date();
   const argentinaTime = getArgentinaTime();
   const today = argentinaTime.getDay();
   
-  // Convert Sunday (0) to our array index (6)
+  // Debug logging to see what's happening
+  console.log('🕒 UTC time:', now.toISOString());
+  console.log('🇦🇷 Argentina time:', argentinaTime.toISOString());
+  console.log('📅 Argentina day (0=Sunday, 1=Monday, etc.):', today);
+  
+  // Convert Sunday (0) to our array index (6), Monday (1) to index (0), etc.
   const dayIndex = today === 0 ? 6 : today - 1;
+  console.log('📊 Converted day index (0=Monday, 6=Sunday):', dayIndex);
   
   return dayIndex;
 };
