@@ -36,30 +36,36 @@ export const formatOpeningHoursForDisplay = (openingHours: OpeningHours | null):
 };
 
 /**
- * Get current day index in Argentina timezone - FIXED VERSION
+ * Get current day index in Argentina timezone - RELIABLE VERSION
  */
 const getArgentinaDayIndex = (): number => {
   console.log('=== ARGENTINA TIMEZONE DEBUG START ===');
   
   try {
-    // Use Intl API to get the actual current time in Argentina
-    const argentinaTime = new Date().toLocaleString("en-CA", {
-      timeZone: "America/Argentina/Buenos_Aires",
-      hour12: false
+    // Create a new Date object and get the day in Argentina timezone
+    const now = new Date();
+    
+    // Use Intl.DateTimeFormat to get the day in Argentina timezone
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/Argentina/Buenos_Aires',
+      weekday: 'long'
     });
     
-    console.log('Argentina time string:', argentinaTime);
+    const argentinaWeekday = formatter.format(now);
+    console.log('Argentina weekday:', argentinaWeekday);
     
-    // Parse the date string (format: YYYY-MM-DD, HH:MM:SS)
-    const argentinaDate = new Date(argentinaTime);
-    console.log('Parsed Argentina date:', argentinaDate);
+    // Map weekday names to our array indices (0=Monday, 6=Sunday)
+    const weekdayMap: { [key: string]: number } = {
+      'Monday': 0,
+      'Tuesday': 1, 
+      'Wednesday': 2,
+      'Thursday': 3,
+      'Friday': 4,
+      'Saturday': 5,
+      'Sunday': 6
+    };
     
-    // Get the day of week (0=Sunday, 1=Monday, etc.)
-    const argentinaDay = argentinaDate.getDay();
-    console.log('Argentina day (0=Sunday):', argentinaDay);
-    
-    // Convert to our array format (0=Monday, 6=Sunday)
-    const dayIndex = argentinaDay === 0 ? 6 : argentinaDay - 1;
+    const dayIndex = weekdayMap[argentinaWeekday];
     console.log('Final day index (0=Monday, 6=Sunday):', dayIndex);
     console.log('=== ARGENTINA TIMEZONE DEBUG END ===');
     
