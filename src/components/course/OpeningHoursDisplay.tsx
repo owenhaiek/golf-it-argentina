@@ -1,7 +1,7 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Calendar } from "lucide-react";
-import { OpeningHours, getDayName, getCurrentDayIndex } from "@/utils/openingHours";
+import { OpeningHours, getCurrentDayIndex } from "@/utils/openingHours";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { cn } from "@/lib/utils";
 
@@ -12,14 +12,15 @@ interface OpeningHoursDisplayProps {
 const OpeningHoursDisplay = ({ openingHours }: OpeningHoursDisplayProps) => {
   const { t } = useLanguage();
   
+  // Day names array matching our opening hours array (0=Monday, 6=Sunday)
   const dayNames = [
-    t("course", "sunday"), 
-    t("course", "monday"), 
-    t("course", "tuesday"), 
-    t("course", "wednesday"), 
-    t("course", "thursday"), 
-    t("course", "friday"), 
-    t("course", "saturday")
+    t("course", "monday"),    // Index 0 = Monday
+    t("course", "tuesday"),   // Index 1 = Tuesday
+    t("course", "wednesday"), // Index 2 = Wednesday
+    t("course", "thursday"),  // Index 3 = Thursday
+    t("course", "friday"),    // Index 4 = Friday
+    t("course", "saturday"),  // Index 5 = Saturday
+    t("course", "sunday")     // Index 6 = Sunday
   ];
 
   if (!openingHours || !Array.isArray(openingHours)) {

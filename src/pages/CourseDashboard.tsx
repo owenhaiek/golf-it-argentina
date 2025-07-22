@@ -20,8 +20,7 @@ import {
   BarChart3
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { formatOpeningHours } from "@/utils/formatOpeningHours";
-import { isCurrentlyOpen } from "@/utils/openingHours";
+import { formatOpeningHours, isCurrentlyOpen } from "@/utils/openingHours";
 import { ReservationCalendar } from "@/components/course/ReservationCalendar";
 import { ReservationManagement } from "@/components/course/ReservationManagement";
 

@@ -1,3 +1,5 @@
+import { getArgentinaDayIndex, getArgentinaTime, getDayName as getArgentinaDayName } from './argentinaTimezone';
+
 type DayOpeningHours = {
   isOpen: boolean;
   open: string | null;
@@ -36,105 +38,40 @@ export const formatOpeningHoursForDisplay = (openingHours: OpeningHours | null):
 };
 
 /**
- * Get current day index in Argentina timezone - RELIABLE VERSION
- */
-const getArgentinaDayIndex = (): number => {
-  console.log('=== ARGENTINA TIMEZONE DEBUG START ===');
-  
-  try {
-    // Create a new Date object and get the day in Argentina timezone
-    const now = new Date();
-    
-    // Use Intl.DateTimeFormat to get the day in Argentina timezone
-    const formatter = new Intl.DateTimeFormat('en-US', {
-      timeZone: 'America/Argentina/Buenos_Aires',
-      weekday: 'long'
-    });
-    
-    const argentinaWeekday = formatter.format(now);
-    console.log('Argentina weekday:', argentinaWeekday);
-    
-    // Map weekday names to our array indices (0=Monday, 6=Sunday)
-    const weekdayMap: { [key: string]: number } = {
-      'Monday': 0,
-      'Tuesday': 1, 
-      'Wednesday': 2,
-      'Thursday': 3,
-      'Friday': 4,
-      'Saturday': 5,
-      'Sunday': 6
-    };
-    
-    const dayIndex = weekdayMap[argentinaWeekday];
-    console.log('Final day index (0=Monday, 6=Sunday):', dayIndex);
-    console.log('=== ARGENTINA TIMEZONE DEBUG END ===');
-    
-    return dayIndex;
-  } catch (error) {
-    console.error('Error in timezone calculation:', error);
-    // Fallback: Use simple UTC-3 offset
-    const now = new Date();
-    const utcHour = now.getUTCHours();
-    const argentinaHour = utcHour - 3;
-    
-    let argentinaDay = now.getUTCDay();
-    if (argentinaHour < 0) {
-      argentinaDay = argentinaDay === 0 ? 6 : argentinaDay - 1;
-    }
-    
-    const dayIndex = argentinaDay === 0 ? 6 : argentinaDay - 1;
-    return dayIndex;
-  }
-};
-
-/**
  * Checks if a golf course is currently open based on its opening hours
- * This is the unified function that will be used across the app
+ * Uses Argentina timezone for accurate calculations
  */
 export const isCurrentlyOpen = (openingHours: OpeningHours | null): boolean => {
   if (!openingHours || !Array.isArray(openingHours)) return false;
   
-  // Get current day in Argentina timezone
+  // Get current day and time in Argentina timezone
   const dayIndex = getArgentinaDayIndex();
+  const { hour: currentHour, minute: currentMinute } = getArgentinaTime();
   
-  try {
-    // Get current time in Argentina timezone using Intl API
-    const argentinaTime = new Date().toLocaleString("en-CA", {
-      timeZone: "America/Argentina/Buenos_Aires",
-      hour12: false
-    });
-    
-    // Parse the time part (HH:MM:SS)
-    const timePart = argentinaTime.split(', ')[1] || argentinaTime.split(' ')[1];
-    const [currentHour, currentMinute] = timePart.split(':').map(Number);
-    
-    // Get today's opening hours
-    const todayHours = openingHours[dayIndex];
-    
-    // If the day is marked as closed
-    if (!todayHours || !todayHours.isOpen) return false;
-    
-    // Parse opening & closing times
-    if (!todayHours.open || !todayHours.close) return false;
-    
-    const [openHour, openMinute] = todayHours.open.split(':').map(Number);
-    const [closeHour, closeMinute] = todayHours.close.split(':').map(Number);
-    
-    // Convert times to minutes for easier comparison
-    const currentTimeInMinutes = (currentHour * 60) + currentMinute;
-    const openTimeInMinutes = (openHour * 60) + openMinute;
-    const closeTimeInMinutes = (closeHour * 60) + closeMinute;
-    
-    // Check if current time is within opening & closing times
-    return currentTimeInMinutes >= openTimeInMinutes && currentTimeInMinutes < closeTimeInMinutes;
-  } catch (error) {
-    console.error('Error in time calculation:', error);
-    return false;
-  }
+  // Get today's opening hours
+  const todayHours = openingHours[dayIndex];
+  
+  // If the day is marked as closed
+  if (!todayHours || !todayHours.isOpen) return false;
+  
+  // Parse opening & closing times
+  if (!todayHours.open || !todayHours.close) return false;
+  
+  const [openHour, openMinute] = todayHours.open.split(':').map(Number);
+  const [closeHour, closeMinute] = todayHours.close.split(':').map(Number);
+  
+  // Convert times to minutes for easier comparison
+  const currentTimeInMinutes = (currentHour * 60) + currentMinute;
+  const openTimeInMinutes = (openHour * 60) + openMinute;
+  const closeTimeInMinutes = (closeHour * 60) + closeMinute;
+  
+  // Check if current time is within opening & closing times
+  return currentTimeInMinutes >= openTimeInMinutes && currentTimeInMinutes < closeTimeInMinutes;
 };
 
 /**
  * Format opening hours for display
+ * Uses Argentina timezone for "today" calculations
  */
 export const formatOpeningHours = (openingHours: OpeningHours | null, dayIndex?: number): string => {
   if (!openingHours || !Array.isArray(openingHours)) return "Hours not available";
@@ -155,18 +92,11 @@ export const formatOpeningHours = (openingHours: OpeningHours | null, dayIndex?:
 };
 
 /**
- * Get day name from index
+ * Get day name from index (re-exported from Argentina timezone utils)
  */
-export const getDayName = (dayIndex: number): string => {
-  const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-  return days[dayIndex] || '';
-};
+export const getDayName = getArgentinaDayName;
 
 /**
- * Get current day index in Argentina timezone
+ * Get current day index in Argentina timezone (re-exported)
  */
-export const getCurrentDayIndex = (): number => {
-  console.log('🚀 getCurrentDayIndex called - BASIC VERSION');
-  console.log('Function exists and is being called');
-  return getArgentinaDayIndex();
-};
+export const getCurrentDayIndex = getArgentinaDayIndex;
