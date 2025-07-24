@@ -1,6 +1,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TrendingUp, TrendingDown, Target, Calendar, Trophy, Users } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Target, Calendar, Trophy, Users, Award, TrendingUp } from "lucide-react";
 import { format } from "date-fns";
 import { useLanguage } from "@/contexts/LanguageContext";
 import CourseLeaderboard from "./CourseLeaderboard";
@@ -181,62 +182,59 @@ const CourseStats = ({ rounds, isLoading, coursePar = 72, courseHolePars }: Cour
         </Card>
       </div>
 
-      {/* Best and Worst Rounds */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-green-500" />
-              {t("course", "bestRound")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-2xl font-bold text-green-600">{bestRound.score}</span>
-                <span className="text-sm text-muted-foreground">
-                  {format(new Date(bestRound.date), "MMM d, yyyy")}
-                </span>
-              </div>
-              <div className="text-sm text-muted-foreground">
-                {bestRound.score - bestRoundPar > 0 ? `+${bestRound.score - bestRoundPar}` : bestRound.score - bestRoundPar} vs Par ({bestRoundPar})
-              </div>
-              {bestRound.notes && (
-                <div className="text-xs text-muted-foreground bg-muted p-2 rounded">
-                  {bestRound.notes}
-                </div>
-              )}
+      {/* Best Round Showcase */}
+      <Card className="bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-950 dark:to-green-950 border-emerald-200 dark:border-emerald-800">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-xl flex items-center gap-3">
+            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900">
+              <Award className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
             </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <TrendingDown className="h-5 w-5 text-red-500" />
-              {t("course", "highestRound")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-2xl font-bold text-red-600">{worstRound.score}</span>
-                <span className="text-sm text-muted-foreground">
-                  {format(new Date(worstRound.date), "MMM d, yyyy")}
+            <span className="text-emerald-900 dark:text-emerald-100">{t("course", "bestRound")}</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center gap-4">
+            <Avatar className="h-16 w-16 ring-2 ring-emerald-200 dark:ring-emerald-800">
+              <AvatarImage 
+                src={bestRound.profiles?.avatar_url || ''} 
+                alt={bestRound.profiles?.username || 'Anonymous'} 
+              />
+              <AvatarFallback className="bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300 text-lg font-semibold">
+                {bestRound.profiles?.username?.charAt(0).toUpperCase() || 'A'}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-2">
+                <span className="text-3xl font-bold text-emerald-700 dark:text-emerald-300">
+                  {bestRound.score}
                 </span>
-              </div>
-              <div className="text-sm text-muted-foreground">
-                +{worstRound.score - worstRoundPar} vs Par ({worstRoundPar})
-              </div>
-              {worstRound.notes && (
-                <div className="text-xs text-muted-foreground bg-muted p-2 rounded">
-                  {worstRound.notes}
+                <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+                  bestRound.score - bestRoundPar < 0 
+                    ? 'bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300' 
+                    : bestRound.score - bestRoundPar === 0
+                    ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300'
+                    : 'bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-300'
+                }`}>
+                  {bestRound.score - bestRoundPar > 0 ? `+${bestRound.score - bestRoundPar}` : bestRound.score - bestRoundPar}
                 </div>
-              )}
+              </div>
+              <div className="text-emerald-700 dark:text-emerald-300 font-medium text-lg">
+                {bestRound.profiles?.username || 'Anonymous Player'}
+              </div>
+              <div className="text-emerald-600 dark:text-emerald-400 text-sm">
+                {format(new Date(bestRound.date), "MMMM d, yyyy")} • Par {bestRoundPar}
+              </div>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+          {bestRound.notes && (
+            <div className="bg-white/50 dark:bg-black/20 p-3 rounded-lg border border-emerald-200 dark:border-emerald-800">
+              <p className="text-sm text-emerald-700 dark:text-emerald-300 italic">
+                "{bestRound.notes}"
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Leaderboard */}
       <CourseLeaderboard rounds={sortedRounds} isLoading={false} coursePar={coursePar} />
