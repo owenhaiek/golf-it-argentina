@@ -40,6 +40,23 @@ const SearchUsers = () => {
     }
   }, []);
 
+  // Fetch total users count
+  const { data: totalUsers } = useQuery({
+    queryKey: ["totalUsers"],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("profiles")
+        .select("*", { count: "exact", head: true });
+      
+      if (error) {
+        console.error("Error fetching total users:", error);
+        throw error;
+      }
+      
+      return count || 0;
+    },
+  });
+
   // Only fetch when there's a search query
   const { data: profiles, isLoading } = useQuery<Profile[]>({
     queryKey: ["profiles", searchQuery],
@@ -108,6 +125,13 @@ const SearchUsers = () => {
 
       <div className="flex-1 overflow-auto">
         <div className="container p-4 max-w-xl mx-auto space-y-6 pb-20">
+          {/* Total Users Display */}
+          <div className="text-center">
+            <p className="text-sm text-muted-foreground">
+              Total Users: <span className="font-semibold text-foreground">{totalUsers?.toLocaleString() || 0}</span>
+            </p>
+          </div>
+          
           <div className="relative">
             <Input
               placeholder={t("searchUsers", "searchByNameOrUsername")}
