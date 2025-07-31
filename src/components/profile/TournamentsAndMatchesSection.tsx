@@ -16,6 +16,8 @@ import { EditMatchDialog } from "@/components/matches/EditMatchDialog";
 import { TournamentScoringDialog } from "@/components/scoring/TournamentScoringDialog";
 import { MatchScoringDialog } from "@/components/scoring/MatchScoringDialog";
 
+type ViewMode = 'tournaments' | 'matches';
+
 export const TournamentsAndMatchesSection = () => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -30,6 +32,7 @@ export const TournamentsAndMatchesSection = () => {
     refetchAll
   } = useTournamentsAndMatches();
 
+  const [viewMode, setViewMode] = useState<ViewMode>('tournaments');
   const [editTournamentDialog, setEditTournamentDialog] = useState<{ open: boolean; tournament: any }>({ open: false, tournament: null });
   const [editMatchDialog, setEditMatchDialog] = useState<{ open: boolean; match: any }>({ open: false, match: null });
   const [tournamentScoringDialog, setTournamentScoringDialog] = useState<{ open: boolean; tournament: any }>({ open: false, tournament: null });
@@ -147,24 +150,48 @@ export const TournamentsAndMatchesSection = () => {
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Trophy className="h-5 w-5 text-amber-500" />
-            Tournaments & Matches
+            {viewMode === 'tournaments' ? (
+              <Trophy className="h-5 w-5 text-amber-500" />
+            ) : (
+              <Swords className="h-5 w-5 text-red-500" />
+            )}
+            {viewMode === 'tournaments' ? 'Tournaments' : 'Matches'}
           </div>
-          <div className="flex gap-2">
-            {totalTournaments > 0 && (
-              <Badge variant="outline" className="text-xs">
-                {totalTournaments} tournaments
-              </Badge>
-            )}
-            {totalMatches > 0 && (
-              <Badge variant="outline" className="text-xs">
-                {totalMatches} matches
-              </Badge>
-            )}
+          <div className="flex items-center gap-3">
+            {/* Toggle Buttons */}
+            <div className="flex bg-muted p-1 rounded-lg">
+              <Button
+                size="sm"
+                variant={viewMode === 'tournaments' ? 'default' : 'ghost'}
+                onClick={() => setViewMode('tournaments')}
+                className="h-8 px-3 text-xs"
+              >
+                <Trophy className="h-3 w-3 mr-1" />
+                Tournaments
+                {totalTournaments > 0 && (
+                  <Badge variant="secondary" className="ml-2 text-xs h-4 px-1">
+                    {totalTournaments}
+                  </Badge>
+                )}
+              </Button>
+              <Button
+                size="sm"
+                variant={viewMode === 'matches' ? 'default' : 'ghost'}
+                onClick={() => setViewMode('matches')}
+                className="h-8 px-3 text-xs"
+              >
+                <Swords className="h-3 w-3 mr-1" />
+                Matches
+                {totalMatches > 0 && (
+                  <Badge variant="secondary" className="ml-2 text-xs h-4 px-1">
+                    {totalMatches}
+                  </Badge>
+                )}
+              </Button>
+            </div>
           </div>
         </CardTitle>
       </CardHeader>
-      
       <CardContent>
         <Tabs defaultValue="active" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
@@ -183,8 +210,10 @@ export const TournamentsAndMatchesSection = () => {
           </TabsList>
 
           <TabsContent value="active" className="space-y-3 mt-4">
-            {/* Active Tournaments */}
-            {activeTournaments.map((tournament) => (
+            {viewMode === 'tournaments' ? (
+              <>
+                {/* Active Tournaments */}
+                {activeTournaments.map((tournament) => (
               <div key={tournament.id} className="p-3 rounded-lg border bg-gradient-to-r from-amber-50 to-transparent hover:from-amber-100 transition-colors">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
@@ -218,56 +247,67 @@ export const TournamentsAndMatchesSection = () => {
                   </div>
                 </div>
               </div>
-            ))}
-
-            {/* Active Matches */}
-            {activeMatches.map((match) => (
-              <div key={match.id} className="p-3 rounded-lg border bg-gradient-to-r from-red-50 to-transparent hover:from-red-100 transition-colors">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <Swords className="h-4 w-4 text-red-500" />
-                    <span className="font-medium">{match.name}</span>
+                ))}
+                {activeTournaments.length === 0 && (
+                  <div className="text-center py-6 text-muted-foreground">
+                    <Trophy className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p>No active tournaments</p>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Badge className="bg-red-100 text-red-700 border-red-200">
-                      Active Match
-                    </Badge>
-                    {(match.creator_id === user?.id || match.opponent_id === user?.id) && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setMatchScoringDialog({ open: true, match })}
-                        className="h-7 px-2"
-                      >
-                        <Target className="h-3 w-3" />
-                      </Button>
-                    )}
+                )}
+              </>
+            ) : (
+              <>
+                {/* Active Matches */}
+                {activeMatches.map((match) => (
+                  <div key={match.id} className="p-3 rounded-lg border bg-gradient-to-r from-red-50 to-transparent hover:from-red-100 transition-colors">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <Swords className="h-4 w-4 text-red-500" />
+                        <span className="font-medium">{match.name}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge className="bg-red-100 text-red-700 border-red-200">
+                          Active Match
+                        </Badge>
+                        {(match.creator_id === user?.id || match.opponent_id === user?.id) && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setMatchScoringDialog({ open: true, match })}
+                            className="h-7 px-2"
+                          >
+                            <Target className="h-3 w-3" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <MapPin className="h-3 w-3" />
+                        {match.golf_courses?.name}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        {format(new Date(match.match_date), 'MMM d')}
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                  <div className="flex items-center gap-1">
-                    <MapPin className="h-3 w-3" />
-                    {match.golf_courses?.name}
+                ))}
+                {activeMatches.length === 0 && (
+                  <div className="text-center py-6 text-muted-foreground">
+                    <Swords className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p>No active matches</p>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Calendar className="h-3 w-3" />
-                    {format(new Date(match.match_date), 'MMM d')}
-                  </div>
-                </div>
-              </div>
-            ))}
-
-            {activeTournaments.length === 0 && activeMatches.length === 0 && (
-              <div className="text-center py-6 text-muted-foreground">
-                <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p>No active tournaments or matches</p>
-              </div>
+                )}
+              </>
             )}
           </TabsContent>
 
           <TabsContent value="upcoming" className="space-y-3 mt-4">
-            {/* Upcoming Tournaments */}
-            {upcomingTournaments.map((tournament) => (
+            {viewMode === 'tournaments' ? (
+              <>
+                {/* Upcoming Tournaments */}
+                {upcomingTournaments.map((tournament) => (
               <div key={tournament.id} className="p-3 rounded-lg border hover:bg-accent/30 transition-colors">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
@@ -322,130 +362,150 @@ export const TournamentsAndMatchesSection = () => {
                   </div>
                 </div>
               </div>
-            ))}
-
-            {/* Pending Matches */}
-            {pendingMatches.map((match) => (
-              <div key={match.id} className="p-3 rounded-lg border hover:bg-accent/30 transition-colors">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <Swords className="h-4 w-4 text-primary" />
-                    <span className="font-medium">{match.name}</span>
+                ))}
+                {upcomingTournaments.length === 0 && (
+                  <div className="text-center py-6 text-muted-foreground">
+                    <Trophy className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p>No upcoming tournaments</p>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline">
-                      Pending
-                    </Badge>
-                    {match.creator_id === user?.id && (
-                      <div className="flex gap-1">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => setEditMatchDialog({ open: true, match })}
-                          className="h-7 px-2"
-                        >
-                          <Edit className="h-3 w-3" />
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button size="sm" variant="outline" className="h-7 px-2 text-destructive hover:text-destructive">
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Delete Match</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Are you sure you want to delete "{match.name}"? This action cannot be undone.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => deleteMatch(match.id)}>Delete</AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                )}
+              </>
+            ) : (
+              <>
+                {/* Pending Matches */}
+                {pendingMatches.map((match) => (
+                  <div key={match.id} className="p-3 rounded-lg border hover:bg-accent/30 transition-colors">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <Swords className="h-4 w-4 text-primary" />
+                        <span className="font-medium">{match.name}</span>
                       </div>
-                    )}
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline">
+                          Pending
+                        </Badge>
+                        {match.creator_id === user?.id && (
+                          <div className="flex gap-1">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setEditMatchDialog({ open: true, match })}
+                              className="h-7 px-2"
+                            >
+                              <Edit className="h-3 w-3" />
+                            </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button size="sm" variant="outline" className="h-7 px-2 text-destructive hover:text-destructive">
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete Match</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to delete "{match.name}"? This action cannot be undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => deleteMatch(match.id)}>Delete</AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <MapPin className="h-3 w-3" />
+                        {match.golf_courses?.name}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        {format(new Date(match.match_date), 'MMM d')}
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                  <div className="flex items-center gap-1">
-                    <MapPin className="h-3 w-3" />
-                    {match.golf_courses?.name}
+                ))}
+                {pendingMatches.length === 0 && (
+                  <div className="text-center py-6 text-muted-foreground">
+                    <Swords className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p>No pending matches</p>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Calendar className="h-3 w-3" />
-                    {format(new Date(match.match_date), 'MMM d')}
-                  </div>
-                </div>
-              </div>
-            ))}
-
-            {upcomingTournaments.length === 0 && pendingMatches.length === 0 && (
-              <div className="text-center py-6 text-muted-foreground">
-                <Calendar className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p>No upcoming events</p>
-              </div>
+                )}
+              </>
             )}
           </TabsContent>
 
           <TabsContent value="completed" className="space-y-3 mt-4">
-            {/* Completed Tournaments */}
-            {completedTournaments.map((tournament) => (
-              <div key={tournament.id} className="p-3 rounded-lg border bg-muted/30 hover:bg-muted/50 transition-colors">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <Trophy className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium text-muted-foreground">{tournament.name}</span>
+            {viewMode === 'tournaments' ? (
+              <>
+                {/* Completed Tournaments */}
+                {completedTournaments.map((tournament) => (
+                  <div key={tournament.id} className="p-3 rounded-lg border bg-muted/30 hover:bg-muted/50 transition-colors">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <Trophy className="h-4 w-4 text-muted-foreground" />
+                        <span className="font-medium text-muted-foreground">{tournament.name}</span>
+                      </div>
+                      <Badge variant="secondary">
+                        Completed
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <MapPin className="h-3 w-3" />
+                        {tournament.golf_courses?.name}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        {format(new Date(tournament.start_date), 'MMM d')}
+                      </div>
+                    </div>
                   </div>
-                  <Badge variant="secondary">
-                    Completed
-                  </Badge>
-                </div>
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                  <div className="flex items-center gap-1">
-                    <MapPin className="h-3 w-3" />
-                    {tournament.golf_courses?.name}
+                ))}
+                {completedTournaments.length === 0 && (
+                  <div className="text-center py-6 text-muted-foreground">
+                    <Trophy className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p>No completed tournaments</p>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Calendar className="h-3 w-3" />
-                    {format(new Date(tournament.start_date), 'MMM d')}
+                )}
+              </>
+            ) : (
+              <>
+                {/* Completed Matches */}
+                {completedMatches.map((match) => (
+                  <div key={match.id} className="p-3 rounded-lg border bg-muted/30 hover:bg-muted/50 transition-colors">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <Swords className="h-4 w-4 text-muted-foreground" />
+                        <span className="font-medium text-muted-foreground">{match.name}</span>
+                      </div>
+                      <Badge variant="secondary">
+                        {match.winner_id ? 'Finished' : 'Completed'}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <MapPin className="h-3 w-3" />
+                        {match.golf_courses?.name}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        {format(new Date(match.match_date), 'MMM d')}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-            ))}
-
-            {/* Completed Matches */}
-            {completedMatches.map((match) => (
-              <div key={match.id} className="p-3 rounded-lg border bg-muted/30 hover:bg-muted/50 transition-colors">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <Swords className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium text-muted-foreground">{match.name}</span>
+                ))}
+                {completedMatches.length === 0 && (
+                  <div className="text-center py-6 text-muted-foreground">
+                    <Swords className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p>No completed matches</p>
                   </div>
-                  <Badge variant="secondary">
-                    {match.winner_id ? 'Finished' : 'Completed'}
-                  </Badge>
-                </div>
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                  <div className="flex items-center gap-1">
-                    <MapPin className="h-3 w-3" />
-                    {match.golf_courses?.name}
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Calendar className="h-3 w-3" />
-                    {format(new Date(match.match_date), 'MMM d')}
-                  </div>
-                </div>
-              </div>
-            ))}
-
-            {completedTournaments.length === 0 && completedMatches.length === 0 && (
-              <div className="text-center py-6 text-muted-foreground">
-                <CheckCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p>No completed events yet</p>
-              </div>
+                )}
+              </>
             )}
           </TabsContent>
         </Tabs>
