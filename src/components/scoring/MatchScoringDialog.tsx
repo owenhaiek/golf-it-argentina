@@ -42,9 +42,11 @@ export const MatchScoringDialog = ({ match, open, onOpenChange, onSuccess }: Mat
   }, [open, match?.id]);
 
   const initializePlayers = () => {
+    if (!match) return;
+    
     const playerScores: PlayerScore[] = [
       {
-        user_id: match.creator_id,
+        user_id: match.creator_id || "",
         name: match.creator?.full_name || 'Creator',
         username: match.creator?.username || 'creator',
         avatar_url: match.creator?.avatar_url,
@@ -52,7 +54,7 @@ export const MatchScoringDialog = ({ match, open, onOpenChange, onSuccess }: Mat
         total_score: 0,
       },
       {
-        user_id: match.opponent_id,
+        user_id: match.opponent_id || "",
         name: match.opponent?.full_name || 'Opponent',
         username: match.opponent?.username || 'opponent',
         avatar_url: match.opponent?.avatar_url,
@@ -155,7 +157,7 @@ export const MatchScoringDialog = ({ match, open, onOpenChange, onSuccess }: Mat
                 <CardTitle className="flex items-center gap-3">
                   <Avatar className="h-10 w-10">
                     <AvatarImage src={player.avatar_url} />
-                    <AvatarFallback>{player.name[0]}</AvatarFallback>
+                    <AvatarFallback>{player.name?.[0] || "?"}</AvatarFallback>
                   </Avatar>
                   <div>
                     <div className="font-semibold">{player.name}</div>
