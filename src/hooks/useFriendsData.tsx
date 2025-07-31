@@ -251,12 +251,11 @@ export const useFriendsData = () => {
   const checkFriendshipStatus = async (userId: string) => {
     if (!user?.id) return null;
     
-    // Check if there's a pending request
+    // Check if there's a pending request between current user and target user
     const { data: pendingRequest } = await supabase
       .from('friend_requests')
       .select('id, sender_id, receiver_id, status')
-      .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
-      .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
+      .or(`and(sender_id.eq.${user.id},receiver_id.eq.${userId}),and(sender_id.eq.${userId},receiver_id.eq.${user.id})`)
       .eq('status', 'pending')
       .maybeSingle();
 
@@ -268,8 +267,7 @@ export const useFriendsData = () => {
     const { data: friendship } = await supabase
       .from('friendships')
       .select('id')
-      .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
-      .or(`user1_id.eq.${userId},user2_id.eq.${userId}`)
+      .or(`and(user1_id.eq.${user.id},user2_id.eq.${userId}),and(user1_id.eq.${userId},user2_id.eq.${user.id})`)
       .maybeSingle();
 
     return friendship ? 'friends' : 'none';
