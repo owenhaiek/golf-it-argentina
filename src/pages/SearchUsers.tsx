@@ -144,25 +144,41 @@ const SearchUsers = () => {
           <DarkModeToggle />
         </div>
       </div>
-
+          
+          {/* Search Input */}
       <div className="flex-1 overflow-auto">
         <div className="container p-4 max-w-xl mx-auto space-y-6 pb-20">
           {/* Search Controls */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between animate-in slide-in-from-top-2 duration-300">
             <div className="flex items-center gap-2">
               <Switch
                 id="friends-only"
                 checked={searchFriendsOnly}
                 onCheckedChange={setSearchFriendsOnly}
+                className="data-[state=checked]:bg-primary"
               />
-              <Label htmlFor="friends-only" className="text-sm font-medium">
-                <Users className="h-4 w-4 inline mr-1" />
+              <Label htmlFor="friends-only" className="text-sm font-medium cursor-pointer">
+                <Users className={`h-4 w-4 inline mr-1 transition-colors ${searchFriendsOnly ? 'text-primary' : 'text-muted-foreground'}`} />
                 Friends Only
+                {searchFriendsOnly && friends.length > 0 && (
+                  <span className="ml-2 text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
+                    {friends.length}
+                  </span>
+                )}
               </Label>
             </div>
             <div className="text-right">
               <p className="text-sm text-muted-foreground">
-                Total Users: <span className="font-semibold text-foreground">{totalUsers?.toLocaleString() || 0}</span>
+                {searchFriendsOnly ? (
+                  <>
+                    <Users className="h-4 w-4 inline mr-1" />
+                    <span className="font-semibold text-foreground">{friends.length}</span> friends
+                  </>
+                ) : (
+                  <>
+                    Total Users: <span className="font-semibold text-foreground">{totalUsers?.toLocaleString() || 0}</span>
+                  </>
+                )}
               </p>
             </div>
           </div>

@@ -6,6 +6,7 @@ import ProfileCard from "@/components/profile/ProfileCard";
 import RecentRounds from "@/components/profile/RecentRounds";
 import UserStatsCard from "@/components/profile/UserStatsCard";
 import { FriendsSection } from "@/components/profile/FriendsSection";
+import { FriendSuggestions } from "@/components/profile/FriendSuggestions";
 import { DarkModeToggle } from "@/components/ui/DarkModeToggle";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -54,6 +55,7 @@ const Profile = () => {
             userId={user.id}
           />
           <FriendsSection />
+          <FriendSuggestions />
           <RecentRounds />
         </div>
       </ScrollArea>
