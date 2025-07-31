@@ -6,11 +6,15 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { UserSearch, Clock, X } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { UserSearch, Clock, X, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { DarkModeToggle } from "@/components/ui/DarkModeToggle";
+import { FriendRequestButton } from "@/components/profile/FriendRequestButton";
+import { useFriendsData } from "@/hooks/useFriendsData";
 
 // Define the profile type
 interface Profile {
@@ -25,8 +29,10 @@ interface Profile {
 const SearchUsers = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [recentSearches, setRecentSearches] = useState<Profile[]>([]);
+  const [searchFriendsOnly, setSearchFriendsOnly] = useState(false);
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const { friends } = useFriendsData();
   
   // Load recent searches from localStorage on component mount
   useEffect(() => {
@@ -59,29 +65,45 @@ const SearchUsers = () => {
 
   // Only fetch when there's a search query
   const { data: profiles, isLoading } = useQuery<Profile[]>({
-    queryKey: ["profiles", searchQuery],
+    queryKey: ["profiles", searchQuery, searchFriendsOnly],
     queryFn: async () => {
       if (!searchQuery.trim()) {
         return [];
       }
 
-      let query = supabase
-        .from("profiles")
-        .select("*")
-        .order("username");
+      if (searchFriendsOnly) {
+        // Filter friends based on search query
+        const filteredFriends = friends.filter(friend => 
+          friend.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          friend.username?.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+        return filteredFriends.map(friend => ({
+          id: friend.id,
+          username: friend.username,
+          full_name: friend.full_name,
+          avatar_url: friend.avatar_url,
+          handicap: null, // Friends data doesn't include handicap
+          updated_at: null
+        }));
+      } else {
+        let query = supabase
+          .from("profiles")
+          .select("*")
+          .order("username");
+          
+        query = query.or(
+          `username.ilike.%${searchQuery}%,full_name.ilike.%${searchQuery}%`
+        );
         
-      query = query.or(
-        `username.ilike.%${searchQuery}%,full_name.ilike.%${searchQuery}%`
-      );
-      
-      const { data, error } = await query;
-      
-      if (error) {
-        console.error("Error fetching profiles:", error);
-        throw error;
+        const { data, error } = await query;
+        
+        if (error) {
+          console.error("Error fetching profiles:", error);
+          throw error;
+        }
+        
+        return data || [];
       }
-      
-      return data || [];
     },
     enabled: !!searchQuery.trim(), // Only run query when there's a search term
     placeholderData: [],
@@ -125,11 +147,24 @@ const SearchUsers = () => {
 
       <div className="flex-1 overflow-auto">
         <div className="container p-4 max-w-xl mx-auto space-y-6 pb-20">
-          {/* Total Users Display */}
-          <div className="text-center">
-            <p className="text-sm text-muted-foreground">
-              Total Users: <span className="font-semibold text-foreground">{totalUsers?.toLocaleString() || 0}</span>
-            </p>
+          {/* Search Controls */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Switch
+                id="friends-only"
+                checked={searchFriendsOnly}
+                onCheckedChange={setSearchFriendsOnly}
+              />
+              <Label htmlFor="friends-only" className="text-sm font-medium">
+                <Users className="h-4 w-4 inline mr-1" />
+                Friends Only
+              </Label>
+            </div>
+            <div className="text-right">
+              <p className="text-sm text-muted-foreground">
+                Total Users: <span className="font-semibold text-foreground">{totalUsers?.toLocaleString() || 0}</span>
+              </p>
+            </div>
           </div>
           
           <div className="relative">
@@ -220,31 +255,38 @@ const SearchUsers = () => {
                   <p>{t("searchUsers", "noUsersFound")}</p>
                 </div>
               ) : (
-                profiles?.map((profile) => (
-                  <Card 
-                    key={profile.id} 
-                    className="cursor-pointer hover:bg-accent/50 transition-colors"
-                    onClick={() => handleViewProfile(profile)}
-                  >
-                    <CardContent className="p-4 flex items-center gap-4">
-                      <Avatar className="h-12 w-12">
-                        <AvatarImage src={profile.avatar_url} alt={profile.username || profile.full_name} />
-                        <AvatarFallback>
-                          {(profile.username?.charAt(0) || profile.full_name?.charAt(0) || "U").toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="font-medium">{profile.full_name}</p>
-                        <p className="text-sm text-muted-foreground">@{profile.username || "user"}</p>
-                        {profile.handicap !== null && (
-                          <p className="text-xs mt-1">
-                            {t("profile", "handicap")}: <span className="font-semibold">{profile.handicap}</span>
-                          </p>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
+                 profiles?.map((profile) => (
+                   <Card 
+                     key={profile.id} 
+                     className="hover:bg-accent/50 transition-colors"
+                   >
+                     <CardContent className="p-4 flex items-center justify-between">
+                       <div 
+                         className="flex items-center gap-4 cursor-pointer flex-1"
+                         onClick={() => handleViewProfile(profile)}
+                       >
+                         <Avatar className="h-12 w-12">
+                           <AvatarImage src={profile.avatar_url} alt={profile.username || profile.full_name} />
+                           <AvatarFallback>
+                             {(profile.username?.charAt(0) || profile.full_name?.charAt(0) || "U").toUpperCase()}
+                           </AvatarFallback>
+                         </Avatar>
+                         <div>
+                           <p className="font-medium">{profile.full_name}</p>
+                           <p className="text-sm text-muted-foreground">@{profile.username || "user"}</p>
+                           {profile.handicap !== null && (
+                             <p className="text-xs mt-1">
+                               {t("profile", "handicap")}: <span className="font-semibold">{profile.handicap}</span>
+                             </p>
+                           )}
+                         </div>
+                       </div>
+                       {!searchFriendsOnly && (
+                         <FriendRequestButton userId={profile.id} />
+                       )}
+                     </CardContent>
+                   </Card>
+                 ))
               )}
             </div>
           )}
