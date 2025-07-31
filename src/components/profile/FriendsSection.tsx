@@ -8,10 +8,14 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Users, UserPlus, UserMinus, Check, X, Clock, Heart } from "lucide-react";
 import { useFriendsData } from "@/hooks/useFriendsData";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useNavigate } from "react-router-dom";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { formatDistanceToNow } from "date-fns";
 
 export const FriendsSection = () => {
   const { t } = useLanguage();
+  const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [activeTab, setActiveTab] = useState<'requests' | 'friends'>('requests');
   
   const {
@@ -254,7 +258,10 @@ export const FriendsSection = () => {
                         className="group flex items-center justify-between p-3 rounded-lg border bg-gradient-to-r from-card to-card/50 hover:from-accent/30 hover:to-accent/10 transition-all duration-200 animate-in slide-in-from-bottom-2"
                         style={{ animationDelay: `${index * 50}ms` }}
                       >
-                        <div className="flex items-center gap-3">
+                        <div 
+                          className="flex items-center gap-3 flex-1 cursor-pointer"
+                          onClick={() => navigate(`/user/${friend.id}`)}
+                        >
                           <div className="relative">
                             <Avatar className="h-10 w-10 ring-2 ring-transparent group-hover:ring-primary/20 transition-all duration-200">
                               <AvatarImage src={friend.avatar_url} />
@@ -280,9 +287,14 @@ export const FriendsSection = () => {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => removeFriend(friend.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeFriend(friend.id);
+                          }}
                           disabled={removingFriend}
-                          className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-all duration-200"
+                          className={`h-8 w-8 p-0 hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-all duration-200 ${
+                            isMobile ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                          }`}
                         >
                           <UserMinus className="h-4 w-4" />
                         </Button>
