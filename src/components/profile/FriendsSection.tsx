@@ -16,7 +16,7 @@ export const FriendsSection = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const [activeTab, setActiveTab] = useState<'requests' | 'friends'>('requests');
+  const [activeTab, setActiveTab] = useState<'requests' | 'friends'>('friends');
   
   const {
     receivedRequests,
@@ -46,6 +46,15 @@ export const FriendsSection = () => {
         {/* Tab Navigation */}
         <div className="flex gap-2">
           <Button
+            variant={activeTab === 'friends' ? 'default' : 'outline'}
+            onClick={() => setActiveTab('friends')}
+            className="flex items-center gap-2"
+            size="sm"
+          >
+            <Users className="h-4 w-4" />
+            Friends ({friends.length})
+          </Button>
+          <Button
             variant={activeTab === 'requests' ? 'default' : 'outline'}
             onClick={() => setActiveTab('requests')}
             className="flex items-center gap-2"
@@ -58,15 +67,6 @@ export const FriendsSection = () => {
                 {pendingRequestsCount}
               </Badge>
             )}
-          </Button>
-          <Button
-            variant={activeTab === 'friends' ? 'default' : 'outline'}
-            onClick={() => setActiveTab('friends')}
-            className="flex items-center gap-2"
-            size="sm"
-          >
-            <Users className="h-4 w-4" />
-            Friends ({friends.length})
           </Button>
         </div>
       </CardHeader>
