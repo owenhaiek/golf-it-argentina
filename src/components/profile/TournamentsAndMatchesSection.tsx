@@ -148,64 +148,72 @@ export const TournamentsAndMatchesSection = () => {
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            {viewMode === 'tournaments' ? (
-              <Trophy className="h-5 w-5 text-amber-500" />
-            ) : (
-              <Swords className="h-5 w-5 text-red-500" />
-            )}
-            {viewMode === 'tournaments' ? 'Tournaments' : 'Matches'}
-          </div>
-          <div className="flex items-center gap-3">
-            {/* Toggle Buttons */}
-            <div className="flex bg-muted p-1 rounded-lg">
-              <Button
-                size="sm"
-                variant={viewMode === 'tournaments' ? 'default' : 'ghost'}
-                onClick={() => setViewMode('tournaments')}
-                className="h-8 px-3 text-xs"
-              >
-                <Trophy className="h-3 w-3 mr-1" />
-                Tournaments
-                {totalTournaments > 0 && (
-                  <Badge variant="secondary" className="ml-2 text-xs h-4 px-1">
-                    {totalTournaments}
-                  </Badge>
-                )}
-              </Button>
-              <Button
-                size="sm"
-                variant={viewMode === 'matches' ? 'default' : 'ghost'}
-                onClick={() => setViewMode('matches')}
-                className="h-8 px-3 text-xs"
-              >
-                <Swords className="h-3 w-3 mr-1" />
-                Matches
-                {totalMatches > 0 && (
-                  <Badge variant="secondary" className="ml-2 text-xs h-4 px-1">
-                    {totalMatches}
-                  </Badge>
-                )}
-              </Button>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {viewMode === 'tournaments' ? (
+                <Trophy className="h-5 w-5 text-amber-500" />
+              ) : (
+                <Swords className="h-5 w-5 text-red-500" />
+              )}
+              <CardTitle className="text-lg">
+                {viewMode === 'tournaments' ? 'Tournaments' : 'Matches'}
+              </CardTitle>
             </div>
           </div>
-        </CardTitle>
+          
+          {/* Mobile-optimized Toggle Buttons */}
+          <div className="flex bg-muted p-1 rounded-lg w-full">
+            <Button
+              size="sm"
+              variant={viewMode === 'tournaments' ? 'default' : 'ghost'}
+              onClick={() => setViewMode('tournaments')}
+              className="flex-1 h-9 text-xs justify-center"
+            >
+              <Trophy className="h-3 w-3 mr-1" />
+              <span className="hidden xs:inline">Tournaments</span>
+              <span className="xs:hidden">Tour.</span>
+              {totalTournaments > 0 && (
+                <Badge variant="secondary" className="ml-1 text-xs h-4 px-1">
+                  {totalTournaments}
+                </Badge>
+              )}
+            </Button>
+            <Button
+              size="sm"
+              variant={viewMode === 'matches' ? 'default' : 'ghost'}
+              onClick={() => setViewMode('matches')}
+              className="flex-1 h-9 text-xs justify-center"
+            >
+              <Swords className="h-3 w-3 mr-1" />
+              <span className="hidden xs:inline">Matches</span>
+              <span className="xs:hidden">Match.</span>
+              {totalMatches > 0 && (
+                <Badge variant="secondary" className="ml-1 text-xs h-4 px-1">
+                  {totalMatches}
+                </Badge>
+              )}
+            </Button>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="active" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="active" className="flex items-center gap-1">
+          <TabsList className="grid w-full grid-cols-3 h-9">
+            <TabsTrigger value="active" className="flex items-center gap-1 text-xs py-1">
               <Clock className="h-3 w-3" />
-              Active
+              <span className="hidden sm:inline">Active</span>
+              <span className="sm:hidden">Act.</span>
             </TabsTrigger>
-            <TabsTrigger value="upcoming" className="flex items-center gap-1">
+            <TabsTrigger value="upcoming" className="flex items-center gap-1 text-xs py-1">
               <Calendar className="h-3 w-3" />
-              Upcoming
+              <span className="hidden sm:inline">Upcoming</span>
+              <span className="sm:hidden">Up.</span>
             </TabsTrigger>
-            <TabsTrigger value="completed" className="flex items-center gap-1">
+            <TabsTrigger value="completed" className="flex items-center gap-1 text-xs py-1">
               <CheckCircle className="h-3 w-3" />
-              Completed
+              <span className="hidden sm:inline">Completed</span>
+              <span className="sm:hidden">Done</span>
             </TabsTrigger>
           </TabsList>
 
@@ -215,34 +223,35 @@ export const TournamentsAndMatchesSection = () => {
                 {/* Active Tournaments */}
                 {activeTournaments.map((tournament) => (
               <div key={tournament.id} className="p-3 rounded-lg border bg-gradient-to-r from-amber-50 to-transparent hover:from-amber-100 transition-colors">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <Trophy className="h-4 w-4 text-amber-500" />
-                    <span className="font-medium">{tournament.name}</span>
+                <div className="flex items-start justify-between mb-2 gap-2">
+                  <div className="flex items-center gap-2 min-w-0 flex-1">
+                    <Trophy className="h-4 w-4 text-amber-500 flex-shrink-0" />
+                    <span className="font-medium truncate">{tournament.name}</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Badge className="bg-amber-100 text-amber-700 border-amber-200">
-                      Active Tournament
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    <Badge className="bg-amber-100 text-amber-700 border-amber-200 text-xs px-2">
+                      <span className="hidden xs:inline">Active Tournament</span>
+                      <span className="xs:hidden">Active</span>
                     </Badge>
                     {tournament.creator_id === user?.id && (
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => setTournamentScoringDialog({ open: true, tournament })}
-                        className="h-7 px-2"
+                        className="h-7 w-7 p-0"
                       >
                         <Target className="h-3 w-3" />
                       </Button>
                     )}
                   </div>
                 </div>
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                <div className="flex flex-col xs:flex-row xs:items-center gap-2 xs:gap-4 text-xs xs:text-sm text-muted-foreground">
                   <div className="flex items-center gap-1">
-                    <MapPin className="h-3 w-3" />
-                    {tournament.golf_courses?.name}
+                    <MapPin className="h-3 w-3 flex-shrink-0" />
+                    <span className="truncate">{tournament.golf_courses?.name}</span>
                   </div>
                   <div className="flex items-center gap-1">
-                    <Users className="h-3 w-3" />
+                    <Users className="h-3 w-3 flex-shrink-0" />
                     {tournament.tournament_participants?.length || 0} players
                   </div>
                 </div>
@@ -260,34 +269,35 @@ export const TournamentsAndMatchesSection = () => {
                 {/* Active Matches */}
                 {activeMatches.map((match) => (
                   <div key={match.id} className="p-3 rounded-lg border bg-gradient-to-r from-red-50 to-transparent hover:from-red-100 transition-colors">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <Swords className="h-4 w-4 text-red-500" />
-                        <span className="font-medium">{match.name}</span>
+                    <div className="flex items-start justify-between mb-2 gap-2">
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <Swords className="h-4 w-4 text-red-500 flex-shrink-0" />
+                        <span className="font-medium truncate">{match.name}</span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Badge className="bg-red-100 text-red-700 border-red-200">
-                          Active Match
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        <Badge className="bg-red-100 text-red-700 border-red-200 text-xs px-2">
+                          <span className="hidden xs:inline">Active Match</span>
+                          <span className="xs:hidden">Active</span>
                         </Badge>
                         {(match.creator_id === user?.id || match.opponent_id === user?.id) && (
                           <Button
                             size="sm"
                             variant="outline"
                             onClick={() => setMatchScoringDialog({ open: true, match })}
-                            className="h-7 px-2"
+                            className="h-7 w-7 p-0"
                           >
                             <Target className="h-3 w-3" />
                           </Button>
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <div className="flex flex-col xs:flex-row xs:items-center gap-2 xs:gap-4 text-xs xs:text-sm text-muted-foreground">
                       <div className="flex items-center gap-1">
-                        <MapPin className="h-3 w-3" />
-                        {match.golf_courses?.name}
+                        <MapPin className="h-3 w-3 flex-shrink-0" />
+                        <span className="truncate">{match.golf_courses?.name}</span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
+                        <Calendar className="h-3 w-3 flex-shrink-0" />
                         {format(new Date(match.match_date), 'MMM d')}
                       </div>
                     </div>
@@ -309,13 +319,13 @@ export const TournamentsAndMatchesSection = () => {
                 {/* Upcoming Tournaments */}
                 {upcomingTournaments.map((tournament) => (
               <div key={tournament.id} className="p-3 rounded-lg border hover:bg-accent/30 transition-colors">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <Trophy className="h-4 w-4 text-primary" />
-                    <span className="font-medium">{tournament.name}</span>
+                <div className="flex items-start justify-between mb-2 gap-2">
+                  <div className="flex items-center gap-2 min-w-0 flex-1">
+                    <Trophy className="h-4 w-4 text-primary flex-shrink-0" />
+                    <span className="font-medium truncate">{tournament.name}</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline">
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    <Badge variant="outline" className="text-xs px-2">
                       {format(new Date(tournament.start_date), 'MMM d')}
                     </Badge>
                     {tournament.creator_id === user?.id && (
@@ -324,13 +334,13 @@ export const TournamentsAndMatchesSection = () => {
                           size="sm"
                           variant="outline"
                           onClick={() => setEditTournamentDialog({ open: true, tournament })}
-                          className="h-7 px-2"
+                          className="h-7 w-7 p-0"
                         >
                           <Edit className="h-3 w-3" />
                         </Button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button size="sm" variant="outline" className="h-7 px-2 text-destructive hover:text-destructive">
+                            <Button size="sm" variant="outline" className="h-7 w-7 p-0 text-destructive hover:text-destructive">
                               <Trash2 className="h-3 w-3" />
                             </Button>
                           </AlertDialogTrigger>
@@ -351,13 +361,13 @@ export const TournamentsAndMatchesSection = () => {
                     )}
                   </div>
                 </div>
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                <div className="flex flex-col xs:flex-row xs:items-center gap-2 xs:gap-4 text-xs xs:text-sm text-muted-foreground">
                   <div className="flex items-center gap-1">
-                    <MapPin className="h-3 w-3" />
-                    {tournament.golf_courses?.name}
+                    <MapPin className="h-3 w-3 flex-shrink-0" />
+                    <span className="truncate">{tournament.golf_courses?.name}</span>
                   </div>
                   <div className="flex items-center gap-1">
-                    <Users className="h-3 w-3" />
+                    <Users className="h-3 w-3 flex-shrink-0" />
                     {tournament.tournament_participants?.length || 0}/{tournament.max_players}
                   </div>
                 </div>
@@ -375,13 +385,13 @@ export const TournamentsAndMatchesSection = () => {
                 {/* Pending Matches */}
                 {pendingMatches.map((match) => (
                   <div key={match.id} className="p-3 rounded-lg border hover:bg-accent/30 transition-colors">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <Swords className="h-4 w-4 text-primary" />
-                        <span className="font-medium">{match.name}</span>
+                    <div className="flex items-start justify-between mb-2 gap-2">
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <Swords className="h-4 w-4 text-primary flex-shrink-0" />
+                        <span className="font-medium truncate">{match.name}</span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline">
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        <Badge variant="outline" className="text-xs px-2">
                           Pending
                         </Badge>
                         {match.creator_id === user?.id && (
@@ -390,13 +400,13 @@ export const TournamentsAndMatchesSection = () => {
                               size="sm"
                               variant="outline"
                               onClick={() => setEditMatchDialog({ open: true, match })}
-                              className="h-7 px-2"
+                              className="h-7 w-7 p-0"
                             >
                               <Edit className="h-3 w-3" />
                             </Button>
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
-                                <Button size="sm" variant="outline" className="h-7 px-2 text-destructive hover:text-destructive">
+                                <Button size="sm" variant="outline" className="h-7 w-7 p-0 text-destructive hover:text-destructive">
                                   <Trash2 className="h-3 w-3" />
                                 </Button>
                               </AlertDialogTrigger>
@@ -417,13 +427,13 @@ export const TournamentsAndMatchesSection = () => {
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <div className="flex flex-col xs:flex-row xs:items-center gap-2 xs:gap-4 text-xs xs:text-sm text-muted-foreground">
                       <div className="flex items-center gap-1">
-                        <MapPin className="h-3 w-3" />
-                        {match.golf_courses?.name}
+                        <MapPin className="h-3 w-3 flex-shrink-0" />
+                        <span className="truncate">{match.golf_courses?.name}</span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
+                        <Calendar className="h-3 w-3 flex-shrink-0" />
                         {format(new Date(match.match_date), 'MMM d')}
                       </div>
                     </div>
