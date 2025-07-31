@@ -4,11 +4,21 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Trophy, Swords, Calendar, MapPin, Users, Crown, Clock, CheckCircle } from "lucide-react";
+import { Trophy, Swords, Calendar, MapPin, Users, Crown, Clock, CheckCircle, Edit, Trash2, Play, Target } from "lucide-react";
 import { useTournamentsAndMatches } from "@/hooks/useTournamentsAndMatches";
 import { formatDistanceToNow, format } from "date-fns";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { EditTournamentDialog } from "@/components/tournaments/EditTournamentDialog";
+import { EditMatchDialog } from "@/components/matches/EditMatchDialog";
+import { TournamentScoringDialog } from "@/components/scoring/TournamentScoringDialog";
+import { MatchScoringDialog } from "@/components/scoring/MatchScoringDialog";
 
 export const TournamentsAndMatchesSection = () => {
+  const { user } = useAuth();
+  const { toast } = useToast();
   const {
     upcomingTournaments,
     activeTournaments,
@@ -16,8 +26,64 @@ export const TournamentsAndMatchesSection = () => {
     pendingMatches,
     activeMatches,
     completedMatches,
-    isLoading
+    isLoading,
+    refetchAll
   } = useTournamentsAndMatches();
+
+  const [editTournamentDialog, setEditTournamentDialog] = useState<{ open: boolean; tournament: any }>({ open: false, tournament: null });
+  const [editMatchDialog, setEditMatchDialog] = useState<{ open: boolean; match: any }>({ open: false, match: null });
+  const [tournamentScoringDialog, setTournamentScoringDialog] = useState<{ open: boolean; tournament: any }>({ open: false, tournament: null });
+  const [matchScoringDialog, setMatchScoringDialog] = useState<{ open: boolean; match: any }>({ open: false, match: null });
+
+  const deleteTournament = async (tournamentId: string) => {
+    try {
+      const { error } = await supabase
+        .from('tournaments')
+        .delete()
+        .eq('id', tournamentId)
+        .eq('creator_id', user?.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Tournament Deleted",
+        description: "Tournament has been successfully deleted.",
+      });
+      refetchAll();
+    } catch (error) {
+      console.error('Error deleting tournament:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete tournament.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const deleteMatch = async (matchId: string) => {
+    try {
+      const { error } = await supabase
+        .from('matches')
+        .delete()
+        .eq('id', matchId)
+        .eq('creator_id', user?.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Match Deleted",
+        description: "Match has been successfully deleted.",
+      });
+      refetchAll();
+    } catch (error) {
+      console.error('Error deleting match:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete match.",
+        variant: "destructive",
+      });
+    }
+  };
 
   if (isLoading) {
     return (
@@ -125,9 +191,21 @@ export const TournamentsAndMatchesSection = () => {
                     <Trophy className="h-4 w-4 text-amber-500" />
                     <span className="font-medium">{tournament.name}</span>
                   </div>
-                  <Badge className="bg-amber-100 text-amber-700 border-amber-200">
-                    Active Tournament
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge className="bg-amber-100 text-amber-700 border-amber-200">
+                      Active Tournament
+                    </Badge>
+                    {tournament.creator_id === user?.id && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setTournamentScoringDialog({ open: true, tournament })}
+                        className="h-7 px-2"
+                      >
+                        <Target className="h-3 w-3" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
                 <div className="flex items-center gap-4 text-sm text-muted-foreground">
                   <div className="flex items-center gap-1">
@@ -150,9 +228,21 @@ export const TournamentsAndMatchesSection = () => {
                     <Swords className="h-4 w-4 text-red-500" />
                     <span className="font-medium">{match.name}</span>
                   </div>
-                  <Badge className="bg-red-100 text-red-700 border-red-200">
-                    Active Match
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge className="bg-red-100 text-red-700 border-red-200">
+                      Active Match
+                    </Badge>
+                    {(match.creator_id === user?.id || match.opponent_id === user?.id) && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setMatchScoringDialog({ open: true, match })}
+                        className="h-7 px-2"
+                      >
+                        <Target className="h-3 w-3" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
                 <div className="flex items-center gap-4 text-sm text-muted-foreground">
                   <div className="flex items-center gap-1">
@@ -184,9 +274,42 @@ export const TournamentsAndMatchesSection = () => {
                     <Trophy className="h-4 w-4 text-primary" />
                     <span className="font-medium">{tournament.name}</span>
                   </div>
-                  <Badge variant="outline">
-                    {format(new Date(tournament.start_date), 'MMM d')}
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline">
+                      {format(new Date(tournament.start_date), 'MMM d')}
+                    </Badge>
+                    {tournament.creator_id === user?.id && (
+                      <div className="flex gap-1">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setEditTournamentDialog({ open: true, tournament })}
+                          className="h-7 px-2"
+                        >
+                          <Edit className="h-3 w-3" />
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button size="sm" variant="outline" className="h-7 px-2 text-destructive hover:text-destructive">
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Tournament</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete "{tournament.name}"? This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => deleteTournament(tournament.id)}>Delete</AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="flex items-center gap-4 text-sm text-muted-foreground">
                   <div className="flex items-center gap-1">
@@ -209,9 +332,42 @@ export const TournamentsAndMatchesSection = () => {
                     <Swords className="h-4 w-4 text-primary" />
                     <span className="font-medium">{match.name}</span>
                   </div>
-                  <Badge variant="outline">
-                    Pending
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline">
+                      Pending
+                    </Badge>
+                    {match.creator_id === user?.id && (
+                      <div className="flex gap-1">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setEditMatchDialog({ open: true, match })}
+                          className="h-7 px-2"
+                        >
+                          <Edit className="h-3 w-3" />
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button size="sm" variant="outline" className="h-7 px-2 text-destructive hover:text-destructive">
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Match</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete "{match.name}"? This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => deleteMatch(match.id)}>Delete</AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="flex items-center gap-4 text-sm text-muted-foreground">
                   <div className="flex items-center gap-1">
@@ -294,6 +450,36 @@ export const TournamentsAndMatchesSection = () => {
           </TabsContent>
         </Tabs>
       </CardContent>
+
+      {/* Edit Dialogs */}
+      <EditTournamentDialog
+        tournament={editTournamentDialog.tournament}
+        open={editTournamentDialog.open}
+        onOpenChange={(open) => setEditTournamentDialog({ open, tournament: null })}
+        onSuccess={refetchAll}
+      />
+
+      <EditMatchDialog
+        match={editMatchDialog.match}
+        open={editMatchDialog.open}
+        onOpenChange={(open) => setEditMatchDialog({ open, match: null })}
+        onSuccess={refetchAll}
+      />
+
+      {/* Scoring Dialogs */}
+      <TournamentScoringDialog
+        tournament={tournamentScoringDialog.tournament}
+        open={tournamentScoringDialog.open}
+        onOpenChange={(open) => setTournamentScoringDialog({ open, tournament: null })}
+        onSuccess={refetchAll}
+      />
+
+      <MatchScoringDialog
+        match={matchScoringDialog.match}
+        open={matchScoringDialog.open}
+        onOpenChange={(open) => setMatchScoringDialog({ open, match: null })}
+        onSuccess={refetchAll}
+      />
     </Card>
   );
 };
