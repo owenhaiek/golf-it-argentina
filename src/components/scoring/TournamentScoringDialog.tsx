@@ -150,7 +150,7 @@ export const TournamentScoringDialog = ({ tournament, open, onOpenChange, onSucc
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            Tournament Scoring - {tournament.name}
+            Tournament Scoring - {tournament?.name || "Loading..."}
             <Badge variant="secondary">Round {roundNumber}</Badge>
           </DialogTitle>
         </DialogHeader>

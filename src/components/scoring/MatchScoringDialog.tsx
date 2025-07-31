@@ -145,7 +145,7 @@ export const MatchScoringDialog = ({ match, open, onOpenChange, onSuccess }: Mat
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Match Scoring - {match.name}</DialogTitle>
+          <DialogTitle>Match Scoring - {match?.name || "Loading..."}</DialogTitle>
         </DialogHeader>
         
         <div className="space-y-6">
