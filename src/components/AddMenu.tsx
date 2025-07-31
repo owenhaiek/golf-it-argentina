@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
-import { Plus, Flag } from "lucide-react";
+import { Plus, Flag, Trophy, Swords } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export const AddMenu = () => {
@@ -16,6 +16,15 @@ export const AddMenu = () => {
     navigate('/add-round');
   };
 
+  const handleCreateTournament = () => {
+    setOpen(false);
+    navigate('/create-tournament');
+  };
+
+  const handleCreateMatch = () => {
+    setOpen(false);
+    navigate('/create-match');
+  };
 
   return (
     <Drawer open={open} onOpenChange={setOpen}>
@@ -43,6 +52,36 @@ export const AddMenu = () => {
               <div className="font-semibold">{t("addRound", "title")}</div>
               <div className="text-sm opacity-90">
                 {language === "en" ? "Record your golf round" : "Registra tu ronda de golf"}
+              </div>
+            </div>
+          </Button>
+          
+          <Button 
+            onClick={handleCreateTournament}
+            className="w-full h-16 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white flex items-center justify-start gap-4 text-lg"
+          >
+            <Trophy size={24} />
+            <div className="text-left">
+              <div className="font-semibold">
+                {language === "en" ? "Create Tournament" : "Crear Torneo"}
+              </div>
+              <div className="text-sm opacity-90">
+                {language === "en" ? "Organize a tournament with friends" : "Organiza un torneo con amigos"}
+              </div>
+            </div>
+          </Button>
+          
+          <Button 
+            onClick={handleCreateMatch}
+            className="w-full h-16 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white flex items-center justify-start gap-4 text-lg"
+          >
+            <Swords size={24} />
+            <div className="text-left">
+              <div className="font-semibold">
+                {language === "en" ? "Challenge Friend" : "Desafiar Amigo"}
+              </div>
+              <div className="text-sm opacity-90">
+                {language === "en" ? "Start a head-to-head match" : "Iniciar un duelo uno a uno"}
               </div>
             </div>
           </Button>

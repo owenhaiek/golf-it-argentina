@@ -213,6 +213,97 @@ export type Database = {
         }
         Relationships: []
       }
+      match_scores: {
+        Row: {
+          hole_scores: number[]
+          id: string
+          match_id: string
+          submitted_at: string
+          submitted_by: string
+          total_score: number
+          user_id: string
+        }
+        Insert: {
+          hole_scores: number[]
+          id?: string
+          match_id: string
+          submitted_at?: string
+          submitted_by: string
+          total_score: number
+          user_id: string
+        }
+        Update: {
+          hole_scores?: number[]
+          id?: string
+          match_id?: string
+          submitted_at?: string
+          submitted_by?: string
+          total_score?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_scores_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      matches: {
+        Row: {
+          course_id: string
+          created_at: string
+          creator_id: string
+          id: string
+          match_date: string
+          match_type: string
+          name: string
+          opponent_id: string
+          stakes: string | null
+          status: string
+          updated_at: string
+          winner_id: string | null
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          creator_id: string
+          id?: string
+          match_date: string
+          match_type?: string
+          name: string
+          opponent_id: string
+          stakes?: string | null
+          status?: string
+          updated_at?: string
+          winner_id?: string | null
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          creator_id?: string
+          id?: string
+          match_date?: string
+          match_type?: string
+          name?: string
+          opponent_id?: string
+          stakes?: string | null
+          status?: string
+          updated_at?: string
+          winner_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "matches_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "golf_courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pending_course_managers: {
         Row: {
           course_id: string
@@ -393,6 +484,151 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tournament_participants: {
+        Row: {
+          id: string
+          registration_date: string
+          status: string
+          tournament_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          registration_date?: string
+          status?: string
+          tournament_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          registration_date?: string
+          status?: string
+          tournament_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tournament_participants_tournament_id_fkey"
+            columns: ["tournament_id"]
+            isOneToOne: false
+            referencedRelation: "tournaments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tournament_scores: {
+        Row: {
+          hole_scores: number[]
+          id: string
+          participant_id: string
+          position: number | null
+          round_number: number
+          submitted_at: string
+          submitted_by: string
+          total_score: number
+          tournament_id: string
+        }
+        Insert: {
+          hole_scores: number[]
+          id?: string
+          participant_id: string
+          position?: number | null
+          round_number?: number
+          submitted_at?: string
+          submitted_by: string
+          total_score: number
+          tournament_id: string
+        }
+        Update: {
+          hole_scores?: number[]
+          id?: string
+          participant_id?: string
+          position?: number | null
+          round_number?: number
+          submitted_at?: string
+          submitted_by?: string
+          total_score?: number
+          tournament_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tournament_scores_participant_id_fkey"
+            columns: ["participant_id"]
+            isOneToOne: false
+            referencedRelation: "tournament_participants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tournament_scores_tournament_id_fkey"
+            columns: ["tournament_id"]
+            isOneToOne: false
+            referencedRelation: "tournaments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tournaments: {
+        Row: {
+          course_id: string
+          created_at: string
+          creator_id: string
+          description: string | null
+          end_date: string | null
+          entry_fee: number | null
+          id: string
+          max_players: number | null
+          name: string
+          prize_pool: number | null
+          rules: Json | null
+          start_date: string
+          status: string
+          tournament_type: string
+          updated_at: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          creator_id: string
+          description?: string | null
+          end_date?: string | null
+          entry_fee?: number | null
+          id?: string
+          max_players?: number | null
+          name: string
+          prize_pool?: number | null
+          rules?: Json | null
+          start_date: string
+          status?: string
+          tournament_type?: string
+          updated_at?: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          creator_id?: string
+          description?: string | null
+          end_date?: string | null
+          entry_fee?: number | null
+          id?: string
+          max_players?: number | null
+          name?: string
+          prize_pool?: number | null
+          rules?: Json | null
+          start_date?: string
+          status?: string
+          tournament_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tournaments_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "golf_courses"
             referencedColumns: ["id"]
           },
         ]
