@@ -70,7 +70,7 @@ const UserProfileCard = ({ profile, profileLoading, userId }: UserProfileCardPro
       </CardHeader>
       
       <CardContent className="text-center pt-6 pb-6">
-        <div className="mt-6">
+        <div className="mt-6 flex justify-center">
           {userId && <FriendRequestButton userId={userId} size="default" />}
         </div>
       </CardContent>
