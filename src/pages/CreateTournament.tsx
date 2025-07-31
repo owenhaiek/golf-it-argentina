@@ -21,7 +21,7 @@ const CreateTournament = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { friends } = useFriendsData();
-  const { courses } = useGolfCourses("", {
+  const { courses, isLoading: coursesLoading } = useGolfCourses("", {
     location: "",
     holes: "",
     favoritesOnly: false,
@@ -201,14 +201,20 @@ const CreateTournament = () => {
                     <SelectValue placeholder="Select a golf course" />
                   </SelectTrigger>
                   <SelectContent>
-                    {courses.map((course) => (
-                      <SelectItem key={course.id} value={course.id}>
-                        <div className="flex items-center gap-2">
-                          <MapPin className="h-4 w-4" />
-                          {course.name}
-                        </div>
-                      </SelectItem>
-                    ))}
+                    {coursesLoading ? (
+                      <SelectItem value="" disabled>Loading courses...</SelectItem>
+                    ) : courses.length === 0 ? (
+                      <SelectItem value="" disabled>No courses available</SelectItem>
+                    ) : (
+                      courses.map((course) => (
+                        <SelectItem key={course.id} value={course.id}>
+                          <div className="flex items-center gap-2">
+                            <MapPin className="h-4 w-4" />
+                            {course.name}
+                          </div>
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
               </div>
