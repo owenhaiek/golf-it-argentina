@@ -35,11 +35,11 @@ export const MatchScoringDialog = ({ match, open, onOpenChange, onSuccess }: Mat
   const [coursePars, setCoursePars] = useState<number[]>([]);
 
   useEffect(() => {
-    if (open) {
+    if (open && match?.id) {
       initializePlayers();
       fetchCoursePars();
     }
-  }, [open, match.id]);
+  }, [open, match?.id]);
 
   const initializePlayers = () => {
     const playerScores: PlayerScore[] = [

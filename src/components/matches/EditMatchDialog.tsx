@@ -30,11 +30,11 @@ export const EditMatchDialog = ({ match, open, onOpenChange, onSuccess }: EditMa
   const [loading, setLoading] = useState(false);
   
   const [formData, setFormData] = useState({
-    name: match.name,
-    course_id: match.course_id,
-    match_date: match.match_date,
-    match_type: match.match_type,
-    stakes: match.stakes || "",
+    name: match?.name || "",
+    course_id: match?.course_id || "",
+    match_date: match?.match_date || "",
+    match_type: match?.match_type || "stroke_play",
+    stakes: match?.stakes || "",
   });
 
   const handleInputChange = (field: string, value: string) => {

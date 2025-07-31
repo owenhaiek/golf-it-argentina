@@ -36,11 +36,11 @@ export const TournamentScoringDialog = ({ tournament, open, onOpenChange, onSucc
   const [roundNumber, setRoundNumber] = useState(1);
 
   useEffect(() => {
-    if (open) {
+    if (open && tournament?.id) {
       fetchParticipants();
       fetchCoursePars();
     }
-  }, [open, tournament.id]);
+  }, [open, tournament?.id]);
 
   const fetchParticipants = async () => {
     try {

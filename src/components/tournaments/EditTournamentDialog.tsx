@@ -31,15 +31,15 @@ export const EditTournamentDialog = ({ tournament, open, onOpenChange, onSuccess
   const [loading, setLoading] = useState(false);
   
   const [formData, setFormData] = useState({
-    name: tournament.name,
-    description: tournament.description || "",
-    course_id: tournament.course_id,
-    start_date: tournament.start_date,
-    end_date: tournament.end_date || "",
-    max_players: tournament.max_players,
-    tournament_type: tournament.tournament_type,
-    entry_fee: tournament.entry_fee,
-    prize_pool: tournament.prize_pool,
+    name: tournament?.name || "",
+    description: tournament?.description || "",
+    course_id: tournament?.course_id || "",
+    start_date: tournament?.start_date || "",
+    end_date: tournament?.end_date || "",
+    max_players: tournament?.max_players || 8,
+    tournament_type: tournament?.tournament_type || "stroke_play",
+    entry_fee: tournament?.entry_fee || 0,
+    prize_pool: tournament?.prize_pool || 0,
   });
 
   const handleInputChange = (field: string, value: string | number) => {
