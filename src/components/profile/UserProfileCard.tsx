@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { UserPlus, User, Hash } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useToast } from "@/components/ui/use-toast";
+import { FriendRequestButton } from "./FriendRequestButton";
 
 interface UserProfileData {
   username?: string;
@@ -16,19 +16,11 @@ interface UserProfileData {
 interface UserProfileCardProps {
   profile: UserProfileData;
   profileLoading: boolean;
+  userId?: string;
 }
 
-const UserProfileCard = ({ profile, profileLoading }: UserProfileCardProps) => {
+const UserProfileCard = ({ profile, profileLoading, userId }: UserProfileCardProps) => {
   const { t } = useLanguage();
-  const { toast } = useToast();
-
-  const handleAddFriend = () => {
-    // Placeholder for future friend system implementation
-    toast({
-      title: "Friend Request",
-      description: "Friend system coming soon!",
-    });
-  };
 
   if (profileLoading) {
     return (
@@ -79,13 +71,7 @@ const UserProfileCard = ({ profile, profileLoading }: UserProfileCardProps) => {
       
       <CardContent className="text-center pt-6 pb-6">
         <div className="mt-6">
-          <Button 
-            onClick={handleAddFriend}
-            className="bg-primary text-white hover:bg-primary/90 transition-colors"
-          >
-            <UserPlus className="w-4 h-4 mr-2" />
-            Add Friend
-          </Button>
+          {userId && <FriendRequestButton userId={userId} size="default" />}
         </div>
       </CardContent>
     </Card>

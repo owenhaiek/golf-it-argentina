@@ -59,7 +59,8 @@ const UserProfile = () => {
         <div className="p-4 space-y-6 pb-28">
           <UserProfileCard 
             profile={profile || {}} 
-            profileLoading={profileLoading} 
+            profileLoading={profileLoading}
+            userId={userId}
           />
           <UserStatsCard 
             rounds={rounds || []}
