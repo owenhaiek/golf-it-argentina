@@ -7,6 +7,7 @@ import RecentRounds from "@/components/profile/RecentRounds";
 import UserStatsCard from "@/components/profile/UserStatsCard";
 import { FriendsSection } from "@/components/profile/FriendsSection";
 import { FriendSuggestions } from "@/components/profile/FriendSuggestions";
+import { TournamentsAndMatchesSection } from "@/components/profile/TournamentsAndMatchesSection";
 import { DarkModeToggle } from "@/components/ui/DarkModeToggle";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -56,6 +57,7 @@ const Profile = () => {
           />
           <FriendsSection />
           <FriendSuggestions />
+          <TournamentsAndMatchesSection />
           <RecentRounds />
         </div>
       </ScrollArea>

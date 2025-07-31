@@ -16,6 +16,8 @@ import Profile from "./pages/Profile";
 import UserProfile from "./pages/UserProfile";
 import Course from "./pages/Course";
 import AddRound from "./pages/AddRound";
+import CreateTournament from "./pages/CreateTournament";
+import CreateMatch from "./pages/CreateMatch";
 import AddReservation from "./pages/AddReservation";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
@@ -74,6 +76,8 @@ function App() {
                         <Route path="/user/:userId" element={<UserProfile />} />
                         <Route path="/course/:id" element={<Course />} />
                         <Route path="/add-round" element={<AddRound />} />
+                        <Route path="/create-tournament" element={<CreateTournament />} />
+                        <Route path="/create-match" element={<CreateMatch />} />
                         <Route path="/add-reservation" element={<AddReservation />} />
                         <Route path="/search-users" element={<SearchUsers />} />
                         <Route path="/courses-map" element={<CoursesMap />} />
