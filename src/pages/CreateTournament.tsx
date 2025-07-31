@@ -35,10 +35,7 @@ const CreateTournament = () => {
     description: "",
     courseId: "",
     startDate: "",
-    endDate: "",
     maxPlayers: 8,
-    entryFee: 0,
-    prizePool: 0,
     tournamentType: "stroke_play"
   });
   
@@ -65,6 +62,16 @@ const CreateTournament = () => {
       return;
     }
 
+    // Check if start date is in the future
+    const selectedDate = new Date(formData.startDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    if (selectedDate < today) {
+      toast.error("Start date must be in the future");
+      return;
+    }
+
     if (selectedParticipants.length === 0) {
       toast.error("Please select at least one participant");
       return;
@@ -82,10 +89,10 @@ const CreateTournament = () => {
           course_id: formData.courseId,
           creator_id: user.id,
           start_date: formData.startDate,
-          end_date: formData.endDate || formData.startDate,
+          end_date: formData.startDate,
           max_players: formData.maxPlayers,
-          entry_fee: formData.entryFee,
-          prize_pool: formData.prizePool,
+          entry_fee: 0,
+          prize_pool: 0,
           tournament_type: formData.tournamentType
         })
         .select()
@@ -170,25 +177,15 @@ const CreateTournament = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="startDate">Start Date *</Label>
-                  <Input
-                    id="startDate"
-                    type="date"
-                    value={formData.startDate}
-                    onChange={(e) => handleInputChange("startDate", e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="endDate">End Date</Label>
-                  <Input
-                    id="endDate"
-                    type="date"
-                    value={formData.endDate}
-                    onChange={(e) => handleInputChange("endDate", e.target.value)}
-                  />
-                </div>
+              <div>
+                <Label htmlFor="startDate">Tournament Date *</Label>
+                <Input
+                  id="startDate"
+                  type="date"
+                  min={new Date().toISOString().split('T')[0]}
+                  value={formData.startDate}
+                  onChange={(e) => handleInputChange("startDate", e.target.value)}
+                />
               </div>
 
               <div>
@@ -248,30 +245,6 @@ const CreateTournament = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="entryFee">Entry Fee ($)</Label>
-                  <Input
-                    id="entryFee"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={formData.entryFee}
-                    onChange={(e) => handleInputChange("entryFee", parseFloat(e.target.value) || 0)}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="prizePool">Prize Pool ($)</Label>
-                  <Input
-                    id="prizePool"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={formData.prizePool}
-                    onChange={(e) => handleInputChange("prizePool", parseFloat(e.target.value) || 0)}
-                  />
-                </div>
-              </div>
             </CardContent>
           </Card>
 

@@ -52,6 +52,16 @@ const CreateMatch = () => {
       return;
     }
 
+    // Check if match date is in the future
+    const selectedDate = new Date(formData.matchDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    if (selectedDate < today) {
+      toast.error("Match date must be in the future");
+      return;
+    }
+
     setIsLoading(true);
     
     try {
@@ -129,6 +139,7 @@ const CreateMatch = () => {
                 <Input
                   id="matchDate"
                   type="date"
+                  min={new Date().toISOString().split('T')[0]}
                   value={formData.matchDate}
                   onChange={(e) => handleInputChange("matchDate", e.target.value)}
                 />
