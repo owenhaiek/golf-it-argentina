@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { hashPassword, verifyPassword, sanitizeInput, validateEmail, validatePassword, authRateLimiter } from "@/utils/security";
 import { Separator } from "@/components/ui/separator";
 import { Building2, ArrowLeft } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -39,6 +40,37 @@ const CourseManagerAuth = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!email || !password) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Please enter both email and password",
+      });
+      return;
+    }
+
+    // Input validation and sanitization
+    if (!validateEmail(email)) {
+      toast({
+        variant: "destructive",
+        title: "Invalid Email",
+        description: "Please enter a valid email address",
+      });
+      return;
+    }
+
+    // Rate limiting check
+    const sanitizedEmail = sanitizeInput(email).toLowerCase();
+    if (!authRateLimiter.isAllowed(sanitizedEmail)) {
+      toast({
+        variant: "destructive",
+        title: "Too Many Attempts",
+        description: "Too many login attempts. Please try again in 15 minutes.",
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -58,7 +90,7 @@ const CourseManagerAuth = () => {
             name
           )
         `)
-        .eq('email', email.toLowerCase().trim())
+        .eq('email', sanitizedEmail)
         .eq('is_active', true);
 
       if (fetchError) {
@@ -69,7 +101,7 @@ const CourseManagerAuth = () => {
       console.log("Found managers:", managers);
 
       if (!managers || managers.length === 0) {
-        console.log("No managers found with email:", email);
+        console.log("No managers found with email:", sanitizedEmail);
         toast({
           variant: "destructive",
           title: "Authentication Failed",
@@ -86,24 +118,33 @@ const CourseManagerAuth = () => {
         passwordHashLength: manager.password_hash?.length
       });
       
-      // Try multiple password verification methods to ensure compatibility
+      // Try secure password verification methods
       const providedPassword = password.trim();
       const storedHash = manager.password_hash;
       
+      let isValidPassword = false;
+      
+      try {
+        // Try bcrypt verification first (for properly hashed passwords)
+        isValidPassword = await verifyPassword(providedPassword, storedHash);
+      } catch (bcryptError) {
+        console.log("Bcrypt verification failed, trying legacy methods");
+        
+        // Fall back to legacy hash formats for backward compatibility
+        isValidPassword = 
+          btoa(providedPassword) === storedHash || // Base64 encoded
+          providedPassword === storedHash; // Direct match (for unhashed passwords - security risk!)
+      }
+      
       console.log("Password verification:", {
-        providedPassword: providedPassword,
-        storedHash: storedHash,
-        base64Match: btoa(providedPassword) === storedHash,
-        directMatch: providedPassword === storedHash
+        isValidPassword,
+        method: isValidPassword ? 'verified' : 'failed'
       });
       
-      // Check multiple possible hash formats for compatibility
-      const isValidPassword = 
-        btoa(providedPassword) === storedHash || // Base64 encoded
-        providedPassword === storedHash || // Direct match (for any unhashed passwords)
-        btoa(providedPassword.toLowerCase()) === storedHash; // Case insensitive base64
-      
       if (isValidPassword) {
+        // Reset rate limiter on successful login
+        authRateLimiter.reset(sanitizedEmail);
+        
         const managerData = {
           manager_id: manager.id,
           name: manager.name,
@@ -144,20 +185,55 @@ const CourseManagerAuth = () => {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!name || !email || !password || !selectedCourseId) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Please fill in all required fields",
+      });
+      return;
+    }
+
+    // Input validation and sanitization
+    if (!validateEmail(email)) {
+      toast({
+        variant: "destructive",
+        title: "Invalid Email",
+        description: "Please enter a valid email address",
+      });
+      return;
+    }
+
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.isValid) {
+      toast({
+        variant: "destructive",
+        title: "Invalid Password",
+        description: passwordValidation.errors.join(', '),
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      // Simple password hashing for demo purposes (in production, use proper bcrypt)
-      const passwordHash = btoa(password.trim()); // Base64 encoding as simple hash
+      // Sanitize inputs
+      const sanitizedName = sanitizeInput(name);
+      const sanitizedEmail = sanitizeInput(email).toLowerCase();
+      const sanitizedPhone = phone ? sanitizeInput(phone) : null;
+      
+      // Use proper password hashing instead of Base64
+      const hashedPassword = await hashPassword(password.trim());
       
       const { error } = await supabase
         .from('pending_course_managers')
         .insert({
           course_id: selectedCourseId,
-          name: name.trim(),
-          email: email.toLowerCase().trim(),
-          password_hash: passwordHash,
-          phone: phone?.trim() || null
+          name: sanitizedName,
+          email: sanitizedEmail,
+          password_hash: hashedPassword,
+          phone: sanitizedPhone
         });
 
       if (error) throw error;

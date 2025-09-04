@@ -37,7 +37,32 @@ export const validatePassword = (password: string): { isValid: boolean; errors: 
 };
 
 export const sanitizeInput = (input: string): string => {
-  return input.trim().replace(/[<>]/g, '');
+  return input
+    .trim()
+    .replace(/[<>]/g, '') // Basic XSS prevention
+    .replace(/javascript:/gi, '') // Remove javascript: URLs
+    .replace(/on\w+\s*=/gi, '') // Remove event handlers
+    .replace(/&lt;script/gi, '') // Remove encoded script tags
+    .replace(/&gt;/gi, ''); // Remove encoded closing tags
+};
+
+// Enhanced HTML sanitization for rich content
+export const sanitizeHtml = (html: string): string => {
+  // For now, strip all HTML tags - implement DOMPurify later for rich content
+  return html
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/<[^>]*>/g, '')
+    .trim();
+};
+
+// URL validation
+export const isValidUrl = (url: string): boolean => {
+  try {
+    const urlObj = new URL(url);
+    return ['http:', 'https:'].includes(urlObj.protocol);
+  } catch {
+    return false;
+  }
 };
 
 export const hashPassword = async (password: string): Promise<string> => {
