@@ -58,7 +58,7 @@ const CreateTournament = () => {
     if (!user) return;
     
     if (!formData.name || !formData.courseId || !formData.startDate) {
-      toast.error("Please fill in all required fields");
+      toast.error(t("tournaments", "fillRequiredFields"));
       return;
     }
 
@@ -68,12 +68,12 @@ const CreateTournament = () => {
     today.setHours(0, 0, 0, 0);
     
     if (selectedDate < today) {
-      toast.error("Start date must be in the future");
+      toast.error(t("tournaments", "startDateFuture"));
       return;
     }
 
     if (selectedParticipants.length === 0) {
-      toast.error("Please select at least one participant");
+      toast.error(t("tournaments", "selectOneParticipant"));
       return;
     }
 
@@ -116,11 +116,11 @@ const CreateTournament = () => {
 
       if (participantsError) throw participantsError;
 
-      toast.success("Tournament created successfully!");
+      toast.success(t("tournaments", "tournamentCreatedSuccess"));
       navigate("/home");
     } catch (error: any) {
       console.error("Error creating tournament:", error);
-      toast.error("Failed to create tournament");
+      toast.error(t("tournaments", "failedToCreate"));
     } finally {
       setIsLoading(false);
     }
@@ -141,7 +141,7 @@ const CreateTournament = () => {
           </Button>
           <div className="flex items-center gap-2">
             <Trophy className="h-6 w-6 text-amber-500" />
-            <h1 className="text-2xl font-bold">Create Tournament</h1>
+            <h1 className="text-2xl font-bold">{t("tournaments", "createTournament")}</h1>
           </div>
         </div>
       </div>
@@ -153,32 +153,32 @@ const CreateTournament = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Trophy className="h-5 w-5" />
-                Tournament Details
+                {t("tournaments", "tournamentDetails")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="name">Tournament Name *</Label>
+                <Label htmlFor="name">{t("tournaments", "tournamentNameRequired")}</Label>
                 <Input
                   id="name"
-                  placeholder="e.g., Friends Championship"
+                  placeholder={t("tournaments", "tournamentNamePlaceholder")}
                   value={formData.name}
                   onChange={(e) => handleInputChange("name", e.target.value)}
                 />
               </div>
               
               <div>
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="description">{t("tournaments", "description")}</Label>
                 <Textarea
                   id="description"
-                  placeholder="Tournament description..."
+                  placeholder={t("tournaments", "descriptionPlaceholder")}
                   value={formData.description}
                   onChange={(e) => handleInputChange("description", e.target.value)}
                 />
               </div>
 
               <div>
-                <Label htmlFor="startDate">Tournament Date *</Label>
+                <Label htmlFor="startDate">{t("tournaments", "tournamentDateRequired")}</Label>
                 <Input
                   id="startDate"
                   type="date"
@@ -189,19 +189,19 @@ const CreateTournament = () => {
               </div>
 
               <div>
-                <Label htmlFor="course">Golf Course *</Label>
+                <Label htmlFor="course">{t("tournaments", "golfCourseRequired")}</Label>
                 <Select
                   value={formData.courseId}
                   onValueChange={(value) => handleInputChange("courseId", value)}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select a golf course" />
+                    <SelectValue placeholder={t("tournaments", "selectGolfCourse")} />
                   </SelectTrigger>
                   <SelectContent>
                     {coursesLoading ? (
-                      <SelectItem value="" disabled>Loading courses...</SelectItem>
+                      <SelectItem value="" disabled>{t("tournaments", "loadingCourses")}</SelectItem>
                     ) : courses.length === 0 ? (
-                      <SelectItem value="" disabled>No courses available</SelectItem>
+                      <SelectItem value="" disabled>{t("tournaments", "noCoursesAvailable")}</SelectItem>
                     ) : (
                       courses.map((course) => (
                         <SelectItem key={course.id} value={course.id}>
@@ -218,7 +218,7 @@ const CreateTournament = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="maxPlayers">Max Players</Label>
+                  <Label htmlFor="maxPlayers">{t("tournaments", "maxPlayers")}</Label>
                   <Input
                     id="maxPlayers"
                     type="number"
@@ -229,7 +229,7 @@ const CreateTournament = () => {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="tournamentType">Format</Label>
+                  <Label htmlFor="tournamentType">{t("tournaments", "format")}</Label>
                   <Select
                     value={formData.tournamentType}
                     onValueChange={(value) => handleInputChange("tournamentType", value)}
@@ -238,8 +238,8 @@ const CreateTournament = () => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="stroke_play">Stroke Play</SelectItem>
-                      <SelectItem value="match_play">Match Play</SelectItem>
+                      <SelectItem value="stroke_play">{t("tournaments", "strokePlay")}</SelectItem>
+                      <SelectItem value="match_play">{t("tournaments", "matchPlay")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -252,10 +252,10 @@ const CreateTournament = () => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
-                  Select Participants
-                </div>
+                  <div className="flex items-center gap-2">
+                    <Users className="h-5 w-5" />
+                    {t("tournaments", "selectParticipants")}
+                  </div>
                 <Badge variant="secondary">
                   {selectedParticipants.length + 1}/{formData.maxPlayers}
                 </Badge>
@@ -265,8 +265,8 @@ const CreateTournament = () => {
               {friends.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   <Users className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                  <p>No friends available</p>
-                  <p className="text-sm">Add friends to invite them to tournaments</p>
+                  <p>{t("tournaments", "noFriendsAvailable")}</p>
+                  <p className="text-sm">{t("tournaments", "addFriendsToInvite")}</p>
                 </div>
               ) : (
                 <div className="space-y-3 max-h-64 overflow-y-auto">
@@ -312,7 +312,7 @@ const CreateTournament = () => {
             disabled={isLoading || !formData.name || !formData.courseId || selectedParticipants.length === 0}
             className="w-full h-12 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white"
           >
-            {isLoading ? "Creating Tournament..." : "Create Tournament"}
+            {isLoading ? t("tournaments", "creatingTournament") : t("tournaments", "createTournamentButton")}
           </Button>
         </div>
       </div>

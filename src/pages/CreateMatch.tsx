@@ -48,7 +48,7 @@ const CreateMatch = () => {
     if (!user) return;
     
     if (!formData.name || !formData.opponentId || !formData.courseId || !formData.matchDate) {
-      toast.error("Please fill in all required fields");
+      toast.error(t("matches", "fillRequiredFields"));
       return;
     }
 
@@ -58,7 +58,7 @@ const CreateMatch = () => {
     today.setHours(0, 0, 0, 0);
     
     if (selectedDate < today) {
-      toast.error("Match date must be in the future");
+      toast.error(t("matches", "matchDateFuture"));
       return;
     }
 
@@ -81,11 +81,11 @@ const CreateMatch = () => {
 
       if (error) throw error;
 
-      toast.success("Match challenge sent!");
+      toast.success(t("matches", "matchChallengeSent"));
       navigate("/home");
     } catch (error: any) {
       console.error("Error creating match:", error);
-      toast.error("Failed to create match");
+      toast.error(t("matches", "failedToCreate"));
     } finally {
       setIsLoading(false);
     }
@@ -108,7 +108,7 @@ const CreateMatch = () => {
           </Button>
           <div className="flex items-center gap-2">
             <Swords className="h-6 w-6 text-red-500" />
-            <h1 className="text-2xl font-bold">Challenge Friend</h1>
+            <h1 className="text-2xl font-bold">{t("matches", "challengeFriend")}</h1>
           </div>
         </div>
       </div>
@@ -120,22 +120,22 @@ const CreateMatch = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Target className="h-5 w-5" />
-                Match Details
+                {t("matches", "matchDetails")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="name">Match Name *</Label>
+                <Label htmlFor="name">{t("matches", "matchNameRequired")}</Label>
                 <Input
                   id="name"
-                  placeholder="e.g., Sunday Showdown"
+                  placeholder={t("matches", "matchNamePlaceholder")}
                   value={formData.name}
                   onChange={(e) => handleInputChange("name", e.target.value)}
                 />
               </div>
 
               <div>
-                <Label htmlFor="matchDate">Match Date *</Label>
+                <Label htmlFor="matchDate">{t("matches", "matchDateRequired")}</Label>
                 <Input
                   id="matchDate"
                   type="date"
@@ -146,19 +146,19 @@ const CreateMatch = () => {
               </div>
 
               <div>
-                <Label htmlFor="course">Golf Course *</Label>
+                <Label htmlFor="course">{t("matches", "golfCourseRequired")}</Label>
                 <Select
                   value={formData.courseId}
                   onValueChange={(value) => handleInputChange("courseId", value)}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select a golf course" />
+                    <SelectValue placeholder={t("matches", "selectGolfCourse")} />
                   </SelectTrigger>
                   <SelectContent>
                     {coursesLoading ? (
-                      <SelectItem value="" disabled>Loading courses...</SelectItem>
+                      <SelectItem value="" disabled>{t("matches", "loadingCourses")}</SelectItem>
                     ) : courses.length === 0 ? (
-                      <SelectItem value="" disabled>No courses available</SelectItem>
+                      <SelectItem value="" disabled>{t("matches", "noCoursesAvailable")}</SelectItem>
                     ) : (
                       courses.map((course) => (
                         <SelectItem key={course.id} value={course.id}>
@@ -174,7 +174,7 @@ const CreateMatch = () => {
               </div>
 
               <div>
-                <Label>Match Format *</Label>
+                <Label>{t("matches", "matchFormatRequired")}</Label>
                 <RadioGroup
                   value={formData.matchType}
                   onValueChange={(value) => handleInputChange("matchType", value)}
@@ -182,20 +182,20 @@ const CreateMatch = () => {
                 >
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="stroke_play" id="stroke_play" />
-                    <Label htmlFor="stroke_play">Stroke Play</Label>
+                    <Label htmlFor="stroke_play">{t("matches", "strokePlay")}</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="match_play" id="match_play" />
-                    <Label htmlFor="match_play">Match Play</Label>
+                    <Label htmlFor="match_play">{t("matches", "matchPlay")}</Label>
                   </div>
                 </RadioGroup>
               </div>
 
               <div>
-                <Label htmlFor="stakes">Stakes (Optional)</Label>
+                <Label htmlFor="stakes">{t("matches", "stakesOptional")}</Label>
                 <Input
                   id="stakes"
-                  placeholder="e.g., Loser buys dinner"
+                  placeholder={t("matches", "stakesPlaceholder")}
                   value={formData.stakes}
                   onChange={(e) => handleInputChange("stakes", e.target.value)}
                 />
@@ -215,8 +215,8 @@ const CreateMatch = () => {
               {friends.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   <User className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                  <p>No friends available</p>
-                  <p className="text-sm">Add friends to challenge them to matches</p>
+                  <p>{t("matches", "noFriendsAvailable")}</p>
+                  <p className="text-sm">{t("matches", "addFriendsToChallenge")}</p>
                 </div>
               ) : (
                 <div className="space-y-3 max-h-64 overflow-y-auto">
@@ -260,7 +260,7 @@ const CreateMatch = () => {
           {selectedOpponent && (
             <Card className="border-primary/20 bg-primary/5">
               <CardHeader>
-                <CardTitle className="text-primary">Match Preview</CardTitle>
+                <CardTitle className="text-primary">{t("matches", "matchPreview")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center justify-center gap-4">
@@ -271,12 +271,12 @@ const CreateMatch = () => {
                         {user?.user_metadata?.full_name?.charAt(0) || 'Y'}
                       </AvatarFallback>
                     </Avatar>
-                    <p className="font-medium">You</p>
+                    <p className="font-medium">{t("matches", "you")}</p>
                   </div>
                   
                   <div className="flex flex-col items-center">
                     <Swords className="h-8 w-8 text-primary mb-1" />
-                    <span className="text-sm font-medium text-primary">VS</span>
+                    <span className="text-sm font-medium text-primary">{t("matches", "versus")}</span>
                   </div>
                   
                   <div className="text-center">
@@ -307,7 +307,7 @@ const CreateMatch = () => {
             }
             className="w-full h-12 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white"
           >
-            {isLoading ? "Sending Challenge..." : "Send Challenge"}
+            {isLoading ? t("matches", "sendingChallenge") : t("matches", "sendChallenge")}
           </Button>
         </div>
       </div>
