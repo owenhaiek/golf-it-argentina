@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
+import CourseHeroCarousel from "./CourseHeroCarousel";
 export const CourseHero = ({
   course,
   language,
@@ -23,10 +24,8 @@ export const CourseHero = ({
     const galleryImages = course.image_gallery.split(',').map((url: string) => url.trim()).filter((url: string) => url !== '');
     courseImages.push(...galleryImages);
   }
-  return <div className="relative w-full h-80 sm:h-96 md:h-[28rem]">
-      {courseImages.length > 0 ? <img src={courseImages[0]} alt={course.name} className="w-full h-full object-cover" onError={e => (e.target as HTMLImageElement).src = 'https://placehold.co/600x400?text=Golf+Course'} /> : <div className="w-full h-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center">
-          <Flag className="h-16 w-16 text-white opacity-50" />
-        </div>}
+  return (
+    <CourseHeroCarousel images={courseImages} courseName={course.name}>
       <div className="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/50 to-transparent">
         <div className="flex items-center justify-between">
           <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="text-white hover:bg-white/20">
@@ -59,5 +58,6 @@ export const CourseHero = ({
           </div>
         </div>
       </div>
-    </div>;
+    </CourseHeroCarousel>
+  );
 };
