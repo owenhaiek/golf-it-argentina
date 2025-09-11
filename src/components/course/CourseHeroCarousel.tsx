@@ -57,7 +57,6 @@ const CourseHeroCarousel = ({ images, courseName, children }: CourseHeroCarousel
     setIsDragging(true);
     setStartX(e.touches[0].clientX);
     setInitialTranslateX(translateX);
-    e.preventDefault();
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
@@ -66,13 +65,12 @@ const CourseHeroCarousel = ({ images, courseName, children }: CourseHeroCarousel
     const currentX = e.touches[0].clientX;
     const diff = currentX - startX;
     setTranslateX(initialTranslateX + diff);
-    e.preventDefault();
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
     if (!isDragging) return;
     
-    const threshold = 50;
+    const threshold = 80;
     const diff = translateX - initialTranslateX;
     
     if (Math.abs(diff) > threshold) {
@@ -88,7 +86,6 @@ const CourseHeroCarousel = ({ images, courseName, children }: CourseHeroCarousel
     }
     
     setIsDragging(false);
-    e.preventDefault();
   };
 
   // Mouse handlers
@@ -173,10 +170,10 @@ const CourseHeroCarousel = ({ images, courseName, children }: CourseHeroCarousel
   }
 
   return (
-    <div className="relative w-full h-80 sm:h-96 md:h-[28rem] overflow-hidden">
+    <div className="relative w-full h-80 sm:h-96 md:h-[28rem] overflow-hidden touch-pan-y">
       <div
         ref={carouselRef}
-        className="flex transition-transform duration-300 ease-out h-full select-none cursor-grab active:cursor-grabbing"
+        className="flex transition-transform duration-300 ease-out h-full select-none cursor-grab active:cursor-grabbing touch-pan-y"
         style={{
           transform: `translateX(calc(-${currentIndex * 100}% + ${translateX}px))`,
         }}
