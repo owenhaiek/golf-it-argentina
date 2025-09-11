@@ -169,6 +169,19 @@ export const useFriendsData = () => {
     mutationFn: async (receiverId: string) => {
       if (!user?.id) throw new Error('Not authenticated');
       
+      // Check if request already exists to prevent duplicates
+      const { data: existing } = await supabase
+        .from('friend_requests')
+        .select('id')
+        .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
+        .or(`sender_id.eq.${receiverId},receiver_id.eq.${receiverId}`)
+        .eq('status', 'pending')
+        .maybeSingle();
+        
+      if (existing) {
+        throw new Error("Friend request already exists");
+      }
+      
       const { data, error } = await supabase
         .from('friend_requests')
         .insert({
@@ -183,10 +196,17 @@ export const useFriendsData = () => {
     },
     onSuccess: () => {
       toast.success('Friend request sent!');
+      // Invalidate both sent and received queries to refresh UI
       queryClient.invalidateQueries({ queryKey: ['friendRequests'] });
+      queryClient.invalidateQueries({ queryKey: ['friendRequests', 'sent', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['friendRequests', 'received', user?.id] });
     },
     onError: (error: any) => {
-      toast.error(error.message || 'Failed to send friend request');
+      if (error.message?.includes('already exists')) {
+        toast.error('Friend request already sent or friendship already exists');
+      } else {
+        toast.error(error.message || 'Failed to send friend request');
+      }
     },
   });
 
@@ -262,7 +282,8 @@ export const useFriendsData = () => {
       const { data: pendingRequest, error: requestError } = await supabase
         .from('friend_requests')
         .select('id, sender_id, receiver_id, status')
-        .or(`and(sender_id.eq.${user.id},receiver_id.eq.${userId}),and(sender_id.eq.${userId},receiver_id.eq.${user.id})`)
+        .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
+        .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
         .eq('status', 'pending')
         .maybeSingle();
 
@@ -277,11 +298,12 @@ export const useFriendsData = () => {
         return status;
       }
 
-      // Check if they're already friends
+      // Check if they're already friends  
       const { data: friendship, error: friendshipError } = await supabase
         .from('friendships')
         .select('id')
-        .or(`and(user1_id.eq.${user.id},user2_id.eq.${userId}),and(user1_id.eq.${userId},user2_id.eq.${user.id})`)
+        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
+        .or(`user1_id.eq.${userId},user2_id.eq.${userId}`)
         .maybeSingle();
 
       if (friendshipError) {
