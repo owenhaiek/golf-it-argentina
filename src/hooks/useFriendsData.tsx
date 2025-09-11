@@ -170,13 +170,26 @@ export const useFriendsData = () => {
       if (!user?.id) throw new Error('Not authenticated');
       
       // Check if request already exists to prevent duplicates
-      const { data: existing } = await supabase
+      const { data: existing, error: existingError } = await supabase
         .from('friend_requests')
-        .select('id')
-        .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
-        .or(`sender_id.eq.${receiverId},receiver_id.eq.${receiverId}`)
-        .eq('status', 'pending')
+        .select('id, status, sender_id, receiver_id, created_at')
+        .or(`and(sender_id.eq.${user.id},receiver_id.eq.${receiverId}),and(sender_id.eq.${receiverId},receiver_id.eq.${user.id})`)
+        .order('created_at', { ascending: false })
+        .limit(1)
         .maybeSingle();
+      
+      if (existingError) {
+        // If PostgREST returns multiple rows error, we gracefully treat it as existing
+        console.error('Error checking existing friend requests:', existingError);
+      }
+      
+      if (existing) {
+        throw new Error(
+          existing.status === 'accepted'
+            ? 'You are already friends'
+            : 'Friend request already exists'
+        );
+      }
         
       if (existing) {
         throw new Error("Friend request already exists");
@@ -281,10 +294,11 @@ export const useFriendsData = () => {
       // Check if there's a pending request between current user and target user
       const { data: pendingRequest, error: requestError } = await supabase
         .from('friend_requests')
-        .select('id, sender_id, receiver_id, status')
-        .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
-        .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
+        .select('id, sender_id, receiver_id, status, created_at')
+        .or(`and(sender_id.eq.${user.id},receiver_id.eq.${userId}),and(sender_id.eq.${userId},receiver_id.eq.${user.id})`)
         .eq('status', 'pending')
+        .order('created_at', { ascending: false })
+        .limit(1)
         .maybeSingle();
 
       if (requestError) {
@@ -301,9 +315,10 @@ export const useFriendsData = () => {
       // Check if they're already friends  
       const { data: friendship, error: friendshipError } = await supabase
         .from('friendships')
-        .select('id')
-        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
-        .or(`user1_id.eq.${userId},user2_id.eq.${userId}`)
+        .select('id, user1_id, user2_id, created_at')
+        .or(`and(user1_id.eq.${user.id},user2_id.eq.${userId}),and(user1_id.eq.${userId},user2_id.eq.${user.id})`)
+        .order('created_at', { ascending: false })
+        .limit(1)
         .maybeSingle();
 
       if (friendshipError) {
