@@ -18,17 +18,41 @@ export const FriendRequestButton = ({ userId, size = "sm" }: FriendRequestButton
 
   useEffect(() => {
     const checkStatus = async () => {
-      if (!user?.id || user.id === userId) return;
+      if (!user?.id || user.id === userId) {
+        setIsLoading(false);
+        return;
+      }
+      
       setIsLoading(true);
+      
       try {
+        console.log('FriendRequestButton: Checking status for user:', userId);
         const friendshipStatus = await checkFriendshipStatus(userId);
+        console.log('FriendRequestButton: Got status:', friendshipStatus);
         setStatus(friendshipStatus);
+      } catch (error) {
+        console.error('FriendRequestButton: Error checking status:', error);
+        // Set to 'none' as fallback
+        setStatus('none');
       } finally {
         setIsLoading(false);
       }
     };
 
-    checkStatus();
+    // Add a timeout to prevent infinite loading
+    const timeoutId = setTimeout(() => {
+      console.log('FriendRequestButton: Timeout reached, setting loading to false');
+      setIsLoading(false);
+      if (status === null) {
+        setStatus('none');
+      }
+    }, 10000); // 10 second timeout
+
+    checkStatus().finally(() => {
+      clearTimeout(timeoutId);
+    });
+
+    return () => clearTimeout(timeoutId);
   }, [userId, user?.id, checkFriendshipStatus]);
 
   // Don't show button for own profile

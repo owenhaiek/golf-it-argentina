@@ -248,29 +248,54 @@ export const useFriendsData = () => {
   });
 
   // Check friendship status
-  const checkFriendshipStatus = async (userId: string) => {
-    if (!user?.id) return null;
-    
-    // Check if there's a pending request between current user and target user
-    const { data: pendingRequest } = await supabase
-      .from('friend_requests')
-      .select('id, sender_id, receiver_id, status')
-      .or(`and(sender_id.eq.${user.id},receiver_id.eq.${userId}),and(sender_id.eq.${userId},receiver_id.eq.${user.id})`)
-      .eq('status', 'pending')
-      .maybeSingle();
+  const checkFriendshipStatus = async (userId: string): Promise<'none' | 'sent' | 'received' | 'friends'> => {
+    try {
+      console.log('Checking friendship status for user:', userId);
+      
+      if (!user?.id) {
+        console.log('No authenticated user found');
+        return 'none';
+      }
 
-    if (pendingRequest) {
-      return pendingRequest.sender_id === user.id ? 'sent' : 'received';
+      // Check if there's a pending request between current user and target user
+      const { data: pendingRequest, error: requestError } = await supabase
+        .from('friend_requests')
+        .select('id, sender_id, receiver_id, status')
+        .or(`and(sender_id.eq.${user.id},receiver_id.eq.${userId}),and(sender_id.eq.${userId},receiver_id.eq.${user.id})`)
+        .eq('status', 'pending')
+        .maybeSingle();
+
+      if (requestError) {
+        console.error('Error checking friend requests:', requestError);
+        throw requestError;
+      }
+
+      if (pendingRequest) {
+        const status = pendingRequest.sender_id === user.id ? 'sent' : 'received';
+        console.log('Found pending request, status:', status);
+        return status;
+      }
+
+      // Check if they're already friends
+      const { data: friendship, error: friendshipError } = await supabase
+        .from('friendships')
+        .select('id')
+        .or(`and(user1_id.eq.${user.id},user2_id.eq.${userId}),and(user1_id.eq.${userId},user2_id.eq.${user.id})`)
+        .maybeSingle();
+
+      if (friendshipError) {
+        console.error('Error checking friendships:', friendshipError);
+        throw friendshipError;
+      }
+
+      const status = friendship ? 'friends' : 'none';
+      console.log('Final friendship status:', status);
+      return status;
+    } catch (error) {
+      console.error('Error in checkFriendshipStatus:', error);
+      // Return 'none' as fallback to prevent infinite loading
+      return 'none';
     }
-
-    // Check if they're already friends
-    const { data: friendship } = await supabase
-      .from('friendships')
-      .select('id')
-      .or(`and(user1_id.eq.${user.id},user2_id.eq.${userId}),and(user1_id.eq.${userId},user2_id.eq.${user.id})`)
-      .maybeSingle();
-
-    return friendship ? 'friends' : 'none';
   };
 
   return {
