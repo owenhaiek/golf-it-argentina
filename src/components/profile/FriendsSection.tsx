@@ -36,7 +36,7 @@ export const FriendsSection = () => {
   const pendingRequestsCount = receivedRequests.length;
 
   return (
-    <Card className="w-full">
+    <Card id="friends-section" className="w-full">
       <CardHeader className="space-y-4">
         <CardTitle className="flex items-center gap-2">
           <Users className="h-5 w-5 text-primary" />

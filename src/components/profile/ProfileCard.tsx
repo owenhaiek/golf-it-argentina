@@ -7,11 +7,12 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { Loader2, LogOut, Edit3, Check, X, Camera, User, Hash, Settings } from "lucide-react";
+import { Loader2, LogOut, Edit3, Check, X, Camera, User, Hash, Settings, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useFriendsData } from "@/hooks/useFriendsData";
 
 interface ProfileData {
   username?: string;
@@ -36,6 +37,14 @@ const ProfileCard = ({
   const { signOut } = useAuth();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const { friends, receivedRequests } = useFriendsData();
+  const friendsCount = friends.length;
+  const pendingCount = receivedRequests.length;
+  const handleScrollToFriends = () => {
+    const el = document.getElementById('friends-section');
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -205,6 +214,14 @@ const ProfileCard = ({
   return <Card className="overflow-hidden border-0 shadow-md bg-gradient-to-br from-white to-muted dark:bg-black dark:from-black dark:to-gray-900 h-full">
       <CardHeader className="relative pb-0 text-center">
         {!isEditing && <div className="absolute right-4 top-4 flex gap-2">
+            <Button variant="ghost" size="icon" onClick={handleScrollToFriends} className="text-black dark:text-white hover:bg-primary/10 rounded-full relative">
+              <Users className="h-5 w-5" />
+              {pendingCount > 0 && (
+                <span className="absolute -top-1 -right-1 h-4 min-w-4 px-1 rounded-full bg-primary text-primary-foreground text-[10px] leading-4 text-center">
+                  {pendingCount}
+                </span>
+              )}
+            </Button>
             <Button variant="ghost" size="icon" onClick={handleGoToSettings} className="text-black dark:text-white hover:bg-primary/10 rounded-full">
               <Settings className="h-5 w-5" />
             </Button>
@@ -227,7 +244,6 @@ const ProfileCard = ({
             {isEditing && <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-full text-white">
                 <Camera className="h-6 w-6" />
               </div>}
-          </div>
         </div>
         
         {isEditing ? <form id="profile-form" onSubmit={handleSubmit} className="space-y-4 mt-6 px-4">

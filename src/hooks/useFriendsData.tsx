@@ -168,7 +168,29 @@ export const useFriendsData = () => {
   const sendFriendRequestMutation = useMutation({
     mutationFn: async (receiverId: string) => {
       if (!user?.id) throw new Error('Not authenticated');
-      
+
+      // If the other user already sent me a pending request, accept it instead of creating a new one
+      const { data: reversedPending, error: reversedErr } = await supabase
+        .from('friend_requests')
+        .select('id, sender_id, receiver_id, status')
+        .eq('sender_id', receiverId)
+        .eq('receiver_id', user.id)
+        .eq('status', 'pending')
+        .maybeSingle();
+
+      if (reversedErr) {
+        console.warn('Error checking reversed pending request:', reversedErr);
+      }
+
+      if (reversedPending?.id) {
+        const { error: acceptErr } = await supabase.rpc('accept_friend_request', {
+          request_id: reversedPending.id,
+        });
+        if (acceptErr) throw acceptErr;
+        // Return a synthetic object indicating friendship established
+        return { acceptedExisting: true } as any;
+      }
+
       // Atomic upsert to prevent duplicate key errors on unique constraint
       const { data, error } = await supabase
         .from('friend_requests')
@@ -179,25 +201,36 @@ export const useFriendsData = () => {
         .select()
         .maybeSingle();
 
-      if (error) throw error;
+      // Treat duplicate key conflicts as success (request already exists)
+      if (error) {
+        const msg = String(error.message || '');
+        if (msg.includes('duplicate key value') || msg.includes('already exists')) {
+          return null;
+        }
+        throw error;
+      }
+
       return data;
     },
-    onSuccess: () => {
-      toast.success('Friend request sent!');
-      // Invalidate both sent and received queries to refresh UI
+    onSuccess: (data) => {
+      const alreadyAccepted = (data as any)?.acceptedExisting;
+      toast.success(alreadyAccepted ? 'Friend request accepted!' : 'Friend request sent!');
+      // Invalidate both sent and received queries to refresh UI and friends list
       queryClient.invalidateQueries({ queryKey: ['friendRequests'] });
       queryClient.invalidateQueries({ queryKey: ['friendRequests', 'sent', user?.id] });
       queryClient.invalidateQueries({ queryKey: ['friendRequests', 'received', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['friends', user?.id] });
     },
     onError: (error: any) => {
-      if (error.message?.includes('already exists')) {
-        toast.error('Friend request already sent or friendship already exists');
-      } else {
-        toast.error(error.message || 'Failed to send friend request');
+      if (error?.message?.includes('duplicate key value')) {
+        // Gracefully handle duplicates
+        toast.success('Friend request already exists');
+        queryClient.invalidateQueries({ queryKey: ['friendRequests'] });
+        return;
       }
+      toast.error(error.message || 'Failed to send friend request');
     },
   });
-
   // Accept friend request mutation
   const acceptFriendRequestMutation = useMutation({
     mutationFn: async (requestId: string) => {
