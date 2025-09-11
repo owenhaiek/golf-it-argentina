@@ -172,12 +172,13 @@ const CourseHeroCarousel = ({ images, courseName, children }: CourseHeroCarousel
   return (
     <div className="relative w-full h-80 sm:h-96 md:h-[28rem] overflow-hidden">
       {/* Image container with touch handlers */}
-      <div className="absolute inset-0 overflow-hidden">
+      <div className="absolute inset-0 overflow-hidden z-0">
         <div
           ref={carouselRef}
-          className="flex transition-transform duration-300 ease-out h-full select-none cursor-grab active:cursor-grabbing"
+          className="flex transition-transform duration-300 ease-out h-full select-none cursor-grab active:cursor-grabbing transform-gpu"
           style={{
             transform: `translateX(calc(-${currentIndex * 100}% + ${translateX}px))`,
+            willChange: 'transform',
           }}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
@@ -208,7 +209,7 @@ const CourseHeroCarousel = ({ images, courseName, children }: CourseHeroCarousel
             size="sm"
             onClick={goToPrevious}
             disabled={currentIndex === 0}
-            className="absolute left-4 top-1/2 -translate-y-1/2 hidden md:flex bg-black/20 hover:bg-black/40 text-white border-0 h-10 w-10 p-0 z-20"
+            className="absolute left-4 top-1/2 -translate-y-1/2 hidden md:flex bg-black/20 hover:bg-black/40 text-white border-0 h-10 w-10 p-0 z-40"
           >
             <ChevronLeft className="h-6 w-6" />
           </Button>
@@ -218,7 +219,7 @@ const CourseHeroCarousel = ({ images, courseName, children }: CourseHeroCarousel
             size="sm"
             onClick={goToNext}
             disabled={currentIndex === images.length - 1}
-            className="absolute right-4 top-1/2 -translate-y-1/2 hidden md:flex bg-black/20 hover:bg-black/40 text-white border-0 h-10 w-10 p-0 z-20"
+            className="absolute right-4 top-1/2 -translate-y-1/2 hidden md:flex bg-black/20 hover:bg-black/40 text-white border-0 h-10 w-10 p-0 z-40"
           >
             <ChevronRight className="h-6 w-6" />
           </Button>
@@ -227,7 +228,7 @@ const CourseHeroCarousel = ({ images, courseName, children }: CourseHeroCarousel
 
       {/* Dots indicator */}
       {images.length > 1 && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2 z-20 pointer-events-auto">
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2 z-40 pointer-events-auto">
           {images.map((_, index) => (
             <button
               key={index}
@@ -247,7 +248,7 @@ const CourseHeroCarousel = ({ images, courseName, children }: CourseHeroCarousel
       )}
 
       {/* Fixed overlay content */}
-      <div className="absolute inset-0 z-10 pointer-events-none">
+      <div className="absolute inset-0 z-30 pointer-events-none transform-gpu">
         <div className="pointer-events-auto">
           {children}
         </div>
