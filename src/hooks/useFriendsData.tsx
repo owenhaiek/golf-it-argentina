@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -247,8 +248,8 @@ export const useFriendsData = () => {
     },
   });
 
-  // Check friendship status
-  const checkFriendshipStatus = async (userId: string): Promise<'none' | 'sent' | 'received' | 'friends'> => {
+  // Check friendship status - memoized to prevent unnecessary re-renders
+  const checkFriendshipStatus = useCallback(async (userId: string): Promise<'none' | 'sent' | 'received' | 'friends'> => {
     try {
       console.log('Checking friendship status for user:', userId);
       
@@ -296,7 +297,7 @@ export const useFriendsData = () => {
       // Return 'none' as fallback to prevent infinite loading
       return 'none';
     }
-  };
+  }, [user?.id]);
 
   return {
     // Data
