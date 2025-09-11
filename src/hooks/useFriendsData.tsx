@@ -169,40 +169,15 @@ export const useFriendsData = () => {
     mutationFn: async (receiverId: string) => {
       if (!user?.id) throw new Error('Not authenticated');
       
-      // Check if request already exists to prevent duplicates
-      const { data: existing, error: existingError } = await supabase
-        .from('friend_requests')
-        .select('id, status, sender_id, receiver_id, created_at')
-        .or(`and(sender_id.eq.${user.id},receiver_id.eq.${receiverId}),and(sender_id.eq.${receiverId},receiver_id.eq.${user.id})`)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      
-      if (existingError) {
-        // If PostgREST returns multiple rows error, we gracefully treat it as existing
-        console.error('Error checking existing friend requests:', existingError);
-      }
-      
-      if (existing) {
-        throw new Error(
-          existing.status === 'accepted'
-            ? 'You are already friends'
-            : 'Friend request already exists'
-        );
-      }
-        
-      if (existing) {
-        throw new Error("Friend request already exists");
-      }
-      
+      // Atomic upsert to prevent duplicate key errors on unique constraint
       const { data, error } = await supabase
         .from('friend_requests')
-        .insert({
-          sender_id: user.id,
-          receiver_id: receiverId,
-        })
+        .upsert(
+          { sender_id: user.id, receiver_id: receiverId, status: 'pending' },
+          { onConflict: 'sender_id,receiver_id', ignoreDuplicates: true }
+        )
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return data;
@@ -348,7 +323,7 @@ export const useFriendsData = () => {
     friendsLoading,
     
     // Mutations
-    sendFriendRequest: sendFriendRequestMutation.mutate,
+    sendFriendRequest: sendFriendRequestMutation.mutateAsync,
     acceptFriendRequest: acceptFriendRequestMutation.mutate,
     rejectFriendRequest: rejectFriendRequestMutation.mutate,
     removeFriend: removeFriendMutation.mutate,

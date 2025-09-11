@@ -75,21 +75,18 @@ export const FriendRequestButton = ({ userId, size = "sm" }: FriendRequestButton
   }
 
   const handleSendRequest = async () => {
+    if (sendingFriendRequest || status === 'sent' || status === 'friends' || status === 'received') return;
     try {
       await sendFriendRequest(userId);
-      // Only update status optimistically if request succeeds
-      setStatus('sent');
+      // Re-check status to ensure correct UI state (handles existing requests)
+      const currentStatus = await checkFriendshipStatus(userId);
+      setStatus(currentStatus);
     } catch (error: any) {
       console.error('Failed to send friend request:', error);
-      // If it's a duplicate request error, check status to get correct state
-      if (error.message?.includes('already exists')) {
-        // Re-check status to get the correct state
-        const currentStatus = await checkFriendshipStatus(userId);
-        setStatus(currentStatus);
-      }
+      const currentStatus = await checkFriendshipStatus(userId);
+      setStatus(currentStatus);
     }
   };
-
   if (isLoading) {
     return (
       <Button size={size} variant="outline" disabled className="flex items-center gap-2">
