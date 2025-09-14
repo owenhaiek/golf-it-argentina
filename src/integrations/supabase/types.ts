@@ -689,6 +689,20 @@ export type Database = {
         Args: { user_uuid: string }
         Returns: number
       }
+      get_course_manager_profile: {
+        Args: { manager_email: string }
+        Returns: {
+          course_id: string
+          course_name: string
+          created_at: string
+          email: string
+          id: string
+          is_active: boolean
+          name: string
+          phone: string
+          updated_at: string
+        }[]
+      }
       reject_course_manager: {
         Args: { pending_id: string }
         Returns: boolean
