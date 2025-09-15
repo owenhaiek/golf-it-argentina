@@ -154,10 +154,13 @@ export const useFriendsData = () => {
         const friendId = friendship.user1_id === user.id ? friendship.user2_id : friendship.user1_id;
         const friend = profiles?.find(p => p.id === friendId);
         return {
-          ...friend,
+          id: friendId,
+          full_name: friend?.full_name ?? '',
+          username: friend?.username ?? '',
+          avatar_url: friend?.avatar_url ?? '',
           friendship_created_at: friendship.created_at
         };
-      }).filter(friend => friend.id) as Friend[];
+      });
 
       return friendsList;
     },
