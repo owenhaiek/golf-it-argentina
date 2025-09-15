@@ -52,15 +52,18 @@ const CreateMatch = () => {
       return;
     }
 
-    // Check if match date is in the future
+    // Check if match date is not in the past
     const selectedDate = new Date(formData.matchDate);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
     if (selectedDate < today) {
-      toast.error(t("matches", "matchDateFuture"));
+      toast.error(t("matches", "matchDatePast"));
       return;
     }
+    
+    // Determine if this is a same-day match
+    const isSameDayMatch = selectedDate.getTime() === today.getTime();
 
     setIsLoading(true);
     
@@ -74,15 +77,20 @@ const CreateMatch = () => {
           course_id: formData.courseId,
           match_date: formData.matchDate,
           match_type: formData.matchType,
-          stakes: formData.stakes || null
+          stakes: formData.stakes || null,
+          status: isSameDayMatch ? 'accepted' : 'pending'
         })
         .select()
         .single();
 
       if (error) throw error;
 
-      toast.success(t("matches", "matchChallengeSent"));
-      navigate("/home");
+      if (isSameDayMatch) {
+        toast.success("Match created and ready to play! Head to Friends > Matches > Active to start scoring.");
+      } else {
+        toast.success(t("matches", "matchChallengeSent"));
+      }
+      navigate("/friends");
     } catch (error: any) {
       console.error("Error creating match:", error);
       toast.error(t("matches", "failedToCreate"));
@@ -143,6 +151,11 @@ const CreateMatch = () => {
                   value={formData.matchDate}
                   onChange={(e) => handleInputChange("matchDate", e.target.value)}
                 />
+                {formData.matchDate && new Date(formData.matchDate).toDateString() === new Date().toDateString() && (
+                  <p className="text-sm text-primary mt-1">
+                    ⚡ This match will start immediately and be ready for scoring!
+                  </p>
+                )}
               </div>
 
               <div>
@@ -307,7 +320,12 @@ const CreateMatch = () => {
             }
             className="w-full h-12 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white"
           >
-            {isLoading ? t("matches", "sendingChallenge") : t("matches", "sendChallenge")}
+            {isLoading 
+              ? t("matches", "sendingChallenge") 
+              : formData.matchDate && new Date(formData.matchDate).toDateString() === new Date().toDateString()
+                ? "Create Match & Start Playing"
+                : t("matches", "sendChallenge")
+            }
           </Button>
         </div>
       </div>
