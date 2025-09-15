@@ -173,6 +173,21 @@ export const useFriendsData = () => {
         throw new Error('You cannot send a friend request to yourself');
       }
 
+      // First, check if they're already friends
+      const { data: existingFriendship, error: friendshipErr } = await supabase
+        .from('friendships')
+        .select('id')
+        .or(`and(user1_id.eq.${user.id},user2_id.eq.${receiverId}),and(user1_id.eq.${receiverId},user2_id.eq.${user.id})`)
+        .maybeSingle();
+
+      if (friendshipErr) {
+        console.warn('Error checking existing friendship:', friendshipErr);
+      }
+
+      if (existingFriendship) {
+        return { alreadyFriends: true, receiverId };
+      }
+
       // If the other user already sent me a pending request, accept it instead of creating a new one
       const { data: reversedPending, error: reversedErr } = await supabase
         .from('friend_requests')
@@ -197,30 +212,68 @@ export const useFriendsData = () => {
       // Check if I already sent a pending request to this user
       const { data: existingOutgoing, error: existingOutgoingErr } = await supabase
         .from('friend_requests')
-        .select('id')
+        .select('id, status')
         .eq('sender_id', user.id)
         .eq('receiver_id', receiverId)
-        .eq('status', 'pending')
         .maybeSingle();
 
       if (existingOutgoingErr) {
         console.warn('Error checking existing outgoing request:', existingOutgoingErr);
       }
 
-      if (existingOutgoing?.id) {
-        return { requestExists: true, receiverId };
+      if (existingOutgoing) {
+        if (existingOutgoing.status === 'pending') {
+          return { requestExists: true, receiverId };
+        } else if (existingOutgoing.status === 'rejected') {
+          // Delete the rejected request and create a new one
+          const { error: deleteErr } = await supabase
+            .from('friend_requests')
+            .delete()
+            .eq('id', existingOutgoing.id);
+
+          if (deleteErr) {
+            console.warn('Error deleting rejected request:', deleteErr);
+            // Continue anyway, as the insert might work with upsert
+          }
+        }
       }
 
-      // Create a new friend request (no upsert needed)
-      const { data, error } = await supabase
-        .from('friend_requests')
-        .insert({ sender_id: user.id, receiver_id: receiverId, status: 'pending' })
-        .select()
-        .maybeSingle();
+      // Create a new friend request with error handling for duplicates
+      try {
+        const { data, error } = await supabase
+          .from('friend_requests')
+          .insert({ sender_id: user.id, receiver_id: receiverId, status: 'pending' })
+          .select()
+          .maybeSingle();
 
-      if (error) throw error;
+        if (error) {
+          // If it's a duplicate key constraint, try to handle it gracefully
+          if (error.code === '23505' && error.message.includes('friend_requests_sender_id_receiver_id_key')) {
+            // Check if the existing request is actually accepted (shouldn't happen but defensive)
+            const { data: existingRequest } = await supabase
+              .from('friend_requests')
+              .select('status')
+              .eq('sender_id', user.id)
+              .eq('receiver_id', receiverId)
+              .maybeSingle();
 
-      return { data, receiverId };
+            if (existingRequest?.status === 'accepted') {
+              return { alreadyFriends: true, receiverId };
+            } else if (existingRequest?.status === 'pending') {
+              return { requestExists: true, receiverId };
+            }
+          }
+          throw error;
+        }
+
+        return { data, receiverId };
+      } catch (error: any) {
+        // Final fallback for any constraint violations
+        if (error.code === '23505') {
+          return { requestExists: true, receiverId };
+        }
+        throw error;
+      }
     },
     onMutate: async (receiverId: string) => {
       // Cancel outgoing refetches
@@ -236,10 +289,13 @@ export const useFriendsData = () => {
     },
     onSuccess: (result) => {
       const alreadyAccepted = (result as any)?.acceptedExisting;
+      const alreadyFriends = (result as any)?.alreadyFriends;
       const receiverId = (result as any)?.receiverId;
       const existed = (result as any)?.requestExists;
       
-      if (alreadyAccepted) {
+      if (alreadyFriends) {
+        toast.success('You are already friends!');
+      } else if (alreadyAccepted) {
         toast.success('Friend request accepted!');
       } else if (existed) {
         toast.success('Friend request already exists');
@@ -248,7 +304,7 @@ export const useFriendsData = () => {
       }
       
       // Update friendship status cache
-      if (alreadyAccepted && receiverId) {
+      if ((alreadyAccepted || alreadyFriends) && receiverId) {
         queryClient.setQueryData(['friendshipStatus', user?.id, receiverId], 'friends');
       }
       
