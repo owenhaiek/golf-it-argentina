@@ -2,7 +2,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { DarkModeToggle } from "@/components/ui/DarkModeToggle";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { FriendsSection } from "@/components/profile/FriendsSection";
-import { FriendSuggestions } from "@/components/profile/FriendSuggestions";
+import { TournamentsAndMatchesSection } from "@/components/profile/TournamentsAndMatchesSection";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -37,7 +37,7 @@ const Friends = () => {
       <ScrollArea className="flex-1">
         <div className="p-4 space-y-6 pb-28">
           <FriendsSection />
-          <FriendSuggestions />
+          <TournamentsAndMatchesSection />
         </div>
       </ScrollArea>
     </div>
