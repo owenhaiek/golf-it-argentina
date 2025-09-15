@@ -371,13 +371,46 @@ export const useFriendsData = () => {
       });
 
       if (error) throw error;
-      return data;
+      return { data, friendId };
     },
-    onSuccess: () => {
+    onMutate: async (friendId: string) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['friendshipStatus', user?.id, friendId] });
+      await queryClient.cancelQueries({ queryKey: ['friends', user?.id] });
+
+      // Snapshot previous values
+      const previousFriends = queryClient.getQueryData(['friends', user?.id]);
+      const previousStatus = queryClient.getQueryData(['friendshipStatus', user?.id, friendId]);
+
+      // Optimistically update friendship status to 'none'
+      queryClient.setQueryData(['friendshipStatus', user?.id, friendId], 'none');
+
+      // Optimistically remove friend from friends list
+      queryClient.setQueryData(['friends', user?.id], (old: Friend[] | undefined) => {
+        return old?.filter(friend => friend.id !== friendId) || [];
+      });
+
+      return { previousFriends, previousStatus, friendId };
+    },
+    onSuccess: (result) => {
       toast.success('Friend removed');
-      queryClient.invalidateQueries({ queryKey: ['friends'] });
+      
+      // Invalidate all related queries to ensure fresh data
+      queryClient.invalidateQueries({ queryKey: ['friends', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['friendshipStatus'] });
+      
+      // Specifically clear the friendship status cache for this user pair
+      queryClient.removeQueries({ queryKey: ['friendshipStatus', user?.id, result.friendId] });
     },
-    onError: (error: any) => {
+    onError: (error: any, friendId: string, context: any) => {
+      // Rollback optimistic updates
+      if (context?.previousFriends !== undefined) {
+        queryClient.setQueryData(['friends', user?.id], context.previousFriends);
+      }
+      if (context?.previousStatus !== undefined) {
+        queryClient.setQueryData(['friendshipStatus', user?.id, friendId], context.previousStatus);
+      }
+      
       toast.error(error.message || 'Failed to remove friend');
     },
   });
