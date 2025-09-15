@@ -164,7 +164,7 @@ export const useFriendsData = () => {
     enabled: !!user?.id,
   });
 
-  // Send friend request mutation
+  // Send friend request mutation with optimistic updates
   const sendFriendRequestMutation = useMutation({
     mutationFn: async (receiverId: string) => {
       if (!user?.id) throw new Error('Not authenticated');
@@ -187,8 +187,7 @@ export const useFriendsData = () => {
           request_id: reversedPending.id,
         });
         if (acceptErr) throw acceptErr;
-        // Return a synthetic object indicating friendship established
-        return { acceptedExisting: true } as any;
+        return { acceptedExisting: true, receiverId };
       }
 
       // Atomic upsert to prevent duplicate key errors on unique constraint
@@ -205,30 +204,53 @@ export const useFriendsData = () => {
       if (error) {
         const msg = String(error.message || '');
         if (msg.includes('duplicate key value') || msg.includes('already exists')) {
-          return null;
+          return { requestExists: true, receiverId };
         }
         throw error;
       }
 
-      return data;
+      return { data, receiverId };
     },
-    onSuccess: (data) => {
-      const alreadyAccepted = (data as any)?.acceptedExisting;
+    onMutate: async (receiverId: string) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['friendshipStatus', user?.id, receiverId] });
+
+      // Snapshot previous value
+      const previousStatus = queryClient.getQueryData(['friendshipStatus', user?.id, receiverId]);
+
+      // Optimistically update to sent
+      queryClient.setQueryData(['friendshipStatus', user?.id, receiverId], 'sent');
+
+      return { previousStatus, receiverId };
+    },
+    onSuccess: (result) => {
+      const alreadyAccepted = (result as any)?.acceptedExisting;
+      const receiverId = (result as any)?.receiverId;
+      
       toast.success(alreadyAccepted ? 'Friend request accepted!' : 'Friend request sent!');
-      // Invalidate both sent and received queries to refresh UI and friends list
-      queryClient.invalidateQueries({ queryKey: ['friendRequests'] });
-      queryClient.invalidateQueries({ queryKey: ['friendRequests', 'sent', user?.id] });
-      queryClient.invalidateQueries({ queryKey: ['friendRequests', 'received', user?.id] });
-      queryClient.invalidateQueries({ queryKey: ['friends', user?.id] });
-    },
-    onError: (error: any) => {
-      if (error?.message?.includes('duplicate key value')) {
-        // Gracefully handle duplicates
-        toast.success('Friend request already exists');
-        queryClient.invalidateQueries({ queryKey: ['friendRequests'] });
-        return;
+      
+      // Update friendship status cache
+      if (alreadyAccepted && receiverId) {
+        queryClient.setQueryData(['friendshipStatus', user?.id, receiverId], 'friends');
       }
-      toast.error(error.message || 'Failed to send friend request');
+      
+      // Invalidate all related queries
+      queryClient.invalidateQueries({ queryKey: ['friendRequests'] });
+      queryClient.invalidateQueries({ queryKey: ['friends', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['friendshipStatus'] });
+    },
+    onError: (error: any, receiverId: string, context: any) => {
+      // Rollback optimistic update
+      if (context?.previousStatus !== undefined) {
+        queryClient.setQueryData(['friendshipStatus', user?.id, receiverId], context.previousStatus);
+      }
+
+      if (error?.message?.includes('duplicate key value')) {
+        toast.success('Friend request already exists');
+        queryClient.setQueryData(['friendshipStatus', user?.id, receiverId], 'sent');
+      } else {
+        toast.error(error.message || 'Failed to send friend request');
+      }
     },
   });
   // Accept friend request mutation
@@ -289,15 +311,45 @@ export const useFriendsData = () => {
     },
   });
 
-  // Check friendship status - memoized to prevent unnecessary re-renders
+  // Friendship status query hook
+  const useFriendshipStatus = (targetUserId: string) => {
+    return useQuery({
+      queryKey: ['friendshipStatus', user?.id, targetUserId],
+      queryFn: async (): Promise<'none' | 'sent' | 'received' | 'friends'> => {
+        if (!user?.id || user.id === targetUserId) return 'none';
+
+        // Use cached data first to avoid unnecessary API calls
+        const currentFriends = queryClient.getQueryData(['friends', user?.id]) as Friend[] || [];
+        const currentSentRequests = queryClient.getQueryData(['friendRequests', 'sent', user?.id]) as FriendRequest[] || [];
+        const currentReceivedRequests = queryClient.getQueryData(['friendRequests', 'received', user?.id]) as FriendRequest[] || [];
+
+        // Check friends first (fastest check)
+        if (currentFriends.some(f => f.id === targetUserId)) {
+          return 'friends';
+        }
+
+        // Check sent requests
+        if (currentSentRequests.some(r => r.receiver_id === targetUserId && r.status === 'pending')) {
+          return 'sent';
+        }
+
+        // Check received requests
+        if (currentReceivedRequests.some(r => r.sender_id === targetUserId && r.status === 'pending')) {
+          return 'received';
+        }
+
+        return 'none';
+      },
+      enabled: !!user?.id && !!targetUserId && user.id !== targetUserId,
+      staleTime: 30000, // 30 seconds
+      gcTime: 5 * 60 * 1000, // 5 minutes
+    });
+  };
+
+  // Check friendship status - memoized callback for backward compatibility
   const checkFriendshipStatus = useCallback(async (userId: string): Promise<'none' | 'sent' | 'received' | 'friends'> => {
     try {
-      console.log('Checking friendship status for user:', userId);
-      
-      if (!user?.id) {
-        console.log('No authenticated user found');
-        return 'none';
-      }
+      if (!user?.id) return 'none';
 
       // Check if there's a pending request between current user and target user
       const { data: pendingRequest, error: requestError } = await supabase
@@ -309,15 +361,10 @@ export const useFriendsData = () => {
         .limit(1)
         .maybeSingle();
 
-      if (requestError) {
-        console.error('Error checking friend requests:', requestError);
-        throw requestError;
-      }
+      if (requestError) throw requestError;
 
       if (pendingRequest) {
-        const status = pendingRequest.sender_id === user.id ? 'sent' : 'received';
-        console.log('Found pending request, status:', status);
-        return status;
+        return pendingRequest.sender_id === user.id ? 'sent' : 'received';
       }
 
       // Check if they're already friends  
@@ -329,17 +376,10 @@ export const useFriendsData = () => {
         .limit(1)
         .maybeSingle();
 
-      if (friendshipError) {
-        console.error('Error checking friendships:', friendshipError);
-        throw friendshipError;
-      }
-
-      const status = friendship ? 'friends' : 'none';
-      console.log('Final friendship status:', status);
-      return status;
+      if (friendshipError) throw friendshipError;
+      return friendship ? 'friends' : 'none';
     } catch (error) {
       console.error('Error in checkFriendshipStatus:', error);
-      // Return 'none' as fallback to prevent infinite loading
       return 'none';
     }
   }, [user?.id]);
@@ -369,5 +409,6 @@ export const useFriendsData = () => {
     
     // Utilities
     checkFriendshipStatus,
+    useFriendshipStatus,
   };
 };

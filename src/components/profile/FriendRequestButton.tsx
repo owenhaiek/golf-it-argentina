@@ -1,4 +1,3 @@
-import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { UserPlus, UserCheck, Clock, UserX, Loader2 } from "lucide-react";
@@ -12,62 +11,10 @@ interface FriendRequestButtonProps {
 
 export const FriendRequestButton = ({ userId, size = "sm" }: FriendRequestButtonProps) => {
   const { user } = useAuth();
-  const { sendFriendRequest, sendingFriendRequest, checkFriendshipStatus } = useFriendsData();
-  const [status, setStatus] = useState<'none' | 'sent' | 'received' | 'friends' | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const isMountedRef = useRef(true);
-
-  useEffect(() => {
-    const checkStatus = async () => {
-      if (!user?.id || user.id === userId) {
-        setIsLoading(false);
-        return;
-      }
-      
-      setIsLoading(true);
-      
-      try {
-        console.log('FriendRequestButton: Checking status for user:', userId);
-        const friendshipStatus = await checkFriendshipStatus(userId);
-        console.log('FriendRequestButton: Got status:', friendshipStatus);
-        
-        // Only update state if component is still mounted
-        if (isMountedRef.current) {
-          setStatus(friendshipStatus);
-        }
-      } catch (error) {
-        console.error('FriendRequestButton: Error checking status:', error);
-        // Set to 'none' as fallback
-        if (isMountedRef.current) {
-          setStatus('none');
-        }
-      } finally {
-        if (isMountedRef.current) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    // Add a timeout to prevent infinite loading
-    const timeoutId = setTimeout(() => {
-      console.log('FriendRequestButton: Timeout reached, setting loading to false');
-      if (isMountedRef.current) {
-        setIsLoading(false);
-        if (status === null) {
-          setStatus('none');
-        }
-      }
-    }, 3000); // 3 second timeout
-
-    checkStatus().finally(() => {
-      clearTimeout(timeoutId);
-    });
-
-    return () => {
-      clearTimeout(timeoutId);
-      isMountedRef.current = false;
-    };
-  }, [userId, user?.id, checkFriendshipStatus]);
+  const { sendFriendRequest, sendingFriendRequest, useFriendshipStatus } = useFriendsData();
+  
+  // Use React Query for status management
+  const { data: status, isLoading } = useFriendshipStatus(userId);
 
   // Don't show button for own profile
   if (!user?.id || user.id === userId) {
@@ -75,18 +22,19 @@ export const FriendRequestButton = ({ userId, size = "sm" }: FriendRequestButton
   }
 
   const handleSendRequest = async () => {
-    if (sendingFriendRequest || status === 'sent' || status === 'friends' || status === 'received') return;
+    // Prevent multiple clicks or invalid states
+    if (sendingFriendRequest || status === 'sent' || status === 'friends' || status === 'received') {
+      return;
+    }
+    
     try {
       await sendFriendRequest(userId);
-      // Re-check status to ensure correct UI state (handles existing requests)
-      const currentStatus = await checkFriendshipStatus(userId);
-      setStatus(currentStatus);
     } catch (error: any) {
       console.error('Failed to send friend request:', error);
-      const currentStatus = await checkFriendshipStatus(userId);
-      setStatus(currentStatus);
+      // Error handling is managed by the mutation's onError
     }
   };
+
   if (isLoading) {
     return (
       <Button size={size} variant="outline" disabled className="flex items-center gap-2">
@@ -104,7 +52,7 @@ export const FriendRequestButton = ({ userId, size = "sm" }: FriendRequestButton
           text: 'Friends',
           variant: 'secondary' as const,
           disabled: true,
-          className: 'bg-green-100 text-green-700 border-green-200 hover:bg-green-100'
+          className: 'bg-green-50 text-green-700 border-green-200 hover:bg-green-50'
         };
       case 'sent':
         return {
