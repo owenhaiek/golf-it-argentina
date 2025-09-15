@@ -164,10 +164,14 @@ export const useFriendsData = () => {
     enabled: !!user?.id,
   });
 
-  // Send friend request mutation with optimistic updates
+  // Send friend request mutation with optimistic updates and server checks
   const sendFriendRequestMutation = useMutation({
     mutationFn: async (receiverId: string) => {
       if (!user?.id) throw new Error('Not authenticated');
+
+      if (receiverId === user.id) {
+        throw new Error('You cannot send a friend request to yourself');
+      }
 
       // If the other user already sent me a pending request, accept it instead of creating a new one
       const { data: reversedPending, error: reversedErr } = await supabase
@@ -190,24 +194,31 @@ export const useFriendsData = () => {
         return { acceptedExisting: true, receiverId };
       }
 
-      // Atomic upsert to prevent duplicate key errors on unique constraint
+      // Check if I already sent a pending request to this user
+      const { data: existingOutgoing, error: existingOutgoingErr } = await supabase
+        .from('friend_requests')
+        .select('id')
+        .eq('sender_id', user.id)
+        .eq('receiver_id', receiverId)
+        .eq('status', 'pending')
+        .maybeSingle();
+
+      if (existingOutgoingErr) {
+        console.warn('Error checking existing outgoing request:', existingOutgoingErr);
+      }
+
+      if (existingOutgoing?.id) {
+        return { requestExists: true, receiverId };
+      }
+
+      // Create a new friend request (no upsert needed)
       const { data, error } = await supabase
         .from('friend_requests')
-        .upsert(
-          { sender_id: user.id, receiver_id: receiverId, status: 'pending' },
-          { onConflict: 'sender_id,receiver_id', ignoreDuplicates: true }
-        )
+        .insert({ sender_id: user.id, receiver_id: receiverId, status: 'pending' })
         .select()
         .maybeSingle();
 
-      // Treat duplicate key conflicts as success (request already exists)
-      if (error) {
-        const msg = String(error.message || '');
-        if (msg.includes('duplicate key value') || msg.includes('already exists')) {
-          return { requestExists: true, receiverId };
-        }
-        throw error;
-      }
+      if (error) throw error;
 
       return { data, receiverId };
     },
@@ -226,8 +237,15 @@ export const useFriendsData = () => {
     onSuccess: (result) => {
       const alreadyAccepted = (result as any)?.acceptedExisting;
       const receiverId = (result as any)?.receiverId;
+      const existed = (result as any)?.requestExists;
       
-      toast.success(alreadyAccepted ? 'Friend request accepted!' : 'Friend request sent!');
+      if (alreadyAccepted) {
+        toast.success('Friend request accepted!');
+      } else if (existed) {
+        toast.success('Friend request already exists');
+      } else {
+        toast.success('Friend request sent!');
+      }
       
       // Update friendship status cache
       if (alreadyAccepted && receiverId) {
@@ -244,13 +262,7 @@ export const useFriendsData = () => {
       if (context?.previousStatus !== undefined) {
         queryClient.setQueryData(['friendshipStatus', user?.id, receiverId], context.previousStatus);
       }
-
-      if (error?.message?.includes('duplicate key value')) {
-        toast.success('Friend request already exists');
-        queryClient.setQueryData(['friendshipStatus', user?.id, receiverId], 'sent');
-      } else {
-        toast.error(error.message || 'Failed to send friend request');
-      }
+      toast.error(error.message || 'Failed to send friend request');
     },
   });
   // Accept friend request mutation
