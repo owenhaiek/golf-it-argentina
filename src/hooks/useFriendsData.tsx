@@ -250,18 +250,38 @@ export const useFriendsData = () => {
           .maybeSingle();
 
         if (error) {
-          // If it's a duplicate key constraint, try to handle it gracefully
+          // Handle duplicate request gracefully, including legacy 'accepted' rows without active friendship
           if (error.code === '23505' && error.message.includes('friend_requests_sender_id_receiver_id_key')) {
-            // Check if the existing request is actually accepted (shouldn't happen but defensive)
             const { data: existingRequest } = await supabase
               .from('friend_requests')
-              .select('status')
+              .select('id, status, sender_id, receiver_id')
               .eq('sender_id', user.id)
               .eq('receiver_id', receiverId)
               .maybeSingle();
 
             if (existingRequest?.status === 'accepted') {
-              return { alreadyFriends: true, receiverId };
+              // Double-check if a friendship actually exists
+              const { data: friendship } = await supabase
+                .from('friendships')
+                .select('id')
+                .or(`and(user1_id.eq.${user.id},user2_id.eq.${receiverId}),and(user1_id.eq.${receiverId},user2_id.eq.${user.id})`)
+                .maybeSingle();
+
+              if (friendship) {
+                return { alreadyFriends: true, receiverId };
+              }
+
+              // Clean up stale accepted request and create a fresh pending one
+              await supabase.from('friend_requests').delete().eq('id', existingRequest.id);
+
+              const { data: newReq, error: newReqErr } = await supabase
+                .from('friend_requests')
+                .insert({ sender_id: user.id, receiver_id: receiverId, status: 'pending' })
+                .select()
+                .maybeSingle();
+
+              if (newReqErr) throw newReqErr;
+              return { data: newReq, receiverId };
             } else if (existingRequest?.status === 'pending') {
               return { requestExists: true, receiverId };
             }
