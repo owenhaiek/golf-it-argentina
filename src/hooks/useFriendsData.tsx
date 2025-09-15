@@ -312,6 +312,7 @@ export const useFriendsData = () => {
   });
 
   // Friendship status query hook
+  // Friendship status query hook
   const useFriendshipStatus = (targetUserId: string) => {
     return useQuery({
       queryKey: ['friendshipStatus', user?.id, targetUserId],
@@ -319,9 +320,9 @@ export const useFriendsData = () => {
         if (!user?.id || user.id === targetUserId) return 'none';
 
         // Use cached data first to avoid unnecessary API calls
-        const currentFriends = queryClient.getQueryData(['friends', user?.id]) as Friend[] || [];
-        const currentSentRequests = queryClient.getQueryData(['friendRequests', 'sent', user?.id]) as FriendRequest[] || [];
-        const currentReceivedRequests = queryClient.getQueryData(['friendRequests', 'received', user?.id]) as FriendRequest[] || [];
+        const currentFriends = (queryClient.getQueryData(['friends', user?.id]) as Friend[]) || [];
+        const currentSentRequests = (queryClient.getQueryData(['friendRequests', 'sent', user?.id]) as FriendRequest[]) || [];
+        const currentReceivedRequests = (queryClient.getQueryData(['friendRequests', 'received', user?.id]) as FriendRequest[]) || [];
 
         // Check friends first (fastest check)
         if (currentFriends.some(f => f.id === targetUserId)) {
@@ -338,10 +339,35 @@ export const useFriendsData = () => {
           return 'received';
         }
 
-        return 'none';
+        // Fallback to server check when cache has no answer
+        const { data: pendingRequest, error: requestError } = await supabase
+          .from('friend_requests')
+          .select('id, sender_id, receiver_id, status, created_at')
+          .or(`and(sender_id.eq.${user.id},receiver_id.eq.${targetUserId}),and(sender_id.eq.${targetUserId},receiver_id.eq.${user.id})`)
+          .eq('status', 'pending')
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (requestError) throw requestError;
+
+        if (pendingRequest) {
+          return pendingRequest.sender_id === user.id ? 'sent' : 'received';
+        }
+
+        const { data: friendship, error: friendshipError } = await supabase
+          .from('friendships')
+          .select('id, user1_id, user2_id, created_at')
+          .or(`and(user1_id.eq.${user.id},user2_id.eq.${targetUserId}),and(user1_id.eq.${targetUserId},user2_id.eq.${user.id})`)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (friendshipError) throw friendshipError;
+        return friendship ? 'friends' : 'none';
       },
       enabled: !!user?.id && !!targetUserId && user.id !== targetUserId,
-      staleTime: 30000, // 30 seconds
+      staleTime: 15000, // 15 seconds
       gcTime: 5 * 60 * 1000, // 5 minutes
     });
   };
