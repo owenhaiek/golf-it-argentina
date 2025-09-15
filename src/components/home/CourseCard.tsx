@@ -90,38 +90,39 @@ const CourseCard = ({
                 <StarRating rating={averageRating} size="md" showRating={false} className="justify-start" />
               </div>}
             
-            <div className="flex items-center justify-between gap-3">
-              <h2 className="text-lg sm:text-xl font-poppins font-semibold text-foreground" style={{ width: '65%' }}>{course.name}</h2>
-              <button 
-                onClick={handleMapClick}
-                className="flex items-center justify-center w-10 h-10 text-primary/80 hover:text-white bg-gradient-to-r from-primary/10 to-primary/5 hover:from-primary hover:to-primary/90 rounded-lg border border-primary/20 hover:border-primary shadow-sm hover:shadow-md transition-all duration-300 transform hover:scale-[1.05]"
-                style={{ width: '25%', maxWidth: '40px' }}
-              >
-                <Map size={20} className="drop-shadow-sm" />
-              </button>
-            </div>
+            <h2 className="text-lg sm:text-xl font-poppins font-semibold text-foreground w-full">{course.name}</h2>
             
             {course.description && <p className="text-muted-foreground text-sm sm:text-base line-clamp-2">{course.description}</p>}
           </div>
           
-          <div className="space-y-2 bg-muted/30 rounded-lg p-3 border border-border/30">
-            {/* Location */}
-            {course.city && <div className="flex items-center gap-2">
+          <div className="flex gap-3">
+            <div className="flex-1 space-y-2 bg-muted/30 rounded-lg p-3 border border-border/30">
+              {/* Location */}
+              {course.city && <div className="flex items-center gap-2">
+                  
+                  <div>
+                    <p className="text-xs text-muted-foreground/70 uppercase tracking-wide">{t("home", "location")}</p>
+                    <p className="text-sm font-medium text-foreground">{course.city}</p>
+                  </div>
+                </div>}
+              
+              {/* Opening Hours */}
+              <div className="flex items-center gap-2">
                 
                 <div>
-                  <p className="text-xs text-muted-foreground/70 uppercase tracking-wide">{t("home", "location")}</p>
-                  <p className="text-sm font-medium text-foreground">{course.city}</p>
+                  <p className="text-xs text-muted-foreground/70 uppercase tracking-wide">{t("home", "hours")}</p>
+                  <p className="text-sm font-medium text-foreground">{formattedHours}</p>
                 </div>
-              </div>}
-            
-            {/* Opening Hours */}
-            <div className="flex items-center gap-2">
-              
-              <div>
-                <p className="text-xs text-muted-foreground/70 uppercase tracking-wide">{t("home", "hours")}</p>
-                <p className="text-sm font-medium text-foreground">{formattedHours}</p>
               </div>
             </div>
+            
+            {/* Map Button */}
+            <button 
+              onClick={handleMapClick}
+              className="flex items-center justify-center w-12 h-12 text-primary/80 hover:text-white bg-gradient-to-r from-primary/10 to-primary/5 hover:from-primary hover:to-primary/90 rounded-lg border border-primary/20 hover:border-primary shadow-sm hover:shadow-md transition-all duration-300 transform hover:scale-[1.05] self-start"
+            >
+              <Map size={20} className="drop-shadow-sm" />
+            </button>
           </div>
           
           {/* Course Info - Holes and Par (with boxes) */}

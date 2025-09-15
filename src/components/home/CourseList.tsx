@@ -60,7 +60,7 @@ const CourseList = ({
   return (
     <div className="space-y-6">
       {/* Course Grid - Updated for 4 columns on desktop */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
         {courses.map(course => (
           <CourseCard 
             key={course.id} 
