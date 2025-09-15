@@ -13,6 +13,7 @@ import { Layout } from "./components/Layout";
 import Index from "./pages/Index";
 import Home from "./pages/Home";
 import Profile from "./pages/Profile";
+import Friends from "./pages/Friends";
 import UserProfile from "./pages/UserProfile";
 import Course from "./pages/Course";
 import AddRound from "./pages/AddRound";
@@ -73,6 +74,7 @@ function App() {
                       <Route element={<Layout />}>
                         <Route path="/home" element={<Home />} />
                         <Route path="/profile" element={<Profile />} />
+                        <Route path="/friends" element={<Friends />} />
                         <Route path="/user/:userId" element={<UserProfile />} />
                         <Route path="/course/:id" element={<Course />} />
                         <Route path="/add-round" element={<AddRound />} />
