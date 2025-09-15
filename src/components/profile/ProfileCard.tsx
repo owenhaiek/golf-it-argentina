@@ -212,6 +212,17 @@ const ProfileCard = ({
 
   return <Card className="overflow-hidden border-0 shadow-md bg-gradient-to-br from-white to-muted dark:bg-black dark:from-black dark:to-gray-900 h-full">
       <CardHeader className="relative pb-0 text-center">
+        {!isEditing && <div className="absolute left-4 top-4 flex gap-2">
+            <Button variant="ghost" size="icon" onClick={handleGoToFriends} className="text-black dark:text-white hover:bg-primary/10 rounded-full relative">
+              <Users className="h-5 w-5" />
+              {pendingCount > 0 && (
+                <span className="absolute -top-1 -right-1 h-4 min-w-4 px-1 rounded-full bg-primary text-primary-foreground text-[10px] leading-4 text-center">
+                  {pendingCount}
+                </span>
+              )}
+            </Button>
+          </div>}
+
         {!isEditing && <div className="absolute right-4 top-4 flex gap-2">
             <Button variant="ghost" size="icon" onClick={handleGoToSettings} className="text-black dark:text-white hover:bg-primary/10 rounded-full">
               <Settings className="h-5 w-5" />
@@ -220,17 +231,6 @@ const ProfileCard = ({
               <Edit3 className="h-5 w-5" />
             </Button>
           </div>}
-        
-        {!isEditing && (
-          <Button variant="ghost" size="icon" onClick={handleGoToFriends} className="absolute left-4 top-4 text-black dark:text-white hover:bg-primary/10 rounded-full relative">
-            <Users className="h-5 w-5" />
-            {pendingCount > 0 && (
-              <span className="absolute -top-1 -right-1 h-4 min-w-4 px-1 rounded-full bg-primary text-primary-foreground text-[10px] leading-4 text-center">
-                {pendingCount}
-              </span>
-            )}
-          </Button>
-        )}
         
         <div className="relative w-28 h-28 mx-auto mb-2">
           <div className={`relative w-28 h-28 rounded-full ${isEditing ? 'ring-2 ring-primary ring-offset-2 cursor-pointer' : ''} transition-all duration-200`} onClick={handleAvatarClick}>

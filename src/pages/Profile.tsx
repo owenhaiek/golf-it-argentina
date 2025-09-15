@@ -50,13 +50,11 @@ const Profile = () => {
             profile={profile || {}} 
             profileLoading={profileLoading} 
           />
-          <FriendsSection />
           <UserStatsCard 
             rounds={rounds || []}
             roundsLoading={roundsLoading}
             userId={user.id}
           />
-          <FriendSuggestions />
           <TournamentsAndMatchesSection />
           <RecentRounds />
         </div>
