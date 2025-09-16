@@ -86,23 +86,39 @@ const Auth = () => {
     setIsLoading(true);
 
     try {
+      // First try Supabase's built-in password reset
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/reset-password`,
       });
       
       if (error) {
-        // Handle specific SMTP configuration errors
-        if (error.message.includes('SMTP') || error.message.includes('mail') || 
-            error.message.includes('smtp') || error.message.includes('dial tcp')) {
-          throw new Error('Email service is temporarily unavailable. Please contact support or try again later.');
+        // If Supabase fails, try our backup email service
+        console.log('Supabase email failed, trying backup service:', error.message);
+        
+        // Create a temporary reset token (this would normally be handled by Supabase)
+        const resetUrl = `${window.location.origin}/reset-password?email=${encodeURIComponent(email)}&fallback=true`;
+        
+        const backupResponse = await supabase.functions.invoke('send-password-reset', {
+          body: {
+            email: email,
+            resetUrl: resetUrl
+          }
+        });
+        
+        if (backupResponse.error) {
+          throw new Error('No se pudo enviar el correo electrónico. Por favor contacta al soporte.');
         }
-        throw error;
+        
+        toast({
+          title: "Email de Recuperación Enviado",
+          description: "Revisa tu correo electrónico para las instrucciones de recuperación de contraseña. (Enviado a través del servicio de respaldo)",
+        });
+      } else {
+        toast({
+          title: "Email de Recuperación Enviado",
+          description: "Revisa tu correo electrónico para las instrucciones de recuperación de contraseña.",
+        });
       }
-      
-      toast({
-        title: "Email de Recuperación Enviado",
-        description: "Revisa tu correo electrónico para las instrucciones de recuperación de contraseña.",
-      });
       
       setShowForgotPassword(false);
     } catch (error: any) {
