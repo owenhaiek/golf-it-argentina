@@ -33,6 +33,8 @@ const Notifications = () => {
     // Handle navigation based on notification type
     if (notification.type === 'friend_request') {
       navigate('/profile');
+    } else if (notification.type === 'match_challenge' || notification.type === 'match_accepted' || notification.type === 'match_declined') {
+      navigate('/profile');
     }
   };
 
