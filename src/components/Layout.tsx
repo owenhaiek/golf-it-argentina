@@ -5,6 +5,7 @@ import { useState, useRef, useEffect } from "react";
 import GolfAnimationLoader from "./ui/GolfAnimationLoader";
 import { motion } from "framer-motion";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
+import { InvitationDrawer } from "./ui/InvitationDrawer";
 
 export const Layout = () => {
   const mainRef = useRef<HTMLElement>(null);
@@ -125,6 +126,9 @@ export const Layout = () => {
       >
         <Navigation />
       </div>
+      
+      {/* Invitation Drawer */}
+      <InvitationDrawer />
     </div>
   );
 };
