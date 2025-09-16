@@ -90,19 +90,38 @@ const Auth = () => {
         redirectTo: `${window.location.origin}/reset-password`,
       });
       
-      if (error) throw error;
+      if (error) {
+        // Handle specific SMTP configuration errors
+        if (error.message.includes('SMTP') || error.message.includes('mail') || 
+            error.message.includes('smtp') || error.message.includes('dial tcp')) {
+          throw new Error('Email service is temporarily unavailable. Please contact support or try again later.');
+        }
+        throw error;
+      }
       
       toast({
-        title: "Password Reset Email Sent",
-        description: "Check your email for password reset instructions.",
+        title: "Email de Recuperación Enviado",
+        description: "Revisa tu correo electrónico para las instrucciones de recuperación de contraseña.",
       });
       
       setShowForgotPassword(false);
     } catch (error: any) {
+      console.error('Password reset error:', error);
+      let errorMessage = error.message;
+      
+      // Provide more helpful error messages for common issues
+      if (error.message.includes('Email not confirmed')) {
+        errorMessage = 'Tu cuenta no ha sido confirmada. Por favor revisa tu correo electrónico.';
+      } else if (error.message.includes('User not found')) {
+        errorMessage = 'No se encontró una cuenta con este correo electrónico.';
+      } else if (error.message.includes('Email service') || error.message.includes('temporarily unavailable')) {
+        errorMessage = 'El servicio de correo electrónico no está disponible temporalmente. Por favor contacta al soporte.';
+      }
+      
       toast({
         variant: "destructive",
-        title: t("common", "error"),
-        description: error.message,
+        title: "Error al Enviar Email",
+        description: errorMessage,
       });
     } finally {
       setIsLoading(false);
