@@ -43,7 +43,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log(`Sending password reset email to: ${email}`);
 
     const emailResponse = await resend.emails.send({
-      from: "GOLFIT Argentina <noreply@resend.dev>",
+      from: "GOLFIT Argentina <onboarding@resend.dev>",
       to: [email],
       subject: "Recuperación de Contraseña - GOLFIT Argentina",
       html: `
@@ -100,6 +100,11 @@ const handler = async (req: Request): Promise<Response> => {
     });
 
     console.log("Password reset email sent successfully:", emailResponse);
+    
+    // Check if there was an error from Resend
+    if (emailResponse.error) {
+      throw new Error(`Resend API error: ${emailResponse.error.message}`);
+    }
 
     return new Response(
       JSON.stringify({ success: true, messageId: emailResponse.data?.id }),

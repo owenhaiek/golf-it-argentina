@@ -106,12 +106,19 @@ const Auth = () => {
         });
         
         if (backupResponse.error) {
-          throw new Error('No se pudo enviar el correo electrónico. Por favor contacta al soporte.');
+          console.error('Backup email service error:', backupResponse.error);
+          throw new Error('No se pudo enviar el correo electrónico. Verifica que el servicio de correo esté configurado correctamente.');
+        }
+        
+        // Check if the backup service actually succeeded
+        if (!backupResponse.data?.success) {
+          console.error('Backup email service failed:', backupResponse.data);
+          throw new Error('El servicio de correo de respaldo falló. Por favor contacta al soporte.');
         }
         
         toast({
           title: "Email de Recuperación Enviado",
-          description: "Revisa tu correo electrónico para las instrucciones de recuperación de contraseña. (Enviado a través del servicio de respaldo)",
+          description: "Revisa tu correo electrónico para las instrucciones de recuperación de contraseña.",
         });
       } else {
         toast({
