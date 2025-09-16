@@ -9,6 +9,7 @@ import { FriendsSection } from "@/components/profile/FriendsSection";
 import { FriendSuggestions } from "@/components/profile/FriendSuggestions";
 import { TournamentsAndMatchesSection } from "@/components/profile/TournamentsAndMatchesSection";
 import { DarkModeToggle } from "@/components/ui/DarkModeToggle";
+import { NotificationButton } from "@/components/ui/NotificationButton";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const Profile = () => {
@@ -39,7 +40,10 @@ const Profile = () => {
       <div className="flex-shrink-0 p-4 bg-background border-b border-border sticky top-0 z-40 touch-none">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold text-foreground">{t("common", "profile")}</h1>
-          <DarkModeToggle />
+          <div className="flex items-center gap-2">
+            <NotificationButton />
+            <DarkModeToggle />
+          </div>
         </div>
       </div>
       

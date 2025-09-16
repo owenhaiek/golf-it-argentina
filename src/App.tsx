@@ -14,6 +14,7 @@ import Index from "./pages/Index";
 import Home from "./pages/Home";
 import Profile from "./pages/Profile";
 import Friends from "./pages/Friends";
+import Notifications from "./pages/Notifications";
 import UserProfile from "./pages/UserProfile";
 import Course from "./pages/Course";
 import AddRound from "./pages/AddRound";
@@ -75,6 +76,7 @@ function App() {
                         <Route path="/home" element={<Home />} />
                         <Route path="/profile" element={<Profile />} />
                         <Route path="/friends" element={<Friends />} />
+                        <Route path="/notifications" element={<Notifications />} />
                         <Route path="/user/:userId" element={<UserProfile />} />
                         <Route path="/course/:id" element={<Course />} />
                         <Route path="/add-round" element={<AddRound />} />
