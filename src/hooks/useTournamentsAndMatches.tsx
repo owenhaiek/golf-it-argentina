@@ -1,6 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 export interface Tournament {
   id: string;
@@ -64,6 +65,8 @@ export interface Match {
 
 export const useTournamentsAndMatches = () => {
   const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // Fetch user's tournaments (created or participating in)
   const { data: tournaments, isLoading: tournamentsLoading, refetch: refetchTournaments } = useQuery({
@@ -156,6 +159,94 @@ export const useTournamentsAndMatches = () => {
   const activeMatches = matches?.filter(m => m.status === 'active' || m.status === 'accepted') || [];
   const completedMatches = matches?.filter(m => m.status === 'completed') || [];
 
+  // Accept match mutation
+  const acceptMatchMutation = useMutation({
+    mutationFn: async (matchId: string) => {
+      const { error } = await supabase
+        .from('matches')
+        .update({ status: 'accepted' })
+        .eq('id', matchId);
+
+      if (error) throw error;
+
+      // Create notification for the match creator
+      const match = matches?.find(m => m.id === matchId);
+      if (match) {
+        const { error: notificationError } = await supabase
+          .from('notifications')
+          .insert({
+            user_id: match.creator_id,
+            type: 'match_accepted',
+            title: 'Match Accepted',
+            message: `Your match "${match.name}" has been accepted!`,
+            data: { match_id: matchId }
+          });
+
+        if (notificationError) console.error('Error creating notification:', notificationError);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['userMatches'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      toast({
+        title: "Match Accepted",
+        description: "You have accepted the match challenge!",
+      });
+    },
+    onError: (error) => {
+      console.error('Error accepting match:', error);
+      toast({
+        title: "Error",
+        description: "Failed to accept match. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Decline match mutation
+  const declineMatchMutation = useMutation({
+    mutationFn: async (matchId: string) => {
+      const { error } = await supabase
+        .from('matches')
+        .update({ status: 'cancelled' })
+        .eq('id', matchId);
+
+      if (error) throw error;
+
+      // Create notification for the match creator
+      const match = matches?.find(m => m.id === matchId);
+      if (match) {
+        const { error: notificationError } = await supabase
+          .from('notifications')
+          .insert({
+            user_id: match.creator_id,
+            type: 'match_declined',
+            title: 'Match Declined',
+            message: `Your match "${match.name}" has been declined.`,
+            data: { match_id: matchId }
+          });
+
+        if (notificationError) console.error('Error creating notification:', notificationError);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['userMatches'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      toast({
+        title: "Match Declined",
+        description: "You have declined the match challenge.",
+      });
+    },
+    onError: (error) => {
+      console.error('Error declining match:', error);
+      toast({
+        title: "Error",
+        description: "Failed to decline match. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   return {
     // Raw data
     tournaments: tournaments || [],
@@ -180,6 +271,12 @@ export const useTournamentsAndMatches = () => {
     refetchAll: () => {
       refetchTournaments();
       refetchMatches();
-    }
+    },
+
+    // Match actions
+    acceptMatch: acceptMatchMutation.mutate,
+    declineMatch: declineMatchMutation.mutate,
+    isAcceptingMatch: acceptMatchMutation.isPending,
+    isDecliningMatch: declineMatchMutation.isPending,
   };
 };

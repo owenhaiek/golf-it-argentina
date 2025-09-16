@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Trophy, Swords, Calendar, MapPin, Users, Crown, Clock, CheckCircle, Edit, Trash2, Play, Target } from "lucide-react";
+import { Trophy, Swords, Calendar, MapPin, Users, Crown, Clock, CheckCircle, Edit, Trash2, Play, Target, Check, X } from "lucide-react";
 import { useTournamentsAndMatches } from "@/hooks/useTournamentsAndMatches";
 import { formatDistanceToNow, format } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
@@ -29,7 +29,11 @@ export const TournamentsAndMatchesSection = () => {
     activeMatches,
     completedMatches,
     isLoading,
-    refetchAll
+    refetchAll,
+    acceptMatch,
+    declineMatch,
+    isAcceptingMatch,
+    isDecliningMatch
   } = useTournamentsAndMatches();
 
   const [viewMode, setViewMode] = useState<ViewMode>('tournaments');
@@ -383,62 +387,116 @@ export const TournamentsAndMatchesSection = () => {
             ) : (
               <>
                 {/* Pending Matches */}
-                {pendingMatches.map((match) => (
-                  <div key={match.id} className="p-3 rounded-lg border hover:bg-accent/30 transition-colors">
-                    <div className="flex items-start justify-between mb-2 gap-2">
-                      <div className="flex items-center gap-2 min-w-0 flex-1">
-                        <Swords className="h-4 w-4 text-primary flex-shrink-0" />
-                        <span className="font-medium truncate">{match.name}</span>
+                {pendingMatches.map((match) => {
+                  const isOpponent = match.opponent_id === user?.id;
+                  const isCreator = match.creator_id === user?.id;
+                  const opponentName = isOpponent ? match.creator?.full_name || match.creator?.username || 'Unknown' : match.opponent?.full_name || match.opponent?.username || 'Unknown';
+                  
+                  return (
+                    <div key={match.id} className={`p-4 rounded-lg border transition-all duration-300 hover:shadow-md ${
+                      isOpponent ? 'bg-gradient-to-r from-blue-50 to-transparent hover:from-blue-100 border-blue-200' : 'hover:bg-accent/30'
+                    }`}>
+                      <div className="flex items-start justify-between mb-3 gap-2">
+                        <div className="flex items-center gap-2 min-w-0 flex-1">
+                          <Swords className={`h-4 w-4 flex-shrink-0 ${isOpponent ? 'text-blue-600' : 'text-primary'}`} />
+                          <div className="min-w-0 flex-1">
+                            <div className="font-medium truncate text-sm">{match.name}</div>
+                            {isOpponent && (
+                              <div className="text-xs text-muted-foreground mt-1">
+                                Challenge from {opponentName}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          {isOpponent ? (
+                            <Badge className="bg-blue-100 text-blue-700 border-blue-200 text-xs px-2 animate-pulse">
+                              Awaiting Response
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-xs px-2">
+                              Pending
+                            </Badge>
+                          )}
+                          
+                          {isCreator && (
+                            <div className="flex gap-1">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setEditMatchDialog({ open: true, match })}
+                                className="h-7 w-7 p-0 hover-scale"
+                              >
+                                <Edit className="h-3 w-3" />
+                              </Button>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button size="sm" variant="outline" className="h-7 w-7 p-0 text-destructive hover:text-destructive hover-scale">
+                                    <Trash2 className="h-3 w-3" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Delete Match</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Are you sure you want to delete "{match.name}"? This action cannot be undone.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => deleteMatch(match.id)}>Delete</AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex items-center gap-1 flex-shrink-0">
-                        <Badge variant="outline" className="text-xs px-2">
-                          Pending
-                        </Badge>
-                        {match.creator_id === user?.id && (
-                          <div className="flex gap-1">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => setEditMatchDialog({ open: true, match })}
-                              className="h-7 w-7 p-0"
-                            >
-                              <Edit className="h-3 w-3" />
-                            </Button>
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button size="sm" variant="outline" className="h-7 w-7 p-0 text-destructive hover:text-destructive">
-                                  <Trash2 className="h-3 w-3" />
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Delete Match</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Are you sure you want to delete "{match.name}"? This action cannot be undone.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                  <AlertDialogAction onClick={() => deleteMatch(match.id)}>Delete</AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
+                      
+                      <div className="flex flex-col xs:flex-row xs:items-center gap-2 xs:gap-4 text-xs xs:text-sm text-muted-foreground mb-3">
+                        <div className="flex items-center gap-1">
+                          <MapPin className="h-3 w-3 flex-shrink-0" />
+                          <span className="truncate">{match.golf_courses?.name}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3 flex-shrink-0" />
+                          {format(new Date(match.match_date), 'MMM d')}
+                        </div>
+                        {match.stakes && (
+                          <div className="flex items-center gap-1">
+                            <Crown className="h-3 w-3 flex-shrink-0" />
+                            <span className="truncate">{match.stakes}</span>
                           </div>
                         )}
                       </div>
+
+                      {isOpponent && (
+                        <div className="flex gap-2 pt-2 border-t border-blue-200 animate-fade-in">
+                          <Button
+                            size="sm"
+                            onClick={() => acceptMatch(match.id)}
+                            disabled={isAcceptingMatch || isDecliningMatch}
+                            className="flex-1 bg-green-600 hover:bg-green-700 text-white transition-all duration-200 hover-scale"
+                          >
+                            <Check className="h-3 w-3 mr-1" />
+                            {isAcceptingMatch ? 'Accepting...' : 'Accept Challenge'}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => declineMatch(match.id)}
+                            disabled={isAcceptingMatch || isDecliningMatch}
+                            className="flex-1 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 transition-all duration-200 hover-scale"
+                          >
+                            <X className="h-3 w-3 mr-1" />
+                            {isDecliningMatch ? 'Declining...' : 'Decline'}
+                          </Button>
+                        </div>
+                      )}
                     </div>
-                    <div className="flex flex-col xs:flex-row xs:items-center gap-2 xs:gap-4 text-xs xs:text-sm text-muted-foreground">
-                      <div className="flex items-center gap-1">
-                        <MapPin className="h-3 w-3 flex-shrink-0" />
-                        <span className="truncate">{match.golf_courses?.name}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3 flex-shrink-0" />
-                        {format(new Date(match.match_date), 'MMM d')}
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
                 {pendingMatches.length === 0 && (
                   <div className="text-center py-6 text-muted-foreground">
                     <Swords className="h-8 w-8 mx-auto mb-2 opacity-50" />
