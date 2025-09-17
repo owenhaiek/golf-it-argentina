@@ -6,6 +6,7 @@ import GolfAnimationLoader from "./ui/GolfAnimationLoader";
 import { motion } from "framer-motion";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { InvitationDrawer } from "./ui/InvitationDrawer";
+import PWAInstallPrompt from "./ui/PWAInstallPrompt";
 
 export const Layout = () => {
   const mainRef = useRef<HTMLElement>(null);
@@ -129,6 +130,9 @@ export const Layout = () => {
       
       {/* Invitation Drawer */}
       <InvitationDrawer />
+      
+      {/* PWA Install Prompt */}
+      <PWAInstallPrompt />
     </div>
   );
 };
