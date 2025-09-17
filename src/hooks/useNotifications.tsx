@@ -13,6 +13,12 @@ export interface Notification {
   is_read: boolean;
   created_at: string;
   updated_at: string;
+  sender_profile?: {
+    id: string;
+    full_name: string | null;
+    username: string | null;
+    avatar_url: string | null;
+  };
 }
 
 export const useNotifications = () => {
@@ -25,14 +31,44 @@ export const useNotifications = () => {
     queryFn: async () => {
       if (!user?.id) return [];
       
-      const { data, error } = await supabase
+      // First get all notifications
+      const { data: notificationsData, error } = await supabase
         .from('notifications')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as Notification[];
+      if (!notificationsData || notificationsData.length === 0) return [];
+
+      // Extract sender IDs from notification data
+      const senderIds = notificationsData
+        .map(n => {
+          const data = n.data as any;
+          return data?.sender_id;
+        })
+        .filter(Boolean);
+
+      // Get sender profiles if we have sender IDs
+      let senderProfiles: any[] = [];
+      if (senderIds.length > 0) {
+        const { data: profilesData } = await supabase
+          .from('profiles')
+          .select('id, full_name, username, avatar_url')
+          .in('id', senderIds);
+        
+        senderProfiles = profilesData || [];
+      }
+
+      // Merge notifications with sender profiles
+      const enrichedNotifications = notificationsData.map(notification => ({
+        ...notification,
+        sender_profile: senderProfiles.find(profile => 
+          profile.id === (notification.data as any)?.sender_id
+        ) || null
+      }));
+
+      return enrichedNotifications as Notification[];
     },
     enabled: !!user?.id,
   });

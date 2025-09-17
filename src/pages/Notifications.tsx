@@ -1,24 +1,22 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Check, CheckCheck, Bell } from "lucide-react";
+import { ArrowLeft, Check, Bell } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { DarkModeToggle } from "@/components/ui/DarkModeToggle";
 import { formatDistanceToNow } from "date-fns";
 import { Card, CardContent } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const Notifications = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const { 
     notifications, 
-    unreadCount, 
     isLoading, 
     markAsRead, 
-    markAllAsRead, 
-    isMarkingAsRead, 
-    isMarkingAllAsRead 
+    isMarkingAsRead
   } = useNotifications();
 
   const handleBack = () => {
@@ -61,21 +59,7 @@ const Notifications = () => {
             </Button>
             <h1 className="text-2xl font-bold text-foreground">Notifications</h1>
           </div>
-          <div className="flex items-center gap-2">
-            {unreadCount > 0 && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => markAllAsRead()}
-                disabled={isMarkingAllAsRead}
-                className="flex items-center gap-2"
-              >
-                <CheckCheck size={14} />
-                Mark all read
-              </Button>
-            )}
-            <DarkModeToggle />
-          </div>
+          <DarkModeToggle />
         </div>
       </div>
       
@@ -97,7 +81,17 @@ const Notifications = () => {
                 onClick={() => handleNotificationClick(notification)}
               >
                 <CardContent className="p-4">
-                  <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-3">
+                    <Avatar className="h-10 w-10 flex-shrink-0">
+                      <AvatarImage 
+                        src={notification.sender_profile?.avatar_url || undefined} 
+                        alt={notification.sender_profile?.full_name || notification.sender_profile?.username || 'User'} 
+                      />
+                      <AvatarFallback className="bg-primary/10 text-primary font-medium">
+                        {(notification.sender_profile?.full_name?.[0] || notification.sender_profile?.username?.[0] || 'U').toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <h4 className="font-medium text-foreground truncate">
@@ -107,6 +101,9 @@ const Notifications = () => {
                           <div className="h-2 w-2 bg-primary rounded-full flex-shrink-0" />
                         )}
                       </div>
+                      <p className="text-sm text-muted-foreground mb-1">
+                        From {notification.sender_profile?.full_name || notification.sender_profile?.username || 'Unknown User'}
+                      </p>
                       <p className="text-sm text-muted-foreground mb-2">
                         {notification.message}
                       </p>
