@@ -101,11 +101,11 @@ export const TournamentScoringCard = ({ tournament, open, onOpenChange, onSucces
       const { data, error } = await supabase
         .from('golf_courses')
         .select('hole_pars')
-        .eq('id', tournament.course_id)
-        .single();
+        .eq('id', tournament?.course_id)
+        .maybeSingle();
 
       if (error) throw error;
-      setCoursePars(data.hole_pars || new Array(18).fill(4));
+      setCoursePars(data?.hole_pars || new Array(18).fill(4));
     } catch (error) {
       console.error('Error fetching course pars:', error);
       setCoursePars(new Array(18).fill(4));
@@ -301,7 +301,7 @@ export const TournamentScoringCard = ({ tournament, open, onOpenChange, onSucces
 
           {/* Course Name */}
           <div className="text-center">
-            <h2 className="text-lg font-semibold">{tournament.golf_courses?.name}</h2>
+            <h2 className="text-lg font-semibold">{tournament?.golf_courses?.name || 'Course'}</h2>
           </div>
 
           {/* Score Summary */}
