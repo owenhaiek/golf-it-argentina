@@ -15,6 +15,10 @@ import { EditTournamentDialog } from "@/components/tournaments/EditTournamentDia
 import { EditMatchDialog } from "@/components/matches/EditMatchDialog";
 import { TournamentScoringDialog } from "@/components/scoring/TournamentScoringDialog";
 import { MatchScoringDialog } from "@/components/scoring/MatchScoringDialog";
+import { InteractiveMatchCard } from "@/components/profile/cards/InteractiveMatchCard";
+import { InteractiveTournamentCard } from "@/components/profile/cards/InteractiveTournamentCard";
+import { MatchScoringCard } from "@/components/scoring/MatchScoringCard";
+import { TournamentScoringCard } from "@/components/scoring/TournamentScoringCard";
 
 type ViewMode = 'tournaments' | 'matches';
 
@@ -41,6 +45,8 @@ export const TournamentsAndMatchesSection = () => {
   const [editMatchDialog, setEditMatchDialog] = useState<{ open: boolean; match: any }>({ open: false, match: null });
   const [tournamentScoringDialog, setTournamentScoringDialog] = useState<{ open: boolean; tournament: any }>({ open: false, tournament: null });
   const [matchScoringDialog, setMatchScoringDialog] = useState<{ open: boolean; match: any }>({ open: false, match: null });
+  const [tournamentScoringCard, setTournamentScoringCard] = useState<{ open: boolean; tournament: any }>({ open: false, tournament: null });
+  const [matchScoringCard, setMatchScoringCard] = useState<{ open: boolean; match: any }>({ open: false, match: null });
 
   const deleteTournament = async (tournamentId: string) => {
     try {
@@ -226,40 +232,13 @@ export const TournamentsAndMatchesSection = () => {
               <>
                 {/* Active Tournaments */}
                 {activeTournaments.map((tournament) => (
-              <div key={tournament.id} className="p-3 rounded-lg border bg-gradient-to-r from-amber-50 to-transparent hover:from-amber-100 transition-colors">
-                <div className="flex items-start justify-between mb-2 gap-2">
-                  <div className="flex items-center gap-2 min-w-0 flex-1">
-                    <Trophy className="h-4 w-4 text-amber-500 flex-shrink-0" />
-                    <span className="font-medium truncate">{tournament.name}</span>
-                  </div>
-                  <div className="flex items-center gap-1 flex-shrink-0">
-                    <Badge className="bg-amber-100 text-amber-700 border-amber-200 text-xs px-2">
-                      <span className="hidden xs:inline">Active Tournament</span>
-                      <span className="xs:hidden">Active</span>
-                    </Badge>
-                    {tournament.creator_id === user?.id && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setTournamentScoringDialog({ open: true, tournament })}
-                        className="h-7 w-7 p-0"
-                      >
-                        <Target className="h-3 w-3" />
-                      </Button>
-                    )}
-                  </div>
-                </div>
-                <div className="flex flex-col xs:flex-row xs:items-center gap-2 xs:gap-4 text-xs xs:text-sm text-muted-foreground">
-                  <div className="flex items-center gap-1">
-                    <MapPin className="h-3 w-3 flex-shrink-0" />
-                    <span className="truncate">{tournament.golf_courses?.name}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Users className="h-3 w-3 flex-shrink-0" />
-                    {tournament.tournament_participants?.length || 0} players
-                  </div>
-                </div>
-              </div>
+                  <InteractiveTournamentCard
+                    key={tournament.id}
+                    tournament={tournament}
+                    onLoadScores={(tournament) => setTournamentScoringCard({ open: true, tournament })}
+                    onEdit={(tournament) => setEditTournamentDialog({ open: true, tournament })}
+                    onDelete={deleteTournament}
+                  />
                 ))}
                 {activeTournaments.length === 0 && (
                   <div className="text-center py-6 text-muted-foreground">
@@ -272,40 +251,17 @@ export const TournamentsAndMatchesSection = () => {
               <>
                 {/* Active Matches */}
                 {activeMatches.map((match) => (
-                  <div key={match.id} className="p-3 rounded-lg border bg-gradient-to-r from-red-50 to-transparent hover:from-red-100 transition-colors">
-                    <div className="flex items-start justify-between mb-2 gap-2">
-                      <div className="flex items-center gap-2 min-w-0 flex-1">
-                        <Swords className="h-4 w-4 text-red-500 flex-shrink-0" />
-                        <span className="font-medium truncate">{match.name}</span>
-                      </div>
-                      <div className="flex items-center gap-1 flex-shrink-0">
-                        <Badge className="bg-red-100 text-red-700 border-red-200 text-xs px-2">
-                          <span className="hidden xs:inline">Active Match</span>
-                          <span className="xs:hidden">Active</span>
-                        </Badge>
-                        {(match.creator_id === user?.id || match.opponent_id === user?.id) && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setMatchScoringDialog({ open: true, match })}
-                            className="h-7 w-7 p-0"
-                          >
-                            <Target className="h-3 w-3" />
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex flex-col xs:flex-row xs:items-center gap-2 xs:gap-4 text-xs xs:text-sm text-muted-foreground">
-                      <div className="flex items-center gap-1">
-                        <MapPin className="h-3 w-3 flex-shrink-0" />
-                        <span className="truncate">{match.golf_courses?.name}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3 flex-shrink-0" />
-                        {format(new Date(match.match_date), 'MMM d')}
-                      </div>
-                    </div>
-                  </div>
+                  <InteractiveMatchCard
+                    key={match.id}
+                    match={match}
+                    onLoadScores={(match) => setMatchScoringCard({ open: true, match })}
+                    onEdit={(match) => setEditMatchDialog({ open: true, match })}
+                    onDelete={deleteMatch}
+                    onAccept={acceptMatch}
+                    onDecline={declineMatch}
+                    isAccepting={isAcceptingMatch}
+                    isDeclining={isDecliningMatch}
+                  />
                 ))}
                 {activeMatches.length === 0 && (
                   <div className="text-center py-6 text-muted-foreground">
@@ -322,60 +278,13 @@ export const TournamentsAndMatchesSection = () => {
               <>
                 {/* Upcoming Tournaments */}
                 {upcomingTournaments.map((tournament) => (
-              <div key={tournament.id} className="p-3 rounded-lg border hover:bg-accent/30 transition-colors">
-                <div className="flex items-start justify-between mb-2 gap-2">
-                  <div className="flex items-center gap-2 min-w-0 flex-1">
-                    <Trophy className="h-4 w-4 text-primary flex-shrink-0" />
-                    <span className="font-medium truncate">{tournament.name}</span>
-                  </div>
-                  <div className="flex items-center gap-1 flex-shrink-0">
-                    <Badge variant="outline" className="text-xs px-2">
-                      {format(new Date(tournament.start_date), 'MMM d')}
-                    </Badge>
-                    {tournament.creator_id === user?.id && (
-                      <div className="flex gap-1">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => setEditTournamentDialog({ open: true, tournament })}
-                          className="h-7 w-7 p-0"
-                        >
-                          <Edit className="h-3 w-3" />
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button size="sm" variant="outline" className="h-7 w-7 p-0 text-destructive hover:text-destructive">
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Delete Tournament</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Are you sure you want to delete "{tournament.name}"? This action cannot be undone.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => deleteTournament(tournament.id)}>Delete</AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div className="flex flex-col xs:flex-row xs:items-center gap-2 xs:gap-4 text-xs xs:text-sm text-muted-foreground">
-                  <div className="flex items-center gap-1">
-                    <MapPin className="h-3 w-3 flex-shrink-0" />
-                    <span className="truncate">{tournament.golf_courses?.name}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Users className="h-3 w-3 flex-shrink-0" />
-                    {tournament.tournament_participants?.length || 0}/{tournament.max_players}
-                  </div>
-                </div>
-              </div>
+                  <InteractiveTournamentCard
+                    key={tournament.id}
+                    tournament={tournament}
+                    onLoadScores={(tournament) => setTournamentScoringCard({ open: true, tournament })}
+                    onEdit={(tournament) => setEditTournamentDialog({ open: true, tournament })}
+                    onDelete={deleteTournament}
+                  />
                 ))}
                 {upcomingTournaments.length === 0 && (
                   <div className="text-center py-6 text-muted-foreground">
@@ -387,116 +296,19 @@ export const TournamentsAndMatchesSection = () => {
             ) : (
               <>
                 {/* Pending Matches */}
-                {pendingMatches.map((match) => {
-                  const isOpponent = match.opponent_id === user?.id;
-                  const isCreator = match.creator_id === user?.id;
-                  const opponentName = isOpponent ? match.creator?.full_name || match.creator?.username || 'Unknown' : match.opponent?.full_name || match.opponent?.username || 'Unknown';
-                  
-                  return (
-                    <div key={match.id} className={`p-4 rounded-lg border transition-all duration-300 hover:shadow-md ${
-                      isOpponent ? 'bg-gradient-to-r from-blue-50 to-transparent hover:from-blue-100 border-blue-200' : 'hover:bg-accent/30'
-                    }`}>
-                      <div className="flex items-start justify-between mb-3 gap-2">
-                        <div className="flex items-center gap-2 min-w-0 flex-1">
-                          <Swords className={`h-4 w-4 flex-shrink-0 ${isOpponent ? 'text-blue-600' : 'text-primary'}`} />
-                          <div className="min-w-0 flex-1">
-                            <div className="font-medium truncate text-sm">{match.name}</div>
-                            {isOpponent && (
-                              <div className="text-xs text-muted-foreground mt-1">
-                                Challenge from {opponentName}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                          {isOpponent ? (
-                            <Badge className="bg-blue-100 text-blue-700 border-blue-200 text-xs px-2 animate-pulse">
-                              Awaiting Response
-                            </Badge>
-                          ) : (
-                            <Badge variant="outline" className="text-xs px-2">
-                              Pending
-                            </Badge>
-                          )}
-                          
-                          {isCreator && (
-                            <div className="flex gap-1">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => setEditMatchDialog({ open: true, match })}
-                                className="h-7 w-7 p-0 hover-scale"
-                              >
-                                <Edit className="h-3 w-3" />
-                              </Button>
-                              <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                  <Button size="sm" variant="outline" className="h-7 w-7 p-0 text-destructive hover:text-destructive hover-scale">
-                                    <Trash2 className="h-3 w-3" />
-                                  </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>Delete Match</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                      Are you sure you want to delete "{match.name}"? This action cannot be undone.
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction onClick={() => deleteMatch(match.id)}>Delete</AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      
-                      <div className="flex flex-col xs:flex-row xs:items-center gap-2 xs:gap-4 text-xs xs:text-sm text-muted-foreground mb-3">
-                        <div className="flex items-center gap-1">
-                          <MapPin className="h-3 w-3 flex-shrink-0" />
-                          <span className="truncate">{match.golf_courses?.name}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3 flex-shrink-0" />
-                          {format(new Date(match.match_date), 'MMM d')}
-                        </div>
-                        {match.stakes && (
-                          <div className="flex items-center gap-1">
-                            <Crown className="h-3 w-3 flex-shrink-0" />
-                            <span className="truncate">{match.stakes}</span>
-                          </div>
-                        )}
-                      </div>
-
-                      {isOpponent && (
-                        <div className="flex gap-2 pt-2 border-t border-blue-200 animate-fade-in">
-                          <Button
-                            size="sm"
-                            onClick={() => acceptMatch(match.id)}
-                            disabled={isAcceptingMatch || isDecliningMatch}
-                            className="flex-1 bg-green-600 hover:bg-green-700 text-white transition-all duration-200 hover-scale"
-                          >
-                            <Check className="h-3 w-3 mr-1" />
-                            {isAcceptingMatch ? 'Accepting...' : 'Accept Challenge'}
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => declineMatch(match.id)}
-                            disabled={isAcceptingMatch || isDecliningMatch}
-                            className="flex-1 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 transition-all duration-200 hover-scale"
-                          >
-                            <X className="h-3 w-3 mr-1" />
-                            {isDecliningMatch ? 'Declining...' : 'Decline'}
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+                {pendingMatches.map((match) => (
+                  <InteractiveMatchCard
+                    key={match.id}
+                    match={match}
+                    onLoadScores={(match) => setMatchScoringCard({ open: true, match })}
+                    onEdit={(match) => setEditMatchDialog({ open: true, match })}
+                    onDelete={deleteMatch}
+                    onAccept={acceptMatch}
+                    onDecline={declineMatch}
+                    isAccepting={isAcceptingMatch}
+                    isDeclining={isDecliningMatch}
+                  />
+                ))}
                 {pendingMatches.length === 0 && (
                   <div className="text-center py-6 text-muted-foreground">
                     <Swords className="h-8 w-8 mx-auto mb-2 opacity-50" />
@@ -512,27 +324,13 @@ export const TournamentsAndMatchesSection = () => {
               <>
                 {/* Completed Tournaments */}
                 {completedTournaments.map((tournament) => (
-                  <div key={tournament.id} className="p-3 rounded-lg border bg-muted/30 hover:bg-muted/50 transition-colors">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <Trophy className="h-4 w-4 text-muted-foreground" />
-                        <span className="font-medium text-muted-foreground">{tournament.name}</span>
-                      </div>
-                      <Badge variant="secondary">
-                        Completed
-                      </Badge>
-                    </div>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                      <div className="flex items-center gap-1">
-                        <MapPin className="h-3 w-3" />
-                        {tournament.golf_courses?.name}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
-                        {format(new Date(tournament.start_date), 'MMM d')}
-                      </div>
-                    </div>
-                  </div>
+                  <InteractiveTournamentCard
+                    key={tournament.id}
+                    tournament={tournament}
+                    onLoadScores={(tournament) => setTournamentScoringCard({ open: true, tournament })}
+                    onEdit={(tournament) => setEditTournamentDialog({ open: true, tournament })}
+                    onDelete={deleteTournament}
+                  />
                 ))}
                 {completedTournaments.length === 0 && (
                   <div className="text-center py-6 text-muted-foreground">
@@ -545,27 +343,17 @@ export const TournamentsAndMatchesSection = () => {
               <>
                 {/* Completed Matches */}
                 {completedMatches.map((match) => (
-                  <div key={match.id} className="p-3 rounded-lg border bg-muted/30 hover:bg-muted/50 transition-colors">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <Swords className="h-4 w-4 text-muted-foreground" />
-                        <span className="font-medium text-muted-foreground">{match.name}</span>
-                      </div>
-                      <Badge variant="secondary">
-                        {match.winner_id ? 'Finished' : 'Completed'}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                      <div className="flex items-center gap-1">
-                        <MapPin className="h-3 w-3" />
-                        {match.golf_courses?.name}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
-                        {format(new Date(match.match_date), 'MMM d')}
-                      </div>
-                    </div>
-                  </div>
+                  <InteractiveMatchCard
+                    key={match.id}
+                    match={match}
+                    onLoadScores={(match) => setMatchScoringCard({ open: true, match })}
+                    onEdit={(match) => setEditMatchDialog({ open: true, match })}
+                    onDelete={deleteMatch}
+                    onAccept={acceptMatch}
+                    onDecline={declineMatch}
+                    isAccepting={isAcceptingMatch}
+                    isDeclining={isDecliningMatch}
+                  />
                 ))}
                 {completedMatches.length === 0 && (
                   <div className="text-center py-6 text-muted-foreground">
@@ -594,7 +382,7 @@ export const TournamentsAndMatchesSection = () => {
         onSuccess={refetchAll}
       />
 
-      {/* Scoring Dialogs */}
+      {/* Scoring Dialogs - Legacy */}
       <TournamentScoringDialog
         tournament={tournamentScoringDialog.tournament}
         open={tournamentScoringDialog.open}
@@ -606,6 +394,21 @@ export const TournamentsAndMatchesSection = () => {
         match={matchScoringDialog.match}
         open={matchScoringDialog.open}
         onOpenChange={(open) => setMatchScoringDialog({ open, match: null })}
+        onSuccess={refetchAll}
+      />
+
+      {/* New Scoring Cards */}
+      <TournamentScoringCard
+        tournament={tournamentScoringCard.tournament}
+        open={tournamentScoringCard.open}
+        onOpenChange={(open) => setTournamentScoringCard({ open, tournament: null })}
+        onSuccess={refetchAll}
+      />
+
+      <MatchScoringCard
+        match={matchScoringCard.match}
+        open={matchScoringCard.open}
+        onOpenChange={(open) => setMatchScoringCard({ open, match: null })}
         onSuccess={refetchAll}
       />
     </Card>
