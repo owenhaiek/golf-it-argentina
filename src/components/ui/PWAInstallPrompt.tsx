@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { X, Download } from 'lucide-react';
+import { X, Download, Plus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Button } from '@/components/ui/button';
 
 interface PWAInstallPromptProps {
   onDismiss?: () => void;
@@ -10,8 +11,17 @@ const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({ onDismiss }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
   const [isAndroid, setIsAndroid] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
 
   useEffect(() => {
+    // Listen for beforeinstallprompt event
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
     const checkPWACompatibility = () => {
       // Check if already installed as PWA
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
@@ -52,8 +62,26 @@ const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({ onDismiss }) => {
       }
     }, 2000);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
   }, []);
+
+  const handleInstall = async () => {
+    if (!deferredPrompt) {
+      // Fallback for iOS or if no prompt available
+      return;
+    }
+
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    
+    if (outcome === 'accepted') {
+      setDeferredPrompt(null);
+      handleDismiss();
+    }
+  };
 
   const handleDismiss = () => {
     setIsVisible(false);
@@ -141,10 +169,20 @@ const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({ onDismiss }) => {
                   Añade esta app a tu pantalla de inicio para acceso rápido y una mejor experiencia.
                 </p>
                 
-                {/* Instructions */}
-                <div className="bg-muted/30 rounded-xl p-4 mb-4">
-                  {getInstructions()}
-                </div>
+                {/* Install Button */}
+                {deferredPrompt ? (
+                  <Button 
+                    onClick={handleInstall}
+                    className="w-full mb-4 h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-xl"
+                  >
+                    <Plus className="w-5 h-5 mr-2" />
+                    Instalar App
+                  </Button>
+                ) : (
+                  <div className="bg-muted/30 rounded-xl p-4 mb-4">
+                    {getInstructions()}
+                  </div>
+                )}
                 
                 {/* Benefits */}
                 <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
