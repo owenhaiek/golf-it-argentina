@@ -32,6 +32,10 @@ export const InteractiveMatchCard = ({
   const { user } = useAuth();
   const [isHovered, setIsHovered] = useState(false);
   
+  // Debug: Log match data to see what's available
+  console.log('Match data:', match);
+  console.log('Golf course data:', match.golf_courses);
+  
   const isCreator = match.creator_id === user?.id;
   const isOpponent = match.opponent_id === user?.id;
   const isPending = match.status === 'pending';
@@ -134,7 +138,9 @@ export const InteractiveMatchCard = ({
         <div className="space-y-3 text-sm">
           <div className="flex items-center gap-3 px-3 py-2 bg-muted/50 rounded-lg">
             <MapPin className="h-5 w-5 flex-shrink-0 text-primary" />
-            <span className="font-medium text-foreground truncate">{match.golf_courses?.name || 'Golf Course'}</span>
+            <span className="font-medium text-foreground truncate">
+              {match.golf_courses?.name || 'Loading course...'}
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4 flex-shrink-0" />
