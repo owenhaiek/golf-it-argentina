@@ -329,7 +329,16 @@ const translations: Record<LanguageType, TranslationDictionary> = {
       fillRequiredFields: "Please fill in all required fields",
       matchDateFuture: "Match date must be in the future",
       matchChallengeSent: "Match challenge sent!",
-      failedToCreate: "Failed to create match"
+      failedToCreate: "Failed to create match",
+      matchChallenge: "Match Challenge!",
+      youveBeenChallenged: "You've been challenged to a match",
+      anonymousPlayer: "Anonymous Player", 
+      challengedYou: "challenged you",
+      decline: "Decline",
+      declining: "Declining...",
+      acceptChallenge: "Accept Challenge",
+      accepting: "Accepting...",
+      moreInvitations: "more invitation"
     },
     faq: {
       accountManagement: "Account Management",
@@ -669,7 +678,16 @@ const translations: Record<LanguageType, TranslationDictionary> = {
       fillRequiredFields: "Por favor completa todos los campos obligatorios",
       matchDateFuture: "La fecha del partido debe ser en el futuro",
       matchChallengeSent: "¡Desafío enviado!",
-      failedToCreate: "Error al crear el partido"
+      failedToCreate: "Error al crear el partido",
+      matchChallenge: "¡Desafío de Match!",
+      youveBeenChallenged: "Te han desafiado a un partido",
+      anonymousPlayer: "Jugador Anónimo",
+      challengedYou: "te ha desafiado",
+      decline: "Rechazar", 
+      declining: "Rechazando...",
+      acceptChallenge: "Aceptar Desafío",
+      accepting: "Aceptando...",
+      moreInvitations: "invitación más"
     },
     faq: {
       accountManagement: "Gestión de Cuenta",

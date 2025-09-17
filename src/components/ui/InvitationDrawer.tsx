@@ -7,10 +7,14 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useTournamentsAndMatches } from "@/hooks/useTournamentsAndMatches";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { format } from "date-fns";
 
 export const InvitationDrawer = () => {
   const { user } = useAuth();
+  const { t } = useLanguage();
+  const isMobile = useIsMobile();
   const [isVisible, setIsVisible] = useState(false);
   const [hasCheckedInvitations, setHasCheckedInvitations] = useState(false);
   
@@ -74,7 +78,9 @@ export const InvitationDrawer = () => {
           animate={{ y: 0 }}
           exit={{ y: "100%" }}
           transition={{ type: "spring", damping: 25, stiffness: 300 }}
-          className="fixed bottom-0 left-0 right-0 bg-background rounded-t-[20px] shadow-2xl"
+          className={`fixed left-0 right-0 bg-background rounded-t-[20px] shadow-2xl ${
+            isMobile ? 'bottom-20' : 'bottom-0'
+          }`}
           style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
           onClick={(e) => e.stopPropagation()}
         >
@@ -103,10 +109,10 @@ export const InvitationDrawer = () => {
                 <Swords className="h-8 w-8 text-primary" />
               </motion.div>
               <h2 className="text-2xl font-bold text-foreground mb-2">
-                Match Challenge!
+                {t("matches", "matchChallenge") || "Match Challenge!"}
               </h2>
               <p className="text-muted-foreground">
-                You've been challenged to a match
+                {t("matches", "youveBeenChallenged") || "You've been challenged to a match"}
               </p>
             </div>
 
@@ -121,13 +127,13 @@ export const InvitationDrawer = () => {
                        invitation.creator?.username?.charAt(0) || '?'}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-foreground">
-                      {invitation.creator?.full_name || 
-                       invitation.creator?.username || 'Anonymous Player'}
-                    </h3>
-                    <p className="text-sm text-muted-foreground">challenged you</p>
-                  </div>
+                   <div className="flex-1">
+                     <h3 className="font-semibold text-foreground">
+                       {invitation.creator?.full_name || 
+                        invitation.creator?.username || t("matches", "anonymousPlayer") || "Anonymous Player"}
+                     </h3>
+                     <p className="text-sm text-muted-foreground">{t("matches", "challengedYou") || "challenged you"}</p>
+                   </div>
                   <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
                     {invitation.match_type.replace('_', ' ')}
                   </Badge>
@@ -158,12 +164,12 @@ export const InvitationDrawer = () => {
                     </span>
                   </div>
 
-                  {invitation.stakes && (
-                    <div className="flex items-center gap-3 text-sm">
-                      <span className="text-xs font-medium text-primary">STAKES:</span>
-                      <span className="text-muted-foreground">{invitation.stakes}</span>
-                    </div>
-                  )}
+                   {invitation.stakes && (
+                     <div className="flex items-center gap-3 text-sm">
+                       <span className="text-xs font-medium text-primary">{(t("matches", "stakes") || "STAKES").toUpperCase()}:</span>
+                       <span className="text-muted-foreground">{invitation.stakes}</span>
+                     </div>
+                   )}
                 </div>
               </CardContent>
             </Card>
@@ -176,7 +182,7 @@ export const InvitationDrawer = () => {
                 disabled={isDecliningMatch || isAcceptingMatch}
                 className="flex-1 h-12 border-destructive/20 text-destructive hover:bg-destructive/10"
               >
-                {isDecliningMatch ? "Declining..." : "Decline"}
+                {isDecliningMatch ? (t("matches", "declining") || "Declining...") : (t("matches", "decline") || "Decline")}
               </Button>
               
               <Button
@@ -184,7 +190,7 @@ export const InvitationDrawer = () => {
                 disabled={isAcceptingMatch || isDecliningMatch}
                 className="flex-1 h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
               >
-                {isAcceptingMatch ? "Accepting..." : "Accept Challenge"}
+                {isAcceptingMatch ? (t("matches", "accepting") || "Accepting...") : (t("matches", "acceptChallenge") || "Accept Challenge")}
               </Button>
             </div>
 
@@ -197,7 +203,8 @@ export const InvitationDrawer = () => {
                 className="text-center mt-4"
               >
                 <Badge variant="secondary" className="bg-muted/50">
-                  +{userPendingMatches.length - 1} more invitation{userPendingMatches.length > 2 ? 's' : ''}
+                  +{userPendingMatches.length - 1} {t("matches", "moreInvitations") || "more invitation"}
+                  {userPendingMatches.length > 2 ? 's' : ''}
                 </Badge>
               </motion.div>
             )}
