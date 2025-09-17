@@ -107,7 +107,8 @@ const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({ onDismiss }) => {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: "spring", duration: 0.3 }}
-            className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 w-[90%] max-w-sm"
+            className="fixed left-1/2 transform -translate-x-1/2 bottom-[100px] md:top-1/2 md:bottom-auto md:-translate-y-1/2 z-50 w-[90%] max-w-sm"
+            style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
           >
             <div className="bg-background border border-border rounded-2xl shadow-2xl overflow-hidden">
               {/* Close button */}
