@@ -179,7 +179,7 @@ export const useTournamentsAndMatches = () => {
             type: 'match_accepted',
             title: 'Match Accepted',
             message: `Your match "${match.name}" has been accepted!`,
-            data: { match_id: matchId }
+            data: { match_id: matchId, sender_id: user?.id }
           });
 
         if (notificationError) console.error('Error creating notification:', notificationError);
@@ -223,7 +223,7 @@ export const useTournamentsAndMatches = () => {
             type: 'match_declined',
             title: 'Match Declined',
             message: `Your match "${match.name}" has been declined.`,
-            data: { match_id: matchId }
+            data: { match_id: matchId, sender_id: user?.id }
           });
 
         if (notificationError) console.error('Error creating notification:', notificationError);

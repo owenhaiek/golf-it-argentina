@@ -41,32 +41,63 @@ export const useNotifications = () => {
       if (error) throw error;
       if (!notificationsData || notificationsData.length === 0) return [];
 
-      // Extract sender IDs from notification data
-      const senderIds = notificationsData
-        .map(n => {
-          const data = n.data as any;
-          return data?.sender_id;
-        })
-        .filter(Boolean);
+      // Extract sender IDs from notification data (if provided)
+      const senderIds = Array.from(new Set(
+        notificationsData
+          .map(n => (n.data as any)?.sender_id)
+          .filter(Boolean)
+      ));
 
-      // Get sender profiles if we have sender IDs
+      // Extract match IDs to resolve sender profiles when sender_id is missing
+      const matchIds = Array.from(new Set(
+        notificationsData
+          .map(n => (n.data as any)?.match_id)
+          .filter(Boolean)
+      ));
+
+      // Fetch sender profiles
       let senderProfiles: any[] = [];
       if (senderIds.length > 0) {
         const { data: profilesData } = await supabase
           .from('profiles')
           .select('id, full_name, username, avatar_url')
           .in('id', senderIds);
-        
         senderProfiles = profilesData || [];
       }
 
-      // Merge notifications with sender profiles
-      const enrichedNotifications = notificationsData.map(notification => ({
-        ...notification,
-        sender_profile: senderProfiles.find(profile => 
-          profile.id === (notification.data as any)?.sender_id
-        ) || null
-      }));
+      // Fetch related matches with joined profiles (for fallback sender resolution)
+      let matchesMap: Record<string, any> = {};
+      if (matchIds.length > 0) {
+        const { data: matchesData } = await supabase
+          .from('matches')
+          .select(`
+            id,
+            creator_id,
+            opponent_id,
+            creator:profiles!matches_creator_id_fkey ( id, full_name, username, avatar_url ),
+            opponent:profiles!matches_opponent_id_fkey ( id, full_name, username, avatar_url )
+          `)
+          .in('id', matchIds);
+        (matchesData || []).forEach((m: any) => { matchesMap[m.id] = m; });
+      }
+
+      // Merge notifications with resolved sender profiles
+      const enrichedNotifications = notificationsData.map(notification => {
+        const data = notification.data as any;
+        const senderId = data?.sender_id;
+        let sender_profile = senderProfiles.find(p => p.id === senderId) || null;
+
+        if (!sender_profile && data?.match_id && matchesMap[data.match_id]) {
+          const m = matchesMap[data.match_id];
+          if (notification.type === 'match_challenge') {
+            sender_profile = m.creator || null; // challenge sent by creator
+          } else if (notification.type === 'match_accepted' || notification.type === 'match_declined') {
+            sender_profile = m.opponent || null; // response sent by opponent
+          }
+        }
+
+        return { ...notification, sender_profile };
+      });
 
       return enrichedNotifications as Notification[];
     },

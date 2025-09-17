@@ -78,9 +78,7 @@ export const InvitationDrawer = () => {
           animate={{ y: 0 }}
           exit={{ y: "100%" }}
           transition={{ type: "spring", damping: 25, stiffness: 300 }}
-          className={`fixed left-0 right-0 bg-background rounded-t-[20px] shadow-2xl ${
-            isMobile ? 'bottom-20' : 'bottom-0'
-          }`}
+          className={`fixed left-0 right-0 bg-background rounded-t-[20px] shadow-2xl bottom-[76px] md:bottom-0`}
           style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
           onClick={(e) => e.stopPropagation()}
         >
