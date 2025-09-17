@@ -84,57 +84,57 @@ export const InteractiveMatchCard = ({
         </div>
 
         {/* Players Section */}
-        <div className="flex items-center justify-between px-4 py-3 bg-background/60 rounded-lg">
+        <div className="flex items-center justify-between px-4 py-4 bg-background/80 rounded-xl border border-border/50">
           {/* Creator */}
           <div className="flex flex-col items-center space-y-2">
-            <Avatar className="h-12 w-12 ring-2 ring-primary/20">
-              <AvatarImage src={match.creator?.avatar_url} />
-              <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+            <Avatar className="h-16 w-16 ring-2 ring-primary/30 shadow-lg">
+              <AvatarImage src={match.creator?.avatar_url} alt={`${match.creator?.full_name || match.creator?.username || 'Creator'} profile`} />
+              <AvatarFallback className="bg-primary/15 text-primary font-bold text-lg">
                 {match.creator?.full_name?.[0] || match.creator?.username?.[0] || 'C'}
               </AvatarFallback>
             </Avatar>
             <div className="text-center">
-              <div className="font-medium text-sm truncate max-w-20">
+              <div className="font-semibold text-sm truncate max-w-24 text-foreground">
                 {match.creator?.full_name || match.creator?.username || 'Creator'}
               </div>
               {isCreator && (
-                <Badge variant="outline" className="text-xs mt-1">You</Badge>
+                <Badge variant="default" className="text-xs mt-1 bg-primary/10 text-primary border-primary/20">You</Badge>
               )}
             </div>
           </div>
 
           {/* VS indicator */}
           <div className="flex flex-col items-center">
-            <div className="bg-primary/10 p-2 rounded-full">
-              <Swords className="h-4 w-4 text-primary" />
+            <div className="bg-gradient-to-r from-primary/20 to-primary/30 p-3 rounded-full shadow-md">
+              <Swords className="h-5 w-5 text-primary" />
             </div>
-            <span className="text-xs text-muted-foreground mt-1">VS</span>
+            <span className="text-xs font-medium text-muted-foreground mt-2">VS</span>
           </div>
 
           {/* Opponent */}
           <div className="flex flex-col items-center space-y-2">
-            <Avatar className="h-12 w-12 ring-2 ring-secondary/20">
-              <AvatarImage src={match.opponent?.avatar_url} />
-              <AvatarFallback className="bg-secondary/10 text-secondary-foreground font-semibold">
+            <Avatar className="h-16 w-16 ring-2 ring-secondary/30 shadow-lg">
+              <AvatarImage src={match.opponent?.avatar_url} alt={`${match.opponent?.full_name || match.opponent?.username || 'Opponent'} profile`} />
+              <AvatarFallback className="bg-secondary/15 text-secondary-foreground font-bold text-lg">
                 {match.opponent?.full_name?.[0] || match.opponent?.username?.[0] || 'O'}
               </AvatarFallback>
             </Avatar>
             <div className="text-center">
-              <div className="font-medium text-sm truncate max-w-20">
+              <div className="font-semibold text-sm truncate max-w-24 text-foreground">
                 {match.opponent?.full_name || match.opponent?.username || 'Opponent'}
               </div>
               {isOpponent && (
-                <Badge variant="outline" className="text-xs mt-1">You</Badge>
+                <Badge variant="default" className="text-xs mt-1 bg-secondary/10 text-secondary-foreground border-secondary/20">You</Badge>
               )}
             </div>
           </div>
         </div>
 
         {/* Match Details */}
-        <div className="space-y-2 text-sm text-muted-foreground">
-          <div className="flex items-center gap-2">
-            <MapPin className="h-4 w-4 flex-shrink-0" />
-            <span className="truncate">{match.golf_courses?.name}</span>
+        <div className="space-y-3 text-sm">
+          <div className="flex items-center gap-3 px-3 py-2 bg-muted/50 rounded-lg">
+            <MapPin className="h-5 w-5 flex-shrink-0 text-primary" />
+            <span className="font-medium text-foreground truncate">{match.golf_courses?.name || 'Golf Course'}</span>
           </div>
           <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4 flex-shrink-0" />
