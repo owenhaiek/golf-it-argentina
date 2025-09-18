@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
@@ -14,9 +14,10 @@ import AddRoundStep3 from "./AddRoundStep3";
 interface AddRoundDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  preselectedCourseId?: string | null;
 }
 
-const AddRoundDialog = ({ open, onOpenChange }: AddRoundDialogProps) => {
+const AddRoundDialog = ({ open, onOpenChange, preselectedCourseId }: AddRoundDialogProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { t } = useLanguage();
@@ -41,6 +42,17 @@ const AddRoundDialog = ({ open, onOpenChange }: AddRoundDialogProps) => {
   });
 
   const selectedCourseData = courses?.find(course => course.id === selectedCourse);
+
+  // Pre-select course if provided
+  useEffect(() => {
+    if (preselectedCourseId && open && courses.length > 0) {
+      const courseExists = courses.find(course => course.id === preselectedCourseId);
+      if (courseExists) {
+        setSelectedCourse(preselectedCourseId);
+        setCurrentStep(2); // Skip to step 2 since course is already selected
+      }
+    }
+  }, [preselectedCourseId, open, courses]);
 
   const addRoundMutation = useMutation({
     mutationFn: async (data: {
@@ -83,8 +95,13 @@ const AddRoundDialog = ({ open, onOpenChange }: AddRoundDialogProps) => {
   });
 
   const resetForm = () => {
-    setCurrentStep(1);
-    setSelectedCourse("");
+    if (preselectedCourseId && courses.find(course => course.id === preselectedCourseId)) {
+      setCurrentStep(2);
+      setSelectedCourse(preselectedCourseId);
+    } else {
+      setCurrentStep(1);
+      setSelectedCourse("");
+    }
     setHolesPlayed("18");
     setSelectedSide("front");
     setScores(Array(18).fill(0));

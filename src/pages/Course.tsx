@@ -113,7 +113,7 @@ const Course = () => {
             <OpeningHoursDisplay openingHours={openingHoursData} />
             <div className="flex flex-col sm:flex-row gap-3">
               <Button asChild variant="outline" className="w-full flex gap-2 items-center">
-                <a href="/add-round">
+                <a href={`/add-round?courseId=${course.id}`}>
                   <span className="material-icons"><Flag size={16} /></span>
                   {language === "en" ? "Add Round" : "Agregar Ronda"}
                 </a>

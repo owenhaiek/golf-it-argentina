@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
@@ -8,8 +8,10 @@ import AddRoundDialog from "@/components/rounds/AddRoundDialog";
 
 const AddRound = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { t } = useLanguage();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const preselectedCourseId = searchParams.get('courseId');
 
   // Open dialog when page loads
   useEffect(() => {
@@ -52,6 +54,7 @@ const AddRound = () => {
       <AddRoundDialog 
         open={isDialogOpen} 
         onOpenChange={handleDialogClose}
+        preselectedCourseId={preselectedCourseId}
       />
     </div>
   );
