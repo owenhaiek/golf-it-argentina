@@ -101,9 +101,6 @@ export const InteractiveMatchCard = ({
               <div className="font-semibold text-sm truncate max-w-24 text-foreground">
                 {match.creator?.full_name || match.creator?.username || 'Creator'}
               </div>
-              {isCreator && (
-                <Badge variant="default" className="text-xs mt-1 bg-primary/10 text-primary border-primary/20">You</Badge>
-              )}
             </div>
           </div>
 
@@ -127,9 +124,6 @@ export const InteractiveMatchCard = ({
               <div className="font-semibold text-sm truncate max-w-24 text-foreground">
                 {match.opponent?.full_name || match.opponent?.username || 'Opponent'}
               </div>
-              {isOpponent && (
-                <Badge variant="default" className="text-xs mt-1 bg-secondary/10 text-secondary-foreground border-secondary/20">You</Badge>
-              )}
             </div>
           </div>
         </div>
