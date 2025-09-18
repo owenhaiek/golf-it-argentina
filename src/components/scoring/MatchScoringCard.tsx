@@ -250,7 +250,7 @@ export const MatchScoringCard = ({ match, open, onOpenChange, onSuccess }: Match
                 </Avatar>
                 <div>
                   <div className="font-semibold">{currentPlayer?.name}</div>
-                  <div className="text-sm text-muted-foreground">@{currentPlayer?.username}</div>
+                  <div className="text-sm text-muted-foreground">{currentPlayer?.username}</div>
                 </div>
               </CardTitle>
             </CardHeader>

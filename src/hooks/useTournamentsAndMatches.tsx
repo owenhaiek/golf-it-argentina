@@ -109,7 +109,8 @@ export const useTournamentsAndMatches = () => {
     queryFn: async () => {
       if (!user?.id) return [];
 
-      const { data, error } = await supabase
+      // First get the matches with golf course data
+      const { data: matchesData, error: matchesError } = await supabase
         .from('matches')
         .select(`
           *,
@@ -117,34 +118,43 @@ export const useTournamentsAndMatches = () => {
             name,
             city,
             state
-          ),
-          creator:profiles!matches_creator_id_fkey (
-            full_name,
-            username,
-            avatar_url
-          ),
-          opponent:profiles!matches_opponent_id_fkey (
-            full_name,
-            username,
-            avatar_url
           )
         `)
         .or(`creator_id.eq.${user.id},opponent_id.eq.${user.id}`)
         .order('match_date', { ascending: false });
 
-      if (error) {
-        // Fallback query without joins if the above fails
-        const { data: simpleData, error: simpleError } = await supabase
-          .from('matches')
-          .select('*')
-          .or(`creator_id.eq.${user.id},opponent_id.eq.${user.id}`)
-          .order('match_date', { ascending: false });
+      if (matchesError) throw matchesError;
+      if (!matchesData) return [];
 
-        if (simpleError) throw simpleError;
-        return simpleData as Match[];
-      }
+      // Get unique user IDs from creator and opponent
+      const userIds = new Set<string>();
+      matchesData.forEach(match => {
+        userIds.add(match.creator_id);
+        userIds.add(match.opponent_id);
+      });
 
-      return data as Match[];
+      // Fetch profile data for all users
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, full_name, username, avatar_url')
+        .in('id', Array.from(userIds));
+
+      if (profilesError) throw profilesError;
+
+      // Create a map for quick profile lookup
+      const profilesMap = new Map();
+      profilesData?.forEach(profile => {
+        profilesMap.set(profile.id, profile);
+      });
+
+      // Enrich matches with profile data
+      const enrichedMatches = matchesData.map(match => ({
+        ...match,
+        creator: profilesMap.get(match.creator_id) || null,
+        opponent: profilesMap.get(match.opponent_id) || null,
+      }));
+
+      return enrichedMatches as Match[];
     },
     enabled: !!user?.id,
   });

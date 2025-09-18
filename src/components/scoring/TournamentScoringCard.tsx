@@ -279,7 +279,7 @@ export const TournamentScoringCard = ({ tournament, open, onOpenChange, onSucces
                   </Avatar>
                   <div>
                     <div className="font-semibold">{currentParticipant?.name}</div>
-                    <div className="text-sm text-muted-foreground">@{currentParticipant?.username}</div>
+                    <div className="text-sm text-muted-foreground">{currentParticipant?.username}</div>
                   </div>
                 </div>
                 <Badge variant="outline" className="flex items-center gap-1">
