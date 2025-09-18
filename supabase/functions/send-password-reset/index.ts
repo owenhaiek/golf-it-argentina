@@ -43,7 +43,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log(`Sending password reset email to: ${email}`);
 
     const emailResponse = await resend.emails.send({
-      from: "GOLFIT Argentina <onboarding@resend.dev>",
+      from: "GOLFIT Argentina <noreply@golfitargentina.com>",
       to: [email],
       subject: "Recuperación de Contraseña - GOLFIT Argentina",
       html: `
@@ -103,7 +103,20 @@ const handler = async (req: Request): Promise<Response> => {
     
     // Check if there was an error from Resend
     if (emailResponse.error) {
-      throw new Error(`Resend API error: ${emailResponse.error.message}`);
+      console.error("Resend API error details:", emailResponse.error);
+      
+      // Provide more specific error messages
+      let errorMessage = `Resend API error: ${emailResponse.error.message}`;
+      
+      if (emailResponse.error.message?.includes('domain')) {
+        errorMessage = 'Email domain not verified. Please verify your domain in Resend.';
+      } else if (emailResponse.error.message?.includes('API key')) {
+        errorMessage = 'Invalid Resend API key. Please check your configuration.';
+      } else if (emailResponse.error.message?.includes('rate limit')) {
+        errorMessage = 'Email rate limit exceeded. Please try again later.';
+      }
+      
+      throw new Error(errorMessage);
     }
 
     return new Response(

@@ -107,7 +107,21 @@ const Auth = () => {
         
         if (backupResponse.error) {
           console.error('Backup email service error:', backupResponse.error);
-          throw new Error('No se pudo enviar el correo electrónico. Verifica que el servicio de correo esté configurado correctamente.');
+          
+          // Provide more specific error messages based on the error type
+          let errorMessage = 'No se pudo enviar el correo electrónico.';
+          
+          if (backupResponse.error.message?.includes('domain')) {
+            errorMessage = 'El dominio de correo no está verificado. Por favor contacta al administrador.';
+          } else if (backupResponse.error.message?.includes('API key')) {
+            errorMessage = 'Error de configuración del servicio de correo. Por favor contacta al soporte.';
+          } else if (backupResponse.error.message?.includes('rate limit')) {
+            errorMessage = 'Demasiados intentos. Por favor espera unos minutos antes de volver a intentar.';
+          } else if (backupResponse.error.message?.includes('non-2xx')) {
+            errorMessage = 'El servicio de correo está temporalmente no disponible. Por favor intenta más tarde.';
+          }
+          
+          throw new Error(errorMessage);
         }
         
         // Check if the backup service actually succeeded
@@ -137,8 +151,16 @@ const Auth = () => {
         errorMessage = 'Tu cuenta no ha sido confirmada. Por favor revisa tu correo electrónico.';
       } else if (error.message.includes('User not found')) {
         errorMessage = 'No se encontró una cuenta con este correo electrónico.';
+      } else if (error.message.includes('domain not verified') || error.message.includes('domain')) {
+        errorMessage = 'Error de configuración del dominio de correo. Por favor contacta al soporte.';
+      } else if (error.message.includes('rate limit')) {
+        errorMessage = 'Demasiados intentos. Por favor espera unos minutos antes de volver a intentar.';
+      } else if (error.message.includes('API key') || error.message.includes('configuration')) {
+        errorMessage = 'Error de configuración del servicio de correo. Por favor contacta al soporte.';
       } else if (error.message.includes('Email service') || error.message.includes('temporarily unavailable')) {
         errorMessage = 'El servicio de correo electrónico no está disponible temporalmente. Por favor contacta al soporte.';
+      } else if (error.message.includes('SMTP') || error.message.includes('smtp')) {
+        errorMessage = 'Error de configuración del servidor de correo. Por favor contacta al soporte.';
       }
       
       toast({
