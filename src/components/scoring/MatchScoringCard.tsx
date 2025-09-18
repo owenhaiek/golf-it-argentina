@@ -240,20 +240,95 @@ export const MatchScoringCard = ({ match, open, onOpenChange, onSuccess }: Match
         </DialogHeader>
 
         <div className="px-4 space-y-4">
-          {/* Current Player Card */}
-          <Card className="border-primary/20">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-3">
-                <Avatar className="h-10 w-10">
-                  <AvatarImage src={currentPlayer?.avatar_url} />
-                  <AvatarFallback>{currentPlayer?.name?.[0] || "?"}</AvatarFallback>
-                </Avatar>
-                <div>
-                  <div className="font-semibold">{currentPlayer?.name}</div>
-                  <div className="text-sm text-muted-foreground">{currentPlayer?.username}</div>
+          {/* User vs User Header */}
+          <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-secondary/5">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                {/* Player 1 */}
+                <div className={`flex flex-col items-center space-y-2 p-3 rounded-lg transition-all duration-300 ${
+                  currentPlayerIndex === 0 ? 'bg-primary/20 ring-2 ring-primary/50 scale-105' : 'bg-muted/30'
+                }`}>
+                  <Avatar className={`h-12 w-12 ring-2 transition-all duration-300 ${
+                    currentPlayerIndex === 0 ? 'ring-primary/70 shadow-lg' : 'ring-muted-foreground/30'
+                  }`}>
+                    <AvatarImage src={players[0]?.avatar_url} alt={`${players[0]?.name} profile`} />
+                    <AvatarFallback className={`text-sm font-bold ${
+                      currentPlayerIndex === 0 ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'
+                    }`}>
+                      {players[0]?.name?.[0] || "P1"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="text-center">
+                    <div className="font-semibold text-sm truncate max-w-20">
+                      {players[0]?.name || 'Player 1'}
+                    </div>
+                    <div className={`text-xs ${currentPlayerIndex === 0 ? 'text-primary font-medium' : 'text-muted-foreground'}`}>
+                      {players[0]?.username}
+                    </div>
+                    <Badge variant="outline" className={`text-xs mt-1 ${
+                      currentPlayerIndex === 0 ? 'border-primary/50 text-primary bg-primary/10' : 'border-muted-foreground/30'
+                    }`}>
+                      {players[0]?.total_score || 0}
+                    </Badge>
+                  </div>
                 </div>
-              </CardTitle>
-            </CardHeader>
+
+                {/* VS Indicator */}
+                <div className="flex flex-col items-center space-y-2">
+                  <div className="bg-gradient-to-r from-red-500 to-orange-500 p-3 rounded-full shadow-lg animate-pulse">
+                    <Swords className="h-6 w-6 text-white" />
+                  </div>
+                  <span className="text-xs font-bold text-muted-foreground tracking-wider">VS</span>
+                  <div className="text-xs text-center text-muted-foreground">
+                    <div className="font-medium">{match?.name}</div>
+                  </div>
+                </div>
+
+                {/* Player 2 */}
+                <div className={`flex flex-col items-center space-y-2 p-3 rounded-lg transition-all duration-300 ${
+                  currentPlayerIndex === 1 ? 'bg-secondary/20 ring-2 ring-secondary/50 scale-105' : 'bg-muted/30'
+                }`}>
+                  <Avatar className={`h-12 w-12 ring-2 transition-all duration-300 ${
+                    currentPlayerIndex === 1 ? 'ring-secondary/70 shadow-lg' : 'ring-muted-foreground/30'
+                  }`}>
+                    <AvatarImage src={players[1]?.avatar_url} alt={`${players[1]?.name} profile`} />
+                    <AvatarFallback className={`text-sm font-bold ${
+                      currentPlayerIndex === 1 ? 'bg-secondary/20 text-secondary-foreground' : 'bg-muted text-muted-foreground'
+                    }`}>
+                      {players[1]?.name?.[0] || "P2"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="text-center">
+                    <div className="font-semibold text-sm truncate max-w-20">
+                      {players[1]?.name || 'Player 2'}
+                    </div>
+                    <div className={`text-xs ${currentPlayerIndex === 1 ? 'text-secondary-foreground font-medium' : 'text-muted-foreground'}`}>
+                      {players[1]?.username}
+                    </div>
+                    <Badge variant="outline" className={`text-xs mt-1 ${
+                      currentPlayerIndex === 1 ? 'border-secondary/50 text-secondary-foreground bg-secondary/10' : 'border-muted-foreground/30'
+                    }`}>
+                      {players[1]?.total_score || 0}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+
+              {/* Current Player Indicator */}
+              <div className="mt-4 p-2 bg-background/80 rounded-lg border border-border/50">
+                <div className="text-center">
+                  <span className="text-sm text-muted-foreground">Now Scoring: </span>
+                  <span className="font-semibold text-foreground">
+                    {currentPlayer?.name}
+                  </span>
+                  {user?.id === currentPlayer?.user_id && (
+                    <Badge variant="default" className="ml-2 text-xs bg-green-100 text-green-700 border-green-200">
+                      Your Turn
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            </CardContent>
           </Card>
 
           {/* Progress Indicator */}
