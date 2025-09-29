@@ -70,15 +70,35 @@ export const useNotifications = () => {
       if (matchIds.length > 0) {
         const { data: matchesData } = await supabase
           .from('matches')
-          .select(`
-            id,
-            creator_id,
-            opponent_id,
-            creator:profiles!matches_creator_id_fkey ( id, full_name, username, avatar_url ),
-            opponent:profiles!matches_opponent_id_fkey ( id, full_name, username, avatar_url )
-          `)
+          .select('id, creator_id, opponent_id')
           .in('id', matchIds);
-        (matchesData || []).forEach((m: any) => { matchesMap[m.id] = m; });
+        
+        if (matchesData && matchesData.length > 0) {
+          // Extract creator and opponent IDs
+          const creatorIds = matchesData.map(m => m.creator_id);
+          const opponentIds = matchesData.map(m => m.opponent_id);
+          const allMatchUserIds = [...new Set([...creatorIds, ...opponentIds])];
+          
+          // Fetch profiles for all match participants
+          const { data: matchProfilesData } = await supabase
+            .from('profiles')
+            .select('id, full_name, username, avatar_url')
+            .in('id', allMatchUserIds);
+          
+          const profilesMap = (matchProfilesData || []).reduce((acc, p) => {
+            acc[p.id] = p;
+            return acc;
+          }, {} as Record<string, any>);
+          
+          // Build matches map with resolved profiles
+          matchesData.forEach((m: any) => {
+            matchesMap[m.id] = {
+              ...m,
+              creator: profilesMap[m.creator_id] || null,
+              opponent: profilesMap[m.opponent_id] || null
+            };
+          });
+        }
       }
 
       // Merge notifications with resolved sender profiles

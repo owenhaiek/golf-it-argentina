@@ -29,9 +29,19 @@ const Notifications = () => {
     }
     
     // Handle navigation based on notification type
-    if (notification.type === 'friend_request') {
-      navigate('/profile');
+    const senderId = notification.data?.sender_id || notification.sender_profile?.id;
+    
+    if (notification.type === 'friend_request' && senderId) {
+      navigate(`/user/${senderId}`);
     } else if (notification.type === 'match_challenge' || notification.type === 'match_accepted' || notification.type === 'match_declined') {
+      if (senderId) {
+        navigate(`/user/${senderId}`);
+      } else {
+        navigate('/profile');
+      }
+    } else if (senderId) {
+      navigate(`/user/${senderId}`);
+    } else {
       navigate('/profile');
     }
   };
