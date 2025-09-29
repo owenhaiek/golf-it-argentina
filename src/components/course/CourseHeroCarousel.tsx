@@ -149,7 +149,7 @@ const CourseHeroCarousel = ({ images, courseName, children }: CourseHeroCarousel
 
   if (images.length === 0) {
     return (
-      <div className="relative w-full h-80 sm:h-96 md:h-[28rem] bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center">
+      <div className="relative w-full h-96 sm:h-[28rem] md:h-[36rem] bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center">
         {children}
       </div>
     );
@@ -157,7 +157,7 @@ const CourseHeroCarousel = ({ images, courseName, children }: CourseHeroCarousel
 
   if (images.length === 1) {
     return (
-      <div className="relative w-full h-80 sm:h-96 md:h-[28rem]">
+      <div className="relative w-full h-96 sm:h-[28rem] md:h-[36rem]">
         <img 
           src={images[0]} 
           alt={courseName} 
@@ -170,7 +170,7 @@ const CourseHeroCarousel = ({ images, courseName, children }: CourseHeroCarousel
   }
 
   return (
-    <div className="relative w-full h-80 sm:h-96 md:h-[28rem] overflow-hidden">
+    <div className="relative w-full h-96 sm:h-[28rem] md:h-[36rem] overflow-hidden">
       {/* Image container with touch handlers */}
       <div className="absolute inset-0 overflow-hidden z-0">
         <div
