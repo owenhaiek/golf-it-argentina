@@ -88,21 +88,21 @@ const UserStatsCard = ({
     return fullCoursePar;
   };
   if (isLoadingStats) {
-    return <Card className="mx-4 sm:mx-0 overflow-hidden shadow-lg">
-        <CardHeader className="pb-4 px-4 sm:px-6 bg-gradient-to-r from-primary/10 via-primary/5 to-secondary/10">
-          <CardTitle className="text-lg sm:text-xl font-bold text-center bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+    return <Card className="mx-2 sm:mx-0 overflow-hidden shadow-lg">
+        <CardHeader className="pb-2 sm:pb-4 px-3 sm:px-6 bg-gradient-to-r from-primary/10 via-primary/5 to-secondary/10">
+          <CardTitle className="text-sm sm:text-xl font-bold text-center bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
             {t("profile", "playerStatistics")}
           </CardTitle>
         </CardHeader>
-        <CardContent className="px-4 sm:px-6 py-6">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-            {[...Array(3)].map((_, i) => <div key={i} className="bg-gray-100 dark:bg-gray-800 rounded-xl p-4 sm:p-5 animate-pulse">
-                <div className="flex flex-col items-center text-center space-y-3">
-                  <div className="w-12 h-12 sm:w-14 sm:h-14 bg-muted rounded-full" />
-                  <div className="space-y-2">
-                    <div className="h-6 w-16 bg-muted rounded mx-auto" />
-                    <div className="h-4 w-20 bg-muted rounded mx-auto" />
-                    <div className="h-3 w-16 bg-muted rounded mx-auto" />
+        <CardContent className="px-2 sm:px-6 py-3 sm:py-6">
+          <div className="grid grid-cols-3 gap-2 sm:gap-6">
+            {[...Array(3)].map((_, i) => <div key={i} className="bg-gray-100 dark:bg-gray-800 rounded-lg sm:rounded-xl p-2 sm:p-5 animate-pulse">
+                <div className="flex flex-col items-center text-center space-y-1 sm:space-y-3">
+                  <div className="w-8 h-8 sm:w-14 sm:h-14 bg-muted rounded-full" />
+                  <div className="space-y-1 sm:space-y-2">
+                    <div className="h-4 sm:h-6 w-12 sm:w-16 bg-muted rounded mx-auto" />
+                    <div className="h-3 sm:h-4 w-14 sm:w-20 bg-muted rounded mx-auto" />
+                    <div className="h-2 sm:h-3 w-12 sm:w-16 bg-muted rounded mx-auto hidden sm:block" />
                   </div>
                 </div>
               </div>)}
@@ -111,16 +111,16 @@ const UserStatsCard = ({
       </Card>;
   }
   if (!roundsForStats || roundsForStats.length === 0) {
-    return <Card className="mx-4 sm:mx-0 overflow-hidden shadow-lg">
-        <CardHeader className="pb-4 px-4 sm:px-6 bg-gradient-to-r from-primary/10 via-primary/5 to-secondary/10">
-          <CardTitle className="text-lg sm:text-xl font-bold text-center bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+    return <Card className="mx-2 sm:mx-0 overflow-hidden shadow-lg">
+        <CardHeader className="pb-2 sm:pb-4 px-3 sm:px-6 bg-gradient-to-r from-primary/10 via-primary/5 to-secondary/10">
+          <CardTitle className="text-sm sm:text-xl font-bold text-center bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
             {t("profile", "playerStatistics")}
           </CardTitle>
         </CardHeader>
-        <CardContent className="text-center py-8 px-4 sm:px-6">
-          <div className="bg-gray-100 dark:bg-gray-800 hover:bg-primary/10 dark:hover:bg-primary/20 rounded-xl p-8 transition-colors duration-300">
-            <Trophy className="h-12 w-12 sm:h-16 sm:w-16 mx-auto mb-4 text-muted-foreground" />
-            <p className="text-muted-foreground text-sm sm:text-base font-medium">{t("profile", "noStatsAvailable")}</p>
+        <CardContent className="text-center py-6 sm:py-8 px-3 sm:px-6">
+          <div className="bg-gray-100 dark:bg-gray-800 hover:bg-primary/10 dark:hover:bg-primary/20 rounded-xl p-6 sm:p-8 transition-colors duration-300">
+            <Trophy className="h-10 w-10 sm:h-16 sm:w-16 mx-auto mb-3 sm:mb-4 text-muted-foreground" />
+            <p className="text-muted-foreground text-xs sm:text-base font-medium">{t("profile", "noStatsAvailable")}</p>
             
           </div>
         </CardContent>
@@ -165,28 +165,28 @@ const UserStatsCard = ({
     subtitle: bestRoundVsPar > 0 ? "Over Par" : bestRoundVsPar < 0 ? "Under Par" : "At Par",
     color: bestRoundVsPar > 0 ? "text-red-600 dark:text-red-400" : bestRoundVsPar < 0 ? "text-green-600 dark:text-green-400" : "text-blue-600 dark:text-blue-400"
   }];
-  return <Card className="mx-4 sm:mx-0 overflow-hidden shadow-lg border border-border/50">
-      <CardHeader className="pb-4 px-4 sm:px-6 bg-gradient-to-r from-primary/10 via-primary/5 to-secondary/10">
-        <CardTitle className="text-lg sm:text-xl font-bold text-center bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+  return <Card className="mx-2 sm:mx-0 overflow-hidden shadow-lg border border-border/50">
+      <CardHeader className="pb-2 sm:pb-4 px-3 sm:px-6 bg-gradient-to-r from-primary/10 via-primary/5 to-secondary/10">
+        <CardTitle className="text-sm sm:text-xl font-bold text-center bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
           {t("profile", "playerStatistics")}
         </CardTitle>
       </CardHeader>
-      <CardContent className="px-4 sm:px-6 py-6">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-          {stats.map((stat, index) => <div key={index} className="bg-gray-100 dark:bg-gray-800 hover:bg-primary/10 dark:hover:bg-primary/20 rounded-xl p-4 sm:p-5 transition-colors duration-300 cursor-pointer border border-border/20">
-              <div className="flex flex-col items-center text-center space-y-3">
-                <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white dark:bg-gray-700 rounded-full flex items-center justify-center">
-                  <stat.icon className={`h-6 w-6 sm:h-7 sm:w-7 ${stat.color}`} />
+      <CardContent className="px-2 sm:px-6 py-3 sm:py-6">
+        <div className="grid grid-cols-3 gap-2 sm:gap-6">
+          {stats.map((stat, index) => <div key={index} className="bg-gray-100 dark:bg-gray-800 hover:bg-primary/10 dark:hover:bg-primary/20 rounded-lg sm:rounded-xl p-2 sm:p-5 transition-colors duration-300 cursor-pointer border border-border/20">
+              <div className="flex flex-col items-center text-center space-y-1 sm:space-y-3">
+                <div className="w-8 h-8 sm:w-14 sm:h-14 bg-white dark:bg-gray-700 rounded-full flex items-center justify-center">
+                  <stat.icon className={`h-4 w-4 sm:h-7 sm:w-7 ${stat.color}`} />
                 </div>
                 
-                <div className="space-y-1">
-                  <div className={`text-xl sm:text-2xl font-bold ${stat.color}`}>
+                <div className="space-y-0.5 sm:space-y-1">
+                  <div className={`text-base sm:text-2xl font-bold ${stat.color}`}>
                     {stat.value}
                   </div>
-                  <div className="text-xs sm:text-sm font-medium text-foreground/80">
+                  <div className="text-[10px] sm:text-sm font-medium text-foreground/80 leading-tight">
                     {stat.label}
                   </div>
-                  <div className="text-xs text-muted-foreground">
+                  <div className="text-[9px] sm:text-xs text-muted-foreground hidden sm:block">
                     {stat.subtitle}
                   </div>
                 </div>
@@ -194,9 +194,9 @@ const UserStatsCard = ({
             </div>)}
         </div>
         
-        <div className="mt-6 pt-4 border-t border-border">
+        <div className="mt-3 sm:mt-6 pt-2 sm:pt-4 border-t border-border">
           <div className="text-center">
-            <p className="text-xs text-muted-foreground/60">
+            <p className="text-[10px] sm:text-xs text-muted-foreground/60">
               Based on {totalRounds} round{totalRounds !== 1 ? 's' : ''}
             </p>
           </div>
