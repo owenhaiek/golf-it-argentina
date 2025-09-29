@@ -8,6 +8,7 @@ import { DarkModeToggle } from "@/components/ui/DarkModeToggle";
 import { formatDistanceToNow } from "date-fns";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { getTranslatedNotification } from "@/utils/notificationTranslations";
 
 const Notifications = () => {
   const { t } = useLanguage();
@@ -67,7 +68,9 @@ const Notifications = () => {
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <h1 className="text-2xl font-bold text-foreground">Notifications</h1>
+            <h1 className="text-2xl font-bold text-foreground">
+              {t("common", "notifications") || "Notifications"}
+            </h1>
           </div>
           <DarkModeToggle />
         </div>
@@ -78,11 +81,18 @@ const Notifications = () => {
           {notifications.length === 0 ? (
             <div className="text-center py-12">
               <Bell className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium text-foreground mb-2">No notifications</h3>
-              <p className="text-muted-foreground">You're all caught up!</p>
+              <h3 className="text-lg font-medium text-foreground mb-2">
+                {t("notifications", "noNotifications")}
+              </h3>
+              <p className="text-muted-foreground">
+                {t("notifications", "allCaughtUp")}
+              </p>
             </div>
           ) : (
-            notifications.map((notification) => (
+            notifications.map((notification) => {
+              const translatedNotification = getTranslatedNotification(notification, t);
+              
+              return (
               <Card 
                 key={notification.id} 
                 className={`cursor-pointer transition-all hover:shadow-md ${
@@ -105,17 +115,14 @@ const Notifications = () => {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <h4 className="font-medium text-foreground truncate">
-                          {notification.title}
+                          {translatedNotification.title}
                         </h4>
                         {!notification.is_read && (
                           <div className="h-2 w-2 bg-primary rounded-full flex-shrink-0" />
                         )}
                       </div>
-                      <p className="text-sm text-muted-foreground mb-1">
-                        From {notification.sender_profile?.full_name || notification.sender_profile?.username || 'Unknown User'}
-                      </p>
                       <p className="text-sm text-muted-foreground mb-2">
-                        {notification.message}
+                        {translatedNotification.message}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
@@ -139,7 +146,7 @@ const Notifications = () => {
                   </div>
                 </CardContent>
               </Card>
-            ))
+            )})
           )}
         </div>
       </ScrollArea>

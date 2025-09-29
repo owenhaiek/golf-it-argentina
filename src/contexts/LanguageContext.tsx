@@ -32,7 +32,8 @@ const translations: Record<LanguageType, TranslationDictionary> = {
       welcome: "Welcome",
       loading: "Loading...",
       players: "Players",
-      error: "Error"
+      error: "Error",
+      notifications: "Notifications"
     },
     auth: {
       signIn: "Sign In",
@@ -376,6 +377,20 @@ const translations: Record<LanguageType, TranslationDictionary> = {
       a6: "You can change the language in the Settings section, where you'll find options for Spanish and English.",
       q7: "How do I contact technical support?",
       a7: "For technical help, contact us at contacto@golfitargentina.com. Our support hours are Monday-Friday, 9am-5pm."
+    },
+    notifications: {
+      noNotifications: "No notifications",
+      allCaughtUp: "You're all caught up!",
+      from: "From",
+      friendRequestTitle: "Friend Request",
+      friendRequestMessage: "sent you a friend request",
+      matchChallengeTitle: "Match Challenge",
+      matchChallengeMessage: "challenged you to a match",
+      matchAcceptedTitle: "Match Accepted",
+      matchAcceptedMessage: "accepted your match challenge",
+      matchDeclinedTitle: "Match Declined",
+      matchDeclinedMessage: "declined your match challenge",
+      unknownUser: "Unknown User"
     }
   },
   es: {
@@ -398,7 +413,8 @@ const translations: Record<LanguageType, TranslationDictionary> = {
       welcome: "Bienvenido",
       loading: "Cargando...",
       players: "Jugadores",
-      error: "Error"
+      error: "Error",
+      notifications: "Notificaciones"
     },
     auth: {
       signIn: "Iniciar Sesión",
@@ -742,6 +758,20 @@ const translations: Record<LanguageType, TranslationDictionary> = {
       a6: "Podés cambiar el idioma en la sección Ajustes, donde encontrarás opciones para Español e Inglés.",
       q7: "¿Cómo contacto al soporte técnico?",
       a7: "Para ayuda técnica, escribinos a contacto@golfitargentina.com. Nuestro horario de atención es de Lunes a Viernes, 9am-5pm."
+    },
+    notifications: {
+      noNotifications: "Sin notificaciones",
+      allCaughtUp: "¡Estás al día!",
+      from: "De",
+      friendRequestTitle: "Solicitud de Amistad",
+      friendRequestMessage: "te envió una solicitud de amistad",
+      matchChallengeTitle: "Desafío de Match",
+      matchChallengeMessage: "te desafió a un partido",
+      matchAcceptedTitle: "Match Aceptado",
+      matchAcceptedMessage: "aceptó tu desafío de match",
+      matchDeclinedTitle: "Match Rechazado",
+      matchDeclinedMessage: "rechazó tu desafío de match",
+      unknownUser: "Usuario Desconocido"
     }
   }
 };
