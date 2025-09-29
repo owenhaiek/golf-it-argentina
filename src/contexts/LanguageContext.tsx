@@ -209,7 +209,9 @@ const translations: Record<LanguageType, TranslationDictionary> = {
       front9: "Front 9",
       back9: "Back 9",
       holes1to9: "Holes 1-9",
-      holes10to18: "Holes 10-18"
+      holes10to18: "Holes 10-18",
+      step: "Step",
+      of: "of"
     },
     rounds: {
       addRound: "Add Round",
@@ -573,7 +575,9 @@ const translations: Record<LanguageType, TranslationDictionary> = {
       front9: "Primeros 9",
       back9: "Últimos 9",
       holes1to9: "Hoyos 1-9",
-      holes10to18: "Hoyos 10-18"
+      holes10to18: "Hoyos 10-18",
+      step: "Paso",
+      of: "de"
     },
     rounds: {
       addRound: "Añadir Ronda",

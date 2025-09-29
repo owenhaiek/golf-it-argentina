@@ -218,7 +218,7 @@ const AddRoundDialog = ({ open, onOpenChange, preselectedCourseId }: AddRoundDia
         <DialogHeader className="flex-shrink-0 p-4 sm:p-6 pb-3 sm:pb-4 border-b">
           <div className="flex items-center justify-between">
             <DialogTitle className="text-lg sm:text-xl font-bold">
-              Add Round - Step {currentStep} of 3
+              {t("addRound", "title")} - {t("addRound", "step")} {currentStep} {t("addRound", "of")} 3
             </DialogTitle>
             <button
               onClick={handleClose}
