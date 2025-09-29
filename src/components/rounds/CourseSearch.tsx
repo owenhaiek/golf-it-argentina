@@ -1,5 +1,5 @@
-
 import { useState } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { Check, ChevronDown, Search, MapPin, Clock, Star, Flag } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -42,6 +42,7 @@ interface CourseSearchProps {
 
 const CourseSearch = ({ courses, isLoading, selectedCourse, onSelectCourse }: CourseSearchProps) => {
   const [open, setOpen] = useState(false);
+  const { t } = useLanguage();
 
   const selectedCourseData = courses?.find((course) => course.id === selectedCourse);
 
@@ -50,10 +51,10 @@ const CourseSearch = ({ courses, isLoading, selectedCourse, onSelectCourse }: Co
       <CardHeader className="pb-3">
         <CardTitle className="text-lg flex items-center gap-2">
           <Flag className="h-5 w-5 text-primary" />
-          Select Golf Course
+          {t("addRound", "selectGolfCourse")}
         </CardTitle>
         <CardDescription>
-          Choose the course where you want to play
+          {t("addRound", "chooseCoursePlay")}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -86,7 +87,7 @@ const CourseSearch = ({ courses, isLoading, selectedCourse, onSelectCourse }: Co
                     </div>
                     <div className="flex items-center gap-2 mt-1">
                       <Badge variant="secondary" className="text-xs">
-                        {selectedCourseData.holes} Holes
+                        {selectedCourseData.holes} {t("addRound", "holes")}
                       </Badge>
                       {selectedCourseData.par && (
                         <Badge variant="outline" className="text-xs">
@@ -99,7 +100,7 @@ const CourseSearch = ({ courses, isLoading, selectedCourse, onSelectCourse }: Co
               ) : (
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Flag className="h-4 w-4" />
-                  <span>Select golf course...</span>
+                  <span>{t("addRound", "searchCourse")}</span>
                 </div>
               )}
               <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -107,9 +108,9 @@ const CourseSearch = ({ courses, isLoading, selectedCourse, onSelectCourse }: Co
           </PopoverTrigger>
           <PopoverContent className="w-full p-0 bg-background border-border" align="start">
             <Command className="bg-background">
-              <CommandInput placeholder="Search golf courses..." className="bg-background text-foreground" />
+              <CommandInput placeholder={t("addRound", "searchGolfCourses")} className="bg-background text-foreground" />
               <CommandList>
-                <CommandEmpty className="text-muted-foreground p-4">No golf course found.</CommandEmpty>
+                <CommandEmpty className="text-muted-foreground p-4">{t("addRound", "noGolfCourseFound")}</CommandEmpty>
                 <CommandGroup>
                   <ScrollArea className="h-[300px]">
                     {courses?.map((course) => (
@@ -148,7 +149,7 @@ const CourseSearch = ({ courses, isLoading, selectedCourse, onSelectCourse }: Co
                             </div>
                             <div className="flex items-center gap-2 mt-1">
                               <Badge variant="secondary" className="text-xs">
-                                {course.holes} Holes
+                                {course.holes} {t("addRound", "holes")}
                               </Badge>
                               {course.par && (
                                 <Badge variant="outline" className="text-xs">

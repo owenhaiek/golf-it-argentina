@@ -80,7 +80,7 @@ const AddRoundStep2 = ({
                 <div className="flex items-center gap-3">
                   <Badge variant="outline" className="text-sm font-medium">
                     <Flag className="h-3 w-3 mr-1" />
-                    {selectedCourseData.holes} Holes
+                    {selectedCourseData.holes} {t("addRound", "holes")}
                   </Badge>
                   {selectedCourseData.par && (
                     <Badge variant="outline" className="text-sm font-medium">

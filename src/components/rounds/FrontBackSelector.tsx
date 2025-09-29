@@ -1,4 +1,4 @@
-
+import { useLanguage } from "@/contexts/LanguageContext";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -8,12 +8,14 @@ interface FrontBackSelectorProps {
 }
 
 const FrontBackSelector = ({ selectedSide, onSideChange }: FrontBackSelectorProps) => {
+  const { t } = useLanguage();
+  
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-base">Select 9 Holes</CardTitle>
+        <CardTitle className="text-base">{t("addRound", "select9Holes")}</CardTitle>
         <CardDescription>
-          Choose which 9 holes you played
+          {t("addRound", "choose9Holes")}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -36,8 +38,8 @@ const FrontBackSelector = ({ selectedSide, onSideChange }: FrontBackSelectorProp
             />
             <div className="absolute inset-0 bg-black/40 data-[state=on]:bg-black/20 transition-colors" />
             <div className="relative z-10 flex flex-col items-center justify-center h-full text-white">
-              <div className="text-lg sm:text-xl font-bold mb-1">Front 9</div>
-              <div className="text-sm sm:text-base opacity-90">Holes 1-9</div>
+              <div className="text-lg sm:text-xl font-bold mb-1">{t("addRound", "front9")}</div>
+              <div className="text-sm sm:text-base opacity-90">{t("addRound", "holes1to9")}</div>
             </div>
           </ToggleGroupItem>
           
@@ -54,8 +56,8 @@ const FrontBackSelector = ({ selectedSide, onSideChange }: FrontBackSelectorProp
             />
             <div className="absolute inset-0 bg-black/40 data-[state=on]:bg-black/20 transition-colors" />
             <div className="relative z-10 flex flex-col items-center justify-center h-full text-white">
-              <div className="text-lg sm:text-xl font-bold mb-1">Back 9</div>
-              <div className="text-sm sm:text-base opacity-90">Holes 10-18</div>
+              <div className="text-lg sm:text-xl font-bold mb-1">{t("addRound", "back9")}</div>
+              <div className="text-sm sm:text-base opacity-90">{t("addRound", "holes10to18")}</div>
             </div>
           </ToggleGroupItem>
         </ToggleGroup>

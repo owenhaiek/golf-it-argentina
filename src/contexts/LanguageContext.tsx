@@ -197,7 +197,19 @@ const translations: Record<LanguageType, TranslationDictionary> = {
       saving: "Saving...",
       saveSuccess: "Round saved successfully!",
       selectCourseError: "Please select a course",
-      loginError: "Please log in to add a round"
+      loginError: "Please log in to add a round",
+      selectGolfCourse: "Select Golf Course",
+      chooseCoursePlay: "Choose the course where you want to play",
+      searchGolfCourses: "Search golf courses...",
+      noGolfCourseFound: "No golf course found.",
+      holesPlayed: "Holes Played",
+      holes: "Holes",
+      select9Holes: "Select 9 Holes",
+      choose9Holes: "Choose which 9 holes you played",
+      front9: "Front 9",
+      back9: "Back 9",
+      holes1to9: "Holes 1-9",
+      holes10to18: "Holes 10-18"
     },
     rounds: {
       addRound: "Add Round",
@@ -549,7 +561,19 @@ const translations: Record<LanguageType, TranslationDictionary> = {
       saving: "Guardando...",
       saveSuccess: "¡Ronda guardada exitosamente!",
       selectCourseError: "Por favor selecciona un campo",
-      loginError: "Por favor inicia sesión para agregar una ronda"
+      loginError: "Por favor inicia sesión para agregar una ronda",
+      selectGolfCourse: "Seleccionar Campo de Golf",
+      chooseCoursePlay: "Elige el campo donde quieres jugar",
+      searchGolfCourses: "Buscar campos de golf...",
+      noGolfCourseFound: "No se encontró ningún campo de golf.",
+      holesPlayed: "Hoyos Jugados",
+      holes: "Hoyos",
+      select9Holes: "Seleccionar 9 Hoyos",
+      choose9Holes: "Elige qué 9 hoyos jugaste",
+      front9: "Primeros 9",
+      back9: "Últimos 9",
+      holes1to9: "Hoyos 1-9",
+      holes10to18: "Hoyos 10-18"
     },
     rounds: {
       addRound: "Añadir Ronda",

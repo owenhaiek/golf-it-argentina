@@ -1,4 +1,4 @@
-
+import { useLanguage } from "@/contexts/LanguageContext";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 interface HolesPlayedSelectorProps {
@@ -8,9 +8,11 @@ interface HolesPlayedSelectorProps {
 }
 
 const HolesPlayedSelector = ({ holesPlayed, onHolesPlayedChange, maxHoles = 18 }: HolesPlayedSelectorProps) => {
+  const { t } = useLanguage();
+  
   return (
     <div className="space-y-3">
-      <h3 className="text-lg font-medium">Holes Played</h3>
+      <h3 className="text-lg font-medium">{t("addRound", "holesPlayed")}</h3>
       <ToggleGroup 
         type="single" 
         value={holesPlayed} 
@@ -18,14 +20,14 @@ const HolesPlayedSelector = ({ holesPlayed, onHolesPlayedChange, maxHoles = 18 }
         className="justify-start"
       >
         <ToggleGroupItem value="9" aria-label="9 holes" className="px-6">
-          9 Holes
+          9 {t("addRound", "holes")}
         </ToggleGroupItem>
         <ToggleGroupItem value="18" aria-label="18 holes" className="px-6">
-          18 Holes
+          18 {t("addRound", "holes")}
         </ToggleGroupItem>
         {maxHoles === 27 && (
           <ToggleGroupItem value="27" aria-label="27 holes" className="px-6">
-            27 Holes
+            27 {t("addRound", "holes")}
           </ToggleGroupItem>
         )}
       </ToggleGroup>
