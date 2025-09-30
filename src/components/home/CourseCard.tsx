@@ -1,9 +1,10 @@
 import { Link, useNavigate } from "react-router-dom";
-import { MapPin, Flag, Clock, Share, Map } from "lucide-react";
+import { MapPin, Flag, Clock, Share, Map, Users } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { isCurrentlyOpen, formatOpeningHours } from "@/utils/openingHours";
 import { validateOpeningHours } from "@/utils/openingHoursValidation";
 import { useCourseReviews } from "@/hooks/useCourseReviews";
+import { useCoursePlayersCount } from "@/hooks/useCoursePlayersCount";
 import CourseImageCarousel from "./CourseImageCarousel";
 import FavoriteButton from "@/components/ui/FavoriteButton";
 import ShareButton from "@/components/ui/ShareButton";
@@ -26,6 +27,9 @@ const CourseCard = ({
     data: reviews = []
   } = useCourseReviews(course.id);
   const averageRating = reviews.length > 0 ? reviews.reduce((sum: number, review: any) => sum + review.rating, 0) / reviews.length : 0;
+
+  // Fetch total players count
+  const { data: playersCount = 0 } = useCoursePlayersCount(course.id);
   const getCourseImages = (course: any): string[] => {
     const images: string[] = [];
 
@@ -70,6 +74,18 @@ const CourseCard = ({
               </div>
             </div>
           </div>
+
+          {/* Top-right Players Count */}
+          {playersCount > 0 && (
+            <div className="absolute top-14 right-2">
+              <div className="px-2.5 py-1 rounded-full text-xs font-medium bg-primary/90 text-primary-foreground backdrop-blur-sm border border-primary/50 shadow-lg">
+                <div className="flex items-center gap-1.5">
+                  <Users size={12} className="flex-shrink-0" />
+                  <span>{playersCount}</span>
+                </div>
+              </div>
+            </div>
+          )}
           
           {/* Action Buttons Overlay */}
           <div className="absolute top-2 right-2 flex gap-2">
