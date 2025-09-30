@@ -29,7 +29,7 @@ const CourseCard = ({
   const averageRating = reviews.length > 0 ? reviews.reduce((sum: number, review: any) => sum + review.rating, 0) / reviews.length : 0;
 
   // Fetch total players count
-  const { data: playersCount = 0 } = useCoursePlayersCount(course.id);
+  const { data: playersCount = 0, isLoading: isLoadingPlayers } = useCoursePlayersCount(course.id);
   const getCourseImages = (course: any): string[] => {
     const images: string[] = [];
 
@@ -76,9 +76,13 @@ const CourseCard = ({
           </div>
 
           {/* Top-right Players Count */}
-          {playersCount > 0 && (
+          {!isLoadingPlayers && (
             <div className="absolute top-14 right-2">
-              <div className="px-2.5 py-1 rounded-full text-xs font-medium bg-primary/90 text-primary-foreground backdrop-blur-sm border border-primary/50 shadow-lg">
+              <div className={`px-2.5 py-1 rounded-full text-xs font-medium backdrop-blur-sm border shadow-lg transition-all ${
+                playersCount > 0 
+                  ? "bg-primary/90 text-primary-foreground border-primary/50" 
+                  : "bg-muted/90 text-muted-foreground border-muted-foreground/30"
+              }`}>
                 <div className="flex items-center gap-1.5">
                   <Users size={12} className="flex-shrink-0" />
                   <span>{playersCount}</span>
