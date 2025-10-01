@@ -70,16 +70,27 @@ const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({ onDismiss }) => {
 
   const handleInstall = async () => {
     if (!deferredPrompt) {
-      // Fallback for iOS or if no prompt available
+      // For iOS, show alert with instructions
+      if (isIOS) {
+        alert('Para instalar la app:\n\n1. Toca el botón de compartir en la parte inferior de tu navegador\n2. Desplázate hacia abajo y selecciona "Añadir a pantalla de inicio"\n3. Toca "Añadir" en la esquina superior derecha');
+      }
       return;
     }
 
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    
-    if (outcome === 'accepted') {
-      setDeferredPrompt(null);
-      handleDismiss();
+    try {
+      // Show the install prompt for Android/Desktop
+      await deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      
+      if (outcome === 'accepted') {
+        console.log('User accepted the install prompt');
+        setDeferredPrompt(null);
+        handleDismiss();
+      } else {
+        console.log('User dismissed the install prompt');
+      }
+    } catch (error) {
+      console.error('Error showing install prompt:', error);
     }
   };
 
@@ -142,14 +153,14 @@ const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({ onDismiss }) => {
             transition={{ type: "spring", duration: 0.3 }}
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
           >
-            <div className="bg-background border border-border rounded-2xl shadow-2xl overflow-hidden w-full max-w-sm">
+            <div className="bg-background border border-border rounded-2xl shadow-2xl overflow-hidden w-full max-w-sm relative">
               {/* Close button */}
               <button
                 onClick={handleDismiss}
-                className="absolute top-4 right-4 p-2 hover:bg-muted rounded-full transition-colors z-10"
+                className="absolute top-3 right-3 p-2 hover:bg-muted rounded-full transition-colors z-10"
                 aria-label="Cerrar"
               >
-                <X size={20} className="text-muted-foreground" />
+                <X size={18} className="text-muted-foreground hover:text-foreground" />
               </button>
               
               {/* Content */}
