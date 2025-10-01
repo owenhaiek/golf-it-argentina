@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Download, Plus } from 'lucide-react';
+import { X, Download, Plus, Smartphone } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 
@@ -92,15 +92,20 @@ const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({ onDismiss }) => {
   const getInstructions = () => {
     if (isIOS) {
       return (
-        <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-          <span>Toca</span>
-          <div className="inline-flex items-center justify-center w-6 h-6 border border-muted-foreground/30 rounded">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M7 10l5 5 5-5"/>
-              <path d="M21 12H3"/>
-            </svg>
+        <div className="space-y-3">
+          <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+            <span>Toca</span>
+            <div className="inline-flex items-center justify-center w-6 h-6 border border-muted-foreground/30 rounded">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M7 10l5 5 5-5"/>
+                <path d="M21 12H3"/>
+              </svg>
+            </div>
+            <span>en tu navegador</span>
           </div>
-          <span>luego "Añadir a pantalla de inicio"</span>
+          <div className="text-sm text-muted-foreground text-center">
+            Luego selecciona <span className="font-semibold text-foreground">"Añadir a pantalla de inicio"</span>
+          </div>
         </div>
       );
     }
@@ -108,7 +113,7 @@ const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({ onDismiss }) => {
     if (isAndroid) {
       return (
         <div className="text-sm text-muted-foreground text-center">
-          Toca en el menú de tu navegador y selecciona "Añadir a pantalla de inicio"
+          Toca en el menú de tu navegador y selecciona <span className="font-semibold text-foreground">"Añadir a pantalla de inicio"</span>
         </div>
       );
     }
@@ -135,9 +140,9 @@ const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({ onDismiss }) => {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: "spring", duration: 0.3 }}
-            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[90%] max-w-sm mx-auto"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
           >
-            <div className="bg-background border border-border rounded-2xl shadow-2xl overflow-hidden">
+            <div className="bg-background border border-border rounded-2xl shadow-2xl overflow-hidden w-full max-w-sm">
               {/* Close button */}
               <button
                 onClick={handleDismiss}
@@ -169,15 +174,16 @@ const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({ onDismiss }) => {
                 </p>
                 
                 {/* Install Button */}
-                {deferredPrompt ? (
-                  <Button 
-                    onClick={handleInstall}
-                    className="w-full mb-4 h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-xl"
-                  >
-                    <Plus className="w-5 h-5 mr-2" />
-                    Instalar App
-                  </Button>
-                ) : (
+                <Button 
+                  onClick={deferredPrompt ? handleInstall : undefined}
+                  className="w-full mb-4 h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-xl"
+                >
+                  <Smartphone className="w-5 h-5 mr-2" />
+                  Añadir a Pantalla de Inicio
+                </Button>
+                
+                {/* Instructions for iOS/Android */}
+                {!deferredPrompt && (
                   <div className="bg-muted/30 rounded-xl p-4 mb-4">
                     {getInstructions()}
                   </div>
