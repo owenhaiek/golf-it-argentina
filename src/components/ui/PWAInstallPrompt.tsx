@@ -175,19 +175,25 @@ const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({ onDismiss }) => {
                 
                 {/* Install Button */}
                 <Button 
-                  onClick={deferredPrompt ? handleInstall : undefined}
+                  onClick={handleInstall}
                   className="w-full mb-4 h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-xl"
                 >
                   <Smartphone className="w-5 h-5 mr-2" />
                   Añadir a Pantalla de Inicio
                 </Button>
                 
-                {/* Instructions for iOS/Android */}
-                {!deferredPrompt && (
-                  <div className="bg-muted/30 rounded-xl p-4 mb-4">
-                    {getInstructions()}
-                  </div>
-                )}
+                {/* Simplified instructions */}
+                <div className="bg-muted/30 rounded-xl p-4 mb-4">
+                  <p className="text-sm text-muted-foreground text-center">
+                    {isIOS ? (
+                      <>
+                        Toca el botón <span className="font-semibold text-foreground">compartir</span> en tu navegador y selecciona <span className="font-semibold text-foreground">"Añadir a pantalla de inicio"</span>
+                      </>
+                    ) : (
+                      "Instala la app en tu teléfono para experimentar la aplicación completa."
+                    )}
+                  </p>
+                </div>
                 
                 {/* Benefits */}
                 <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
