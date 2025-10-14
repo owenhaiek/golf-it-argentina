@@ -103,7 +103,7 @@ const CourseCard = ({
         </div>
         
         {/* Content Section */}
-        <div className="px-3 pb-3 pt-2.5 md:px-4 md:pb-4 md:pt-3 space-y-2.5">
+        <div className="px-4 pb-4 pt-3 md:px-5 md:pb-5 md:pt-4 space-y-3">
           {/* Title and Rating */}
           <div className="space-y-1.5">
             {averageRating > 0 && (
