@@ -103,69 +103,68 @@ const CourseCard = ({
         </div>
         
         {/* Content Section */}
-        <div className="px-4 pb-4 pt-3 md:pt-1.5 space-y-2">
-          <div className="space-y-1">
-            {/* Rating Stars above title */}
-            {averageRating > 0 && <div className="flex items-center">
-                <StarRating rating={averageRating} size="md" showRating={false} className="justify-start" />
-              </div>}
+        <div className="px-3 pb-3 pt-2.5 md:px-4 md:pb-4 md:pt-3 space-y-2.5">
+          {/* Title and Rating */}
+          <div className="space-y-1.5">
+            {averageRating > 0 && (
+              <div className="flex items-center">
+                <StarRating rating={averageRating} size="sm" showRating={false} className="justify-start" />
+              </div>
+            )}
             
-            <h2 className="text-lg sm:text-xl font-poppins font-semibold text-foreground w-full">{course.name}</h2>
+            <h2 className="text-base sm:text-lg font-poppins font-semibold text-foreground leading-tight">
+              {course.name}
+            </h2>
             
-            {course.description && <p className="text-muted-foreground text-sm sm:text-base line-clamp-2">{course.description}</p>}
+            {course.description && (
+              <p className="text-muted-foreground text-xs sm:text-sm line-clamp-2 leading-relaxed">
+                {course.description}
+              </p>
+            )}
           </div>
           
-          <div className="flex gap-3">
-            <div className="flex-1 space-y-2 bg-muted/30 rounded-lg p-3 border border-border/30">
-              {/* Location */}
-              {course.city && <div className="flex items-center gap-2">
-                  
-                  <div>
-                    <p className="text-xs text-muted-foreground/70 uppercase tracking-wide">{t("home", "location")}</p>
-                    <p className="text-sm font-medium text-foreground">{course.city}</p>
-                  </div>
-                </div>}
-              
-              {/* Opening Hours */}
-              <div className="flex items-center gap-2">
-                
-                <div>
-                  <p className="text-xs text-muted-foreground/70 uppercase tracking-wide">{t("home", "hours")}</p>
-                  <p className="text-sm font-medium text-foreground">{formattedHours}</p>
+          {/* Location and Hours - Clean Minimal Design */}
+          <div className="flex items-start justify-between gap-3 py-2 border-y border-border/40">
+            <div className="flex-1 min-w-0">
+              {course.city && (
+                <div className="flex items-center gap-1.5 mb-2">
+                  <MapPin size={14} className="text-muted-foreground/60 flex-shrink-0" />
+                  <span className="text-xs sm:text-sm text-foreground font-medium truncate">
+                    {course.city}
+                  </span>
                 </div>
+              )}
+              
+              <div className="flex items-center gap-1.5">
+                <Clock size={14} className="text-muted-foreground/60 flex-shrink-0" />
+                <span className="text-xs sm:text-sm text-muted-foreground">
+                  {formattedHours}
+                </span>
               </div>
             </div>
             
-            {/* Map Button */}
+            {/* Minimal Map Button */}
             <button 
               onClick={handleMapClick}
-              className="flex items-center justify-center w-12 h-12 text-primary/80 hover:text-white bg-gradient-to-r from-primary/10 to-primary/5 hover:from-primary hover:to-primary/90 rounded-lg border border-primary/20 hover:border-primary shadow-sm hover:shadow-md transition-all duration-300 transform hover:scale-[1.05] self-start"
+              className="flex-shrink-0 flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 text-primary hover:text-white bg-primary/5 hover:bg-primary rounded-lg border border-primary/20 hover:border-primary transition-all duration-200"
             >
-              <Map size={20} className="drop-shadow-sm" />
+              <Map size={16} />
             </button>
           </div>
           
-          {/* Course Info - Holes and Par (with boxes) */}
-          <div className="grid grid-cols-2 gap-3 mt-2">
-            <div className="flex items-center gap-2 p-3 bg-primary/5 rounded-lg border border-primary/20">
-              <div className="flex-shrink-0 w-6 h-6 bg-primary/20 rounded-full flex items-center justify-center">
-                <Flag size={12} className="text-primary" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Holes</p>
-                <p className="text-sm font-semibold text-primary">{course.holes}</p>
-              </div>
+          {/* Course Stats - Minimal Pills */}
+          <div className="flex items-center gap-2 pt-0.5">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-primary/5 rounded-full border border-primary/10">
+              <Flag size={12} className="text-primary" />
+              <span className="text-xs font-medium text-primary">{course.holes} Holes</span>
             </div>
             
-            {course.par && <div className="flex items-center gap-2 p-3 bg-accent/50 rounded-lg border border-accent">
-                <div className="flex-shrink-0 w-6 h-6 bg-accent/70 rounded-full flex items-center justify-center">
-                  <Flag size={12} className="text-accent-foreground" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Par</p>
-                  <p className="text-sm font-semibold text-accent-foreground">{course.par}</p>
-                </div>
-              </div>}
+            {course.par && (
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-accent/10 rounded-full border border-accent/20">
+                <Flag size={12} className="text-accent-foreground" />
+                <span className="text-xs font-medium text-accent-foreground">Par {course.par}</span>
+              </div>
+            )}
           </div>
         </div>
       </div>
