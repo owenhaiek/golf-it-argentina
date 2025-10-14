@@ -17,7 +17,7 @@ const Friends = () => {
 
   return (
     <div className="h-screen flex flex-col">
-      <div className="flex-shrink-0 p-4 bg-background border-b border-border sticky top-0 z-40 touch-none">
+      <div className="flex-shrink-0 p-4 bg-background/95 backdrop-blur-sm border-b border-border sticky top-0 z-40 touch-none supports-[backdrop-filter]:bg-background/80">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Button
