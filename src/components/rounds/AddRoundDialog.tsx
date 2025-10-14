@@ -159,10 +159,14 @@ const AddRoundDialog = ({ open, onOpenChange, preselectedCourseId }: AddRoundDia
     const actualHolesPlayed = parseInt(holesPlayed);
     const holesCount = actualHolesPlayed;
     
-    const hasScores = scores.slice(0, holesCount).some(score => score > 0);
-    if (!hasScores) {
+    // Validate all holes have non-zero scores
+    const relevantScores = scores.slice(0, holesCount);
+    const hasZeroOrEmptyScore = relevantScores.some(score => !score || score === 0);
+    
+    if (hasZeroOrEmptyScore) {
       toast({
-        title: "Please enter at least one score",
+        title: "Invalid scores",
+        description: "All holes must have a score greater than 0",
         variant: "destructive",
       });
       return;
