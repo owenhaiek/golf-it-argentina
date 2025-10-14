@@ -2,7 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Flag } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { ScrollArea } from "@/components/ui/scroll-area";
+
 import { isCurrentlyOpen } from "@/utils/openingHours";
 import { CourseHero } from "@/components/course/CourseHero";
 import { CourseStatsHeader } from "@/components/course/CourseStatsHeader";
@@ -89,7 +89,7 @@ const Course = () => {
 
   return (
     <div className="h-screen flex flex-col">
-      <ScrollArea className="flex-1">
+      <div className="flex-1">
         <div className="pb-28">
           <CourseHero 
             course={course} 
@@ -130,7 +130,7 @@ const Course = () => {
             />
           </div>
         </div>
-      </ScrollArea>
+      </div>
     </div>
   );
 };

@@ -1,7 +1,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { ScrollArea } from "@/components/ui/scroll-area";
+
 import CourseList from "@/components/home/CourseList";
 import SearchBar from "@/components/home/SearchBar";
 import FilterPanel from "@/components/FilterPanel";
@@ -97,12 +97,12 @@ const Home = () => {
         <ActiveFilterBadges filters={activeFilters} handleResetFilters={handleResetFilters} />
       </div>
 
-      <ScrollArea className="flex-1">
+      <div className="flex-1">
         {/* Mobile: no padding left/right, Desktop: normal padding */}
         <div className={`py-4 px-0 md:p-4 pb-28 ${isSearchVisible ? 'pt-20' : ''}`}>
           <CourseList courses={courses} isLoading={isLoading} currentTime={currentTime} handleResetFilters={handleResetFilters} />
         </div>
-      </ScrollArea>
+      </div>
 
       {/* Floating Filter Button - made fully circular */}
       <div className="fixed bottom-24 right-4 z-50">

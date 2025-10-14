@@ -1,6 +1,6 @@
 
 import { useAuth } from "@/contexts/AuthContext";
-import { ScrollArea } from "@/components/ui/scroll-area";
+
 import { useProfileData } from "@/hooks/useProfileData";
 import ProfileCard from "@/components/profile/ProfileCard";
 import RecentRounds from "@/components/profile/RecentRounds";
@@ -47,7 +47,7 @@ const Profile = () => {
         </div>
       </div>
       
-      <ScrollArea className="flex-1">
+      <div className="flex-1">
         <div className="p-4 space-y-6 pb-28">
           <ProfileCard 
             user={user} 
@@ -62,7 +62,7 @@ const Profile = () => {
           <TournamentsAndMatchesSection />
           <RecentRounds />
         </div>
-      </ScrollArea>
+      </div>
     </div>
   );
 };

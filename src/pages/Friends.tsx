@@ -1,4 +1,4 @@
-import { ScrollArea } from "@/components/ui/scroll-area";
+
 import { DarkModeToggle } from "@/components/ui/DarkModeToggle";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { FriendsSection } from "@/components/profile/FriendsSection";
@@ -34,12 +34,12 @@ const Friends = () => {
         </div>
       </div>
       
-      <ScrollArea className="flex-1">
+      <div className="flex-1">
         <div className="p-4 space-y-6 pb-28">
           <FriendsSection />
           <TournamentsAndMatchesSection />
         </div>
-      </ScrollArea>
+      </div>
     </div>
   );
 };
