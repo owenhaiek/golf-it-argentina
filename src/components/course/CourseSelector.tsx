@@ -109,7 +109,7 @@ const CourseSelector = ({
                       <div className="flex flex-col sm:flex-row">
                         {/* Image Section - Full width on mobile */}
                         {course.image_url && (
-                          <div className="w-full sm:w-32 h-32 sm:h-24 flex-shrink-0">
+                          <div className="w-full sm:w-32 h-20 sm:h-20 flex-shrink-0">
                             <img 
                               src={course.image_url} 
                               alt={course.name}
