@@ -1,14 +1,22 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, X, Target, Trophy, Swords } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
 
-export const MapActionMenu = () => {
+interface MapActionMenuProps {
+  onOpenChange?: (isOpen: boolean) => void;
+}
+
+export const MapActionMenu = ({ onOpenChange }: MapActionMenuProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
   const { t } = useLanguage();
+
+  useEffect(() => {
+    onOpenChange?.(isOpen);
+  }, [isOpen, onOpenChange]);
 
   const actions = [
     {
@@ -46,16 +54,17 @@ export const MapActionMenu = () => {
         <motion.div
           animate={{ rotate: isOpen ? 45 : 0 }}
           transition={{ duration: 0.2 }}
+          whileTap={{ scale: 0.9 }}
         >
           <Button
             onClick={() => setIsOpen(!isOpen)}
             size="icon"
-            className="h-14 w-14 rounded-full bg-primary hover:bg-primary/90 shadow-lg shadow-primary/30"
+            className="h-16 w-16 rounded-full bg-primary hover:bg-primary/90 shadow-xl shadow-primary/40 active:shadow-primary/20 transition-shadow"
           >
             {isOpen ? (
-              <X className="w-6 h-6 text-primary-foreground" />
+              <X className="w-7 h-7 text-primary-foreground" />
             ) : (
-              <Plus className="w-6 h-6 text-primary-foreground" />
+              <Plus className="w-7 h-7 text-primary-foreground" />
             )}
           </Button>
         </motion.div>
@@ -65,43 +74,44 @@ export const MapActionMenu = () => {
       <AnimatePresence>
         {isOpen && (
           <>
-            {/* Backdrop */}
+            {/* Backdrop with blur */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[5] bg-black/20 backdrop-blur-sm"
+              className="fixed inset-0 z-[5] bg-black/30 backdrop-blur-md"
               onClick={() => setIsOpen(false)}
             />
             
             {/* Action buttons - centered above the main button */}
-            <div className="absolute bottom-28 left-1/2 -translate-x-1/2 z-10 flex flex-col gap-3 items-center" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+            <div className="absolute bottom-32 left-1/2 -translate-x-1/2 z-10 flex flex-col gap-3 items-center" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
               {actions.map((action, index) => (
                 <motion.div
                   key={action.route}
-                  initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                  initial={{ opacity: 0, y: 30, scale: 0.8 }}
                   animate={{ 
                     opacity: 1, 
                     y: 0, 
                     scale: 1,
-                    transition: { delay: index * 0.05 }
+                    transition: { delay: index * 0.06, type: "spring", stiffness: 300, damping: 24 }
                   }}
                   exit={{ 
                     opacity: 0, 
-                    y: 10, 
+                    y: 20, 
                     scale: 0.9,
                     transition: { delay: (actions.length - index) * 0.03 }
                   }}
+                  whileTap={{ scale: 0.95 }}
                 >
                   <button
                     onClick={() => handleAction(action.route)}
-                    className="flex items-center gap-4 bg-background/95 backdrop-blur-sm border shadow-lg rounded-2xl p-4 hover:bg-muted/50 active:scale-[0.98] transition-all min-w-[280px]"
+                    className="flex items-center gap-4 bg-background/95 backdrop-blur-sm border shadow-xl rounded-2xl p-5 hover:bg-muted/50 active:bg-muted transition-all min-w-[300px]"
                   >
-                    <div className={`w-12 h-12 ${action.color} rounded-xl flex items-center justify-center flex-shrink-0`}>
-                      <action.icon className="w-6 h-6 text-white" />
+                    <div className={`w-14 h-14 ${action.color} rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg`}>
+                      <action.icon className="w-7 h-7 text-white" />
                     </div>
                     <div className="text-left flex-1">
-                      <p className="font-semibold text-base">{action.label}</p>
+                      <p className="font-semibold text-lg">{action.label}</p>
                       <p className="text-sm text-muted-foreground">{action.description}</p>
                     </div>
                   </button>
