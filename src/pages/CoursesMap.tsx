@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
@@ -9,6 +8,7 @@ import { MapErrorState } from "@/components/map/MapErrorState";
 import { MapLoadingState } from "@/components/map/MapLoadingState";
 import { MapEmptyState } from "@/components/map/MapEmptyState";
 import { MapSearchOverlay } from "@/components/map/MapSearchOverlay";
+import { MapActionMenu } from "@/components/map/MapActionMenu";
 import { resetActiveMarker, setActiveMarker } from "@/utils/mapMarkers";
 
 interface GolfCourse {
@@ -134,6 +134,9 @@ const CoursesMap = () => {
         courses={courses || []}
         onSelectCourse={handleSearchSelect}
       />
+      
+      {/* Action menu (Add round, tournament, match) */}
+      <MapActionMenu />
       
       {/* Course info tab */}
       {selectedCourse && (
