@@ -1,6 +1,6 @@
-
 import { useState, useMemo, useRef, useEffect } from "react";
-import { Search, X, MapPin, Flag } from "lucide-react";
+import { Search, X, MapPin, Flag, User } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
@@ -27,6 +27,7 @@ export const MapSearchOverlay = ({ courses, onSelectCourse }: MapSearchOverlayPr
   const [searchQuery, setSearchQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   // Filter courses based on search
   const filteredCourses = useMemo(() => {
@@ -71,8 +72,20 @@ export const MapSearchOverlay = ({ courses, onSelectCourse }: MapSearchOverlayPr
 
   return (
     <>
-      {/* Search button - fixed position */}
-      <div className="absolute top-4 left-4 z-10">
+      {/* Top left controls - Profile & Search */}
+      <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
+        {/* Profile button */}
+        <Button
+          onClick={() => navigate('/profile')}
+          size="icon"
+          variant="secondary"
+          className="h-10 w-10 bg-background/95 backdrop-blur-sm hover:bg-background border shadow-lg text-foreground"
+          title="Mi perfil"
+        >
+          <User className="w-4 h-4" />
+        </Button>
+
+        {/* Search section */}
         <AnimatePresence mode="wait">
           {!isOpen ? (
             <motion.div
