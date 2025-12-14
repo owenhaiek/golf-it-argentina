@@ -111,8 +111,7 @@ export const CourseInfoTab = ({ course, isOpen, onClose }: CourseInfoTabProps) =
             transition={{ type: "spring", damping: 30, stiffness: 400 }}
             style={{ 
               borderRadius: '24px 24px 0 0',
-              // Account for safe area + navigation bar (approx 70px)
-              paddingBottom: 'calc(max(env(safe-area-inset-bottom), 16px) + 70px)'
+              paddingBottom: 'env(safe-area-inset-bottom, 16px)'
             }}
           >
             {/* Drag handle */}
@@ -218,7 +217,7 @@ export const CourseInfoTab = ({ course, isOpen, onClose }: CourseInfoTabProps) =
               <div className="flex gap-2">
                 {/* Primary: View Course */}
                 <Button 
-                  className="flex-1 h-11 bg-primary hover:bg-primary/90"
+                  className="flex-1 h-11 rounded-full bg-primary hover:bg-primary/90"
                   onClick={handleViewCourse}
                 >
                   <Eye className="w-4 h-4 mr-2" />
@@ -229,7 +228,7 @@ export const CourseInfoTab = ({ course, isOpen, onClose }: CourseInfoTabProps) =
                 <Button 
                   variant="outline" 
                   size="icon"
-                  className="h-11 w-11"
+                  className="h-11 w-11 rounded-full"
                   onClick={handleDirections}
                   title="Direcciones"
                 >
@@ -240,7 +239,7 @@ export const CourseInfoTab = ({ course, isOpen, onClose }: CourseInfoTabProps) =
                   <Button 
                     variant="outline" 
                     size="icon"
-                    className="h-11 w-11"
+                    className="h-11 w-11 rounded-full"
                     onClick={() => window.open(`tel:${course.phone}`, '_blank')}
                     title="Llamar"
                   >
@@ -252,7 +251,7 @@ export const CourseInfoTab = ({ course, isOpen, onClose }: CourseInfoTabProps) =
                   <Button 
                     variant="outline" 
                     size="icon"
-                    className="h-11 w-11"
+                    className="h-11 w-11 rounded-full"
                     onClick={() => window.open(course.website, '_blank')}
                     title="Sitio web"
                   >
