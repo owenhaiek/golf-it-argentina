@@ -51,14 +51,7 @@ export const useMapboxWithMarkers = ({
     coursesRef.current = courses;
   }, [courses]);
 
-  // Callback to re-add markers after style load
-  const reAddMarkers = useCallback(() => {
-    if (coursesRef.current && coursesRef.current.length > 0) {
-      console.log("[MapboxWithMarkers] Re-adding markers after style change");
-      // Don't fit bounds on style change, just re-add markers
-      addMarkersToMap(coursesRef.current[0] as any, coursesRef.current, false);
-    }
-  }, [addMarkersToMap]);
+  // Callback to re-add markers after style load - not used directly, handled in onMapReady
 
   const { map, isLoading, error } = useSimpleMapbox({
     containerRef,
