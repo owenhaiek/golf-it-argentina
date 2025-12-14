@@ -2,8 +2,9 @@
 import { X, MapPin, Phone, Globe, Flag, Navigation, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useDragControls, PanInfo } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { useRef } from "react";
 
 interface CourseInfoTabProps {
   course: {
@@ -26,6 +27,8 @@ interface CourseInfoTabProps {
 
 export const CourseInfoTab = ({ course, isOpen, onClose }: CourseInfoTabProps) => {
   const navigate = useNavigate();
+  const dragControls = useDragControls();
+  const constraintsRef = useRef(null);
 
   if (!course) return null;
 
@@ -38,6 +41,13 @@ export const CourseInfoTab = ({ course, isOpen, onClose }: CourseInfoTabProps) =
 
   const handleViewCourse = () => {
     navigate(`/course/${course.id}`);
+  };
+
+  const handleDragEnd = (_: any, info: PanInfo) => {
+    // Close if dragged down more than 80px or with enough velocity
+    if (info.offset.y > 80 || info.velocity.y > 500) {
+      onClose();
+    }
   };
 
   return (
@@ -53,32 +63,42 @@ export const CourseInfoTab = ({ course, isOpen, onClose }: CourseInfoTabProps) =
             onClick={onClose}
           />
           
-          {/* Slide-up bottom sheet */}
+          {/* Slide-up bottom sheet with drag support */}
           <motion.div
-            className="fixed bottom-0 left-0 right-0 z-[250] bg-background border-t border-border shadow-2xl max-w-lg mx-auto"
+            ref={constraintsRef}
+            className="fixed bottom-0 left-0 right-0 z-[250] bg-background border-t border-border shadow-2xl max-w-lg mx-auto touch-none"
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
+            drag="y"
+            dragControls={dragControls}
+            dragConstraints={{ top: 0, bottom: 0 }}
+            dragElastic={{ top: 0, bottom: 0.5 }}
+            onDragEnd={handleDragEnd}
             transition={{ 
               type: "spring", 
               damping: 30, 
               stiffness: 400,
             }}
             style={{ 
-              paddingBottom: 'env(safe-area-inset-bottom, 16px)',
-              borderRadius: '20px 20px 0 0'
+              borderRadius: '20px 20px 0 0',
+              paddingBottom: 'max(env(safe-area-inset-bottom), 16px)'
             }}
           >
-            {/* Drag handle */}
-            <div className="flex justify-center pt-3 pb-2">
-              <div className="w-10 h-1 bg-muted-foreground/30 rounded-full" />
+            {/* Drag handle - larger touch target */}
+            <div 
+              className="flex justify-center pt-3 pb-2 cursor-grab active:cursor-grabbing"
+              onPointerDown={(e) => dragControls.start(e)}
+            >
+              <div className="w-12 h-1.5 bg-muted-foreground/40 rounded-full" />
             </div>
 
-            {/* Header row with image, info, and close */}
-            <div className="px-4 pb-3">
-              <div className="flex gap-3">
+            {/* Content container with fixed height */}
+            <div className="px-4 pb-4">
+              {/* Header row with image, info, and close */}
+              <div className="flex gap-3 mb-3">
                 {/* Course thumbnail */}
-                <div className="relative w-20 h-20 flex-shrink-0 rounded-xl overflow-hidden">
+                <div className="relative w-16 h-16 sm:w-20 sm:h-20 flex-shrink-0 rounded-xl overflow-hidden">
                   <img 
                     src={course.image_url || defaultImageUrl}
                     alt={course.name}
@@ -90,8 +110,8 @@ export const CourseInfoTab = ({ course, isOpen, onClose }: CourseInfoTabProps) =
                 </div>
                 
                 {/* Course info */}
-                <div className="flex-1 min-w-0">
-                  <h2 className="text-base font-bold text-foreground leading-tight line-clamp-2">
+                <div className="flex-1 min-w-0 py-0.5">
+                  <h2 className="text-sm sm:text-base font-bold text-foreground leading-tight line-clamp-2">
                     {course.name}
                   </h2>
                   
@@ -103,7 +123,7 @@ export const CourseInfoTab = ({ course, isOpen, onClose }: CourseInfoTabProps) =
                   </div>
                   
                   {(course.address || course.city) && (
-                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1.5">
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1">
                       <MapPin className="w-3 h-3 flex-shrink-0" />
                       <span className="line-clamp-1">
                         {[course.city, course.state].filter(Boolean).join(', ')}
@@ -122,17 +142,15 @@ export const CourseInfoTab = ({ course, isOpen, onClose }: CourseInfoTabProps) =
                   <X className="h-4 w-4" />
                 </Button>
               </div>
-            </div>
 
-            {/* Action buttons row - compact icons */}
-            <div className="px-4 pb-4">
+              {/* Action buttons row - compact */}
               <div className="flex gap-2">
                 {/* View Course - primary action */}
                 <Button 
-                  className="flex-1 h-10 bg-primary hover:bg-primary/90"
+                  className="flex-1 h-9 bg-primary hover:bg-primary/90 text-sm"
                   onClick={handleViewCourse}
                 >
-                  <Eye className="w-4 h-4 mr-2" />
+                  <Eye className="w-4 h-4 mr-1.5" />
                   Ver Campo
                 </Button>
 
@@ -140,7 +158,7 @@ export const CourseInfoTab = ({ course, isOpen, onClose }: CourseInfoTabProps) =
                 <Button 
                   variant="outline" 
                   size="icon"
-                  className="h-10 w-10"
+                  className="h-9 w-9"
                   onClick={handleDirections}
                   title="Direcciones"
                 >
@@ -151,7 +169,7 @@ export const CourseInfoTab = ({ course, isOpen, onClose }: CourseInfoTabProps) =
                   <Button 
                     variant="outline" 
                     size="icon"
-                    className="h-10 w-10"
+                    className="h-9 w-9"
                     onClick={() => window.open(`tel:${course.phone}`, '_blank')}
                     title="Llamar"
                   >
@@ -163,7 +181,7 @@ export const CourseInfoTab = ({ course, isOpen, onClose }: CourseInfoTabProps) =
                   <Button 
                     variant="outline" 
                     size="icon"
-                    className="h-10 w-10"
+                    className="h-9 w-9"
                     onClick={() => window.open(course.website, '_blank')}
                     title="Sitio web"
                   >
