@@ -72,8 +72,12 @@ function App() {
                 <Route path="/*" element={
                   <AuthGuard>
                     <Routes>
+                      {/* Map is now the homepage - fullscreen without Layout */}
+                      <Route path="/home" element={<CoursesMap />} />
+                      <Route path="/courses-map" element={<CoursesMap />} />
+                      
+                      {/* Other pages use Layout wrapper for consistent styling */}
                       <Route element={<Layout />}>
-                        <Route path="/home" element={<Home />} />
                         <Route path="/profile" element={<Profile />} />
                         <Route path="/friends" element={<Friends />} />
                         <Route path="/notifications" element={<Notifications />} />
@@ -84,7 +88,6 @@ function App() {
                         <Route path="/create-match" element={<CreateMatch />} />
                         <Route path="/add-reservation" element={<AddReservation />} />
                         <Route path="/search-users" element={<SearchUsers />} />
-                        <Route path="/courses-map" element={<CoursesMap />} />
                         <Route path="/settings" element={<Settings />} />
                         <Route path="/search" element={<Search />} />
                       </Route>
