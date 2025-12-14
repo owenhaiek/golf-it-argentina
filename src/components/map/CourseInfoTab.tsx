@@ -84,6 +84,16 @@ export const CourseInfoTab = ({ course, isOpen, onClose }: CourseInfoTabProps) =
     setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
   };
 
+  // Handle image swipe
+  const handleImageDragEnd = (_: any, info: PanInfo) => {
+    const threshold = 50;
+    if (info.offset.x < -threshold) {
+      nextImage();
+    } else if (info.offset.x > threshold) {
+      prevImage();
+    }
+  };
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -132,18 +142,22 @@ export const CourseInfoTab = ({ course, isOpen, onClose }: CourseInfoTabProps) =
               <X className="h-4 w-4" />
             </Button>
 
-            {/* Image Carousel - full width */}
-            <div className="relative w-full h-40 sm:h-48 overflow-hidden">
-              <AnimatePresence mode="wait">
+            {/* Image Carousel - full width, no gap */}
+            <div className="relative w-full h-44 sm:h-52 overflow-hidden -mt-2">
+              <AnimatePresence mode="popLayout" initial={false}>
                 <motion.img
                   key={currentImageIndex}
                   src={images[currentImageIndex]}
                   alt={course.name}
-                  className="w-full h-full object-cover"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.2 }}
+                  className="absolute inset-0 w-full h-full object-cover cursor-grab active:cursor-grabbing"
+                  initial={{ x: 300, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  exit={{ x: -300, opacity: 0 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                  drag="x"
+                  dragConstraints={{ left: 0, right: 0 }}
+                  dragElastic={0.2}
+                  onDragEnd={handleImageDragEnd}
                   onError={(e) => {
                     e.currentTarget.src = defaultImageUrl;
                   }}

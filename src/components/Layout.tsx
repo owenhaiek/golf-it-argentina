@@ -1,16 +1,15 @@
 
 import { Outlet, useLocation } from "react-router-dom";
-import { Navigation } from "./Navigation";
-import { useState, useRef, useEffect } from "react";
+import { useRef, useEffect } from "react";
 import GolfAnimationLoader from "./ui/GolfAnimationLoader";
 import { motion } from "framer-motion";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { InvitationDrawer } from "./ui/InvitationDrawer";
 import PWAInstallPrompt from "./ui/PWAInstallPrompt";
+import { BackToMapButton } from "./ui/BackToMapButton";
 
 export const Layout = () => {
-  const mainRef = useRef<HTMLElement>(null);
-  const navigationRef = useRef<HTMLDivElement>(null);
+  const mainRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
 
   const {
@@ -36,20 +35,10 @@ export const Layout = () => {
     if (!mainElement) return;
 
     const wrappedTouchStart = (e: TouchEvent) => {
-      // Check if touch started on navigation area
-      const navigation = navigationRef.current;
-      if (navigation && navigation.contains(e.target as Node)) {
-        return;
-      }
       handleTouchStart(e, mainElement);
     };
 
     const wrappedTouchMove = (e: TouchEvent) => {
-      // Check if touch is on navigation area
-      const navigation = navigationRef.current;
-      if (navigation && navigation.contains(e.target as Node)) {
-        return;
-      }
       handleTouchMove(e, mainElement);
     };
 
@@ -101,7 +90,7 @@ export const Layout = () => {
         </motion.div>
       )}
       
-      <main 
+      <div 
         ref={mainRef} 
         className="flex-1 w-full overflow-y-auto overflow-x-hidden overscroll-behavior-none bg-background"
         style={{
@@ -110,23 +99,17 @@ export const Layout = () => {
           position: 'relative',
           zIndex: 1,
           paddingTop: 'env(safe-area-inset-top, 0px)',
-          paddingBottom: '76px',
+          paddingBottom: '100px',
           minHeight: '100dvh'
         }}
       >
         <div className="w-full mx-auto animate-in min-h-full bg-background">
           <Outlet />
         </div>
-      </main>
-      <div 
-        ref={navigationRef} 
-        className="navigation-container mobile-navigation-fix"
-        style={{
-          paddingBottom: '0px'
-        }}
-      >
-        <Navigation />
       </div>
+      
+      {/* Back to Map Button */}
+      <BackToMapButton />
       
       {/* Invitation Drawer */}
       <InvitationDrawer />
