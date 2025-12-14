@@ -1,10 +1,10 @@
 
-import { X, MapPin, Phone, Globe, Flag, Navigation, Eye } from "lucide-react";
+import { useState } from "react";
+import { X, MapPin, Phone, Globe, Flag, Navigation, Eye, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { motion, AnimatePresence, useDragControls, PanInfo } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { useRef } from "react";
 
 interface CourseInfoTabProps {
   course: {
@@ -13,6 +13,7 @@ interface CourseInfoTabProps {
     holes: number;
     par?: number;
     image_url?: string;
+    image_gallery?: string;
     address?: string;
     city?: string;
     state?: string;
@@ -28,11 +29,37 @@ interface CourseInfoTabProps {
 export const CourseInfoTab = ({ course, isOpen, onClose }: CourseInfoTabProps) => {
   const navigate = useNavigate();
   const dragControls = useDragControls();
-  const constraintsRef = useRef(null);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   if (!course) return null;
 
-  const defaultImageUrl = 'https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80';
+  const defaultImageUrl = 'https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
+  
+  // Build images array from image_url and image_gallery
+  const buildImagesArray = (): string[] => {
+    const images: string[] = [];
+    
+    if (course.image_url) {
+      images.push(course.image_url);
+    }
+    
+    if (course.image_gallery) {
+      try {
+        const galleryImages = course.image_gallery.split(',').map(url => url.trim()).filter(Boolean);
+        galleryImages.forEach(img => {
+          if (!images.includes(img)) {
+            images.push(img);
+          }
+        });
+      } catch (e) {
+        console.warn('Failed to parse image gallery');
+      }
+    }
+    
+    return images.length > 0 ? images : [defaultImageUrl];
+  };
+
+  const images = buildImagesArray();
   
   const handleDirections = () => {
     const query = encodeURIComponent(`${course.name}, ${[course.address, course.city, course.state].filter(Boolean).join(', ')}`);
@@ -44,17 +71,24 @@ export const CourseInfoTab = ({ course, isOpen, onClose }: CourseInfoTabProps) =
   };
 
   const handleDragEnd = (_: any, info: PanInfo) => {
-    // Close if dragged down more than 80px or with enough velocity
     if (info.offset.y > 80 || info.velocity.y > 500) {
       onClose();
     }
+  };
+
+  const nextImage = () => {
+    setCurrentImageIndex((prev) => (prev + 1) % images.length);
+  };
+
+  const prevImage = () => {
+    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
   };
 
   return (
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Backdrop - tap to close */}
+          {/* Backdrop */}
           <motion.div
             className="fixed inset-0 z-[200]"
             initial={{ opacity: 0 }}
@@ -63,9 +97,8 @@ export const CourseInfoTab = ({ course, isOpen, onClose }: CourseInfoTabProps) =
             onClick={onClose}
           />
           
-          {/* Slide-up bottom sheet with drag support */}
+          {/* Bottom sheet */}
           <motion.div
-            ref={constraintsRef}
             className="fixed bottom-0 left-0 right-0 z-[250] bg-background border-t border-border shadow-2xl max-w-lg mx-auto touch-none"
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
@@ -75,105 +108,142 @@ export const CourseInfoTab = ({ course, isOpen, onClose }: CourseInfoTabProps) =
             dragConstraints={{ top: 0, bottom: 0 }}
             dragElastic={{ top: 0, bottom: 0.5 }}
             onDragEnd={handleDragEnd}
-            transition={{ 
-              type: "spring", 
-              damping: 30, 
-              stiffness: 400,
-            }}
+            transition={{ type: "spring", damping: 30, stiffness: 400 }}
             style={{ 
-              borderRadius: '20px 20px 0 0',
+              borderRadius: '24px 24px 0 0',
               paddingBottom: 'max(env(safe-area-inset-bottom), 16px)'
             }}
           >
-            {/* Drag handle - larger touch target */}
+            {/* Drag handle */}
             <div 
               className="flex justify-center pt-3 pb-2 cursor-grab active:cursor-grabbing"
               onPointerDown={(e) => dragControls.start(e)}
             >
-              <div className="w-12 h-1.5 bg-muted-foreground/40 rounded-full" />
+              <div className="w-12 h-1.5 bg-muted-foreground/30 rounded-full" />
             </div>
 
-            {/* Content container with fixed height */}
-            <div className="px-4 pb-4">
-              {/* Header row with image, info, and close */}
-              <div className="flex gap-3 mb-3">
-                {/* Course thumbnail */}
-                <div className="relative w-16 h-16 sm:w-20 sm:h-20 flex-shrink-0 rounded-xl overflow-hidden">
-                  <img 
-                    src={course.image_url || defaultImageUrl}
-                    alt={course.name}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      e.currentTarget.src = defaultImageUrl;
-                    }}
-                  />
-                </div>
-                
-                {/* Course info */}
-                <div className="flex-1 min-w-0 py-0.5">
-                  <h2 className="text-sm sm:text-base font-bold text-foreground leading-tight line-clamp-2">
-                    {course.name}
-                  </h2>
-                  
-                  <div className="flex items-center gap-2 mt-1">
-                    <Badge variant="secondary" className="text-xs px-2 py-0.5">
-                      <Flag className="w-3 h-3 mr-1" />
-                      {course.holes}H{course.par && ` • P${course.par}`}
-                    </Badge>
+            {/* Close button - floating */}
+            <Button
+              variant="secondary"
+              size="icon"
+              onClick={onClose}
+              className="absolute top-4 right-4 z-10 h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm shadow-md"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+
+            {/* Image Carousel - full width */}
+            <div className="relative w-full h-40 sm:h-48 overflow-hidden">
+              <AnimatePresence mode="wait">
+                <motion.img
+                  key={currentImageIndex}
+                  src={images[currentImageIndex]}
+                  alt={course.name}
+                  className="w-full h-full object-cover"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  onError={(e) => {
+                    e.currentTarget.src = defaultImageUrl;
+                  }}
+                />
+              </AnimatePresence>
+
+              {/* Carousel controls */}
+              {images.length > 1 && (
+                <>
+                  <Button
+                    variant="secondary"
+                    size="icon"
+                    onClick={prevImage}
+                    className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-background/70 backdrop-blur-sm shadow-md hover:bg-background/90"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="icon"
+                    onClick={nextImage}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-background/70 backdrop-blur-sm shadow-md hover:bg-background/90"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+
+                  {/* Dots indicator */}
+                  <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5">
+                    {images.map((_, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setCurrentImageIndex(idx)}
+                        className={`w-1.5 h-1.5 rounded-full transition-all ${
+                          idx === currentImageIndex 
+                            ? 'bg-white w-4' 
+                            : 'bg-white/50 hover:bg-white/70'
+                        }`}
+                      />
+                    ))}
                   </div>
-                  
-                  {(course.address || course.city) && (
-                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1">
-                      <MapPin className="w-3 h-3 flex-shrink-0" />
-                      <span className="line-clamp-1">
-                        {[course.city, course.state].filter(Boolean).join(', ')}
-                      </span>
-                    </div>
-                  )}
-                </div>
+                </>
+              )}
 
-                {/* Close button */}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={onClose}
-                  className="rounded-full h-8 w-8 flex-shrink-0 hover:bg-muted"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
+              {/* Badge overlay */}
+              <div className="absolute top-2 left-2">
+                <Badge variant="secondary" className="text-xs bg-background/80 backdrop-blur-sm border-0">
+                  <Flag className="w-3 h-3 mr-1" />
+                  {course.holes}H{course.par && ` • Par ${course.par}`}
+                </Badge>
               </div>
+            </div>
 
-              {/* Action buttons row - compact */}
+            {/* Course Info */}
+            <div className="px-4 pt-4 pb-2">
+              <h2 className="text-lg font-bold text-foreground leading-tight line-clamp-2">
+                {course.name}
+              </h2>
+              
+              {(course.address || course.city) && (
+                <div className="flex items-center gap-1.5 text-sm text-muted-foreground mt-1.5">
+                  <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
+                  <span className="line-clamp-1">
+                    {[course.city, course.state].filter(Boolean).join(', ')}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Action buttons */}
+            <div className="px-4 pb-4 pt-2">
               <div className="flex gap-2">
-                {/* View Course - primary action */}
+                {/* Primary: View Course */}
                 <Button 
-                  className="flex-1 h-9 bg-primary hover:bg-primary/90 text-sm"
+                  className="flex-1 h-11 bg-primary hover:bg-primary/90"
                   onClick={handleViewCourse}
                 >
-                  <Eye className="w-4 h-4 mr-1.5" />
+                  <Eye className="w-4 h-4 mr-2" />
                   Ver Campo
                 </Button>
 
-                {/* Secondary actions - icon only */}
+                {/* Icon buttons */}
                 <Button 
                   variant="outline" 
                   size="icon"
-                  className="h-9 w-9"
+                  className="h-11 w-11"
                   onClick={handleDirections}
                   title="Direcciones"
                 >
-                  <Navigation className="w-4 h-4" />
+                  <Navigation className="w-5 h-5" />
                 </Button>
                 
                 {course.phone && (
                   <Button 
                     variant="outline" 
                     size="icon"
-                    className="h-9 w-9"
+                    className="h-11 w-11"
                     onClick={() => window.open(`tel:${course.phone}`, '_blank')}
                     title="Llamar"
                   >
-                    <Phone className="w-4 h-4" />
+                    <Phone className="w-5 h-5" />
                   </Button>
                 )}
                 
@@ -181,11 +251,11 @@ export const CourseInfoTab = ({ course, isOpen, onClose }: CourseInfoTabProps) =
                   <Button 
                     variant="outline" 
                     size="icon"
-                    className="h-9 w-9"
+                    className="h-11 w-11"
                     onClick={() => window.open(course.website, '_blank')}
                     title="Sitio web"
                   >
-                    <Globe className="w-4 h-4" />
+                    <Globe className="w-5 h-5" />
                   </Button>
                 )}
               </div>
