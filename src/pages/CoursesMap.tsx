@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -29,6 +29,21 @@ const CoursesMap = () => {
   const [selectedCourse, setSelectedCourse] = useState<GolfCourse | null>(null);
   const [searchParams] = useSearchParams();
   const focusCourseId = searchParams.get('focus');
+  const mapRef = React.useRef<any>(null);
+
+  // Handle course selection - center map on course
+  const handleCourseSelect = (course: GolfCourse) => {
+    setSelectedCourse(course);
+    
+    // Center map on selected course
+    if (mapRef.current && course.latitude && course.longitude) {
+      mapRef.current.flyTo({
+        center: [course.longitude, course.latitude],
+        zoom: 15,
+        duration: 1200
+      });
+    }
+  };
 
   // Fetch courses data
   const { data: courses, isLoading: coursesLoading, error: coursesError } = useQuery({
@@ -88,8 +103,9 @@ const CoursesMap = () => {
       <div className="absolute inset-0 bg-gray-200">
         <MapContainer 
           courses={courses || []}
-          onCourseSelect={setSelectedCourse}
+          onCourseSelect={handleCourseSelect}
           focusCourseId={focusCourseId}
+          onMapReady={(map) => { mapRef.current = map; }}
         />
         
         {/* Empty state */}
