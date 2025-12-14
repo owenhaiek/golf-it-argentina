@@ -70,10 +70,10 @@ export const useMapMarkers = (onCourseSelect: (course: GolfCourse) => void) => {
       const markerElement = createMarkerElement(course, onCourseSelect);
 
       try {
-        // Create marker with bottom anchor for tear-drop shape
+        // Create marker with center anchor for rounded markers
         const marker = new (window as any).mapboxgl.Marker({
           element: markerElement,
-          anchor: 'bottom' // Bottom anchor for tear-drop pins
+          anchor: 'center'
         })
           .setLngLat(coordinates)
           .addTo(mapInstance);
