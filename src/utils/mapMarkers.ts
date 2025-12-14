@@ -11,44 +11,71 @@ let activeMarkerId: string | null = null;
 
 // Inject global styles once
 const injectMarkerStyles = () => {
-  if (document.getElementById('golf-marker-styles-v4')) return;
+  if (document.getElementById('golf-marker-styles-v5')) return;
   
   const style = document.createElement('style');
-  style.id = 'golf-marker-styles-v4';
+  style.id = 'golf-marker-styles-v5';
   style.textContent = `
     @keyframes marker-fade-in {
       0% { opacity: 0; }
       100% { opacity: 1; }
     }
     
-    .golf-marker-v4 {
+    @keyframes pulse-ring {
+      0% { opacity: 0.6; }
+      50% { opacity: 0.3; }
+      100% { opacity: 0.6; }
+    }
+    
+    .golf-marker-v5 {
       pointer-events: auto !important;
       cursor: pointer;
-      width: 36px;
-      height: 36px;
+      position: relative;
+      width: 44px;
+      height: 44px;
       display: flex;
       align-items: center;
       justify-content: center;
+    }
+    
+    .golf-marker-v5 .marker-ring {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(34, 197, 94, 0.4) 0%, rgba(34, 197, 94, 0.1) 50%, transparent 70%);
+      animation: pulse-ring 2s ease-in-out infinite;
+    }
+    
+    .golf-marker-v5 .marker-core {
+      position: relative;
+      width: 32px;
+      height: 32px;
       border-radius: 50%;
       background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-      border: 3px solid white;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), 0 0 0 0 rgba(34, 197, 94, 0);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 12px rgba(34, 197, 94, 0.6), 0 2px 8px rgba(0, 0, 0, 0.3);
       transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
     
-    .golf-marker-v4:hover {
+    .golf-marker-v5:hover .marker-core {
       transform: scale(1.1);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 12px rgba(34, 197, 94, 0.5);
+      box-shadow: 0 0 20px rgba(34, 197, 94, 0.8), 0 4px 12px rgba(0, 0, 0, 0.4);
     }
     
-    .golf-marker-v4.active {
-      transform: scale(1.25);
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), 0 0 20px rgba(34, 197, 94, 0.7);
+    .golf-marker-v5.active .marker-ring {
+      background: radial-gradient(circle, rgba(34, 197, 94, 0.6) 0%, rgba(34, 197, 94, 0.2) 50%, transparent 70%);
     }
     
-    .golf-marker-v4 svg {
-      width: 18px;
-      height: 18px;
+    .golf-marker-v5.active .marker-core {
+      transform: scale(1.2);
+      box-shadow: 0 0 24px rgba(34, 197, 94, 1), 0 4px 16px rgba(0, 0, 0, 0.4);
+    }
+    
+    .golf-marker-v5 svg {
+      width: 16px;
+      height: 16px;
       color: white;
       flex-shrink: 0;
     }
@@ -63,19 +90,22 @@ export const createMarkerElement = (course: GolfCourse, onCourseSelect: (course:
   const animationDelay = Math.min(currentIndex * 25, 500);
   
   const el = document.createElement("div");
-  el.className = 'golf-marker-v4';
+  el.className = 'golf-marker-v5';
   el.dataset.courseId = course.id;
   el.style.cssText = `
     opacity: 0;
     animation: marker-fade-in 0.25s ease-out ${animationDelay}ms forwards;
   `;
   
-  // Golf flag icon SVG
+  // Marker with glowing ring and icon
   el.innerHTML = `
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
-      <line x1="4" x2="4" y1="22" y2="15"/>
-    </svg>
+    <div class="marker-ring"></div>
+    <div class="marker-core">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
+        <line x1="4" x2="4" y1="22" y2="15"/>
+      </svg>
+    </div>
   `;
 
   // Click handler
@@ -85,7 +115,7 @@ export const createMarkerElement = (course: GolfCourse, onCourseSelect: (course:
     
     // Remove active from previous
     if (activeMarkerId) {
-      const prevActive = document.querySelector(`.golf-marker-v4[data-course-id="${activeMarkerId}"]`);
+      const prevActive = document.querySelector(`.golf-marker-v5[data-course-id="${activeMarkerId}"]`);
       if (prevActive) prevActive.classList.remove('active');
     }
     
@@ -103,13 +133,13 @@ export const createMarkerElement = (course: GolfCourse, onCourseSelect: (course:
 export const setActiveMarker = (courseId: string | null) => {
   // Remove previous active
   if (activeMarkerId) {
-    const prevActive = document.querySelector(`.golf-marker-v4[data-course-id="${activeMarkerId}"]`);
+    const prevActive = document.querySelector(`.golf-marker-v5[data-course-id="${activeMarkerId}"]`);
     if (prevActive) prevActive.classList.remove('active');
   }
   
   // Set new active
   if (courseId) {
-    const newActive = document.querySelector(`.golf-marker-v4[data-course-id="${courseId}"]`);
+    const newActive = document.querySelector(`.golf-marker-v5[data-course-id="${courseId}"]`);
     if (newActive) newActive.classList.add('active');
   }
   
@@ -122,7 +152,7 @@ export const resetMarkerIndex = () => {
 
 export const resetActiveMarker = () => {
   if (activeMarkerId) {
-    const prevActive = document.querySelector(`.golf-marker-v4[data-course-id="${activeMarkerId}"]`);
+    const prevActive = document.querySelector(`.golf-marker-v5[data-course-id="${activeMarkerId}"]`);
     if (prevActive) prevActive.classList.remove('active');
   }
   activeMarkerId = null;
