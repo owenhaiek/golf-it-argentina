@@ -111,7 +111,8 @@ export const CourseInfoTab = ({ course, isOpen, onClose }: CourseInfoTabProps) =
             transition={{ type: "spring", damping: 30, stiffness: 400 }}
             style={{ 
               borderRadius: '24px 24px 0 0',
-              paddingBottom: 'max(env(safe-area-inset-bottom), 16px)'
+              // Account for safe area + navigation bar (approx 70px)
+              paddingBottom: 'calc(max(env(safe-area-inset-bottom), 16px) + 70px)'
             }}
           >
             {/* Drag handle */}
