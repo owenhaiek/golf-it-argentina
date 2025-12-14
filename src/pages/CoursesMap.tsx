@@ -9,6 +9,7 @@ import { MapErrorState } from "@/components/map/MapErrorState";
 import { MapLoadingState } from "@/components/map/MapLoadingState";
 import { MapEmptyState } from "@/components/map/MapEmptyState";
 import { MapSearchOverlay } from "@/components/map/MapSearchOverlay";
+import { resetActiveMarker, setActiveMarker } from "@/utils/mapMarkers";
 
 interface GolfCourse {
   id: string;
@@ -35,6 +36,7 @@ const CoursesMap = () => {
   // Handle course selection - center map on course
   const handleCourseSelect = React.useCallback((course: GolfCourse) => {
     setSelectedCourse(course);
+    setActiveMarker(course.id);
     
     // Center map on selected course with a slight delay to ensure map is ready
     setTimeout(() => {
@@ -47,6 +49,12 @@ const CoursesMap = () => {
         });
       }
     }, 100);
+  }, []);
+
+  // Handle closing the info tab
+  const handleCloseInfoTab = React.useCallback(() => {
+    setSelectedCourse(null);
+    resetActiveMarker();
   }, []);
 
   // Handle search result selection
@@ -131,7 +139,7 @@ const CoursesMap = () => {
       {selectedCourse && (
         <CourseInfoTab 
           course={selectedCourse}
-          onClose={() => setSelectedCourse(null)}
+          onClose={handleCloseInfoTab}
           isOpen={!!selectedCourse}
         />
       )}
