@@ -41,8 +41,8 @@ export const MapActionMenu = () => {
 
   return (
     <>
-      {/* Main action button - centered bottom, above nav */}
-      <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-10">
+      {/* Main action button - centered bottom */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
         <motion.div
           animate={{ rotate: isOpen ? 45 : 0 }}
           transition={{ duration: 0.2 }}
@@ -75,7 +75,7 @@ export const MapActionMenu = () => {
             />
             
             {/* Action buttons - centered above the main button */}
-            <div className="absolute bottom-44 left-1/2 -translate-x-1/2 z-10 flex flex-col gap-3 items-center">
+            <div className="absolute bottom-28 left-1/2 -translate-x-1/2 z-10 flex flex-col gap-3 items-center" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
               {actions.map((action, index) => (
                 <motion.div
                   key={action.route}

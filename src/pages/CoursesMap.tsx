@@ -115,9 +115,9 @@ const CoursesMap = () => {
   }
 
   return (
-    <div className="h-screen relative overflow-hidden">
-      {/* Map container */}
-      <div className="absolute inset-0 bg-gray-200">
+    <div className="fixed inset-0 w-screen h-screen overflow-hidden">
+      {/* Map container - full screen */}
+      <div className="absolute inset-0">
         <MapContainer 
           courses={courses || []}
           onCourseSelect={handleCourseSelect}
