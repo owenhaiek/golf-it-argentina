@@ -3,11 +3,37 @@ import { Button } from "@/components/ui/button";
 import { MapPin, Map, Crosshair, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
+type MapStyleType = 'satellite' | 'street' | 'dark';
+
 interface MapControlsProps {
   map: any;
-  onStyleChange: (style: 'satellite' | 'street') => void;
-  currentStyle: 'satellite' | 'street';
+  onStyleChange: (style: MapStyleType) => void;
+  currentStyle: MapStyleType;
 }
+
+const getNextStyle = (current: MapStyleType): MapStyleType => {
+  const order: MapStyleType[] = ['dark', 'satellite', 'street'];
+  const currentIndex = order.indexOf(current);
+  return order[(currentIndex + 1) % order.length];
+};
+
+const getStyleUrl = (style: MapStyleType): string => {
+  switch (style) {
+    case 'satellite': return 'mapbox://styles/mapbox/satellite-v9';
+    case 'street': return 'mapbox://styles/mapbox/light-v11';
+    case 'dark': 
+    default: return 'mapbox://styles/mapbox/dark-v11';
+  }
+};
+
+const getStyleLabel = (style: MapStyleType): string => {
+  switch (style) {
+    case 'satellite': return 'Street';
+    case 'street': return 'Dark';
+    case 'dark': 
+    default: return 'Satellite';
+  }
+};
 
 export const MapControls = ({ map, onStyleChange, currentStyle }: MapControlsProps) => {
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
@@ -16,10 +42,8 @@ export const MapControls = ({ map, onStyleChange, currentStyle }: MapControlsPro
   const { toast } = useToast();
 
   const handleStyleToggle = () => {
-    const newStyle = currentStyle === 'satellite' ? 'street' : 'satellite';
-    const mapStyle = newStyle === 'satellite' 
-      ? 'mapbox://styles/mapbox/satellite-v9' 
-      : 'mapbox://styles/mapbox/light-v11';
+    const newStyle = getNextStyle(currentStyle);
+    const mapStyle = getStyleUrl(newStyle);
     
     if (map) {
       map.setStyle(mapStyle);
@@ -162,7 +186,7 @@ export const MapControls = ({ map, onStyleChange, currentStyle }: MapControlsPro
         className="bg-white/90 backdrop-blur-sm hover:bg-white border shadow-lg text-black"
       >
         <Map className="w-4 h-4 mr-2 text-black" />
-        {currentStyle === 'satellite' ? 'Street' : 'Satellite'}
+        {getStyleLabel(currentStyle)}
       </Button>
       
       {/* My Location Button */}

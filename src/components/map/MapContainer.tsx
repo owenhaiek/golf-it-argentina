@@ -29,7 +29,7 @@ const MAPBOX_TOKEN = 'pk.eyJ1Ijoib3dlbmhhaWVrIiwiYSI6ImNtYW8zbWZpajAyeGsyaXB3Z2N
 
 export const MapContainer = ({ courses, onCourseSelect, focusCourseId }: MapContainerProps) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
-  const [mapStyle, setMapStyle] = useState<'satellite' | 'street'>('satellite');
+  const [mapStyle, setMapStyle] = useState<'satellite' | 'street' | 'dark'>('dark');
 
   const { map, isLoading, error, cleanup } = useMapboxWithMarkers({
     containerRef: mapContainerRef,

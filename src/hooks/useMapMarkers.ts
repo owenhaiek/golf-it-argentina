@@ -1,6 +1,6 @@
 
 import { useRef, useCallback } from "react";
-import { createMarkerElement, validateCoordinates } from "@/utils/mapMarkers";
+import { createMarkerElement, validateCoordinates, resetMarkerIndex } from "@/utils/mapMarkers";
 
 interface GolfCourse {
   id: string;
@@ -39,6 +39,9 @@ export const useMapMarkers = (onCourseSelect: (course: GolfCourse) => void) => {
 
     // Clear existing markers first
     clearMarkers();
+    
+    // Reset marker animation index for staggered animations
+    resetMarkerIndex();
 
     if (!coursesToAdd || coursesToAdd.length === 0) {
       console.log("[MapMarkers] No courses to add markers for");
@@ -67,10 +70,10 @@ export const useMapMarkers = (onCourseSelect: (course: GolfCourse) => void) => {
       const markerElement = createMarkerElement(course, onCourseSelect);
 
       try {
-        // Create marker with center anchoring - this ensures proper positioning
+        // Create marker with bottom anchor for tear-drop shape
         const marker = new (window as any).mapboxgl.Marker({
           element: markerElement,
-          anchor: 'center' // Critical for proper positioning
+          anchor: 'bottom' // Bottom anchor for tear-drop pins
         })
           .setLngLat(coordinates)
           .addTo(mapInstance);
