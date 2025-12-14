@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useSimpleMapbox } from "@/hooks/useSimpleMapbox";
-import { useMapMarkers } from "@/hooks/useMapMarkers";
+import { useClusteredMarkers } from "@/hooks/useClusteredMarkers";
 
 interface GolfCourse {
   id: string;
@@ -44,14 +44,12 @@ export const useMapboxWithMarkers = ({
   const initTimeoutRef = useRef<NodeJS.Timeout>();
   const coursesRef = useRef<GolfCourse[]>(courses);
   
-  const { addMarkersToMap, focusOnCourse, cleanup, clearMarkers } = useMapMarkers(onCourseSelect);
+  const { setupClusterLayers, focusOnCourse, cleanup: cleanupClusters } = useClusteredMarkers(onCourseSelect);
 
   // Keep courses ref updated
   useEffect(() => {
     coursesRef.current = courses;
   }, [courses]);
-
-  // Callback to re-add markers after style load - not used directly, handled in onMapReady
 
   const { map, isLoading, error } = useSimpleMapbox({
     containerRef,
@@ -62,17 +60,17 @@ export const useMapboxWithMarkers = ({
     onMapReady: (mapInstance) => {
       console.log("[MapboxWithMarkers] Map ready");
       
-      // Listen for style changes to re-add markers
+      // Listen for style changes to re-setup clusters
       mapInstance.on('style.load', () => {
-        console.log("[MapboxWithMarkers] Style loaded, re-adding markers");
+        console.log("[MapboxWithMarkers] Style loaded, re-setting up clusters");
         setTimeout(() => {
           if (coursesRef.current && coursesRef.current.length > 0) {
-            addMarkersToMap(mapInstance, coursesRef.current, false);
+            setupClusterLayers(mapInstance, coursesRef.current);
           }
         }, 100);
       });
       
-      // Mark as initialized after a short delay to ensure map is fully ready
+      // Mark as initialized after a short delay
       if (initTimeoutRef.current) {
         clearTimeout(initTimeoutRef.current);
       }
@@ -83,19 +81,16 @@ export const useMapboxWithMarkers = ({
     }
   });
 
-  // Initialize markers when map and courses are ready
+  // Initialize clusters when map and courses are ready
   useEffect(() => {
     if (!map || !courses || courses.length === 0 || isLoading || !isInitialized) {
       return;
     }
 
-    console.log("[MapboxWithMarkers] Initializing markers for", courses.length, "courses");
+    console.log("[MapboxWithMarkers] Initializing clusters for", courses.length, "courses");
+    setupClusterLayers(map, courses);
     
-    // Always add markers, but only fit bounds if no focus course is specified
-    const shouldFitBounds = !focusCourseId;
-    addMarkersToMap(map, courses, shouldFitBounds);
-    
-  }, [map, courses, isLoading, isInitialized, addMarkersToMap, focusCourseId]);
+  }, [map, courses, isLoading, isInitialized, setupClusterLayers]);
 
   // Handle course focus - separate effect with simpler logic
   useEffect(() => {
@@ -145,6 +140,12 @@ export const useMapboxWithMarkers = ({
       }
     };
   }, []);
+
+  const cleanup = useCallback(() => {
+    if (map) {
+      cleanupClusters(map);
+    }
+  }, [map, cleanupClusters]);
 
   return {
     map,
