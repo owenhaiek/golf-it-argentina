@@ -95,14 +95,14 @@ export const MapActionMenu = () => {
                 >
                   <button
                     onClick={() => handleAction(action.route)}
-                    className="flex items-center gap-3 bg-background/95 backdrop-blur-sm border shadow-lg rounded-xl p-3 pr-4 hover:bg-muted/50 active:scale-[0.98] transition-all w-auto"
+                    className="flex items-center gap-4 bg-background/95 backdrop-blur-sm border shadow-lg rounded-2xl p-4 hover:bg-muted/50 active:scale-[0.98] transition-all min-w-[280px]"
                   >
-                    <div className={`w-10 h-10 ${action.color} rounded-xl flex items-center justify-center flex-shrink-0`}>
-                      <action.icon className="w-5 h-5 text-white" />
+                    <div className={`w-12 h-12 ${action.color} rounded-xl flex items-center justify-center flex-shrink-0`}>
+                      <action.icon className="w-6 h-6 text-white" />
                     </div>
-                    <div className="text-left">
-                      <p className="font-medium text-sm">{action.label}</p>
-                      <p className="text-xs text-muted-foreground">{action.description}</p>
+                    <div className="text-left flex-1">
+                      <p className="font-semibold text-base">{action.label}</p>
+                      <p className="text-sm text-muted-foreground">{action.description}</p>
                     </div>
                   </button>
                 </motion.div>
