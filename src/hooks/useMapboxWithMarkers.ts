@@ -27,7 +27,7 @@ interface UseMapboxWithMarkersOptions {
   courses: GolfCourse[];
   onCourseSelect: (course: GolfCourse) => void;
   focusCourseId?: string | null;
-  mapStyle?: 'satellite' | 'street';
+  mapStyle?: 'satellite' | 'street' | 'dark';
 }
 
 export const useMapboxWithMarkers = ({
@@ -38,7 +38,7 @@ export const useMapboxWithMarkers = ({
   courses,
   onCourseSelect,
   focusCourseId,
-  mapStyle = 'satellite'
+  mapStyle = 'dark'
 }: UseMapboxWithMarkersOptions) => {
   const [isInitialized, setIsInitialized] = useState(false);
   const hasFocusedRef = useRef<string | null>(null);

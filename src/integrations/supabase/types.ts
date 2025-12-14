@@ -703,14 +703,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      accept_friend_request: {
-        Args: { request_id: string }
-        Returns: boolean
-      }
-      approve_course_manager: {
-        Args: { pending_id: string }
-        Returns: boolean
-      }
+      accept_friend_request: { Args: { request_id: string }; Returns: boolean }
+      approve_course_manager: { Args: { pending_id: string }; Returns: boolean }
       authenticate_course_manager: {
         Args: { manager_email: string; manager_password: string }
         Returns: {
@@ -721,10 +715,7 @@ export type Database = {
           name: string
         }[]
       }
-      calculate_user_handicap: {
-        Args: { user_uuid: string }
-        Returns: number
-      }
+      calculate_user_handicap: { Args: { user_uuid: string }; Returns: number }
       get_course_manager_profile: {
         Args: { manager_email: string }
         Returns: {
@@ -739,18 +730,9 @@ export type Database = {
           updated_at: string
         }[]
       }
-      reject_course_manager: {
-        Args: { pending_id: string }
-        Returns: boolean
-      }
-      reject_friend_request: {
-        Args: { request_id: string }
-        Returns: boolean
-      }
-      remove_friendship: {
-        Args: { friend_user_id: string }
-        Returns: boolean
-      }
+      reject_course_manager: { Args: { pending_id: string }; Returns: boolean }
+      reject_friend_request: { Args: { request_id: string }; Returns: boolean }
+      remove_friendship: { Args: { friend_user_id: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
