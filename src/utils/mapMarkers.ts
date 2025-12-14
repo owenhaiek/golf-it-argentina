@@ -116,17 +116,17 @@ export const createMarkerElement = (course: GolfCourse, onCourseSelect: (course:
   const uniqueId = course.id.slice(0, 8);
   
   el.innerHTML = `
-    <div style="position: relative; width: 40px; height: 48px;">
+    <div style="position: relative; width: 40px; height: 48px; display: flex; align-items: flex-end; justify-content: center;">
       <!-- Outer glow ring -->
       <div class="marker-glow" style="
         position: absolute;
-        bottom: 2px;
+        bottom: 0;
         left: 50%;
-        width: 24px;
-        height: 24px;
+        width: 20px;
+        height: 10px;
         border-radius: 50%;
-        background: radial-gradient(circle, rgba(16, 185, 129, 0.6) 0%, transparent 70%);
-        transform: translate(-50%, -50%);
+        background: radial-gradient(ellipse, rgba(16, 185, 129, 0.6) 0%, transparent 70%);
+        transform: translateX(-50%);
         opacity: 0.5;
         pointer-events: none;
       "></div>
@@ -134,13 +134,13 @@ export const createMarkerElement = (course: GolfCourse, onCourseSelect: (course:
       <!-- Expanding ring animation -->
       <div style="
         position: absolute;
-        bottom: 2px;
+        bottom: 0;
         left: 50%;
         width: 16px;
-        height: 16px;
+        height: 8px;
         border-radius: 50%;
         border: 2px solid rgba(16, 185, 129, 0.5);
-        transform: translate(-50%, -50%);
+        transform: translateX(-50%);
         animation: ring-expand 2.5s ease-out infinite;
         pointer-events: none;
       "></div>
