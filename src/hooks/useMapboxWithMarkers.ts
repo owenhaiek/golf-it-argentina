@@ -1,5 +1,4 @@
-
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useSimpleMapbox } from "@/hooks/useSimpleMapbox";
 import { useMapMarkers } from "@/hooks/useMapMarkers";
 
@@ -43,8 +42,23 @@ export const useMapboxWithMarkers = ({
   const [isInitialized, setIsInitialized] = useState(false);
   const hasFocusedRef = useRef<string | null>(null);
   const initTimeoutRef = useRef<NodeJS.Timeout>();
+  const coursesRef = useRef<GolfCourse[]>(courses);
   
-  const { addMarkersToMap, focusOnCourse, cleanup } = useMapMarkers(onCourseSelect);
+  const { addMarkersToMap, focusOnCourse, cleanup, clearMarkers } = useMapMarkers(onCourseSelect);
+
+  // Keep courses ref updated
+  useEffect(() => {
+    coursesRef.current = courses;
+  }, [courses]);
+
+  // Callback to re-add markers after style load
+  const reAddMarkers = useCallback(() => {
+    if (coursesRef.current && coursesRef.current.length > 0) {
+      console.log("[MapboxWithMarkers] Re-adding markers after style change");
+      // Don't fit bounds on style change, just re-add markers
+      addMarkersToMap(coursesRef.current[0] as any, coursesRef.current, false);
+    }
+  }, [addMarkersToMap]);
 
   const { map, isLoading, error } = useSimpleMapbox({
     containerRef,
@@ -54,6 +68,16 @@ export const useMapboxWithMarkers = ({
     mapStyle,
     onMapReady: (mapInstance) => {
       console.log("[MapboxWithMarkers] Map ready");
+      
+      // Listen for style changes to re-add markers
+      mapInstance.on('style.load', () => {
+        console.log("[MapboxWithMarkers] Style loaded, re-adding markers");
+        setTimeout(() => {
+          if (coursesRef.current && coursesRef.current.length > 0) {
+            addMarkersToMap(mapInstance, coursesRef.current, false);
+          }
+        }, 100);
+      });
       
       // Mark as initialized after a short delay to ensure map is fully ready
       if (initTimeoutRef.current) {
