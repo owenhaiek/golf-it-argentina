@@ -41,8 +41,8 @@ export const MapActionMenu = () => {
 
   return (
     <>
-      {/* Main action button */}
-      <div className="absolute bottom-6 right-4 z-10">
+      {/* Main action button - centered bottom, above nav */}
+      <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-10">
         <motion.div
           animate={{ rotate: isOpen ? 45 : 0 }}
           transition={{ duration: 0.2 }}
@@ -74,8 +74,8 @@ export const MapActionMenu = () => {
               onClick={() => setIsOpen(false)}
             />
             
-            {/* Action buttons */}
-            <div className="absolute bottom-24 right-4 z-10 flex flex-col gap-3">
+            {/* Action buttons - centered above the main button */}
+            <div className="absolute bottom-44 left-1/2 -translate-x-1/2 z-10 flex flex-col gap-3 items-center">
               {actions.map((action, index) => (
                 <motion.div
                   key={action.route}
