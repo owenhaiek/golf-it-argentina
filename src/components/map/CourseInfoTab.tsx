@@ -44,125 +44,133 @@ export const CourseInfoTab = ({ course, isOpen, onClose }: CourseInfoTabProps) =
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Backdrop */}
+          {/* Backdrop - tap to close */}
           <motion.div
-            className="fixed inset-0 bg-black/20 z-[200]"
+            className="fixed inset-0 z-[200]"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
           />
           
-          {/* Slide-down tab */}
+          {/* Slide-up bottom sheet */}
           <motion.div
-            className="fixed top-0 left-0 right-0 z-[250] bg-background border-b border-border shadow-lg max-w-md mx-auto"
-            initial={{ y: "-100%" }}
+            className="fixed bottom-0 left-0 right-0 z-[250] bg-background border-t border-border shadow-2xl max-w-lg mx-auto"
+            initial={{ y: "100%" }}
             animate={{ y: 0 }}
-            exit={{ y: "-100%" }}
+            exit={{ y: "100%" }}
             transition={{ 
               type: "spring", 
-              damping: 25, 
-              stiffness: 500,
-              duration: 0.3 
+              damping: 30, 
+              stiffness: 400,
             }}
             style={{ 
-              paddingTop: 'env(safe-area-inset-top, 20px)',
-              borderRadius: '0 0 16px 16px'
+              paddingBottom: 'env(safe-area-inset-bottom, 16px)',
+              borderRadius: '20px 20px 0 0'
             }}
           >
-            {/* Header with close button */}
-            <div className="flex justify-end p-3">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onClose}
-                className="rounded-full h-8 w-8 p-0 hover:bg-muted"
-              >
-                <X className="h-4 w-4" />
-              </Button>
+            {/* Drag handle */}
+            <div className="flex justify-center pt-3 pb-2">
+              <div className="w-10 h-1 bg-muted-foreground/30 rounded-full" />
             </div>
 
-            {/* Course image */}
-            <div className="relative h-48 mx-4 mb-4 rounded-lg overflow-hidden">
-              <img 
-                src={course.image_url || defaultImageUrl}
-                alt={course.name}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  e.currentTarget.src = defaultImageUrl;
-                }}
-              />
-              <div className="absolute top-3 right-3">
-                <Badge variant="secondary" className="text-xs bg-background/90 border border-border">
-                  <Flag className="w-3 h-3 mr-1" />
-                  {course.holes} holes
-                  {course.par && ` • Par ${course.par}`}
-                </Badge>
-              </div>
-            </div>
-
-            {/* Course info */}
-            <div className="px-4 pb-6 space-y-4">
-              <div>
-                <h2 className="text-xl font-bold text-foreground leading-tight">
-                  {course.name}
-                </h2>
+            {/* Header row with image, info, and close */}
+            <div className="px-4 pb-3">
+              <div className="flex gap-3">
+                {/* Course thumbnail */}
+                <div className="relative w-20 h-20 flex-shrink-0 rounded-xl overflow-hidden">
+                  <img 
+                    src={course.image_url || defaultImageUrl}
+                    alt={course.name}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.src = defaultImageUrl;
+                    }}
+                  />
+                </div>
                 
-                {(course.address || course.city) && (
-                  <div className="flex items-start gap-2 text-sm text-muted-foreground mt-2">
-                    <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                    <span className="line-clamp-2">
-                      {[course.address, course.city, course.state].filter(Boolean).join(', ')}
-                    </span>
+                {/* Course info */}
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-base font-bold text-foreground leading-tight line-clamp-2">
+                    {course.name}
+                  </h2>
+                  
+                  <div className="flex items-center gap-2 mt-1">
+                    <Badge variant="secondary" className="text-xs px-2 py-0.5">
+                      <Flag className="w-3 h-3 mr-1" />
+                      {course.holes}H{course.par && ` • P${course.par}`}
+                    </Badge>
                   </div>
-                )}
+                  
+                  {(course.address || course.city) && (
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1.5">
+                      <MapPin className="w-3 h-3 flex-shrink-0" />
+                      <span className="line-clamp-1">
+                        {[course.city, course.state].filter(Boolean).join(', ')}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Close button */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={onClose}
+                  className="rounded-full h-8 w-8 flex-shrink-0 hover:bg-muted"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
               </div>
+            </div>
 
-              {/* View Course button */}
-              <Button 
-                className="w-full bg-primary hover:bg-primary/90"
-                onClick={handleViewCourse}
-              >
-                <Eye className="w-4 w-4 mr-2" />
-                View Course
-              </Button>
-
-              {/* Action buttons */}
+            {/* Action buttons row - compact icons */}
+            <div className="px-4 pb-4">
               <div className="flex gap-2">
+                {/* View Course - primary action */}
+                <Button 
+                  className="flex-1 h-10 bg-primary hover:bg-primary/90"
+                  onClick={handleViewCourse}
+                >
+                  <Eye className="w-4 h-4 mr-2" />
+                  Ver Campo
+                </Button>
+
+                {/* Secondary actions - icon only */}
+                <Button 
+                  variant="outline" 
+                  size="icon"
+                  className="h-10 w-10"
+                  onClick={handleDirections}
+                  title="Direcciones"
+                >
+                  <Navigation className="w-4 h-4" />
+                </Button>
+                
                 {course.phone && (
                   <Button 
                     variant="outline" 
-                    size="sm" 
-                    className="flex-1"
+                    size="icon"
+                    className="h-10 w-10"
                     onClick={() => window.open(`tel:${course.phone}`, '_blank')}
+                    title="Llamar"
                   >
-                    <Phone className="w-4 h-4 mr-1" />
-                    Call
+                    <Phone className="w-4 h-4" />
                   </Button>
                 )}
                 
                 {course.website && (
                   <Button 
                     variant="outline" 
-                    size="sm" 
-                    className="flex-1"
+                    size="icon"
+                    className="h-10 w-10"
                     onClick={() => window.open(course.website, '_blank')}
+                    title="Sitio web"
                   >
-                    <Globe className="w-4 h-4 mr-1" />
-                    Website
+                    <Globe className="w-4 h-4" />
                   </Button>
                 )}
               </div>
-
-              {/* Directions button */}
-              <Button 
-                variant="outline"
-                className="w-full"
-                onClick={handleDirections}
-              >
-                <Navigation className="w-4 w-4 mr-2" />
-                Get Directions
-              </Button>
             </div>
           </motion.div>
         </>

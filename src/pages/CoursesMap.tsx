@@ -8,6 +8,7 @@ import { MapContainer } from "@/components/map/MapContainer";
 import { MapErrorState } from "@/components/map/MapErrorState";
 import { MapLoadingState } from "@/components/map/MapLoadingState";
 import { MapEmptyState } from "@/components/map/MapEmptyState";
+import { MapSearchOverlay } from "@/components/map/MapSearchOverlay";
 
 interface GolfCourse {
   id: string;
@@ -32,18 +33,26 @@ const CoursesMap = () => {
   const mapRef = React.useRef<any>(null);
 
   // Handle course selection - center map on course
-  const handleCourseSelect = (course: GolfCourse) => {
+  const handleCourseSelect = React.useCallback((course: GolfCourse) => {
     setSelectedCourse(course);
     
-    // Center map on selected course
-    if (mapRef.current && course.latitude && course.longitude) {
-      mapRef.current.flyTo({
-        center: [course.longitude, course.latitude],
-        zoom: 15,
-        duration: 1200
-      });
-    }
-  };
+    // Center map on selected course with a slight delay to ensure map is ready
+    setTimeout(() => {
+      if (mapRef.current && course.latitude && course.longitude) {
+        mapRef.current.flyTo({
+          center: [Number(course.longitude), Number(course.latitude)],
+          zoom: 15,
+          duration: 1200,
+          essential: true
+        });
+      }
+    }, 100);
+  }, []);
+
+  // Handle search result selection
+  const handleSearchSelect = React.useCallback((course: GolfCourse) => {
+    handleCourseSelect(course);
+  }, [handleCourseSelect]);
 
   // Fetch courses data
   const { data: courses, isLoading: coursesLoading, error: coursesError } = useQuery({
@@ -68,10 +77,10 @@ const CoursesMap = () => {
       const courseToFocus = courses.find(course => course.id === focusCourseId);
       if (courseToFocus) {
         console.log("[CoursesMap] Auto-selecting course from URL:", courseToFocus.name);
-        setSelectedCourse(courseToFocus);
+        handleCourseSelect(courseToFocus);
       }
     }
-  }, [focusCourseId, courses]);
+  }, [focusCourseId, courses, handleCourseSelect]);
 
   const handleRetry = () => {
     window.location.reload();
@@ -111,6 +120,12 @@ const CoursesMap = () => {
         {/* Empty state */}
         {courses && courses.length === 0 && <MapEmptyState />}
       </div>
+      
+      {/* Search overlay */}
+      <MapSearchOverlay 
+        courses={courses || []}
+        onSelectCourse={handleSearchSelect}
+      />
       
       {/* Course info tab */}
       {selectedCourse && (
