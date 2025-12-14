@@ -23,11 +23,12 @@ interface MapContainerProps {
   courses: GolfCourse[];
   onCourseSelect: (course: GolfCourse) => void;
   focusCourseId?: string | null;
+  onMapReady?: (map: any) => void;
 }
 
 const MAPBOX_TOKEN = 'pk.eyJ1Ijoib3dlbmhhaWVrIiwiYSI6ImNtYW8zbWZpajAyeGsyaXB3Z2NrOG9yeWsifQ.EutakvlH6R5Hala3cVTEYw';
 
-export const MapContainer = ({ courses, onCourseSelect, focusCourseId }: MapContainerProps) => {
+export const MapContainer = ({ courses, onCourseSelect, focusCourseId, onMapReady }: MapContainerProps) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const [mapStyle, setMapStyle] = useState<'satellite' | 'street' | 'dark'>('dark');
 
@@ -41,6 +42,13 @@ export const MapContainer = ({ courses, onCourseSelect, focusCourseId }: MapCont
     focusCourseId,
     mapStyle
   });
+
+  // Notify parent when map is ready
+  useEffect(() => {
+    if (map && onMapReady) {
+      onMapReady(map);
+    }
+  }, [map, onMapReady]);
 
   // Cleanup on unmount
   useEffect(() => {
