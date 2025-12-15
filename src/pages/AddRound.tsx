@@ -5,6 +5,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, Flag } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 import AddRoundStep1 from "@/components/rounds/AddRoundStep1";
 import AddRoundStep2 from "@/components/rounds/AddRoundStep2";
@@ -184,67 +187,128 @@ const AddRound = () => {
     });
   };
 
+  const getStepDescription = () => {
+    switch (currentStep) {
+      case 1: return "Selecciona el campo";
+      case 2: return "Configura tu ronda";
+      case 3: return "Ingresa tus scores";
+      default: return "";
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
-      <div className="flex-shrink-0 p-4 border-b bg-background/95 backdrop-blur-sm sticky top-0 z-10">
-        <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold">
-            {t("addRound", "title")} - {t("addRound", "step")} {currentStep}/3
-          </h1>
-        </div>
-        
-        {/* Progress bar */}
-        <div className="flex gap-2 mt-3">
-          {[1, 2, 3].map((step) => (
-            <div
-              key={step}
-              className={`h-1 flex-1 rounded-full transition-colors ${
-                step <= currentStep ? 'bg-primary' : 'bg-muted'
-              }`}
-            />
-          ))}
+    <div className="h-screen flex flex-col bg-background">
+      {/* Modern Header - matching CreateTournament/CreateMatch style */}
+      <div className="flex-shrink-0 p-4 bg-background/80 backdrop-blur-lg border-b border-border/50 sticky top-0 z-10">
+        <div className="flex items-center justify-between max-w-2xl mx-auto">
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => currentStep > 1 ? setCurrentStep(currentStep - 1) : navigate(-1)}
+              className="h-10 w-10 p-0 rounded-full"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div className="flex items-center gap-2">
+              <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
+                <Flag className="h-5 w-5 text-primary-foreground" />
+              </div>
+              <div>
+                <h1 className="text-lg font-bold">{t("addRound", "title") || "Agregar Ronda"}</h1>
+                <p className="text-xs text-muted-foreground">
+                  {getStepDescription()}
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          {/* Step indicator */}
+          <div className="flex items-center gap-1.5">
+            {[1, 2, 3].map((s) => (
+              <motion.div
+                key={s}
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  s === currentStep ? 'w-6 bg-primary' : s < currentStep ? 'w-2 bg-primary' : 'w-2 bg-muted'
+                }`}
+                layoutId={`round-step-${s}`}
+              />
+            ))}
+          </div>
         </div>
       </div>
       
       {/* Content */}
-      <div className="flex-1 p-4 pb-24 overflow-y-auto">
-        {currentStep === 1 && (
-          <AddRoundStep1
-            courses={courses}
-            isLoadingCourses={isLoadingCourses}
-            selectedCourse={selectedCourse}
-            onSelectCourse={handleSelectCourse}
-            onNext={() => setCurrentStep(2)}
-          />
-        )}
-        
-        {currentStep === 2 && (
-          <AddRoundStep2
-            holesPlayed={holesPlayed}
-            onHolesPlayedChange={handleHolesPlayedChange}
-            selectedSide={selectedSide}
-            onSideChange={handleSideChange}
-            selectedCourseData={selectedCourseData}
-            onNext={() => setCurrentStep(3)}
-            onBack={() => setCurrentStep(1)}
-          />
-        )}
-        
-        {currentStep === 3 && selectedCourseData && (
-          <AddRoundStep3
-            selectedCourseData={{
-              ...selectedCourseData,
-              holes: parseInt(holesPlayed)
-            }}
-            scores={scores}
-            onScoreChange={handleScoreChange}
-            selectedSide={holesPlayed === "9" && selectedCourseData.holes >= 18 ? selectedSide : undefined}
-            onSubmit={handleSubmit}
-            onBack={() => setCurrentStep(2)}
-            isSubmitting={addRoundMutation.isPending}
-          />
-        )}
+      <div className="flex-1 overflow-hidden">
+        <AnimatePresence mode="wait">
+          {currentStep === 1 && (
+            <motion.div
+              key="step1"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
+              className="h-full flex flex-col p-4"
+            >
+              <AddRoundStep1
+                courses={courses}
+                isLoadingCourses={isLoadingCourses}
+                selectedCourse={selectedCourse}
+                onSelectCourse={handleSelectCourse}
+                onNext={() => setCurrentStep(2)}
+              />
+            </motion.div>
+          )}
+          
+          {currentStep === 2 && (
+            <motion.div
+              key="step2"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
+              className="h-full overflow-auto"
+            >
+              <div className="p-4 pb-32 max-w-2xl mx-auto">
+                <AddRoundStep2
+                  holesPlayed={holesPlayed}
+                  onHolesPlayedChange={handleHolesPlayedChange}
+                  selectedSide={selectedSide}
+                  onSideChange={handleSideChange}
+                  selectedCourseData={selectedCourseData}
+                  onNext={() => setCurrentStep(3)}
+                  onBack={() => setCurrentStep(1)}
+                />
+              </div>
+            </motion.div>
+          )}
+          
+          {currentStep === 3 && selectedCourseData && (
+            <motion.div
+              key="step3"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
+              className="h-full overflow-auto"
+            >
+              <div className="p-4 pb-32 max-w-2xl mx-auto">
+                <AddRoundStep3
+                  selectedCourseData={{
+                    ...selectedCourseData,
+                    holes: parseInt(holesPlayed)
+                  }}
+                  scores={scores}
+                  onScoreChange={handleScoreChange}
+                  selectedSide={holesPlayed === "9" && selectedCourseData.holes >= 18 ? selectedSide : undefined}
+                  onSubmit={handleSubmit}
+                  onBack={() => setCurrentStep(2)}
+                  isSubmitting={addRoundMutation.isPending}
+                />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

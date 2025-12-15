@@ -2,10 +2,9 @@ import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import HolesPlayedSelector from "./HolesPlayedSelector";
 import FrontBackSelector from "./FrontBackSelector";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MapPin, Flag, Map, ChevronRight } from "lucide-react";
+import { MapPin, Flag, Map, ChevronRight, Check } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface AddRoundStep2Props {
   holesPlayed: "9" | "18" | "27";
@@ -33,80 +32,82 @@ const AddRoundStep2 = ({
 
   return (
     <div className="space-y-6">
-      <div className="text-center">
-        <h2 className="text-2xl font-bold text-foreground mb-2">
-          {t("addRound", "roundDetails") || "Round Details"}
-        </h2>
-        <p className="text-muted-foreground">
-          {t("addRound", "howManyHoles") || "How many holes did you play?"}
-        </p>
-      </div>
-
-      {/* Selected Course Display */}
+      {/* Selected Course Preview - Modern card style */}
       {selectedCourseData && (
-        <Card className="border-2 border-primary/20 bg-primary/5">
-          <CardContent className="p-0">
-            <div className="flex flex-col sm:flex-row">
-              {/* Course Image */}
-              {selectedCourseData.image_url && (
-                <div className="w-full sm:w-32 h-32 sm:h-24 flex-shrink-0">
-                  <img 
-                    src={selectedCourseData.image_url} 
-                    alt={selectedCourseData.name}
-                    className="w-full h-full object-cover rounded-t-lg sm:rounded-l-lg sm:rounded-t-none"
-                  />
-                </div>
-              )}
-              
-              {/* Course Information */}
-              <div className="flex-1 p-4">
-                <div className="flex items-start justify-between mb-2">
-                  <h3 className="font-bold text-foreground text-lg leading-tight">
-                    {selectedCourseData.name}
-                  </h3>
-                  <Badge variant="secondary" className="ml-2 text-xs">
-                    {t("addRound", "selected") || "Selected"}
-                  </Badge>
-                </div>
-                
-                {(selectedCourseData.city || selectedCourseData.state) && (
-                  <div className="flex items-center gap-2 mb-3 text-sm text-muted-foreground">
-                    <MapPin className="h-4 w-4 flex-shrink-0" />
-                    <span className="truncate">
-                      {[selectedCourseData.city, selectedCourseData.state].filter(Boolean).join(', ')}
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative overflow-hidden rounded-2xl"
+        >
+          <div className="relative h-24">
+            <img
+              src={selectedCourseData.image_url || '/placeholder.svg'}
+              alt={selectedCourseData.name}
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-transparent" />
+            
+            <div className="absolute top-3 right-3 h-7 w-7 rounded-full bg-primary flex items-center justify-center">
+              <Check className="h-4 w-4 text-primary-foreground" />
+            </div>
+            
+            <div className="absolute inset-0 flex items-center p-4">
+              <div>
+                <p className="text-primary text-xs font-medium">Campo seleccionado</p>
+                <h3 className="font-semibold text-white line-clamp-1">{selectedCourseData.name}</h3>
+                <div className="flex items-center gap-2 mt-1">
+                  {(selectedCourseData.city || selectedCourseData.state) && (
+                    <span className="text-white/70 text-xs flex items-center gap-1">
+                      <MapPin className="h-3 w-3" />
+                      <span className="line-clamp-1">{[selectedCourseData.city, selectedCourseData.state].filter(Boolean).join(', ')}</span>
                     </span>
-                  </div>
-                )}
-                
-                {/* Course Stats */}
-                <div className="flex items-center gap-3">
-                  <Badge variant="outline" className="text-sm font-medium">
-                    <Flag className="h-3 w-3 mr-1" />
-                    {selectedCourseData.holes} {t("addRound", "holes")}
-                  </Badge>
-                  {selectedCourseData.par && (
-                    <Badge variant="outline" className="text-sm font-medium">
-                      Par {selectedCourseData.par}
-                    </Badge>
                   )}
+                  <span className="text-white/70 text-xs flex items-center gap-1">
+                    <Flag className="h-3 w-3" />
+                    {selectedCourseData.holes}h
+                  </span>
                 </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </motion.div>
       )}
       
-      <HolesPlayedSelector
-        holesPlayed={holesPlayed}
-        onHolesPlayedChange={onHolesPlayedChange}
-        maxHoles={selectedCourseData?.holes}
-      />
+      {/* Section title */}
+      <div className="text-center">
+        <h2 className="text-xl font-bold text-foreground">
+          Configura tu ronda
+        </h2>
+        <p className="text-sm text-muted-foreground mt-1">
+          ¿Cuántos hoyos vas a jugar?
+        </p>
+      </div>
 
-      {shouldShowFrontBackSelector && (
-        <FrontBackSelector
-          selectedSide={selectedSide}
-          onSideChange={onSideChange}
+      {/* Holes selector */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+      >
+        <HolesPlayedSelector
+          holesPlayed={holesPlayed}
+          onHolesPlayedChange={onHolesPlayedChange}
+          maxHoles={selectedCourseData?.holes}
         />
+      </motion.div>
+
+      {/* Front/Back selector */}
+      {shouldShowFrontBackSelector && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <FrontBackSelector
+            selectedSide={selectedSide}
+            onSideChange={onSideChange}
+          />
+        </motion.div>
       )}
       
       {/* Fixed bottom buttons - Two column layout */}
@@ -124,7 +125,7 @@ const AddRoundStep2 = ({
             onClick={onNext}
             className="flex-1 h-14 rounded-2xl bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-semibold text-base shadow-lg shadow-primary/25"
           >
-            {t("addRound", "addScores") || "Añadir Scores"}
+            Ingresar Scores
             <ChevronRight className="h-5 w-5 ml-2" />
           </Button>
         </div>

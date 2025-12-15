@@ -1,5 +1,5 @@
-
 import { Flag } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface HoleVisualizationProps {
   currentHoleIndex: number;
@@ -34,9 +34,9 @@ const HoleVisualization = ({
     
     const diff = score - par;
     
-    if (diff < 0) return 'text-green-500 dark:text-green-400';
-    if (diff === 0) return 'text-blue-500 dark:text-blue-400';
-    return 'text-red-500 dark:text-red-400';
+    if (diff < 0) return 'text-green-500';
+    if (diff === 0) return 'text-blue-500';
+    return 'text-red-500';
   };
 
   const getScoreTerm = (score: number, par: number): string => {
@@ -48,7 +48,7 @@ const HoleVisualization = ({
     if (diff === -1) return 'Birdie';
     if (diff === 0) return 'Par';
     if (diff === 1) return 'Bogey';
-    if (diff === 2) return 'Double Bogey';
+    if (diff === 2) return 'Double';
     if (diff > 2) return 'Triple+';
     return '';
   };
@@ -58,58 +58,66 @@ const HoleVisualization = ({
   const scoreTerm = getScoreTerm(currentScore, currentPar);
 
   return (
-    <div className="relative w-full h-64 sm:h-72 my-4 rounded-xl overflow-hidden bg-white border border-gray-200 dark:bg-gray-50 dark:border-gray-300">
+    <motion.div 
+      key={currentHoleIndex}
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.2 }}
+      className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden bg-gradient-to-b from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/20"
+    >
       {/* Hole image */}
-      <div className="absolute inset-0 flex items-center justify-center p-6">
+      <div className="absolute inset-0 flex items-center justify-center p-4">
         <img 
           src={holeImage}
           alt={`Par ${currentPar} hole layout`}
-          className="w-full h-full object-contain transition-all duration-700 ease-in-out transform hover:scale-105"
+          className="w-full h-full object-contain"
           style={{
-            filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.15))',
-            animation: 'fade-in 0.5s ease-out'
+            filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.1))',
           }}
         />
       </div>
       
-      {/* Hole information overlay */}
-      <div className="absolute top-3 left-3 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm px-3 py-2 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600">
-        <div className="flex items-center gap-2">
-          <Flag className="h-4 w-4 text-primary" />
-          <span className="font-semibold text-sm">
-            Hole {currentHoleIndex + 1 + holeOffset}
-            {selectedSide && ` (${selectedSide === 'front' ? 'Front' : 'Back'} 9)`}
-          </span>
-        </div>
-        <div className="text-xs text-muted-foreground mt-1">
-          Par {currentPar}
+      {/* Hole info badge - top left */}
+      <div className="absolute top-3 left-3 flex items-center gap-2">
+        <div className="bg-background/90 backdrop-blur-sm px-3 py-2 rounded-xl shadow-lg border border-border/50">
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+              <Flag className="h-4 w-4 text-primary" />
+            </div>
+            <div>
+              <p className="font-bold text-sm leading-tight">
+                Hoyo {currentHoleIndex + 1 + holeOffset}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Par {currentPar}
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Score status overlay */}
+      {/* Score badge - top right */}
       {currentScore > 0 && (
-        <div className={`absolute top-3 right-3 px-3 py-2 rounded-lg shadow-lg backdrop-blur-sm border ${
-          scoreColor.includes('green') 
-            ? 'bg-green-100/95 dark:bg-green-900/95 border-green-200 dark:border-green-700' 
-            : scoreColor.includes('blue')
-              ? 'bg-blue-100/95 dark:bg-blue-900/95 border-blue-200 dark:border-blue-700'
-              : 'bg-red-100/95 dark:bg-red-900/95 border-red-200 dark:border-red-700'
-        }`}>
-          <div className={`text-sm font-semibold ${scoreColor}`}>
+        <motion.div 
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          className={`absolute top-3 right-3 px-3 py-2 rounded-xl shadow-lg backdrop-blur-sm border ${
+            scoreColor.includes('green') 
+              ? 'bg-green-500/20 border-green-500/30' 
+              : scoreColor.includes('blue')
+                ? 'bg-blue-500/20 border-blue-500/30'
+                : 'bg-red-500/20 border-red-500/30'
+          }`}
+        >
+          <p className={`text-sm font-bold ${scoreColor}`}>
             {scoreTerm}
-          </div>
-          <div className={`text-xs ${scoreColor}`}>
+          </p>
+          <p className={`text-xs ${scoreColor}`}>
             {currentScore - currentPar > 0 ? `+${currentScore - currentPar}` : currentScore - currentPar}
-          </div>
-        </div>
+          </p>
+        </motion.div>
       )}
-
-      {/* Animated golf ball indicator */}
-      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
-        <div className="w-3 h-3 bg-white rounded-full shadow-lg animate-bounce border border-gray-300" 
-             style={{ animationDelay: '0.5s' }} />
-      </div>
-    </div>
+    </motion.div>
   );
 };
 
