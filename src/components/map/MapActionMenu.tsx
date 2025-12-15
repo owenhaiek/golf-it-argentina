@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, X, Target, Trophy, Swords } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface MapActionMenuProps {
   onOpenChange?: (isOpen: boolean) => void;
@@ -50,52 +51,67 @@ export const MapActionMenu = ({ onOpenChange }: MapActionMenuProps) => {
   return (
     <>
       {/* Backdrop */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 z-[5] bg-black/40"
-          onClick={() => setIsOpen(false)}
-        />
-      )}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-[5] bg-black/50 backdrop-blur-sm"
+            onClick={() => setIsOpen(false)}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Action items */}
-      {isOpen && (
-        <div 
-          className="absolute bottom-32 left-1/2 -translate-x-1/2 z-10 flex flex-col gap-3 items-center"
-          style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
-        >
-          {actions.map((action) => (
-            <button
-              key={action.route}
-              onClick={() => handleAction(action.route)}
-              className="flex items-center gap-4 bg-background/95 border shadow-xl rounded-2xl p-5 min-w-[300px]"
-            >
-              <div className={`w-14 h-14 ${action.color} rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg`}>
-                <action.icon className="w-7 h-7 text-white" />
-              </div>
-              <div className="text-left flex-1">
-                <p className="font-semibold text-lg">{action.label}</p>
-                <p className="text-sm text-muted-foreground">{action.description}</p>
-              </div>
-            </button>
-          ))}
-        </div>
-      )}
+      <AnimatePresence>
+        {isOpen && (
+          <div 
+            className="absolute bottom-28 right-4 z-10 flex flex-col gap-3 items-end"
+            style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+          >
+            {actions.map((action, index) => (
+              <motion.button
+                key={action.route}
+                initial={{ opacity: 0, x: 50, scale: 0.8 }}
+                animate={{ opacity: 1, x: 0, scale: 1 }}
+                exit={{ opacity: 0, x: 50, scale: 0.8 }}
+                transition={{ 
+                  duration: 0.25,
+                  delay: index * 0.05,
+                  ease: [0.23, 1, 0.32, 1]
+                }}
+                onClick={() => handleAction(action.route)}
+                className="flex items-center gap-3 bg-background/95 backdrop-blur-md border border-white/10 shadow-2xl rounded-2xl p-4 min-w-[260px] hover:scale-[1.02] active:scale-[0.98] transition-transform"
+              >
+                <div className={`w-12 h-12 ${action.color} rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg`}>
+                  <action.icon className="w-6 h-6 text-white" />
+                </div>
+                <div className="text-left flex-1">
+                  <p className="font-semibold text-foreground">{action.label}</p>
+                  <p className="text-xs text-muted-foreground">{action.description}</p>
+                </div>
+              </motion.button>
+            ))}
+          </div>
+        )}
+      </AnimatePresence>
 
-      {/* Main action button */}
+      {/* Main action button - bottom right */}
       <div 
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10" 
+        className="absolute bottom-6 right-4 z-10" 
         style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
       >
-        <button
+        <motion.button
           onClick={toggleMenu}
-          className="h-16 w-16 rounded-full bg-primary shadow-xl shadow-primary/40 flex items-center justify-center"
+          whileTap={{ scale: 0.9 }}
+          animate={{ rotate: isOpen ? 45 : 0 }}
+          transition={{ duration: 0.2, ease: "easeOut" }}
+          className="h-14 w-14 rounded-full bg-primary shadow-xl shadow-primary/40 flex items-center justify-center"
         >
-          {isOpen ? (
-            <X className="w-7 h-7 text-primary-foreground" />
-          ) : (
-            <Plus className="w-7 h-7 text-primary-foreground" />
-          )}
-        </button>
+          <Plus className="w-7 h-7 text-primary-foreground" />
+        </motion.button>
       </div>
     </>
   );
