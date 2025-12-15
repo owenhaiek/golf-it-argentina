@@ -49,81 +49,80 @@ export const MapActionMenu = ({ onOpenChange }: MapActionMenuProps) => {
 
   return (
     <>
-      {/* Main action button - centered bottom */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
-        <motion.div
-          animate={{ 
-            rotate: isOpen ? 45 : 0,
-            scale: isOpen ? 1.1 : 1
-          }}
-          transition={{ duration: 0.2, type: "spring", stiffness: 300 }}
-          whileTap={{ scale: 1.15 }}
-        >
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="h-16 w-16 rounded-full bg-primary hover:bg-primary/90 shadow-xl shadow-primary/40 active:shadow-primary/20 transition-shadow flex items-center justify-center"
-            style={{ aspectRatio: '1 / 1' }}
-          >
-            {isOpen ? (
-              <X className="w-7 h-7 text-primary-foreground" />
-            ) : (
-              <Plus className="w-7 h-7 text-primary-foreground" />
-            )}
-          </button>
-        </motion.div>
-      </div>
+      {/* Backdrop with blur - rendered first for proper z-index */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-[5] bg-black/40 backdrop-blur-sm"
+            onClick={() => setIsOpen(false)}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Action items - slide up from button */}
       <AnimatePresence>
         {isOpen && (
-          <>
-            {/* Backdrop with blur */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[5] bg-black/30 backdrop-blur-md"
-              onClick={() => setIsOpen(false)}
-            />
-            
-            {/* Action buttons - centered above the main button */}
-            <div className="absolute bottom-32 left-1/2 -translate-x-1/2 z-10 flex flex-col gap-3 items-center" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
-              {actions.map((action, index) => (
-                <motion.div
-                  key={action.route}
-                  initial={{ opacity: 0, y: 30, scale: 0.8 }}
-                  animate={{ 
-                    opacity: 1, 
-                    y: 0, 
-                    scale: 1,
-                    transition: { delay: index * 0.06, type: "spring", stiffness: 300, damping: 24 }
-                  }}
-                  exit={{ 
-                    opacity: 0, 
-                    y: 20, 
-                    scale: 0.9,
-                    transition: { delay: (actions.length - index) * 0.03 }
-                  }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <button
-                    onClick={() => handleAction(action.route)}
-                    className="flex items-center gap-4 bg-background/95 backdrop-blur-sm border shadow-xl rounded-2xl p-5 hover:bg-muted/50 active:bg-muted transition-all min-w-[300px]"
-                  >
-                    <div className={`w-14 h-14 ${action.color} rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg`}>
-                      <action.icon className="w-7 h-7 text-white" />
-                    </div>
-                    <div className="text-left flex-1">
-                      <p className="font-semibold text-lg">{action.label}</p>
-                      <p className="text-sm text-muted-foreground">{action.description}</p>
-                    </div>
-                  </button>
-                </motion.div>
-              ))}
-            </div>
-          </>
+          <div className="absolute bottom-32 left-1/2 -translate-x-1/2 z-10 flex flex-col gap-3 items-center" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+            {actions.map((action, index) => (
+              <motion.button
+                key={action.route}
+                initial={{ opacity: 0, y: 40 }}
+                animate={{ 
+                  opacity: 1, 
+                  y: 0,
+                  transition: { 
+                    delay: index * 0.05, 
+                    duration: 0.25,
+                    ease: [0.25, 0.46, 0.45, 0.94]
+                  }
+                }}
+                exit={{ 
+                  opacity: 0, 
+                  y: 20,
+                  transition: { 
+                    delay: (actions.length - 1 - index) * 0.03,
+                    duration: 0.15
+                  }
+                }}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => handleAction(action.route)}
+                className="flex items-center gap-4 bg-background/95 backdrop-blur-sm border shadow-xl rounded-2xl p-5 hover:bg-muted/50 active:bg-muted transition-colors min-w-[300px]"
+              >
+                <div className={`w-14 h-14 ${action.color} rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg`}>
+                  <action.icon className="w-7 h-7 text-white" />
+                </div>
+                <div className="text-left flex-1">
+                  <p className="font-semibold text-lg">{action.label}</p>
+                  <p className="text-sm text-muted-foreground">{action.description}</p>
+                </div>
+              </motion.button>
+            ))}
+          </div>
         )}
       </AnimatePresence>
+
+      {/* Main action button - centered bottom */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+        <motion.button
+          onClick={() => setIsOpen(!isOpen)}
+          animate={{ 
+            rotate: isOpen ? 45 : 0
+          }}
+          whileTap={{ scale: 1.1 }}
+          transition={{ duration: 0.2, ease: "easeOut" }}
+          className="h-16 w-16 rounded-full bg-primary hover:bg-primary/90 shadow-xl shadow-primary/40 active:shadow-primary/20 flex items-center justify-center"
+        >
+          {isOpen ? (
+            <X className="w-7 h-7 text-primary-foreground" />
+          ) : (
+            <Plus className="w-7 h-7 text-primary-foreground" />
+          )}
+        </motion.button>
+      </div>
     </>
   );
 };
