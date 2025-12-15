@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,7 +11,6 @@ import { UserSearch, Clock, X, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
-import { DarkModeToggle } from "@/components/ui/DarkModeToggle";
 import { FriendRequestButton } from "@/components/profile/FriendRequestButton";
 import { useFriendsData } from "@/hooks/useFriendsData";
 
@@ -138,11 +136,8 @@ const SearchUsers = () => {
   return (
     <div className="h-screen flex flex-col">
       {/* Header */}
-      <div className="flex-shrink-0 p-4 bg-background border-b border-border">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">{t("searchUsers", "findPlayers")}</h1>
-          <DarkModeToggle />
-        </div>
+      <div className="flex-shrink-0 px-4 py-3 bg-background/80 backdrop-blur-xl border-b border-white/5 sticky top-0 z-40 touch-none">
+        <h1 className="text-xl font-semibold text-foreground">{t("searchUsers", "findPlayers")}</h1>
       </div>
           
           {/* Search Input */}
