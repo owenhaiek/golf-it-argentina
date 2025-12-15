@@ -53,23 +53,27 @@ const Settings = () => {
               </div>
               <span className="font-medium text-white">{t("settings", "language")}</span>
             </div>
-            <div className="flex gap-2">
-              <Button 
-                variant={language === "en" ? "default" : "outline"} 
-                size="sm"
+            <div className="flex gap-3">
+              <button 
                 onClick={() => handleLanguageChange("en")}
-                className={`flex-1 rounded-xl h-11 ${language === "en" ? "" : "bg-zinc-800 border-zinc-700 text-zinc-300 hover:bg-zinc-700"}`}
+                className={`flex-1 h-14 rounded-xl flex items-center justify-center transition-all ${
+                  language === "en" 
+                    ? "bg-primary/20 ring-2 ring-primary" 
+                    : "bg-zinc-800 hover:bg-zinc-700"
+                }`}
               >
-                English
-              </Button>
-              <Button 
-                variant={language === "es" ? "default" : "outline"} 
-                size="sm"
+                <span className="text-3xl">🇺🇸</span>
+              </button>
+              <button 
                 onClick={() => handleLanguageChange("es")}
-                className={`flex-1 rounded-xl h-11 ${language === "es" ? "" : "bg-zinc-800 border-zinc-700 text-zinc-300 hover:bg-zinc-700"}`}
+                className={`flex-1 h-14 rounded-xl flex items-center justify-center transition-all ${
+                  language === "es" 
+                    ? "bg-primary/20 ring-2 ring-primary" 
+                    : "bg-zinc-800 hover:bg-zinc-700"
+                }`}
               >
-                Español
-              </Button>
+                <span className="text-3xl">🇪🇸</span>
+              </button>
             </div>
           </div>
         </div>
