@@ -17,48 +17,50 @@ const injectMarkerStyles = () => {
   style.id = 'golf-marker-styles-v6';
   style.textContent = `
     @keyframes marker-fade-in {
-      0% { opacity: 0; }
-      100% { opacity: 1; }
-    }
-    
-    @keyframes pulse-glow {
-      0%, 100% { box-shadow: 0 0 8px rgba(34, 197, 94, 0.6), 0 2px 8px rgba(0, 0, 0, 0.3); }
-      50% { box-shadow: 0 0 16px rgba(34, 197, 94, 0.9), 0 2px 12px rgba(0, 0, 0, 0.4); }
+      0% { opacity: 0; transform: scale(0.8); }
+      100% { opacity: 1; transform: scale(1); }
     }
     
     .golf-marker-v6 {
       pointer-events: auto !important;
       cursor: pointer;
-      width: 48px;
-      height: 48px;
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
-      background: linear-gradient(145deg, #22c55e 0%, #15803d 100%);
-      border: 3px solid white;
+      background: rgba(34, 197, 94, 0.75);
+      backdrop-filter: blur(8px);
+      border: 2px solid rgba(255, 255, 255, 0.6);
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 0 8px rgba(34, 197, 94, 0.6), 0 2px 8px rgba(0, 0, 0, 0.3);
-      animation: pulse-glow 3s ease-in-out infinite;
-      transition: width 0.2s ease, height 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .golf-marker-v6:hover {
+      background: rgba(34, 197, 94, 0.9);
+      transform: scale(1.1);
     }
     
     .golf-marker-v6.active {
-      width: 56px;
-      height: 56px;
-      box-shadow: 0 0 24px rgba(34, 197, 94, 1), 0 4px 16px rgba(0, 0, 0, 0.5);
-      animation: none;
+      width: 52px;
+      height: 52px;
+      background: rgba(34, 197, 94, 0.95);
+      border: 2px solid rgba(255, 255, 255, 0.9);
+      box-shadow: 0 0 20px rgba(34, 197, 94, 0.6), 0 6px 16px rgba(0, 0, 0, 0.2);
     }
     
     .golf-marker-v6 svg {
-      width: 22px;
-      height: 22px;
+      width: 18px;
+      height: 18px;
       color: white;
       flex-shrink: 0;
+      filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
     }
     
     .golf-marker-v6.active svg {
-      width: 26px;
-      height: 26px;
+      width: 24px;
+      height: 24px;
     }
   `;
   document.head.appendChild(style);

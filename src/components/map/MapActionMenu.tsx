@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, X, Target, Trophy, Swords } from "lucide-react";
-import { Button } from "@/components/ui/button";
+
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -59,17 +59,17 @@ export const MapActionMenu = ({ onOpenChange }: MapActionMenuProps) => {
           transition={{ duration: 0.2, type: "spring", stiffness: 300 }}
           whileTap={{ scale: 1.15 }}
         >
-          <Button
+          <button
             onClick={() => setIsOpen(!isOpen)}
-            size="icon"
-            className="h-16 w-16 rounded-full bg-primary hover:bg-primary/90 shadow-xl shadow-primary/40 active:shadow-primary/20 transition-shadow aspect-square"
+            className="h-16 w-16 rounded-full bg-primary hover:bg-primary/90 shadow-xl shadow-primary/40 active:shadow-primary/20 transition-shadow flex items-center justify-center"
+            style={{ aspectRatio: '1 / 1' }}
           >
             {isOpen ? (
               <X className="w-7 h-7 text-primary-foreground" />
             ) : (
               <Plus className="w-7 h-7 text-primary-foreground" />
             )}
-          </Button>
+          </button>
         </motion.div>
       </div>
 
