@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, X, Target, Trophy, Swords } from "lucide-react";
+import { Plus, Target, Trophy, Swords } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -41,74 +41,83 @@ export const MapActionMenu = ({ onOpenChange }: MapActionMenuProps) => {
     }
   ];
 
-  const handleAction = (route: string) => {
+  const handleAction = useCallback((route: string) => {
     setIsOpen(false);
-    setTimeout(() => navigate(route), 150);
-  };
+    requestAnimationFrame(() => {
+      setTimeout(() => navigate(route), 100);
+    });
+  }, [navigate]);
 
-  const toggleMenu = () => setIsOpen(!isOpen);
+  const toggleMenu = useCallback(() => setIsOpen(prev => !prev), []);
 
   return (
     <>
       {/* Backdrop */}
-      <AnimatePresence>
+      <AnimatePresence mode="sync">
         {isOpen && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-[5] bg-black/50 backdrop-blur-sm"
+            transition={{ duration: 0.15, ease: "easeOut" }}
+            className="fixed inset-0 z-[5] bg-black/40 backdrop-blur-[2px] will-change-[opacity]"
             onClick={() => setIsOpen(false)}
           />
         )}
       </AnimatePresence>
 
       {/* Action items */}
-      <AnimatePresence>
+      <AnimatePresence mode="sync">
         {isOpen && (
-          <div 
-            className="absolute bottom-28 right-4 z-10 flex flex-col gap-3 items-end"
+          <motion.div 
+            className="absolute bottom-28 right-4 z-10 flex flex-col gap-2.5 items-end will-change-transform"
             style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.1 }}
           >
             {actions.map((action, index) => (
               <motion.button
                 key={action.route}
-                initial={{ opacity: 0, x: 50, scale: 0.8 }}
-                animate={{ opacity: 1, x: 0, scale: 1 }}
-                exit={{ opacity: 0, x: 50, scale: 0.8 }}
+                initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 10, scale: 0.95 }}
                 transition={{ 
-                  duration: 0.25,
-                  delay: index * 0.05,
-                  ease: [0.23, 1, 0.32, 1]
+                  duration: 0.2,
+                  delay: index * 0.03,
+                  ease: [0.25, 0.46, 0.45, 0.94]
                 }}
                 onClick={() => handleAction(action.route)}
-                className="flex items-center gap-3 bg-background/95 backdrop-blur-md border border-white/10 shadow-2xl rounded-2xl p-4 min-w-[260px] hover:scale-[1.02] active:scale-[0.98] transition-transform"
+                className="flex items-center gap-3 bg-background/95 backdrop-blur-md shadow-2xl rounded-2xl p-3.5 min-w-[250px] active:scale-[0.97] transition-transform duration-100 will-change-transform"
               >
-                <div className={`w-12 h-12 ${action.color} rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg`}>
-                  <action.icon className="w-6 h-6 text-white" />
+                <div className={`w-11 h-11 ${action.color} rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg`}>
+                  <action.icon className="w-5 h-5 text-white" />
                 </div>
                 <div className="text-left flex-1">
-                  <p className="font-semibold text-foreground">{action.label}</p>
+                  <p className="font-semibold text-foreground text-sm">{action.label}</p>
                   <p className="text-xs text-muted-foreground">{action.description}</p>
                 </div>
               </motion.button>
             ))}
-          </div>
+          </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Main action button - bottom right */}
+      {/* Main action button */}
       <div 
         className="absolute bottom-6 right-4 z-10" 
         style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
       >
         <motion.button
           onClick={toggleMenu}
-          whileTap={{ scale: 0.9 }}
+          whileTap={{ scale: 0.92 }}
           animate={{ rotate: isOpen ? 45 : 0 }}
-          transition={{ duration: 0.2, ease: "easeOut" }}
-          className="h-14 w-14 rounded-full bg-primary shadow-xl shadow-primary/40 flex items-center justify-center"
+          transition={{ 
+            rotate: { duration: 0.15, ease: "easeOut" },
+            scale: { duration: 0.1 }
+          }}
+          className="h-14 w-14 rounded-full bg-primary shadow-xl shadow-primary/40 flex items-center justify-center will-change-transform"
         >
           <Plus className="w-7 h-7 text-primary-foreground" />
         </motion.button>
