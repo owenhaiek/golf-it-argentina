@@ -108,8 +108,10 @@ export const Layout = () => {
         </div>
       </div>
       
-      {/* Back to Map Button */}
-      <BackToMapButton />
+      {/* Back to Map Button - hidden on pages with their own navigation */}
+      {!['/add-round', '/create-tournament', '/create-match'].includes(location.pathname) && (
+        <BackToMapButton />
+      )}
       
       {/* Invitation Drawer */}
       <InvitationDrawer />

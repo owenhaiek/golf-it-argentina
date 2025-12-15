@@ -1,12 +1,11 @@
-
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import ScoreSummary from "./ScoreSummary";
 import HoleVisualization from "./HoleVisualization";
 import ScoreInput from "./ScoreInput";
 import HoleNavigation from "./HoleNavigation";
 import HoleProgressIndicators from "./HoleProgressIndicators";
+import { motion } from "framer-motion";
 
 interface Course {
   id: string;
@@ -39,7 +38,6 @@ const ScoreCard = ({ selectedCourseData, scores, onScoreChange, selectedSide }: 
     
     // If this is a 9-hole course but we're playing 18 holes
     if (originalHolePars.length === 9 && numberOfHoles === 18) {
-      // Duplicate the 9-hole pars to create 18 holes
       const duplicatedPars = [...originalHolePars, ...originalHolePars];
       
       if (selectedSide === "back") {
@@ -80,8 +78,8 @@ const ScoreCard = ({ selectedCourseData, scores, onScoreChange, selectedSide }: 
       setCurrentHoleIndex(currentHoleIndex + 1);
     } else {
       toast({
-        title: "Round Complete!",
-        description: "You've entered scores for all holes.",
+        title: "¡Ronda Completa!",
+        description: "Has ingresado todos los scores.",
       });
     }
   };
@@ -102,7 +100,7 @@ const ScoreCard = ({ selectedCourseData, scores, onScoreChange, selectedSide }: 
     if (diff === -1) return 'Birdie';
     if (diff === 0) return 'Par';
     if (diff === 1) return 'Bogey';
-    if (diff === 2) return 'Double Bogey';
+    if (diff === 2) return 'Double';
     if (diff > 2) return 'Triple+';
     return '';
   };
@@ -126,56 +124,60 @@ const ScoreCard = ({ selectedCourseData, scores, onScoreChange, selectedSide }: 
   const progressPercentage = ((currentHoleIndex + 1) / numberOfHoles) * 100;
 
   return (
-    <Card className="w-full">
-      <CardHeader className="pb-4">
-        <CardTitle className="text-lg sm:text-xl text-center">
-          {selectedCourseData?.name}
-          {selectedSide && (
-            <div className="text-sm text-muted-foreground font-normal mt-1">
-              {selectedSide === 'front' ? 'Front 9 (Holes 1-9)' : 'Back 9 (Holes 10-18)'}
-            </div>
-          )}
-        </CardTitle>
-        <div className="w-full bg-gray-200 dark:bg-gray-700 h-2 rounded-full">
-          <div 
-            className="bg-primary h-2 rounded-full transition-all duration-300"
-            style={{ width: `${progressPercentage}%` }} 
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="rounded-2xl bg-card border border-border/50 overflow-hidden"
+    >
+      {/* Header with progress */}
+      <div className="p-4 border-b border-border/50">
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-sm font-medium text-muted-foreground">
+            Hoyo {currentHoleIndex + 1 + holeOffset} de {numberOfHoles + holeOffset}
+          </span>
+          <span className="text-sm font-medium text-muted-foreground">
+            {Math.round(progressPercentage)}%
+          </span>
+        </div>
+        <div className="w-full bg-muted h-2 rounded-full overflow-hidden">
+          <motion.div 
+            className="bg-gradient-to-r from-primary to-primary/70 h-2 rounded-full"
+            initial={{ width: 0 }}
+            animate={{ width: `${progressPercentage}%` }}
+            transition={{ duration: 0.3 }}
           />
         </div>
-      </CardHeader>
-      <CardContent className="space-y-4 sm:space-y-6">
-        <ScoreSummary
-          currentTotal={currentTotal}
-          totalPar={totalPar}
-          vsParScore={vsParScore}
+      </div>
+
+      {/* Main scoring area */}
+      <div className="p-4 space-y-4">
+        <HoleVisualization
+          currentHoleIndex={currentHoleIndex}
+          holeOffset={holeOffset}
+          currentPar={currentPar}
+          currentScore={currentScore}
+          selectedSide={selectedSide}
         />
+        
+        <ScoreInput
+          currentScore={currentScore}
+          onIncrement={incrementScore}
+          onDecrement={decrementScore}
+          scoreColor={scoreColor}
+          scoreTerm={scoreTerm}
+        />
+        
+        <HoleNavigation
+          currentHoleIndex={currentHoleIndex}
+          numberOfHoles={numberOfHoles}
+          currentScore={currentScore}
+          onPrevious={goToPreviousHole}
+          onNext={goToNextHole}
+        />
+      </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
-          <HoleVisualization
-            currentHoleIndex={currentHoleIndex}
-            holeOffset={holeOffset}
-            currentPar={currentPar}
-            currentScore={currentScore}
-            selectedSide={selectedSide}
-          />
-          
-          <ScoreInput
-            currentScore={currentScore}
-            onIncrement={incrementScore}
-            onDecrement={decrementScore}
-            scoreColor={scoreColor}
-            scoreTerm={scoreTerm}
-          />
-          
-          <HoleNavigation
-            currentHoleIndex={currentHoleIndex}
-            numberOfHoles={numberOfHoles}
-            currentScore={currentScore}
-            onPrevious={goToPreviousHole}
-            onNext={goToNextHole}
-          />
-        </div>
-
+      {/* Hole indicators */}
+      <div className="p-4 pt-0">
         <HoleProgressIndicators
           numberOfHoles={numberOfHoles}
           scores={scores}
@@ -183,8 +185,8 @@ const ScoreCard = ({ selectedCourseData, scores, onScoreChange, selectedSide }: 
           holeOffset={holeOffset}
           onHoleSelect={setCurrentHoleIndex}
         />
-      </CardContent>
-    </Card>
+      </div>
+    </motion.div>
   );
 };
 
