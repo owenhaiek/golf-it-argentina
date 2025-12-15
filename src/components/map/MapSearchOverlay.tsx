@@ -139,7 +139,7 @@ export const MapSearchOverlay = ({ courses, onSelectCourse, onOpenChange }: MapS
             onClick={() => navigate('/profile')}
             size="icon"
             variant="secondary"
-            className="h-12 w-12 bg-background/95 backdrop-blur-sm hover:bg-background border shadow-lg text-foreground"
+            className="h-12 w-12 bg-background/95 backdrop-blur-sm hover:bg-background shadow-lg text-foreground border-0"
             title="Mi perfil"
           >
             <User className="w-5 h-5" />
@@ -161,7 +161,7 @@ export const MapSearchOverlay = ({ courses, onSelectCourse, onOpenChange }: MapS
                 onClick={() => setIsOpen(true)}
                 size="icon"
                 variant="secondary"
-                className="h-12 w-12 bg-background/95 backdrop-blur-sm hover:bg-background border shadow-lg text-foreground"
+                className="h-12 w-12 bg-background/95 backdrop-blur-sm hover:bg-background shadow-lg text-foreground border-0"
                 title="Buscar"
               >
                 <Search className="w-5 h-5" />
@@ -177,7 +177,7 @@ export const MapSearchOverlay = ({ courses, onSelectCourse, onOpenChange }: MapS
               className="flex flex-col"
             >
               {/* Floating search input */}
-              <div className="flex flex-col gap-2 bg-background/95 backdrop-blur-sm border shadow-xl rounded-2xl p-2 w-[calc(100vw-32px)] max-w-sm">
+              <div className="flex flex-col gap-2 bg-background/95 backdrop-blur-sm shadow-xl rounded-2xl p-2 w-[calc(100vw-32px)] max-w-sm">
                 {/* Tab selector */}
                 <div className="flex gap-1 p-1 bg-muted/50 rounded-xl">
                   <button
@@ -242,7 +242,7 @@ export const MapSearchOverlay = ({ courses, onSelectCourse, onOpenChange }: MapS
                 initial={{ opacity: 0, y: -8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1, duration: 0.15 }}
-                className="mt-2 bg-background/95 backdrop-blur-sm border shadow-xl rounded-2xl overflow-hidden w-[calc(100vw-32px)] max-w-sm"
+                className="mt-2 bg-background/95 backdrop-blur-sm shadow-xl rounded-2xl overflow-hidden w-[calc(100vw-32px)] max-w-sm"
               >
                 {/* Results count */}
                 <div className="px-3 py-2 border-b border-border/50 bg-muted/30">
