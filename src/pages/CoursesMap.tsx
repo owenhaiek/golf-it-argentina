@@ -131,11 +131,11 @@ const CoursesMap = () => {
       
       {/* App logo - bottom left */}
       <div className="absolute bottom-6 left-4 z-10" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
-        <div className="w-12 h-12 rounded-2xl overflow-hidden shadow-lg bg-background/80 backdrop-blur-sm border border-border/50 p-1.5">
+        <div className="w-12 h-12 rounded-2xl overflow-hidden shadow-lg bg-background/80 backdrop-blur-sm border border-border/50">
           <img 
             src="/lovable-uploads/c4b5d185-bd84-43f5-8ec7-4de4b18ca81c.png" 
             alt="Golfit Logo" 
-            className="w-full h-full object-contain"
+            className="w-full h-full object-cover"
           />
         </div>
       </div>
