@@ -8,7 +8,6 @@ import UserStatsCard from "@/components/profile/UserStatsCard";
 import { FriendsSection } from "@/components/profile/FriendsSection";
 import { FriendSuggestions } from "@/components/profile/FriendSuggestions";
 import { TournamentsAndMatchesSection } from "@/components/profile/TournamentsAndMatchesSection";
-import { DarkModeToggle } from "@/components/ui/DarkModeToggle";
 import { NotificationButton } from "@/components/ui/NotificationButton";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -37,13 +36,10 @@ const Profile = () => {
 
   return (
     <div className="h-screen flex flex-col">
-      <div className="flex-shrink-0 p-4 bg-background/95 backdrop-blur-sm border-b border-border sticky top-0 z-40 touch-none supports-[backdrop-filter]:bg-background/80">
+      <div className="flex-shrink-0 px-4 py-3 bg-background/80 backdrop-blur-xl border-b border-white/5 sticky top-0 z-40 touch-none">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-foreground">{t("common", "profile")}</h1>
-          <div className="flex items-center gap-2">
-            <NotificationButton />
-            <DarkModeToggle />
-          </div>
+          <h1 className="text-xl font-semibold text-foreground">{t("common", "profile")}</h1>
+          <NotificationButton />
         </div>
       </div>
       
