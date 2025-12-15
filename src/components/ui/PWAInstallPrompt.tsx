@@ -145,7 +145,7 @@ const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({ onDismiss }) => {
             onClick={handleDismiss}
           />
           
-          {/* Modal */}
+          {/* Modal - Simple */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -153,72 +153,40 @@ const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({ onDismiss }) => {
             transition={{ type: "spring", duration: 0.3 }}
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
           >
-            <div className="bg-background border border-border rounded-2xl shadow-2xl overflow-hidden w-full max-w-sm relative">
+            <div className="bg-background border border-border rounded-full shadow-2xl overflow-hidden p-6 relative flex flex-col items-center gap-4">
               {/* Close button */}
               <button
                 onClick={handleDismiss}
-                className="absolute top-3 right-3 p-2 hover:bg-muted rounded-full transition-colors z-10"
+                className="absolute top-2 right-2 p-2 hover:bg-muted rounded-full transition-colors z-10"
                 aria-label="Cerrar"
               >
-                <X size={18} className="text-muted-foreground hover:text-foreground" />
+                <X size={16} className="text-muted-foreground hover:text-foreground" />
               </button>
               
-              {/* Content */}
-              <div className="p-6 pt-8 text-center">
+              {/* Content - Minimal */}
+              <div className="flex items-center gap-4">
                 {/* App Icon */}
-                <div className="mx-auto mb-6 w-16 h-16 bg-primary rounded-2xl flex items-center justify-center shadow-lg">
+                <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center shadow-lg">
                   <img
                     src="/lovable-uploads/3dc401b2-fdd6-4815-a300-aa3c9b61ed9d.png"
                     alt="GolfIt Logo"
-                    className="w-12 h-12 object-contain"
+                    className="w-8 h-8 object-contain"
                   />
                 </div>
                 
-                {/* Title */}
-                <h3 className="text-xl font-bold text-foreground mb-2">
-                  Instalar GolfIt Argentina
-                </h3>
-                
-                {/* Description */}
-                <p className="text-muted-foreground text-sm mb-6 leading-relaxed">
-                  Añade esta app a tu pantalla de inicio para acceso rápido y una mejor experiencia.
-                </p>
-                
-                {/* Install Button */}
-                <Button 
-                  onClick={handleInstall}
-                  className="w-full mb-4 h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-xl"
-                >
-                  <Smartphone className="w-5 h-5 mr-2" />
-                  Añadir a Pantalla de Inicio
-                </Button>
-                
-                {/* Simplified instructions */}
-                <div className="bg-muted/30 rounded-xl p-4 mb-4">
-                  <p className="text-sm text-muted-foreground text-center">
-                    {isIOS ? (
-                      <>
-                        Toca el botón <span className="font-semibold text-foreground">compartir</span> en tu navegador y selecciona <span className="font-semibold text-foreground">"Añadir a pantalla de inicio"</span>
-                      </>
-                    ) : (
-                      "Instala la app en tu teléfono para experimentar la aplicación completa."
-                    )}
-                  </p>
-                </div>
-                
-                {/* Benefits */}
-                <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
-                  <div className="flex items-center gap-1">
-                    <Download size={12} />
-                    <span>Acceso rápido</span>
-                  </div>
-                  <div className="w-1 h-1 bg-muted-foreground rounded-full" />
-                  <div className="flex items-center gap-1">
-                    <div className="w-3 h-3 border border-muted-foreground rounded-sm" />
-                    <span>Pantalla completa</span>
-                  </div>
-                </div>
+                {/* Text */}
+                <span className="text-foreground font-medium">
+                  Agregar a pantalla de inicio
+                </span>
               </div>
+              
+              {/* Install Button */}
+              <Button 
+                onClick={handleInstall}
+                className="rounded-full px-8 h-10 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
+              >
+                Agregar
+              </Button>
             </div>
           </motion.div>
         </>

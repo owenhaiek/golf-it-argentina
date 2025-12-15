@@ -52,14 +52,17 @@ export const MapActionMenu = ({ onOpenChange }: MapActionMenuProps) => {
       {/* Main action button - centered bottom */}
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
         <motion.div
-          animate={{ rotate: isOpen ? 45 : 0 }}
-          transition={{ duration: 0.2 }}
-          whileTap={{ scale: 0.9 }}
+          animate={{ 
+            rotate: isOpen ? 45 : 0,
+            scale: isOpen ? 1.15 : 1
+          }}
+          transition={{ duration: 0.2, type: "spring", stiffness: 300 }}
+          whileTap={{ scale: 0.85 }}
         >
           <Button
             onClick={() => setIsOpen(!isOpen)}
             size="icon"
-            className="h-16 w-16 rounded-full bg-primary hover:bg-primary/90 shadow-xl shadow-primary/40 active:shadow-primary/20 transition-shadow"
+            className="h-16 w-16 rounded-full bg-primary hover:bg-primary/90 shadow-xl shadow-primary/40 active:shadow-primary/20 transition-shadow aspect-square"
           >
             {isOpen ? (
               <X className="w-7 h-7 text-primary-foreground" />
