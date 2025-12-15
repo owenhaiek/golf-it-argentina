@@ -129,6 +129,17 @@ const CoursesMap = () => {
         {courses && courses.length === 0 && <MapEmptyState />}
       </div>
       
+      {/* App logo - bottom left */}
+      <div className="absolute bottom-6 left-4 z-10" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+        <div className="w-12 h-12 rounded-2xl overflow-hidden shadow-lg bg-background/80 backdrop-blur-sm border border-border/50">
+          <img 
+            src="/lovable-uploads/b66b4122-bff1-40db-96f3-cd86d8a903af.png" 
+            alt="App Logo" 
+            className="w-full h-full object-cover"
+          />
+        </div>
+      </div>
+      
       {/* Search overlay */}
       <MapSearchOverlay 
         courses={courses || []}
