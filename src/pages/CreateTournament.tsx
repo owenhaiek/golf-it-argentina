@@ -265,13 +265,21 @@ const CreateTournament = () => {
                 </div>
               </ScrollArea>
 
-              {/* Fixed bottom button */}
+              {/* Fixed bottom buttons - Two column layout */}
               <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background via-background to-transparent pt-8">
-                <div className="max-w-2xl mx-auto">
+                <div className="max-w-2xl mx-auto flex gap-3">
+                  <Button
+                    onClick={() => navigate('/')}
+                    variant="outline"
+                    className="flex-1 h-14 rounded-2xl font-semibold text-base"
+                  >
+                    <MapPin className="h-5 w-5 mr-2" />
+                    Volver al mapa
+                  </Button>
                   <Button
                     onClick={() => setStep(2)}
                     disabled={!canProceedStep1}
-                    className="w-full h-14 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-semibold text-lg shadow-lg shadow-amber-500/25"
+                    className="flex-1 h-14 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-semibold text-base shadow-lg shadow-amber-500/25"
                   >
                     Continuar
                     <ChevronRight className="h-5 w-5 ml-2" />
@@ -378,13 +386,21 @@ const CreateTournament = () => {
                 </div>
               </div>
 
-              {/* Fixed bottom button */}
+              {/* Fixed bottom buttons - Two column layout */}
               <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background via-background to-transparent pt-8">
-                <div className="max-w-2xl mx-auto">
+                <div className="max-w-2xl mx-auto flex gap-3">
+                  <Button
+                    onClick={() => navigate('/')}
+                    variant="outline"
+                    className="flex-1 h-14 rounded-2xl font-semibold text-base"
+                  >
+                    <MapPin className="h-5 w-5 mr-2" />
+                    Volver al mapa
+                  </Button>
                   <Button
                     onClick={() => setStep(3)}
                     disabled={!canProceedStep2}
-                    className="w-full h-14 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-semibold text-lg shadow-lg shadow-amber-500/25"
+                    className="flex-1 h-14 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-semibold text-base shadow-lg shadow-amber-500/25"
                   >
                     Invitar jugadores
                     <ChevronRight className="h-5 w-5 ml-2" />
@@ -471,23 +487,31 @@ const CreateTournament = () => {
                 )}
               </div>
 
-              {/* Fixed bottom button */}
+              {/* Fixed bottom buttons - Two column layout */}
               <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background via-background to-transparent pt-8">
-                <div className="max-w-2xl mx-auto">
+                <div className="max-w-2xl mx-auto flex gap-3">
+                  <Button
+                    onClick={() => navigate('/')}
+                    variant="outline"
+                    className="flex-1 h-14 rounded-2xl font-semibold text-base"
+                  >
+                    <MapPin className="h-5 w-5 mr-2" />
+                    Volver al mapa
+                  </Button>
                   <Button
                     onClick={handleSubmit}
                     disabled={isLoading || !canSubmit}
-                    className="w-full h-14 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-semibold text-lg shadow-lg shadow-amber-500/25"
+                    className="flex-1 h-14 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-semibold text-base shadow-lg shadow-amber-500/25"
                   >
                     {isLoading ? (
                       <div className="flex items-center gap-2">
                         <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
-                        {t("tournaments", "creatingTournament")}
+                        Creando...
                       </div>
                     ) : (
                       <>
                         <Trophy className="h-5 w-5 mr-2" />
-                        {t("tournaments", "createTournamentButton")}
+                        Crear Torneo
                       </>
                     )}
                   </Button>
