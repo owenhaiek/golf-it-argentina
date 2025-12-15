@@ -1,4 +1,5 @@
-import { Settings as SettingsIcon, Languages, Shield, FileText, HelpCircle, ChevronRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Settings as SettingsIcon, Languages, Shield, FileText, HelpCircle, ChevronRight, ChevronLeft } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -16,6 +17,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 type LanguageType = "en" | "es";
 
 const Settings = () => {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const { language, setLanguage, t } = useLanguage();
 
@@ -32,13 +34,20 @@ const Settings = () => {
       {/* Header */}
       <div className="sticky top-0 z-40 bg-zinc-900/95 backdrop-blur-sm border-b border-zinc-800">
         <div className="px-4 py-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+          <div className="flex items-center justify-between">
+            <button 
+              onClick={() => navigate('/profile')}
+              className="flex items-center gap-1 text-zinc-400 hover:text-white transition-colors"
+            >
+              <ChevronLeft className="h-5 w-5" />
+              <span className="text-sm">{language === "en" ? "Profile" : "Perfil"}</span>
+            </button>
+            <div className="flex items-center gap-2">
+              <h1 className="text-lg font-semibold text-white">
+                {t("settings", "settings")}
+              </h1>
               <SettingsIcon className="h-5 w-5 text-primary" />
             </div>
-            <h1 className="text-xl font-bold text-white">
-              {t("settings", "settings")}
-            </h1>
           </div>
         </div>
       </div>
