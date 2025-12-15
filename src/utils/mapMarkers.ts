@@ -11,17 +11,21 @@ let activeMarkerId: string | null = null;
 
 // Inject global styles once - NO TRANSFORMS to avoid Mapbox conflicts
 const injectMarkerStyles = () => {
-  if (document.getElementById('golf-marker-styles-v8')) return;
+  if (document.getElementById('golf-marker-styles-v9')) return;
+  
+  // Remove old styles
+  const oldStyle = document.getElementById('golf-marker-styles-v8');
+  if (oldStyle) oldStyle.remove();
   
   const style = document.createElement('style');
-  style.id = 'golf-marker-styles-v8';
+  style.id = 'golf-marker-styles-v9';
   style.textContent = `
-    @keyframes marker-pulse {
+    @keyframes marker-glow {
       0%, 100% {
-        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4), 0 0 20px rgba(34, 197, 94, 0.3);
+        opacity: 0.4;
       }
       50% {
-        box-shadow: 0 0 0 8px rgba(34, 197, 94, 0), 0 0 25px rgba(34, 197, 94, 0.5);
+        opacity: 0.7;
       }
     }
     
@@ -37,9 +41,16 @@ const injectMarkerStyles = () => {
       align-items: center;
       justify-content: center;
       box-shadow: 0 0 20px rgba(34, 197, 94, 0.4), 0 4px 12px rgba(0, 0, 0, 0.2);
-      backdrop-filter: blur(4px);
-      animation: marker-pulse 3s ease-in-out infinite;
-      transition: all 0.3s ease;
+    }
+    
+    .golf-marker-v7::before {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border-radius: 50%;
+      background: rgba(34, 197, 94, 0.3);
+      animation: marker-glow 3s ease-in-out infinite;
+      z-index: -1;
     }
     
     .golf-marker-v7:hover {
@@ -54,7 +65,11 @@ const injectMarkerStyles = () => {
       background: linear-gradient(135deg, rgba(22, 163, 74, 0.95) 0%, rgba(21, 128, 61, 1) 100%);
       border: 3px solid rgba(255, 255, 255, 0.95);
       box-shadow: 0 0 32px rgba(34, 197, 94, 0.7), 0 0 48px rgba(34, 197, 94, 0.4), 0 6px 16px rgba(0, 0, 0, 0.3);
+    }
+    
+    .golf-marker-v7.active::before {
       animation: none;
+      opacity: 0;
     }
     
     .golf-marker-v7 svg {
