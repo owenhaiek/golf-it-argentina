@@ -183,7 +183,7 @@ export const MapControls = ({ map, onStyleChange, currentStyle }: MapControlsPro
         onClick={handleStyleToggle}
         size={isMobile ? "icon" : "sm"}
         variant="secondary"
-        className="bg-background/95 backdrop-blur-sm hover:bg-background border shadow-lg h-10 w-10 sm:w-auto sm:px-3 text-foreground"
+        className="bg-background/95 backdrop-blur-sm hover:bg-background shadow-lg h-10 w-10 sm:w-auto sm:px-3 text-foreground border-0"
         title={`Cambiar a ${currentStyle === 'dark' ? 'satélite' : currentStyle === 'satellite' ? 'calles' : 'oscuro'}`}
       >
         <StyleIcon className="w-4 h-4 sm:mr-2" />
@@ -200,7 +200,7 @@ export const MapControls = ({ map, onStyleChange, currentStyle }: MapControlsPro
         size={isMobile ? "icon" : "sm"}
         variant="secondary"
         disabled={locationLoading}
-        className="bg-background/95 backdrop-blur-sm hover:bg-background border shadow-lg h-10 w-10 sm:w-auto sm:px-3 text-foreground"
+        className="bg-background/95 backdrop-blur-sm hover:bg-background shadow-lg h-10 w-10 sm:w-auto sm:px-3 text-foreground border-0"
         title="Mi ubicación"
       >
         {locationLoading ? (
