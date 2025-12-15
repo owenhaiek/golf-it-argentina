@@ -54,10 +54,10 @@ export const MapActionMenu = ({ onOpenChange }: MapActionMenuProps) => {
         <motion.div
           animate={{ 
             rotate: isOpen ? 45 : 0,
-            scale: isOpen ? 1.15 : 1
+            scale: isOpen ? 1.1 : 1
           }}
           transition={{ duration: 0.2, type: "spring", stiffness: 300 }}
-          whileTap={{ scale: 0.85 }}
+          whileTap={{ scale: 1.15 }}
         >
           <Button
             onClick={() => setIsOpen(!isOpen)}
