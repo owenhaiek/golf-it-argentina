@@ -102,14 +102,7 @@ export function useSimpleMapbox({
           touchZoomRotate: true
         });
 
-        // Add navigation controls
-        mapInstance.addControl(
-          new (window as any).mapboxgl.NavigationControl({
-            showCompass: false,
-            showZoom: true
-          }),
-          'bottom-right'
-        );
+        // No zoom controls - cleaner map interface
 
         // Handle load event
         mapInstance.on('load', () => {
