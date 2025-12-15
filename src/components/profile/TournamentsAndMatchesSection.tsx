@@ -1,10 +1,8 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Trophy, Swords, Calendar, MapPin, Users, Crown, Clock, CheckCircle, Edit, Trash2, Play, Target, Check, X } from "lucide-react";
+import { Trophy, Swords, Calendar, Clock, CheckCircle } from "lucide-react";
 import { useTournamentsAndMatches } from "@/hooks/useTournamentsAndMatches";
 import { formatDistanceToNow, format } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
@@ -100,30 +98,29 @@ export const TournamentsAndMatchesSection = () => {
 
   if (isLoading) {
     return (
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Trophy className="h-5 w-5" />
-            Tournaments & Matches
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {Array(3).fill(0).map((_, i) => (
-              <div key={i} className="flex items-center justify-between p-3 rounded-lg border animate-pulse">
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 bg-muted rounded-full" />
-                  <div className="space-y-1">
-                    <div className="h-4 w-32 bg-muted rounded" />
-                    <div className="h-3 w-24 bg-muted rounded" />
-                  </div>
+      <div className="w-full space-y-4">
+        <div className="flex items-center gap-2">
+          <Trophy className="h-5 w-5 text-amber-500" />
+          <span className="font-semibold text-lg">Torneos y Partidos</span>
+        </div>
+        <div className="space-y-3">
+          {Array(2).fill(0).map((_, i) => (
+            <div key={i} className="bg-muted/30 rounded-2xl p-4 animate-pulse">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="h-10 w-10 bg-muted rounded-xl" />
+                <div className="space-y-2 flex-1">
+                  <div className="h-4 w-3/4 bg-muted rounded" />
+                  <div className="h-3 w-1/2 bg-muted rounded" />
                 </div>
-                <div className="h-6 w-16 bg-muted rounded" />
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="h-16 bg-muted rounded-xl" />
+                <div className="h-16 bg-muted rounded-xl" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     );
   }
 
@@ -132,100 +129,93 @@ export const TournamentsAndMatchesSection = () => {
 
   if (totalTournaments === 0 && totalMatches === 0) {
     return (
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Trophy className="h-5 w-5" />
-            Tournaments & Matches
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8">
-            <div className="relative mb-4">
-              <Trophy className="h-16 w-16 text-muted-foreground/40 mx-auto" />
-              <Swords className="h-8 w-8 text-muted-foreground/40 absolute -bottom-1 -right-1" />
+      <div className="w-full">
+        <div className="flex items-center gap-2 mb-4">
+          <Trophy className="h-5 w-5 text-amber-500" />
+          <span className="font-semibold text-lg">Torneos y Partidos</span>
+        </div>
+        <div className="bg-muted/30 rounded-2xl p-8 text-center">
+          <div className="relative inline-block mb-4">
+            <div className="p-4 rounded-2xl bg-muted/50">
+              <Trophy className="h-10 w-10 text-muted-foreground/50" />
             </div>
-            <p className="text-muted-foreground font-medium">No tournaments or matches yet</p>
-            <p className="text-xs text-muted-foreground mt-2">
-              Create a tournament or challenge friends to get started!
-            </p>
+            <div className="absolute -bottom-2 -right-2 p-2 rounded-xl bg-muted">
+              <Swords className="h-5 w-5 text-muted-foreground/50" />
+            </div>
           </div>
-        </CardContent>
-      </Card>
+          <p className="text-foreground font-medium">Sin torneos o partidos</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            Crea un torneo o desafía a tus amigos
+          </p>
+        </div>
+      </div>
     );
   }
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              {viewMode === 'tournaments' ? (
-                <Trophy className="h-5 w-5 text-amber-500" />
-              ) : (
-                <Swords className="h-5 w-5 text-red-500" />
-              )}
-              <CardTitle className="text-lg">
-                {viewMode === 'tournaments' ? 'Tournaments' : 'Matches'}
-              </CardTitle>
-            </div>
-          </div>
-          
-          {/* Mobile-optimized Toggle Buttons */}
-          <div className="flex bg-muted p-1 rounded-lg w-full">
-            <Button
-              size="sm"
-              variant={viewMode === 'tournaments' ? 'default' : 'ghost'}
-              onClick={() => setViewMode('tournaments')}
-              className="flex-1 h-9 text-xs justify-center"
-            >
-              <Trophy className="h-3 w-3 mr-1" />
-              <span className="hidden xs:inline">Tournaments</span>
-              <span className="xs:hidden">Tour.</span>
-              {totalTournaments > 0 && (
-                <Badge variant="secondary" className="ml-1 text-xs h-4 px-1">
-                  {totalTournaments}
-                </Badge>
-              )}
-            </Button>
-            <Button
-              size="sm"
-              variant={viewMode === 'matches' ? 'default' : 'ghost'}
-              onClick={() => setViewMode('matches')}
-              className="flex-1 h-9 text-xs justify-center"
-            >
-              <Swords className="h-3 w-3 mr-1" />
-              <span className="hidden xs:inline">Matches</span>
-              <span className="xs:hidden">Match.</span>
-              {totalMatches > 0 && (
-                <Badge variant="secondary" className="ml-1 text-xs h-4 px-1">
-                  {totalMatches}
-                </Badge>
-              )}
-            </Button>
-          </div>
+    <div className="w-full space-y-4">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          {viewMode === 'tournaments' ? (
+            <Trophy className="h-5 w-5 text-amber-500" />
+          ) : (
+            <Swords className="h-5 w-5 text-red-500" />
+          )}
+          <span className="font-semibold text-lg">
+            {viewMode === 'tournaments' ? 'Torneos' : 'Partidos'}
+          </span>
         </div>
-      </CardHeader>
-      <CardContent>
-        <Tabs defaultValue="active" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 h-9">
-            <TabsTrigger value="active" className="flex items-center gap-1 text-xs py-1">
-              <Clock className="h-3 w-3" />
-              <span className="hidden sm:inline">Active</span>
-              <span className="sm:hidden">Act.</span>
-            </TabsTrigger>
-            <TabsTrigger value="upcoming" className="flex items-center gap-1 text-xs py-1">
-              <Calendar className="h-3 w-3" />
-              <span className="hidden sm:inline">Upcoming</span>
-              <span className="sm:hidden">Up.</span>
-            </TabsTrigger>
-            <TabsTrigger value="completed" className="flex items-center gap-1 text-xs py-1">
-              <CheckCircle className="h-3 w-3" />
-              <span className="hidden sm:inline">Completed</span>
-              <span className="sm:hidden">Done</span>
-            </TabsTrigger>
-          </TabsList>
+      </div>
+      
+      {/* Mode Toggle */}
+      <div className="flex bg-muted/50 p-1 rounded-xl w-full">
+        <Button
+          size="sm"
+          variant={viewMode === 'tournaments' ? 'default' : 'ghost'}
+          onClick={() => setViewMode('tournaments')}
+          className={`flex-1 h-10 text-sm justify-center rounded-lg ${viewMode === 'tournaments' ? '' : 'hover:bg-white/5'}`}
+        >
+          <Trophy className="h-4 w-4 mr-2" />
+          Torneos
+          {totalTournaments > 0 && (
+            <Badge variant="secondary" className="ml-2 text-xs h-5 px-1.5 bg-white/10">
+              {totalTournaments}
+            </Badge>
+          )}
+        </Button>
+        <Button
+          size="sm"
+          variant={viewMode === 'matches' ? 'default' : 'ghost'}
+          onClick={() => setViewMode('matches')}
+          className={`flex-1 h-10 text-sm justify-center rounded-lg ${viewMode === 'matches' ? '' : 'hover:bg-white/5'}`}
+        >
+          <Swords className="h-4 w-4 mr-2" />
+          Partidos
+          {totalMatches > 0 && (
+            <Badge variant="secondary" className="ml-2 text-xs h-5 px-1.5 bg-white/10">
+              {totalMatches}
+            </Badge>
+          )}
+        </Button>
+      </div>
+
+      {/* Tabs Content */}
+      <Tabs defaultValue="active" className="w-full">
+        <TabsList className="grid w-full grid-cols-3 h-10 rounded-xl">
+          <TabsTrigger value="active" className="flex items-center gap-1.5 text-xs rounded-lg">
+            <Clock className="h-3.5 w-3.5" />
+            <span>Activos</span>
+          </TabsTrigger>
+          <TabsTrigger value="upcoming" className="flex items-center gap-1.5 text-xs rounded-lg">
+            <Calendar className="h-3.5 w-3.5" />
+            <span>Próximos</span>
+          </TabsTrigger>
+          <TabsTrigger value="completed" className="flex items-center gap-1.5 text-xs rounded-lg">
+            <CheckCircle className="h-3.5 w-3.5" />
+            <span>Finalizados</span>
+          </TabsTrigger>
+        </TabsList>
 
           <TabsContent value="active" className="space-y-3 mt-4">
             {viewMode === 'tournaments' ? (
@@ -241,9 +231,9 @@ export const TournamentsAndMatchesSection = () => {
                   />
                 ))}
                 {activeTournaments.length === 0 && (
-                  <div className="text-center py-6 text-muted-foreground">
-                    <Trophy className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    <p>No active tournaments</p>
+                  <div className="text-center py-8 bg-muted/30 rounded-2xl">
+                    <Trophy className="h-8 w-8 mx-auto mb-2 text-muted-foreground/50" />
+                    <p className="text-muted-foreground">Sin torneos activos</p>
                   </div>
                 )}
               </>
@@ -264,9 +254,9 @@ export const TournamentsAndMatchesSection = () => {
                   />
                 ))}
                 {activeMatches.length === 0 && (
-                  <div className="text-center py-6 text-muted-foreground">
-                    <Swords className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    <p>No active matches</p>
+                  <div className="text-center py-8 bg-muted/30 rounded-2xl">
+                    <Swords className="h-8 w-8 mx-auto mb-2 text-muted-foreground/50" />
+                    <p className="text-muted-foreground">Sin partidos activos</p>
                   </div>
                 )}
               </>
@@ -287,9 +277,9 @@ export const TournamentsAndMatchesSection = () => {
                   />
                 ))}
                 {upcomingTournaments.length === 0 && (
-                  <div className="text-center py-6 text-muted-foreground">
-                    <Trophy className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    <p>No upcoming tournaments</p>
+                  <div className="text-center py-8 bg-muted/30 rounded-2xl">
+                    <Trophy className="h-8 w-8 mx-auto mb-2 text-muted-foreground/50" />
+                    <p className="text-muted-foreground">Sin torneos próximos</p>
                   </div>
                 )}
               </>
@@ -310,9 +300,9 @@ export const TournamentsAndMatchesSection = () => {
                   />
                 ))}
                 {pendingMatches.length === 0 && (
-                  <div className="text-center py-6 text-muted-foreground">
-                    <Swords className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    <p>No pending matches</p>
+                  <div className="text-center py-8 bg-muted/30 rounded-2xl">
+                    <Swords className="h-8 w-8 mx-auto mb-2 text-muted-foreground/50" />
+                    <p className="text-muted-foreground">Sin partidos pendientes</p>
                   </div>
                 )}
               </>
@@ -333,9 +323,9 @@ export const TournamentsAndMatchesSection = () => {
                   />
                 ))}
                 {completedTournaments.length === 0 && (
-                  <div className="text-center py-6 text-muted-foreground">
-                    <Trophy className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    <p>No completed tournaments</p>
+                  <div className="text-center py-8 bg-muted/30 rounded-2xl">
+                    <Trophy className="h-8 w-8 mx-auto mb-2 text-muted-foreground/50" />
+                    <p className="text-muted-foreground">Sin torneos finalizados</p>
                   </div>
                 )}
               </>
@@ -356,16 +346,15 @@ export const TournamentsAndMatchesSection = () => {
                   />
                 ))}
                 {completedMatches.length === 0 && (
-                  <div className="text-center py-6 text-muted-foreground">
-                    <Swords className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    <p>No completed matches</p>
+                  <div className="text-center py-8 bg-muted/30 rounded-2xl">
+                    <Swords className="h-8 w-8 mx-auto mb-2 text-muted-foreground/50" />
+                    <p className="text-muted-foreground">Sin partidos finalizados</p>
                   </div>
                 )}
               </>
             )}
           </TabsContent>
         </Tabs>
-      </CardContent>
 
       {/* Edit Dialogs */}
       <EditTournamentDialog
@@ -411,6 +400,6 @@ export const TournamentsAndMatchesSection = () => {
         onOpenChange={(open) => setMatchScoringCard({ open, match: null })}
         onSuccess={refetchAll}
       />
-    </Card>
+    </div>
   );
 };
