@@ -111,22 +111,22 @@ const AddRoundStep2 = ({
       )}
       
       {/* Fixed bottom buttons - Two column layout */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background via-background to-transparent pt-8">
-        <div className="max-w-2xl mx-auto flex gap-3">
+      <div className="fixed bottom-0 left-0 right-0 p-3 sm:p-4 bg-gradient-to-t from-background via-background to-transparent pt-6">
+        <div className="max-w-2xl mx-auto flex gap-2 sm:gap-3">
           <Button
             onClick={() => navigate('/')}
             variant="outline"
-            className="flex-1 h-14 rounded-2xl font-semibold text-base"
+            className="flex-1 h-11 sm:h-14 rounded-xl sm:rounded-2xl font-medium sm:font-semibold text-sm sm:text-base px-3 sm:px-4"
           >
-            <Map className="h-5 w-5 mr-2" />
-            Volver al mapa
+            <Map className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2 flex-shrink-0" />
+            <span className="truncate">Mapa</span>
           </Button>
           <Button
             onClick={onNext}
-            className="flex-1 h-14 rounded-2xl bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-semibold text-base shadow-lg shadow-primary/25"
+            className="flex-1 h-11 sm:h-14 rounded-xl sm:rounded-2xl bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-medium sm:font-semibold text-sm sm:text-base shadow-lg shadow-primary/25 px-3 sm:px-4"
           >
-            Ingresar Scores
-            <ChevronRight className="h-5 w-5 ml-2" />
+            <span className="truncate">Scores</span>
+            <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 ml-1.5 sm:ml-2 flex-shrink-0" />
           </Button>
         </div>
       </div>

@@ -266,23 +266,23 @@ const CreateTournament = () => {
               </ScrollArea>
 
               {/* Fixed bottom buttons - Two column layout */}
-              <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background via-background to-transparent pt-8">
-                <div className="max-w-2xl mx-auto flex gap-3">
+              <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 bg-gradient-to-t from-background via-background to-transparent pt-6">
+                <div className="max-w-2xl mx-auto flex gap-2 sm:gap-3">
                   <Button
                     onClick={() => navigate('/')}
                     variant="outline"
-                    className="flex-1 h-14 rounded-2xl font-semibold text-base"
+                    className="flex-1 h-11 sm:h-14 rounded-xl sm:rounded-2xl font-medium sm:font-semibold text-sm sm:text-base px-3 sm:px-4"
                   >
-                    <MapPin className="h-5 w-5 mr-2" />
-                    Volver al mapa
+                    <MapPin className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2 flex-shrink-0" />
+                    <span className="truncate">Mapa</span>
                   </Button>
                   <Button
                     onClick={() => setStep(2)}
                     disabled={!canProceedStep1}
-                    className="flex-1 h-14 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-semibold text-base shadow-lg shadow-amber-500/25"
+                    className="flex-1 h-11 sm:h-14 rounded-xl sm:rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-medium sm:font-semibold text-sm sm:text-base shadow-lg shadow-amber-500/25 px-3 sm:px-4"
                   >
-                    Continuar
-                    <ChevronRight className="h-5 w-5 ml-2" />
+                    <span className="truncate">Continuar</span>
+                    <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 ml-1.5 sm:ml-2 flex-shrink-0" />
                   </Button>
                 </div>
               </div>
@@ -387,23 +387,23 @@ const CreateTournament = () => {
               </div>
 
               {/* Fixed bottom buttons - Two column layout */}
-              <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background via-background to-transparent pt-8">
-                <div className="max-w-2xl mx-auto flex gap-3">
+              <div className="fixed bottom-0 left-0 right-0 p-3 sm:p-4 bg-gradient-to-t from-background via-background to-transparent pt-6">
+                <div className="max-w-2xl mx-auto flex gap-2 sm:gap-3">
                   <Button
                     onClick={() => navigate('/')}
                     variant="outline"
-                    className="flex-1 h-14 rounded-2xl font-semibold text-base"
+                    className="flex-1 h-11 sm:h-14 rounded-xl sm:rounded-2xl font-medium sm:font-semibold text-sm sm:text-base px-3 sm:px-4"
                   >
-                    <MapPin className="h-5 w-5 mr-2" />
-                    Volver al mapa
+                    <MapPin className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2 flex-shrink-0" />
+                    <span className="truncate">Mapa</span>
                   </Button>
                   <Button
                     onClick={() => setStep(3)}
                     disabled={!canProceedStep2}
-                    className="flex-1 h-14 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-semibold text-base shadow-lg shadow-amber-500/25"
+                    className="flex-1 h-11 sm:h-14 rounded-xl sm:rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-medium sm:font-semibold text-sm sm:text-base shadow-lg shadow-amber-500/25 px-3 sm:px-4"
                   >
-                    Invitar jugadores
-                    <ChevronRight className="h-5 w-5 ml-2" />
+                    <span className="truncate">Invitar</span>
+                    <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 ml-1.5 sm:ml-2 flex-shrink-0" />
                   </Button>
                 </div>
               </div>
@@ -488,30 +488,30 @@ const CreateTournament = () => {
               </div>
 
               {/* Fixed bottom buttons - Two column layout */}
-              <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background via-background to-transparent pt-8">
-                <div className="max-w-2xl mx-auto flex gap-3">
+              <div className="fixed bottom-0 left-0 right-0 p-3 sm:p-4 bg-gradient-to-t from-background via-background to-transparent pt-6">
+                <div className="max-w-2xl mx-auto flex gap-2 sm:gap-3">
                   <Button
                     onClick={() => navigate('/')}
                     variant="outline"
-                    className="flex-1 h-14 rounded-2xl font-semibold text-base"
+                    className="flex-1 h-11 sm:h-14 rounded-xl sm:rounded-2xl font-medium sm:font-semibold text-sm sm:text-base px-3 sm:px-4"
                   >
-                    <MapPin className="h-5 w-5 mr-2" />
-                    Volver al mapa
+                    <MapPin className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2 flex-shrink-0" />
+                    <span className="truncate">Mapa</span>
                   </Button>
                   <Button
                     onClick={handleSubmit}
                     disabled={isLoading || !canSubmit}
-                    className="flex-1 h-14 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-semibold text-base shadow-lg shadow-amber-500/25"
+                    className="flex-1 h-11 sm:h-14 rounded-xl sm:rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-medium sm:font-semibold text-sm sm:text-base shadow-lg shadow-amber-500/25 px-3 sm:px-4"
                   >
                     {isLoading ? (
-                      <div className="flex items-center gap-2">
-                        <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
-                        Creando...
+                      <div className="flex items-center gap-1.5 sm:gap-2">
+                        <div className="animate-spin h-4 w-4 sm:h-5 sm:w-5 border-2 border-white border-t-transparent rounded-full" />
+                        <span className="truncate">Creando</span>
                       </div>
                     ) : (
                       <>
-                        <Trophy className="h-5 w-5 mr-2" />
-                        Crear Torneo
+                        <Trophy className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2 flex-shrink-0" />
+                        <span className="truncate">Crear</span>
                       </>
                     )}
                   </Button>
