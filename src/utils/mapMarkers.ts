@@ -11,37 +11,57 @@ let activeMarkerId: string | null = null;
 
 // Inject global styles once - NO TRANSFORMS to avoid Mapbox conflicts
 const injectMarkerStyles = () => {
-  if (document.getElementById('golf-marker-styles-v7')) return;
+  if (document.getElementById('golf-marker-styles-v8')) return;
   
   const style = document.createElement('style');
-  style.id = 'golf-marker-styles-v7';
+  style.id = 'golf-marker-styles-v8';
   style.textContent = `
+    @keyframes marker-pulse {
+      0%, 100% {
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4), 0 0 20px rgba(34, 197, 94, 0.3);
+      }
+      50% {
+        box-shadow: 0 0 0 8px rgba(34, 197, 94, 0), 0 0 25px rgba(34, 197, 94, 0.5);
+      }
+    }
+    
     .golf-marker-v7 {
       pointer-events: auto !important;
       cursor: pointer;
-      width: 36px;
-      height: 36px;
+      width: 38px;
+      height: 38px;
       border-radius: 50%;
-      background: #22c55e;
-      border: 2px solid rgba(255, 255, 255, 0.8);
+      background: linear-gradient(135deg, rgba(34, 197, 94, 0.85) 0%, rgba(22, 163, 74, 0.9) 100%);
+      border: 2px solid rgba(255, 255, 255, 0.6);
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 0 20px rgba(34, 197, 94, 0.4), 0 4px 12px rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(4px);
+      animation: marker-pulse 3s ease-in-out infinite;
+      transition: all 0.3s ease;
+    }
+    
+    .golf-marker-v7:hover {
+      background: linear-gradient(135deg, rgba(34, 197, 94, 0.95) 0%, rgba(22, 163, 74, 1) 100%);
+      box-shadow: 0 0 28px rgba(34, 197, 94, 0.6), 0 6px 16px rgba(0, 0, 0, 0.25);
+      border-color: rgba(255, 255, 255, 0.9);
     }
     
     .golf-marker-v7.active {
-      width: 44px;
-      height: 44px;
-      background: #16a34a;
-      border: 3px solid white;
-      box-shadow: 0 0 16px rgba(34, 197, 94, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3);
+      width: 46px;
+      height: 46px;
+      background: linear-gradient(135deg, rgba(22, 163, 74, 0.95) 0%, rgba(21, 128, 61, 1) 100%);
+      border: 3px solid rgba(255, 255, 255, 0.95);
+      box-shadow: 0 0 32px rgba(34, 197, 94, 0.7), 0 0 48px rgba(34, 197, 94, 0.4), 0 6px 16px rgba(0, 0, 0, 0.3);
+      animation: none;
     }
     
     .golf-marker-v7 svg {
       width: 16px;
       height: 16px;
       color: white;
+      filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
     }
     
     .golf-marker-v7.active svg {
