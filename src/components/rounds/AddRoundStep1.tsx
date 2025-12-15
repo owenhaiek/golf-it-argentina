@@ -1,7 +1,12 @@
 import { useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Search, MapPin, Flag, Check } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Search, MapPin, Flag, Check, ChevronRight, Map } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { motion } from "framer-motion";
 
 interface Course {
   id: string;
@@ -30,6 +35,7 @@ const AddRoundStep1 = ({
   onNext 
 }: AddRoundStep1Props) => {
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
 
   const filteredCourses = courses?.filter(course =>
@@ -37,10 +43,6 @@ const AddRoundStep1 = ({
     course.city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     course.state?.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
-
-  const handleSelectAndContinue = (courseId: string) => {
-    onSelectCourse(courseId);
-  };
 
   if (isLoadingCourses) {
     return (
@@ -52,126 +54,115 @@ const AddRoundStep1 = ({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="h-full flex flex-col">
       {/* Search bar */}
-      <div className="relative">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-        <input
-          type="text"
-          placeholder={t("addRound", "searchCourse") || "Search golf course..."}
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full pl-12 pr-4 py-4 bg-muted/50 border border-border rounded-2xl text-base focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-        />
+      <div className="mb-4">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder={t("addRound", "searchCourse") || "Buscar campo de golf..."}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10 h-12 rounded-xl bg-muted/50 border-0 focus-visible:ring-primary"
+          />
+        </div>
       </div>
 
-      {/* Results count */}
-      <p className="text-sm text-muted-foreground px-1">
-        {filteredCourses.length} {filteredCourses.length === 1 ? 'campo' : 'campos'} encontrados
-      </p>
-
       {/* Course list */}
-      <div className="space-y-3">
-        {filteredCourses.length === 0 ? (
-          <div className="text-center py-12">
-            <Flag className="h-16 w-16 mx-auto mb-4 text-muted-foreground/30" />
-            <p className="text-lg font-medium text-muted-foreground mb-1">
-              {t("common", "noResults") || "No courses found"}
-            </p>
-            <p className="text-sm text-muted-foreground/70">
-              {t("common", "tryDifferentSearch") || "Try a different search term"}
-            </p>
-          </div>
-        ) : (
-          filteredCourses.map((course) => {
-            const isSelected = selectedCourse === course.id;
-            
-            return (
-              <button
+      <ScrollArea className="flex-1 -mx-4 px-4">
+        <div className="pb-32 space-y-3">
+          {filteredCourses.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground">
+              <MapPin className="h-12 w-12 mx-auto mb-3 opacity-50" />
+              <p>{t("common", "noResults") || "No se encontraron campos"}</p>
+            </div>
+          ) : (
+            filteredCourses.map((course, index) => (
+              <motion.div
                 key={course.id}
-                onClick={() => handleSelectAndContinue(course.id)}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.03 }}
+                onClick={() => onSelectCourse(course.id)}
                 className={cn(
-                  "w-full text-left rounded-2xl overflow-hidden transition-all duration-200",
-                  "border-2 bg-card",
-                  isSelected 
-                    ? "border-primary shadow-lg shadow-primary/20" 
-                    : "border-transparent hover:border-border"
+                  "relative overflow-hidden rounded-2xl cursor-pointer transition-all duration-300",
+                  selectedCourse === course.id
+                    ? "ring-2 ring-primary scale-[1.02]"
+                    : "hover:scale-[1.01]"
                 )}
               >
-                <div className="flex">
-                  {/* Image */}
-                  <div className="w-24 h-24 flex-shrink-0 bg-muted">
-                    {course.image_url ? (
-                      <img 
-                        src={course.image_url} 
-                        alt={course.name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-primary/10">
-                        <Flag className="h-8 w-8 text-primary/40" />
-                      </div>
-                    )}
-                  </div>
+                <div className="relative h-32">
+                  {course.image_url ? (
+                    <img
+                      src={course.image_url}
+                      alt={course.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-primary/10 flex items-center justify-center">
+                      <Flag className="h-12 w-12 text-primary/30" />
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                   
-                  {/* Content */}
-                  <div className="flex-1 p-3 flex flex-col justify-center min-w-0">
-                    <h3 className="font-semibold text-foreground truncate pr-8">
-                      {course.name}
-                    </h3>
-                    
-                    {(course.city || course.state) && (
-                      <p className="text-sm text-muted-foreground flex items-center gap-1.5 mt-0.5">
-                        <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
-                        <span className="truncate">
+                  {selectedCourse === course.id && (
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className="absolute top-3 right-3 h-8 w-8 rounded-full bg-primary flex items-center justify-center"
+                    >
+                      <Check className="h-5 w-5 text-primary-foreground" />
+                    </motion.div>
+                  )}
+                  
+                  <div className="absolute bottom-0 left-0 right-0 p-4">
+                    <h3 className="font-semibold text-white text-lg">{course.name}</h3>
+                    <div className="flex items-center gap-3 mt-1">
+                      {(course.city || course.state) && (
+                        <span className="text-white/80 text-sm flex items-center gap-1">
+                          <MapPin className="h-3 w-3" />
                           {[course.city, course.state].filter(Boolean).join(', ')}
                         </span>
-                      </p>
-                    )}
-                    
-                    <div className="flex items-center gap-2 mt-2">
-                      <span className="text-xs bg-muted px-2 py-0.5 rounded-full">
+                      )}
+                      <span className="text-white/80 text-sm flex items-center gap-1">
+                        <Flag className="h-3 w-3" />
                         {course.holes} hoyos
                       </span>
                       {course.par && (
-                        <span className="text-xs bg-muted px-2 py-0.5 rounded-full">
+                        <span className="text-white/80 text-sm">
                           Par {course.par}
                         </span>
                       )}
                     </div>
                   </div>
-                  
-                  {/* Selection indicator */}
-                  <div className="flex items-center pr-4">
-                    <div className={cn(
-                      "w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all",
-                      isSelected
-                        ? "border-primary bg-primary"
-                        : "border-muted-foreground/30"
-                    )}>
-                      {isSelected && (
-                        <Check className="h-3.5 w-3.5 text-primary-foreground" />
-                      )}
-                    </div>
-                  </div>
                 </div>
-              </button>
-            );
-          })
-        )}
-      </div>
-      
-      {/* Continue button - fixed at bottom */}
-      {selectedCourse && (
-        <div className="fixed bottom-20 left-4 right-4 z-20">
-          <button
-            onClick={onNext}
-            className="w-full bg-primary text-primary-foreground py-4 rounded-2xl font-semibold text-lg shadow-xl shadow-primary/30 active:scale-[0.98] transition-transform"
-          >
-            {t("common", "continue") || "Continue"}
-          </button>
+              </motion.div>
+            ))
+          )}
         </div>
-      )}
+      </ScrollArea>
+      
+      {/* Fixed bottom buttons - Two column layout */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background via-background to-transparent pt-8">
+        <div className="max-w-2xl mx-auto flex gap-3">
+          <Button
+            onClick={() => navigate('/')}
+            variant="outline"
+            className="flex-1 h-14 rounded-2xl font-semibold text-base"
+          >
+            <Map className="h-5 w-5 mr-2" />
+            Volver al mapa
+          </Button>
+          <Button
+            onClick={onNext}
+            disabled={!selectedCourse}
+            className="flex-1 h-14 rounded-2xl bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-semibold text-base shadow-lg shadow-primary/25"
+          >
+            Continuar
+            <ChevronRight className="h-5 w-5 ml-2" />
+          </Button>
+        </div>
+      </div>
     </div>
   );
 };

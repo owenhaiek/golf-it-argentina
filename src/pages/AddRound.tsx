@@ -247,8 +247,8 @@ const AddRound = () => {
         )}
       </div>
 
-      {/* Back to map button */}
-      <BackToMapButton />
+      {/* Back to map button only shown on step 2 and 3 */}
+      {currentStep > 1 && <BackToMapButton />}
     </div>
   );
 };
