@@ -124,26 +124,26 @@ export const CourseInfoTab = ({ course, isOpen, onClose }: CourseInfoTabProps) =
               paddingBottom: 'env(safe-area-inset-bottom, 16px)'
             }}
           >
-            {/* Drag handle */}
-            <div 
-              className="flex justify-center pt-3 pb-2 cursor-grab active:cursor-grabbing"
-              onPointerDown={(e) => dragControls.start(e)}
-            >
-              <div className="w-12 h-1.5 bg-muted-foreground/30 rounded-full" />
-            </div>
+            {/* Image Carousel - full width, touching top edge */}
+            <div className="relative w-full h-48 sm:h-56 overflow-hidden rounded-t-3xl">
+              {/* Drag handle overlay */}
+              <div 
+                className="absolute top-0 left-0 right-0 z-20 flex justify-center pt-3 pb-6 cursor-grab active:cursor-grabbing bg-gradient-to-b from-black/30 to-transparent"
+                onPointerDown={(e) => dragControls.start(e)}
+              >
+                <div className="w-12 h-1.5 bg-white/60 rounded-full" />
+              </div>
 
-            {/* Close button - floating */}
-            <Button
-              variant="secondary"
-              size="icon"
-              onClick={onClose}
-              className="absolute top-4 right-4 z-10 h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm shadow-md"
-            >
-              <X className="h-4 w-4" />
-            </Button>
+              {/* Close button - floating */}
+              <Button
+                variant="secondary"
+                size="icon"
+                onClick={onClose}
+                className="absolute top-3 right-3 z-20 h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm shadow-md"
+              >
+                <X className="h-4 w-4" />
+              </Button>
 
-            {/* Image Carousel - full width, no gap */}
-            <div className="relative w-full h-44 sm:h-52 overflow-hidden -mt-2">
               <AnimatePresence mode="popLayout" initial={false}>
                 <motion.img
                   key={currentImageIndex}
@@ -202,7 +202,7 @@ export const CourseInfoTab = ({ course, isOpen, onClose }: CourseInfoTabProps) =
               )}
 
               {/* Badge overlay */}
-              <div className="absolute top-2 left-2">
+              <div className="absolute bottom-2 left-2 z-10">
                 <Badge variant="secondary" className="text-xs bg-background/80 backdrop-blur-sm border-0">
                   <Flag className="w-3 h-3 mr-1" />
                   {course.holes}H{course.par && ` • Par ${course.par}`}

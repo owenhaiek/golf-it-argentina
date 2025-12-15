@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useEffect, ReactNode } from "react";
 
 interface DarkModeContextType {
   darkMode: boolean;
@@ -7,7 +7,7 @@ interface DarkModeContextType {
 }
 
 const DarkModeContext = createContext<DarkModeContextType>({
-  darkMode: false,
+  darkMode: true,
   toggleDarkMode: () => {},
   setDarkMode: () => {},
 });
@@ -19,45 +19,17 @@ interface DarkModeProviderProps {
 }
 
 export const DarkModeProvider: React.FC<DarkModeProviderProps> = ({ children }) => {
-  const [darkMode, setDarkModeState] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const savedMode = localStorage.getItem("darkMode");
-      return savedMode === "true";
-    }
-    return false;
-  });
+  // Always dark mode - no state needed
+  const darkMode = true;
 
-  // Initialize dark mode on mount and apply to document
+  // Apply dark mode on mount
   useEffect(() => {
-    const applyDarkMode = (isDark: boolean) => {
-      if (isDark) {
-        document.documentElement.classList.add("dark");
-      } else {
-        document.documentElement.classList.remove("dark");
-      }
-    };
-
-    // Apply immediately on mount
-    applyDarkMode(darkMode);
+    document.documentElement.classList.add("dark");
   }, []);
 
-  // Update document class when darkMode changes
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, [darkMode]);
-
-  const setDarkMode = (value: boolean) => {
-    setDarkModeState(value);
-    localStorage.setItem("darkMode", value.toString());
-  };
-
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-  };
+  // No-op functions since we're always in dark mode
+  const setDarkMode = () => {};
+  const toggleDarkMode = () => {};
 
   return (
     <DarkModeContext.Provider value={{ darkMode, toggleDarkMode, setDarkMode }}>

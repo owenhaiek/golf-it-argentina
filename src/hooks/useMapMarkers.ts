@@ -48,7 +48,13 @@ export const useMapMarkers = (onCourseSelect: (course: GolfCourse) => void) => {
       return;
     }
 
-    const bounds = new (window as any).mapboxgl.LngLatBounds();
+    const mapboxgl = (window as any).mapboxgl;
+    if (!mapboxgl || !mapboxgl.LngLatBounds) {
+      console.error("[MapMarkers] Mapbox GL not loaded");
+      return;
+    }
+
+    const bounds = new mapboxgl.LngLatBounds();
     let validMarkersCount = 0;
 
     coursesToAdd.forEach(course => {
@@ -62,7 +68,11 @@ export const useMapMarkers = (onCourseSelect: (course: GolfCourse) => void) => {
       
       const lng = Number(course.longitude);
       const lat = Number(course.latitude);
-      const coordinates: [number, number] = [lng, lat];
+      
+      if (isNaN(lng) || isNaN(lat)) {
+        console.warn(`Course ${course.name} has NaN coordinates`);
+        return;
+      }
       
       console.log(`Adding marker for ${course.name} at [${lng}, ${lat}]`);
       validMarkersCount++;
@@ -70,16 +80,18 @@ export const useMapMarkers = (onCourseSelect: (course: GolfCourse) => void) => {
       const markerElement = createMarkerElement(course, onCourseSelect);
 
       try {
-        // Create marker with center anchor for rounded markers
-        const marker = new (window as any).mapboxgl.Marker({
+        // Create marker with proper LngLat object
+        const marker = new mapboxgl.Marker({
           element: markerElement,
           anchor: 'center'
-        })
-          .setLngLat(coordinates)
-          .addTo(mapInstance);
+        });
+        
+        // Set position using setLngLat with array
+        marker.setLngLat([lng, lat]);
+        marker.addTo(mapInstance);
 
         markersRef.current.push(marker);
-        bounds.extend(coordinates);
+        bounds.extend([lng, lat]);
         
         console.log(`✓ Successfully positioned marker for ${course.name} at coordinates [${lng}, ${lat}]`);
       } catch (error) {
