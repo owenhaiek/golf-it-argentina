@@ -4,7 +4,6 @@ import { ArrowLeft, Check, Bell } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { DarkModeToggle } from "@/components/ui/DarkModeToggle";
 import { formatDistanceToNow } from "date-fns";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -57,22 +56,19 @@ const Notifications = () => {
 
   return (
     <div className="h-screen flex flex-col">
-      <div className="flex-shrink-0 p-4 bg-background border-b border-border sticky top-0 z-40 touch-none">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleBack}
-              className="rounded-full"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <h1 className="text-2xl font-bold text-foreground">
-              {t("common", "notifications") || "Notifications"}
-            </h1>
-          </div>
-          <DarkModeToggle />
+      <div className="flex-shrink-0 px-4 py-3 bg-background/80 backdrop-blur-xl border-b border-white/5 sticky top-0 z-40 touch-none">
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleBack}
+            className="rounded-full"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <h1 className="text-xl font-semibold text-foreground">
+            {t("common", "notifications") || "Notifications"}
+          </h1>
         </div>
       </div>
       
