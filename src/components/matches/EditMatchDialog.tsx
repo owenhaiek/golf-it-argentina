@@ -111,7 +111,7 @@ export const EditMatchDialog = ({ match, open, onOpenChange, onSuccess }: EditMa
               </SelectTrigger>
               <SelectContent>
                 {coursesLoading ? (
-                  <SelectItem value="" disabled>Loading courses...</SelectItem>
+                  <div className="px-2 py-1.5 text-sm text-muted-foreground">Loading courses...</div>
                 ) : (
                   golfCourses?.map((course) => (
                     <SelectItem key={course.id} value={course.id}>

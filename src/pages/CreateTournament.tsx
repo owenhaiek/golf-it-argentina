@@ -199,9 +199,9 @@ const CreateTournament = () => {
                   </SelectTrigger>
                   <SelectContent>
                     {coursesLoading ? (
-                      <SelectItem value="" disabled>{t("tournaments", "loadingCourses")}</SelectItem>
+                      <div className="px-2 py-1.5 text-sm text-muted-foreground">{t("tournaments", "loadingCourses")}</div>
                     ) : courses.length === 0 ? (
-                      <SelectItem value="" disabled>{t("tournaments", "noCoursesAvailable")}</SelectItem>
+                      <div className="px-2 py-1.5 text-sm text-muted-foreground">{t("tournaments", "noCoursesAvailable")}</div>
                     ) : (
                       courses.map((course) => (
                         <SelectItem key={course.id} value={course.id}>

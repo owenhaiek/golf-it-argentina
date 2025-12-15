@@ -169,9 +169,9 @@ const CreateMatch = () => {
                   </SelectTrigger>
                   <SelectContent>
                     {coursesLoading ? (
-                      <SelectItem value="" disabled>{t("matches", "loadingCourses")}</SelectItem>
+                      <div className="px-2 py-1.5 text-sm text-muted-foreground">{t("matches", "loadingCourses")}</div>
                     ) : courses.length === 0 ? (
-                      <SelectItem value="" disabled>{t("matches", "noCoursesAvailable")}</SelectItem>
+                      <div className="px-2 py-1.5 text-sm text-muted-foreground">{t("matches", "noCoursesAvailable")}</div>
                     ) : (
                       courses.map((course) => (
                         <SelectItem key={course.id} value={course.id}>
