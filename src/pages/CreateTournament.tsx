@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFriendsData } from "@/hooks/useFriendsData";
 import { useGolfCourses } from "@/hooks/useGolfCourses";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,10 +11,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Trophy, Users, Calendar, MapPin, DollarSign } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { ArrowLeft, Trophy, Users, Calendar, MapPin, Check, ChevronRight, Search, Flag } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { motion, AnimatePresence } from "framer-motion";
 
 const CreateTournament = () => {
   const navigate = useNavigate();
@@ -30,6 +31,8 @@ const CreateTournament = () => {
   });
   const { t } = useLanguage();
   
+  const [step, setStep] = useState(1);
+  const [courseSearch, setCourseSearch] = useState("");
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -41,6 +44,12 @@ const CreateTournament = () => {
   
   const [selectedParticipants, setSelectedParticipants] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  const selectedCourse = courses.find(c => c.id === formData.courseId);
+  const filteredCourses = courses.filter(course => 
+    course.name.toLowerCase().includes(courseSearch.toLowerCase()) ||
+    course.city?.toLowerCase().includes(courseSearch.toLowerCase())
+  );
 
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -62,7 +71,6 @@ const CreateTournament = () => {
       return;
     }
 
-    // Check if start date is in the future
     const selectedDate = new Date(formData.startDate);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -80,7 +88,6 @@ const CreateTournament = () => {
     setIsLoading(true);
     
     try {
-      // Create tournament
       const { data: tournament, error: tournamentError } = await supabase
         .from('tournaments')
         .insert({
@@ -100,7 +107,6 @@ const CreateTournament = () => {
 
       if (tournamentError) throw tournamentError;
 
-      // Add creator as participant
       const participantInserts = [
         { tournament_id: tournament.id, user_id: user.id, status: 'confirmed' },
         ...selectedParticipants.map(userId => ({
@@ -126,195 +132,370 @@ const CreateTournament = () => {
     }
   };
 
+  const canProceedStep1 = !!formData.courseId;
+  const canProceedStep2 = !!formData.name && !!formData.startDate;
+  const canSubmit = canProceedStep1 && canProceedStep2 && selectedParticipants.length > 0;
+
   return (
-    <div className="h-screen flex flex-col">
+    <div className="h-screen flex flex-col bg-background">
       {/* Header */}
-      <div className="flex-shrink-0 p-4 bg-background border-b border-border">
-        <div className="flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate(-1)}
-            className="h-10 w-10 p-0"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div className="flex items-center gap-2">
-            <Trophy className="h-6 w-6 text-amber-500" />
-            <h1 className="text-2xl font-bold">{t("tournaments", "createTournament")}</h1>
+      <div className="flex-shrink-0 p-4 bg-background/80 backdrop-blur-lg border-b border-border/50 sticky top-0 z-10">
+        <div className="flex items-center justify-between max-w-2xl mx-auto">
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => step > 1 ? setStep(step - 1) : navigate(-1)}
+              className="h-10 w-10 p-0 rounded-full"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div className="flex items-center gap-2">
+              <div className="h-10 w-10 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center">
+                <Trophy className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h1 className="text-lg font-bold">{t("tournaments", "createTournament")}</h1>
+                <p className="text-xs text-muted-foreground">
+                  {step === 1 ? "Selecciona el campo" : step === 2 ? "Detalles del torneo" : "Invita jugadores"}
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          {/* Step indicator */}
+          <div className="flex items-center gap-1.5">
+            {[1, 2, 3].map((s) => (
+              <motion.div
+                key={s}
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  s === step ? 'w-6 bg-amber-500' : s < step ? 'w-2 bg-amber-500' : 'w-2 bg-muted'
+                }`}
+                layoutId={`step-${s}`}
+              />
+            ))}
           </div>
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto p-4 space-y-6 pb-20">
-        <div className="max-w-2xl mx-auto space-y-6">
-          {/* Basic Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Trophy className="h-5 w-5" />
-                {t("tournaments", "tournamentDetails")}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="name">{t("tournaments", "tournamentNameRequired")}</Label>
-                <Input
-                  id="name"
-                  placeholder={t("tournaments", "tournamentNamePlaceholder")}
-                  value={formData.name}
-                  onChange={(e) => handleInputChange("name", e.target.value)}
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="description">{t("tournaments", "description")}</Label>
-                <Textarea
-                  id="description"
-                  placeholder={t("tournaments", "descriptionPlaceholder")}
-                  value={formData.description}
-                  onChange={(e) => handleInputChange("description", e.target.value)}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="startDate">{t("tournaments", "tournamentDateRequired")}</Label>
-                <Input
-                  id="startDate"
-                  type="date"
-                  min={new Date().toISOString().split('T')[0]}
-                  value={formData.startDate}
-                  onChange={(e) => handleInputChange("startDate", e.target.value)}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="course">{t("tournaments", "golfCourseRequired")}</Label>
-                <Select
-                  value={formData.courseId}
-                  onValueChange={(value) => handleInputChange("courseId", value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={t("tournaments", "selectGolfCourse")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {coursesLoading ? (
-                      <div className="px-2 py-1.5 text-sm text-muted-foreground">{t("tournaments", "loadingCourses")}</div>
-                    ) : courses.length === 0 ? (
-                      <div className="px-2 py-1.5 text-sm text-muted-foreground">{t("tournaments", "noCoursesAvailable")}</div>
-                    ) : (
-                      courses.map((course) => (
-                        <SelectItem key={course.id} value={course.id}>
-                          <div className="flex items-center gap-2">
-                            <MapPin className="h-4 w-4" />
-                            {course.name}
-                          </div>
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="maxPlayers">{t("tournaments", "maxPlayers")}</Label>
+      <div className="flex-1 overflow-hidden">
+        <AnimatePresence mode="wait">
+          {/* Step 1: Course Selection */}
+          {step === 1 && (
+            <motion.div
+              key="step1"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
+              className="h-full flex flex-col"
+            >
+              <div className="p-4 max-w-2xl mx-auto w-full">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    id="maxPlayers"
-                    type="number"
-                    min="2"
-                    max="32"
-                    value={formData.maxPlayers}
-                    onChange={(e) => handleInputChange("maxPlayers", parseInt(e.target.value))}
+                    placeholder="Buscar campo de golf..."
+                    value={courseSearch}
+                    onChange={(e) => setCourseSearch(e.target.value)}
+                    className="pl-10 h-12 rounded-xl bg-muted/50 border-0 focus-visible:ring-amber-500"
                   />
                 </div>
-                <div>
-                  <Label htmlFor="tournamentType">{t("tournaments", "format")}</Label>
-                  <Select
-                    value={formData.tournamentType}
-                    onValueChange={(value) => handleInputChange("tournamentType", value)}
+              </div>
+
+              <ScrollArea className="flex-1 px-4">
+                <div className="max-w-2xl mx-auto pb-32 space-y-3">
+                  {coursesLoading ? (
+                    <div className="flex items-center justify-center py-12">
+                      <div className="animate-spin h-8 w-8 border-2 border-amber-500 border-t-transparent rounded-full" />
+                    </div>
+                  ) : filteredCourses.length === 0 ? (
+                    <div className="text-center py-12 text-muted-foreground">
+                      <MapPin className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                      <p>No se encontraron campos</p>
+                    </div>
+                  ) : (
+                    filteredCourses.map((course, index) => (
+                      <motion.div
+                        key={course.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                        onClick={() => handleInputChange("courseId", course.id)}
+                        className={`relative overflow-hidden rounded-2xl cursor-pointer transition-all duration-300 ${
+                          formData.courseId === course.id
+                            ? 'ring-2 ring-amber-500 scale-[1.02]'
+                            : 'hover:scale-[1.01]'
+                        }`}
+                      >
+                        <div className="relative h-32">
+                          <img
+                            src={course.image_url || '/placeholder.svg'}
+                            alt={course.name}
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                          
+                          {formData.courseId === course.id && (
+                            <motion.div
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              className="absolute top-3 right-3 h-8 w-8 rounded-full bg-amber-500 flex items-center justify-center"
+                            >
+                              <Check className="h-5 w-5 text-white" />
+                            </motion.div>
+                          )}
+                          
+                          <div className="absolute bottom-0 left-0 right-0 p-4">
+                            <h3 className="font-semibold text-white text-lg">{course.name}</h3>
+                            <div className="flex items-center gap-3 mt-1">
+                              <span className="text-white/80 text-sm flex items-center gap-1">
+                                <MapPin className="h-3 w-3" />
+                                {course.city || 'Argentina'}
+                              </span>
+                              <span className="text-white/80 text-sm flex items-center gap-1">
+                                <Flag className="h-3 w-3" />
+                                {course.holes} hoyos
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))
+                  )}
+                </div>
+              </ScrollArea>
+
+              {/* Fixed bottom button */}
+              <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background via-background to-transparent pt-8">
+                <div className="max-w-2xl mx-auto">
+                  <Button
+                    onClick={() => setStep(2)}
+                    disabled={!canProceedStep1}
+                    className="w-full h-14 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-semibold text-lg shadow-lg shadow-amber-500/25"
                   >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="stroke_play">{t("tournaments", "strokePlay")}</SelectItem>
-                      <SelectItem value="match_play">{t("tournaments", "matchPlay")}</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    Continuar
+                    <ChevronRight className="h-5 w-5 ml-2" />
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Step 2: Tournament Details */}
+          {step === 2 && (
+            <motion.div
+              key="step2"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
+              className="h-full overflow-auto"
+            >
+              <div className="p-4 pb-32 max-w-2xl mx-auto space-y-6">
+                {/* Selected course preview */}
+                {selectedCourse && (
+                  <div className="relative overflow-hidden rounded-2xl">
+                    <div className="relative h-24">
+                      <img
+                        src={selectedCourse.image_url || '/placeholder.svg'}
+                        alt={selectedCourse.name}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-transparent" />
+                      <div className="absolute inset-0 flex items-center p-4">
+                        <div>
+                          <p className="text-amber-400 text-xs font-medium">Campo seleccionado</p>
+                          <h3 className="font-semibold text-white">{selectedCourse.name}</h3>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">{t("tournaments", "tournamentNameRequired")}</Label>
+                    <Input
+                      placeholder={t("tournaments", "tournamentNamePlaceholder")}
+                      value={formData.name}
+                      onChange={(e) => handleInputChange("name", e.target.value)}
+                      className="h-12 rounded-xl bg-muted/50 border-0 focus-visible:ring-amber-500"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">{t("tournaments", "description")}</Label>
+                    <Textarea
+                      placeholder={t("tournaments", "descriptionPlaceholder")}
+                      value={formData.description}
+                      onChange={(e) => handleInputChange("description", e.target.value)}
+                      className="min-h-[100px] rounded-xl bg-muted/50 border-0 focus-visible:ring-amber-500 resize-none"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-amber-500" />
+                      {t("tournaments", "tournamentDateRequired")}
+                    </Label>
+                    <Input
+                      type="date"
+                      min={new Date().toISOString().split('T')[0]}
+                      value={formData.startDate}
+                      onChange={(e) => handleInputChange("startDate", e.target.value)}
+                      className="h-12 rounded-xl bg-muted/50 border-0 focus-visible:ring-amber-500"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">{t("tournaments", "maxPlayers")}</Label>
+                      <Input
+                        type="number"
+                        min="2"
+                        max="32"
+                        value={formData.maxPlayers}
+                        onChange={(e) => handleInputChange("maxPlayers", parseInt(e.target.value))}
+                        className="h-12 rounded-xl bg-muted/50 border-0 focus-visible:ring-amber-500"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">{t("tournaments", "format")}</Label>
+                      <Select
+                        value={formData.tournamentType}
+                        onValueChange={(value) => handleInputChange("tournamentType", value)}
+                      >
+                        <SelectTrigger className="h-12 rounded-xl bg-muted/50 border-0 focus-visible:ring-amber-500">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="stroke_play">{t("tournaments", "strokePlay")}</SelectItem>
+                          <SelectItem value="match_play">{t("tournaments", "matchPlay")}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-            </CardContent>
-          </Card>
+              {/* Fixed bottom button */}
+              <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background via-background to-transparent pt-8">
+                <div className="max-w-2xl mx-auto">
+                  <Button
+                    onClick={() => setStep(3)}
+                    disabled={!canProceedStep2}
+                    className="w-full h-14 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-semibold text-lg shadow-lg shadow-amber-500/25"
+                  >
+                    Invitar jugadores
+                    <ChevronRight className="h-5 w-5 ml-2" />
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          )}
 
-          {/* Participants Selection */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Users className="h-5 w-5" />
+          {/* Step 3: Participants */}
+          {step === 3 && (
+            <motion.div
+              key="step3"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
+              className="h-full overflow-auto"
+            >
+              <div className="p-4 pb-32 max-w-2xl mx-auto space-y-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-semibold flex items-center gap-2">
+                    <Users className="h-5 w-5 text-amber-500" />
                     {t("tournaments", "selectParticipants")}
-                  </div>
-                <Badge variant="secondary">
-                  {selectedParticipants.length + 1}/{formData.maxPlayers}
-                </Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {friends.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Users className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                  <p>{t("tournaments", "noFriendsAvailable")}</p>
-                  <p className="text-sm">{t("tournaments", "addFriendsToInvite")}</p>
+                  </h2>
+                  <Badge variant="secondary" className="bg-amber-500/10 text-amber-600 border-0">
+                    {selectedParticipants.length + 1}/{formData.maxPlayers}
+                  </Badge>
                 </div>
-              ) : (
-                <div className="space-y-3 max-h-64 overflow-y-auto">
-                  {friends.map((friend) => (
-                    <div
-                      key={friend.id}
-                      className="flex items-center justify-between p-3 rounded-lg border hover:bg-accent/50 transition-colors"
-                    >
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-10 w-10">
-                          <AvatarImage src={friend.avatar_url} />
-                          <AvatarFallback>
-                            {friend.full_name?.charAt(0) || friend.username?.charAt(0) || '?'}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="font-medium">
-                            {friend.full_name || friend.username || 'Unknown User'}
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            @{friend.username || 'user'}
-                          </p>
-                        </div>
-                      </div>
-                      <Checkbox
-                        checked={selectedParticipants.includes(friend.id)}
-                        onCheckedChange={() => toggleParticipant(friend.id)}
-                        disabled={
-                          !selectedParticipants.includes(friend.id) && 
-                          selectedParticipants.length + 1 >= formData.maxPlayers
-                        }
-                      />
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
 
-          {/* Create Button */}
-          <Button
-            onClick={handleSubmit}
-            disabled={isLoading || !formData.name || !formData.courseId || selectedParticipants.length === 0}
-            className="w-full h-12 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white"
-          >
-            {isLoading ? t("tournaments", "creatingTournament") : t("tournaments", "createTournamentButton")}
-          </Button>
-        </div>
+                {friends.length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <Users className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                    <p>{t("tournaments", "noFriendsAvailable")}</p>
+                    <p className="text-sm">{t("tournaments", "addFriendsToInvite")}</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {friends.map((friend, index) => (
+                      <motion.div
+                        key={friend.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                        onClick={() => {
+                          if (selectedParticipants.includes(friend.id) || selectedParticipants.length + 1 < formData.maxPlayers) {
+                            toggleParticipant(friend.id);
+                          }
+                        }}
+                        className={`flex items-center justify-between p-4 rounded-2xl cursor-pointer transition-all duration-200 ${
+                          selectedParticipants.includes(friend.id)
+                            ? 'bg-amber-500/10 ring-1 ring-amber-500/30'
+                            : 'bg-muted/50 hover:bg-muted'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-12 w-12 ring-2 ring-background">
+                            <AvatarImage src={friend.avatar_url} />
+                            <AvatarFallback className="bg-amber-500/10 text-amber-600 font-semibold">
+                              {friend.full_name?.charAt(0) || friend.username?.charAt(0) || '?'}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="font-medium">
+                              {friend.full_name || friend.username || 'Unknown User'}
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              @{friend.username || 'user'}
+                            </p>
+                          </div>
+                        </div>
+                        <Checkbox
+                          checked={selectedParticipants.includes(friend.id)}
+                          onCheckedChange={() => toggleParticipant(friend.id)}
+                          disabled={
+                            !selectedParticipants.includes(friend.id) && 
+                            selectedParticipants.length + 1 >= formData.maxPlayers
+                          }
+                          className="h-6 w-6 rounded-full border-2 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
+                        />
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Fixed bottom button */}
+              <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background via-background to-transparent pt-8">
+                <div className="max-w-2xl mx-auto">
+                  <Button
+                    onClick={handleSubmit}
+                    disabled={isLoading || !canSubmit}
+                    className="w-full h-14 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-semibold text-lg shadow-lg shadow-amber-500/25"
+                  >
+                    {isLoading ? (
+                      <div className="flex items-center gap-2">
+                        <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
+                        {t("tournaments", "creatingTournament")}
+                      </div>
+                    ) : (
+                      <>
+                        <Trophy className="h-5 w-5 mr-2" />
+                        {t("tournaments", "createTournamentButton")}
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
