@@ -1,10 +1,11 @@
-
+import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import HolesPlayedSelector from "./HolesPlayedSelector";
 import FrontBackSelector from "./FrontBackSelector";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Flag } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { MapPin, Flag, Map, ChevronRight } from "lucide-react";
 
 interface AddRoundStep2Props {
   holesPlayed: "9" | "18" | "27";
@@ -26,6 +27,7 @@ const AddRoundStep2 = ({
   onBack
 }: AddRoundStep2Props) => {
   const { t } = useLanguage();
+  const navigate = useNavigate();
 
   const shouldShowFrontBackSelector = holesPlayed === "9" && selectedCourseData && selectedCourseData.holes >= 18;
 
@@ -107,19 +109,25 @@ const AddRoundStep2 = ({
         />
       )}
       
-      <div className="flex gap-3">
-        <button
-          onClick={onBack}
-          className="flex-1 bg-gray-200 text-gray-800 py-3 px-4 rounded-lg font-medium hover:bg-gray-300 transition-colors"
-        >
-          {t("common", "back") || "Back"}
-        </button>
-        <button
-          onClick={onNext}
-          className="flex-1 bg-primary text-white py-3 px-4 rounded-lg font-medium hover:bg-primary/90 transition-colors"
-        >
-          {t("addRound", "addScores") || "Add Scores"}
-        </button>
+      {/* Fixed bottom buttons - Two column layout */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background via-background to-transparent pt-8">
+        <div className="max-w-2xl mx-auto flex gap-3">
+          <Button
+            onClick={() => navigate('/')}
+            variant="outline"
+            className="flex-1 h-14 rounded-2xl font-semibold text-base"
+          >
+            <Map className="h-5 w-5 mr-2" />
+            Volver al mapa
+          </Button>
+          <Button
+            onClick={onNext}
+            className="flex-1 h-14 rounded-2xl bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-semibold text-base shadow-lg shadow-primary/25"
+          >
+            {t("addRound", "addScores") || "Añadir Scores"}
+            <ChevronRight className="h-5 w-5 ml-2" />
+          </Button>
+        </div>
       </div>
     </div>
   );

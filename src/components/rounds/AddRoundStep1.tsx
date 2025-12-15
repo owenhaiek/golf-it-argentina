@@ -115,21 +115,21 @@ const AddRoundStep1 = ({
                     </motion.div>
                   )}
                   
-                  <div className="absolute bottom-0 left-0 right-0 p-4">
-                    <h3 className="font-semibold text-white text-lg">{course.name}</h3>
-                    <div className="flex items-center gap-3 mt-1">
+                  <div className="absolute bottom-0 left-0 right-0 p-3">
+                    <h3 className="font-semibold text-white text-base leading-tight line-clamp-1">{course.name}</h3>
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
                       {(course.city || course.state) && (
-                        <span className="text-white/80 text-sm flex items-center gap-1">
-                          <MapPin className="h-3 w-3" />
-                          {[course.city, course.state].filter(Boolean).join(', ')}
+                        <span className="text-white/80 text-xs flex items-center gap-1">
+                          <MapPin className="h-3 w-3 flex-shrink-0" />
+                          <span className="line-clamp-1">{[course.city, course.state].filter(Boolean).join(', ')}</span>
                         </span>
                       )}
-                      <span className="text-white/80 text-sm flex items-center gap-1">
-                        <Flag className="h-3 w-3" />
-                        {course.holes} hoyos
+                      <span className="text-white/80 text-xs flex items-center gap-1 whitespace-nowrap">
+                        <Flag className="h-3 w-3 flex-shrink-0" />
+                        {course.holes}h
                       </span>
                       {course.par && (
-                        <span className="text-white/80 text-sm">
+                        <span className="text-white/80 text-xs whitespace-nowrap">
                           Par {course.par}
                         </span>
                       )}

@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { BackToMapButton } from "@/components/ui/BackToMapButton";
+
 import AddRoundStep1 from "@/components/rounds/AddRoundStep1";
 import AddRoundStep2 from "@/components/rounds/AddRoundStep2";
 import AddRoundStep3 from "@/components/rounds/AddRoundStep3";
@@ -246,9 +246,6 @@ const AddRound = () => {
           />
         )}
       </div>
-
-      {/* Back to map button only shown on step 2 and 3 */}
-      {currentStep > 1 && <BackToMapButton />}
     </div>
   );
 };
