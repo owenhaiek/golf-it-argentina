@@ -1,8 +1,10 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import ScoreCard from "./ScoreCard";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Map, Check } from "lucide-react";
 interface AddRoundStep3Props {
   selectedCourseData: any;
   scores: number[];
@@ -21,10 +23,10 @@ const AddRoundStep3 = ({
   onBack,
   isSubmitting
 }: AddRoundStep3Props) => {
-  const {
-    t
-  } = useLanguage();
+  const { t } = useLanguage();
+  const navigate = useNavigate();
   const [notes, setNotes] = useState("");
+  
   const handleSubmit = () => {
     onSubmit(notes);
   };
@@ -42,13 +44,36 @@ const AddRoundStep3 = ({
 
       
       
-      <div className="flex gap-3">
-        <Button onClick={onBack} variant="outline" className="flex-1" disabled={isSubmitting}>
-          {t("common", "back") || "Back"}
-        </Button>
-        <Button onClick={handleSubmit} className="flex-1" disabled={isSubmitting}>
-          {isSubmitting ? (t("addRound", "saving") || "Saving...") : (t("addRound", "saveRound") || "Save Round")}
-        </Button>
+      {/* Fixed bottom buttons - Two column layout */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background via-background to-transparent pt-8">
+        <div className="max-w-2xl mx-auto flex gap-3">
+          <Button
+            onClick={() => navigate('/')}
+            variant="outline"
+            className="flex-1 h-14 rounded-2xl font-semibold text-base"
+            disabled={isSubmitting}
+          >
+            <Map className="h-5 w-5 mr-2" />
+            Volver al mapa
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            disabled={isSubmitting}
+            className="flex-1 h-14 rounded-2xl bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-semibold text-base shadow-lg shadow-primary/25"
+          >
+            {isSubmitting ? (
+              <div className="flex items-center gap-2">
+                <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
+                Guardando...
+              </div>
+            ) : (
+              <>
+                <Check className="h-5 w-5 mr-2" />
+                Guardar Ronda
+              </>
+            )}
+          </Button>
+        </div>
       </div>
     </div>;
 };
