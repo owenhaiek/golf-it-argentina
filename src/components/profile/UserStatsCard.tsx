@@ -1,8 +1,9 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Trophy, TrendingUp, Flag, Star } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
+
 interface Round {
   id: string;
   score: number;
@@ -12,196 +13,139 @@ interface Round {
     hole_pars?: number[];
   };
 }
+
 interface UserStatsCardProps {
   rounds: Round[];
   roundsLoading: boolean;
   userId?: string;
 }
-const UserStatsCard = ({
-  rounds,
-  roundsLoading,
-  userId
-}: UserStatsCardProps) => {
-  const {
-    t
-  } = useLanguage();
 
-  // Query to fetch ALL rounds for accurate statistics (when userId is provided)
-  const {
-    data: allRounds,
-    isLoading: allRoundsLoading
-  } = useQuery({
+const UserStatsCard = ({ rounds, roundsLoading, userId }: UserStatsCardProps) => {
+  const { t } = useLanguage();
+
+  const { data: allRounds, isLoading: allRoundsLoading } = useQuery({
     queryKey: ['allRoundsForStats', userId],
     queryFn: async () => {
       if (!userId) return rounds;
-      console.log("Fetching all rounds for statistics calculation");
-      const {
-        data,
-        error
-      } = await supabase.from('rounds').select(`
-          *,
-          golf_courses (
-            name,
-            hole_pars,
-            holes,
-            image_url,
-            address,
-            city,
-            state,
-            par
-          )
-        `).eq('user_id', userId).order('created_at', {
-        ascending: false
-      });
-      if (error) {
-        console.error("All rounds fetch error for stats:", error);
-        throw error;
-      }
-      console.log("All rounds fetched for stats:", data?.length || 0);
+      const { data, error } = await supabase
+        .from('rounds')
+        .select(`*, golf_courses (name, hole_pars, holes, image_url, address, city, state, par)`)
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
       return data || [];
     },
     enabled: !!userId,
-    staleTime: 5 * 60 * 1000 // Cache for 5 minutes
+    staleTime: 5 * 60 * 1000
   });
 
-  // Use all rounds for statistics if available, otherwise use provided rounds
   const roundsForStats = userId ? allRounds || rounds : rounds;
   const isLoadingStats = userId ? allRoundsLoading || roundsLoading : roundsLoading;
 
-  // Helper function to calculate the correct par for a round
   const calculateRoundPar = (round: Round) => {
     const fullCoursePar = round.golf_courses?.par || 72;
-
-    // Check if this is a 9-hole round from the notes
     if (round.notes && round.notes.includes('9 holes played')) {
       if (round.golf_courses?.hole_pars && round.golf_courses.hole_pars.length >= 18) {
-        // Calculate front 9 or back 9 par based on notes
         if (round.notes.includes('(front 9)')) {
           return round.golf_courses.hole_pars.slice(0, 9).reduce((a, b) => a + b, 0);
         } else if (round.notes.includes('(back 9)')) {
           return round.golf_courses.hole_pars.slice(9, 18).reduce((a, b) => a + b, 0);
         }
       }
-      // Fallback: assume 9 holes is half the course par
       return Math.round(fullCoursePar / 2);
     }
     return fullCoursePar;
   };
+
   if (isLoadingStats) {
-    return <Card className="mx-2 sm:mx-0 overflow-hidden shadow-lg">
-        <CardHeader className="pb-2 sm:pb-4 px-3 sm:px-6 bg-gradient-to-r from-primary/10 via-primary/5 to-secondary/10">
-          <CardTitle className="text-sm sm:text-xl font-bold text-center bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            {t("profile", "playerStatistics")}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="px-2 sm:px-6 py-3 sm:py-6">
-          <div className="grid grid-cols-3 gap-2 sm:gap-6">
-            {[...Array(3)].map((_, i) => <div key={i} className="bg-gray-100 dark:bg-gray-800 rounded-lg sm:rounded-xl p-2 sm:p-5 animate-pulse">
-                <div className="flex flex-col items-center text-center space-y-1 sm:space-y-3">
-                  <div className="w-8 h-8 sm:w-14 sm:h-14 bg-muted rounded-full" />
-                  <div className="space-y-1 sm:space-y-2">
-                    <div className="h-4 sm:h-6 w-12 sm:w-16 bg-muted rounded mx-auto" />
-                    <div className="h-3 sm:h-4 w-14 sm:w-20 bg-muted rounded mx-auto" />
-                    <div className="h-2 sm:h-3 w-12 sm:w-16 bg-muted rounded mx-auto hidden sm:block" />
-                  </div>
-                </div>
-              </div>)}
-          </div>
-        </CardContent>
-      </Card>;
+    return (
+      <div className="grid grid-cols-3 gap-3">
+        {[...Array(3)].map((_, i) => (
+          <Card key={i} className="bg-zinc-900 border-0">
+            <CardContent className="p-4 flex flex-col items-center">
+              <div className="w-12 h-12 rounded-full bg-zinc-800 animate-pulse mb-3" />
+              <div className="h-6 w-12 bg-zinc-800 animate-pulse rounded mb-2" />
+              <div className="h-4 w-16 bg-zinc-800 animate-pulse rounded" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
   }
+
   if (!roundsForStats || roundsForStats.length === 0) {
-    return <Card className="mx-2 sm:mx-0 overflow-hidden shadow-lg">
-        <CardHeader className="pb-2 sm:pb-4 px-3 sm:px-6 bg-gradient-to-r from-primary/10 via-primary/5 to-secondary/10">
-          <CardTitle className="text-sm sm:text-xl font-bold text-center bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            {t("profile", "playerStatistics")}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="text-center py-6 sm:py-8 px-3 sm:px-6">
-          <div className="bg-gray-100 dark:bg-gray-800 hover:bg-primary/10 dark:hover:bg-primary/20 rounded-xl p-6 sm:p-8 transition-colors duration-300">
-            <Trophy className="h-10 w-10 sm:h-16 sm:w-16 mx-auto mb-3 sm:mb-4 text-muted-foreground" />
-            <p className="text-muted-foreground text-xs sm:text-base font-medium">{t("profile", "noStatsAvailable")}</p>
-            
+    return (
+      <Card className="bg-zinc-900 border-0">
+        <CardContent className="p-8 text-center">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-zinc-800 flex items-center justify-center">
+            <Trophy className="h-8 w-8 text-zinc-500" />
           </div>
+          <p className="text-zinc-400 text-sm">{t("profile", "noStatsAvailable")}</p>
         </CardContent>
-      </Card>;
+      </Card>
+    );
   }
 
-  // Calculate statistics using all rounds
   const totalRounds = roundsForStats.length;
-
-  // Calculate average vs par
   let totalScoreVsPar = 0;
   roundsForStats.forEach(round => {
-    const roundPar = calculateRoundPar(round);
-    totalScoreVsPar += round.score - roundPar;
+    totalScoreVsPar += round.score - calculateRoundPar(round);
   });
   const averageVsPar = totalScoreVsPar / totalRounds;
 
-  // Find best round (lowest score relative to par)
   const bestRound = roundsForStats.reduce((min, round) => {
     const minVsPar = min.score - calculateRoundPar(min);
     const roundVsPar = round.score - calculateRoundPar(round);
     return roundVsPar < minVsPar ? round : min;
   }, roundsForStats[0]);
-  const bestRoundPar = calculateRoundPar(bestRound);
-  const bestRoundVsPar = bestRound.score - bestRoundPar;
-  const stats = [{
-    icon: Flag,
-    label: "Total Rounds",
-    value: totalRounds.toString(),
-    subtitle: "Rounds Played",
-    color: "text-blue-600 dark:text-blue-400"
-  }, {
-    icon: TrendingUp,
-    label: "Avg vs Par",
-    value: averageVsPar > 0 ? `+${averageVsPar.toFixed(1)}` : averageVsPar.toFixed(1),
-    subtitle: averageVsPar > 0 ? "Over Par" : averageVsPar < 0 ? "Under Par" : "At Par",
-    color: averageVsPar > 0 ? "text-red-600 dark:text-red-400" : averageVsPar < 0 ? "text-green-600 dark:text-green-400" : "text-blue-600 dark:text-blue-400"
-  }, {
-    icon: Star,
-    label: "Best Round",
-    value: bestRoundVsPar > 0 ? `+${bestRoundVsPar}` : bestRoundVsPar.toString(),
-    subtitle: bestRoundVsPar > 0 ? "Over Par" : bestRoundVsPar < 0 ? "Under Par" : "At Par",
-    color: bestRoundVsPar > 0 ? "text-red-600 dark:text-red-400" : bestRoundVsPar < 0 ? "text-green-600 dark:text-green-400" : "text-blue-600 dark:text-blue-400"
-  }];
-  return <Card className="mx-2 sm:mx-0 overflow-hidden shadow-lg border border-border/50">
-      <CardHeader className="pb-2 sm:pb-4 px-3 sm:px-6 bg-gradient-to-r from-primary/10 via-primary/5 to-secondary/10">
-        <CardTitle className="text-sm sm:text-xl font-bold text-center bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-          {t("profile", "playerStatistics")}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="px-2 sm:px-6 py-3 sm:py-6">
-        <div className="grid grid-cols-3 gap-2 sm:gap-6">
-          {stats.map((stat, index) => <div key={index} className="bg-gray-100 dark:bg-gray-800 hover:bg-primary/10 dark:hover:bg-primary/20 rounded-lg sm:rounded-xl p-2 sm:p-5 transition-colors duration-300 cursor-pointer border border-border/20">
-              <div className="flex flex-col items-center text-center space-y-1 sm:space-y-3">
-                <div className="w-8 h-8 sm:w-14 sm:h-14 bg-white dark:bg-gray-700 rounded-full flex items-center justify-center">
-                  <stat.icon className={`h-4 w-4 sm:h-7 sm:w-7 ${stat.color}`} />
-                </div>
-                
-                <div className="space-y-0.5 sm:space-y-1">
-                  <div className={`text-base sm:text-2xl font-bold ${stat.color}`}>
-                    {stat.value}
-                  </div>
-                  <div className="text-[10px] sm:text-sm font-medium text-foreground/80 leading-tight">
-                    {stat.label}
-                  </div>
-                  <div className="text-[9px] sm:text-xs text-muted-foreground hidden sm:block">
-                    {stat.subtitle}
-                  </div>
-                </div>
-              </div>
-            </div>)}
-        </div>
-        
-        <div className="mt-3 sm:mt-6 pt-2 sm:pt-4 border-t border-border">
-          <div className="text-center">
-            <p className="text-[10px] sm:text-xs text-muted-foreground/60">
-              Based on {totalRounds} round{totalRounds !== 1 ? 's' : ''}
-            </p>
-          </div>
-        </div>
-      </CardContent>
-    </Card>;
+  const bestRoundVsPar = bestRound.score - calculateRoundPar(bestRound);
+
+  const stats = [
+    {
+      icon: Flag,
+      value: totalRounds.toString(),
+      label: t("profile", "totalRounds") || "Rounds",
+      bgColor: "bg-blue-500/20",
+      iconColor: "text-blue-400",
+      valueColor: "text-blue-400"
+    },
+    {
+      icon: TrendingUp,
+      value: averageVsPar > 0 ? `+${averageVsPar.toFixed(1)}` : averageVsPar.toFixed(1),
+      label: t("profile", "avgVsPar") || "Avg vs Par",
+      bgColor: averageVsPar <= 0 ? "bg-green-500/20" : "bg-red-500/20",
+      iconColor: averageVsPar <= 0 ? "text-green-400" : "text-red-400",
+      valueColor: averageVsPar <= 0 ? "text-green-400" : "text-red-400"
+    },
+    {
+      icon: Star,
+      value: bestRoundVsPar > 0 ? `+${bestRoundVsPar}` : bestRoundVsPar.toString(),
+      label: t("profile", "bestRound") || "Best",
+      bgColor: bestRoundVsPar <= 0 ? "bg-green-500/20" : "bg-amber-500/20",
+      iconColor: bestRoundVsPar <= 0 ? "text-green-400" : "text-amber-400",
+      valueColor: bestRoundVsPar <= 0 ? "text-green-400" : "text-amber-400"
+    }
+  ];
+
+  return (
+    <div className="grid grid-cols-3 gap-3">
+      {stats.map((stat, index) => (
+        <Card key={index} className="bg-zinc-900 border-0 overflow-hidden">
+          <CardContent className="p-4 flex flex-col items-center">
+            <div className={`w-12 h-12 rounded-full ${stat.bgColor} flex items-center justify-center mb-3`}>
+              <stat.icon className={`h-5 w-5 ${stat.iconColor}`} />
+            </div>
+            <span className={`text-2xl font-bold ${stat.valueColor}`}>
+              {stat.value}
+            </span>
+            <span className="text-xs text-zinc-500 mt-1 text-center">
+              {stat.label}
+            </span>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
 };
+
 export default UserStatsCard;

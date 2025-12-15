@@ -198,22 +198,22 @@ const ProfileCard = ({
   };
 
   if (profileLoading) {
-    return <Card className="border-0 shadow-md bg-gradient-to-br from-white to-muted dark:bg-black dark:from-black dark:to-gray-900 h-full">
+    return <Card className="border-0 shadow-lg bg-zinc-900 h-full">
         <CardHeader className="flex items-center justify-center pb-0">
-          <div className="w-24 h-24 rounded-full bg-muted animate-pulse" />
+          <div className="w-24 h-24 rounded-full bg-zinc-800 animate-pulse" />
         </CardHeader>
         <CardContent className="space-y-4 mt-6">
-          <div className="h-6 w-3/4 mx-auto bg-muted animate-pulse rounded" />
-          <div className="h-4 w-1/2 mx-auto bg-muted animate-pulse rounded" />
-          <div className="h-10 w-2/3 mx-auto bg-muted animate-pulse rounded-full mt-8" />
+          <div className="h-6 w-3/4 mx-auto bg-zinc-800 animate-pulse rounded" />
+          <div className="h-4 w-1/2 mx-auto bg-zinc-800 animate-pulse rounded" />
+          <div className="h-10 w-2/3 mx-auto bg-zinc-800 animate-pulse rounded-full mt-8" />
         </CardContent>
       </Card>;
   }
 
-  return <Card className="overflow-hidden border-0 shadow-md bg-gradient-to-br from-white to-muted dark:bg-black dark:from-black dark:to-gray-900 h-full">
+  return <Card className="overflow-hidden border-0 shadow-lg bg-zinc-900 h-full">
       <CardHeader className="relative pb-0 text-center">
         {!isEditing && <div className="absolute left-4 top-4 flex gap-2">
-            <Button variant="ghost" size="icon" onClick={handleGoToFriends} className="text-black dark:text-white hover:bg-primary/10 rounded-full relative">
+            <Button variant="ghost" size="icon" onClick={handleGoToFriends} className="text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-full relative">
               <Users className="h-5 w-5" />
               {pendingCount > 0 && (
                 <span className="absolute -top-1 -right-1 h-4 min-w-4 px-1 rounded-full bg-primary text-primary-foreground text-[10px] leading-4 text-center">
@@ -224,26 +224,26 @@ const ProfileCard = ({
           </div>}
 
         {!isEditing && <div className="absolute right-4 top-4 flex gap-2">
-            <Button variant="ghost" size="icon" onClick={handleGoToSettings} className="text-black dark:text-white hover:bg-primary/10 rounded-full">
+            <Button variant="ghost" size="icon" onClick={handleGoToSettings} className="text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-full">
               <Settings className="h-5 w-5" />
             </Button>
-            <Button variant="ghost" size="icon" onClick={handleEditClick} className="text-black dark:text-white hover:bg-primary/10 rounded-full">
+            <Button variant="ghost" size="icon" onClick={handleEditClick} className="text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-full">
               <Edit3 className="h-5 w-5" />
             </Button>
           </div>}
         
         <div className="relative w-28 h-28 mx-auto mb-2">
-          <div className={`relative w-28 h-28 rounded-full ${isEditing ? 'ring-2 ring-primary ring-offset-2 cursor-pointer' : ''} transition-all duration-200`} onClick={handleAvatarClick}>
-            <Avatar className="w-28 h-28 border-4 border-white shadow-md hover:opacity-95 transition-opacity">
+          <div className={`relative w-28 h-28 rounded-full ${isEditing ? 'ring-2 ring-primary ring-offset-2 ring-offset-zinc-900 cursor-pointer' : ''} transition-all duration-200`} onClick={handleAvatarClick}>
+            <Avatar className="w-28 h-28 border-4 border-zinc-800 shadow-lg hover:opacity-95 transition-opacity">
               <AvatarImage src={avatarPreview || profile?.avatar_url} />
-              <AvatarFallback className="bg-primary/10 text-primary text-3xl font-bold">
+              <AvatarFallback className="bg-zinc-800 text-zinc-300 text-3xl font-bold">
                 {profile?.full_name?.[0] || user?.email?.[0]?.toUpperCase() || 'U'}
               </AvatarFallback>
             </Avatar>
             
             {isEditing && <input ref={fileInputRef} id="avatar-upload" name="avatar" type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />}
             
-            {isEditing && <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-full text-white">
+            {isEditing && <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full text-white">
                 <Camera className="h-6 w-6" />
               </div>}
           </div>
@@ -264,14 +264,14 @@ const ProfileCard = ({
               <Input id="username" name="username" placeholder={t("profile", "username")} value={formData.username} onChange={handleInputChange} className="border-primary/20 focus:border-primary" />
             </div>
           </form> : <div className="mt-4">
-            <CardTitle className="text-2xl font-bold text-black dark:text-white">
+            <CardTitle className="text-2xl font-bold text-white">
               {profile?.full_name || t("profile", "anonymous")}
             </CardTitle>
-            {profile?.username && <p className="text-sm text-black dark:text-white mb-2">
+            {profile?.username && <p className="text-sm text-zinc-400 mb-2">
                 @{profile.username}
               </p>}
             <div className="flex items-center justify-center mt-3">
-              <span className="text-sm font-medium inline-flex items-center gap-1 bg-secondary/10 text-black dark:text-white px-4 py-1.5 rounded-full">
+              <span className="text-sm font-medium inline-flex items-center gap-1 bg-zinc-800 text-zinc-300 px-4 py-1.5 rounded-full border border-zinc-700">
                 {profile?.handicap !== null && profile?.handicap !== undefined ? `${t("profile", "handicap")}: ${profile.handicap}` : t("profile", "noHandicapYet")}
               </span>
             </div>
