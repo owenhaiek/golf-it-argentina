@@ -3,30 +3,37 @@ import { useRef } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useSimpleMapbox } from "@/hooks/useSimpleMapbox";
 import { useNavigate } from "react-router-dom";
-
 interface CourseMapProps {
   latitude?: number | null;
   longitude?: number | null;
   name?: string;
   courseId?: string;
 }
-
 const MAPBOX_TOKEN = 'pk.eyJ1Ijoib3dlbmhhaWVrIiwiYSI6ImNtYW8zbWZpajAyeGsyaXB3Z2NrOG9yeWsifQ.EutakvlH6R5Hala3cVTEYw';
-
-export const CourseMap = ({ latitude, longitude, name, courseId }: CourseMapProps) => {
-  const { t } = useLanguage();
+export const CourseMap = ({
+  latitude,
+  longitude,
+  name,
+  courseId
+}: CourseMapProps) => {
+  const {
+    t
+  } = useLanguage();
   const navigate = useNavigate();
   const mapContainerRef = useRef<HTMLDivElement>(null);
-  
-  const { map, isLoading, error } = useSimpleMapbox({
+  const {
+    map,
+    isLoading,
+    error
+  } = useSimpleMapbox({
     containerRef: mapContainerRef,
     center: longitude && latitude ? [longitude, latitude] : [-58.3816, -34.6118],
     zoom: 14,
     accessToken: MAPBOX_TOKEN,
     mapStyle: 'dark',
-    onMapReady: (mapInstance) => {
+    onMapReady: mapInstance => {
       if (!latitude || !longitude) return;
-      
+
       // Create custom marker element matching app style
       const markerEl = document.createElement('div');
       markerEl.className = 'course-detail-marker';
@@ -38,7 +45,7 @@ export const CourseMap = ({ latitude, longitude, name, courseId }: CourseMapProp
           </svg>
         </div>
       `;
-      
+
       // Add marker styles
       const styleId = 'course-detail-marker-style';
       if (!document.getElementById(styleId)) {
@@ -72,26 +79,21 @@ export const CourseMap = ({ latitude, longitude, name, courseId }: CourseMapProp
         `;
         document.head.appendChild(style);
       }
-      
       new (window as any).mapboxgl.Marker({
         element: markerEl,
         anchor: 'center'
-      })
-        .setLngLat([longitude, latitude])
-        .addTo(mapInstance);
+      }).setLngLat([longitude, latitude]).addTo(mapInstance);
     }
   });
-
   const handleMapClick = () => {
     if (courseId) {
       navigate(`/courses-map?focus=${courseId}`);
     }
   };
-  
+
   // Handle missing location data
   if (!latitude || !longitude) {
-    return (
-      <div className="bg-zinc-900 rounded-2xl p-6">
+    return <div className="bg-zinc-900 rounded-2xl p-6">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
             <MapPin className="h-5 w-5 text-emerald-400" />
@@ -102,12 +104,9 @@ export const CourseMap = ({ latitude, longitude, name, courseId }: CourseMapProp
           <MapPin className="h-10 w-10 mb-3 opacity-30" />
           <p className="text-sm">{t("course", "mapNotAvailable")}</p>
         </div>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="bg-zinc-900 rounded-2xl p-4 sm:p-5">
+  return <div className="bg-zinc-900 rounded-2xl p-4 sm:p-5">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
@@ -115,58 +114,36 @@ export const CourseMap = ({ latitude, longitude, name, courseId }: CourseMapProp
           </div>
           <h3 className="text-base font-semibold text-white">{t("course", "courseLocation")}</h3>
         </div>
-        {courseId && (
-          <button
-            onClick={handleMapClick}
-            className="flex items-center gap-2 text-xs text-emerald-400 hover:text-emerald-300 transition-colors"
-          >
-            <span>Ver en mapa</span>
-            <ExternalLink className="w-3.5 h-3.5" />
-          </button>
-        )}
+        {courseId}
       </div>
       
-      <div 
-        className="h-[220px] sm:h-[280px] rounded-xl relative overflow-hidden cursor-pointer group"
-        onClick={handleMapClick}
-      >
-        <div
-          ref={mapContainerRef}
-          className="absolute inset-0 w-full h-full"
-        />
+      <div className="h-[220px] sm:h-[280px] rounded-xl relative overflow-hidden cursor-pointer group" onClick={handleMapClick}>
+        <div ref={mapContainerRef} className="absolute inset-0 w-full h-full" />
         
         {/* Loading state */}
-        {isLoading && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-zinc-800 z-10">
+        {isLoading && <div className="absolute inset-0 flex flex-col items-center justify-center bg-zinc-800 z-10">
             <div className="relative w-12 h-12">
               <div className="absolute inset-0 rounded-full border-2 border-emerald-500/20"></div>
               <div className="absolute inset-0 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin"></div>
               <Map className="absolute inset-0 w-5 h-5 m-auto text-emerald-500/70" />
             </div>
             <p className="text-xs text-muted-foreground mt-3">Cargando mapa...</p>
-          </div>
-        )}
+          </div>}
         
         {/* Error state */}
-        {error && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-zinc-800 z-10">
+        {error && <div className="absolute inset-0 flex flex-col items-center justify-center bg-zinc-800 z-10">
             <MapPin className="h-10 w-10 text-muted-foreground opacity-30 mb-3" />
             <p className="text-muted-foreground text-sm text-center px-4">{error}</p>
-          </div>
-        )}
+          </div>}
         
         {/* Hover overlay */}
-        {!error && !isLoading && (
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
+        {!error && !isLoading && <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
             <div className="bg-zinc-900/90 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-medium text-white flex items-center gap-2">
               <Map className="w-4 h-4" />
               Abrir en mapa
             </div>
-          </div>
-        )}
+          </div>}
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default CourseMap;
