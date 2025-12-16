@@ -1,8 +1,5 @@
-
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MapPin, Map, Globe } from "lucide-react";
+import { MapPin, Map, ExternalLink } from "lucide-react";
 import { useRef } from "react";
-import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useSimpleMapbox } from "@/hooks/useSimpleMapbox";
 import { useNavigate } from "react-router-dom";
@@ -24,26 +21,63 @@ export const CourseMap = ({ latitude, longitude, name, courseId }: CourseMapProp
   const { map, isLoading, error } = useSimpleMapbox({
     containerRef: mapContainerRef,
     center: longitude && latitude ? [longitude, latitude] : [-58.3816, -34.6118],
-    zoom: 15,
+    zoom: 14,
     accessToken: MAPBOX_TOKEN,
+    mapStyle: 'dark',
     onMapReady: (mapInstance) => {
       if (!latitude || !longitude) return;
       
-      // Add green marker and popup
-      const marker = new (window as any).mapboxgl.Marker({
-        color: '#10b981',
-      })
-        .setLngLat([longitude, latitude])
-        .addTo(mapInstance);
+      // Create custom marker element matching app style
+      const markerEl = document.createElement('div');
+      markerEl.className = 'course-detail-marker';
+      markerEl.innerHTML = `
+        <div class="marker-inner">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
+            <line x1="4" x2="4" y1="22" y2="15"/>
+          </svg>
+        </div>
+      `;
       
-      new (window as any).mapboxgl.Popup({
-        closeButton: false,
-        closeOnClick: false,
-        anchor: 'bottom',
-        offset: [0, -30],
+      // Add marker styles
+      const styleId = 'course-detail-marker-style';
+      if (!document.getElementById(styleId)) {
+        const style = document.createElement('style');
+        style.id = styleId;
+        style.textContent = `
+          .course-detail-marker {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+          }
+          .course-detail-marker .marker-inner {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3), 0 4px 12px rgba(0, 0, 0, 0.4);
+            animation: pulse-marker 2s ease-in-out infinite;
+          }
+          @keyframes pulse-marker {
+            0%, 100% { box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3), 0 4px 12px rgba(0, 0, 0, 0.4); }
+            50% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0.2), 0 4px 16px rgba(0, 0, 0, 0.5); }
+          }
+        `;
+        document.head.appendChild(style);
+      }
+      
+      new (window as any).mapboxgl.Marker({
+        element: markerEl,
+        anchor: 'center'
       })
         .setLngLat([longitude, latitude])
-        .setHTML(`<div class="font-medium text-xs">${name || 'Golf Course'}</div>`)
         .addTo(mapInstance);
     }
   });
@@ -57,90 +91,81 @@ export const CourseMap = ({ latitude, longitude, name, courseId }: CourseMapProp
   // Handle missing location data
   if (!latitude || !longitude) {
     return (
-      <Card className="mb-4">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-lg">{t("course", "courseLocation")}</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-          <MapPin className="h-12 w-12 mb-2 opacity-20" />
-          <p>{t("course", "mapNotAvailable")}</p>
-        </CardContent>
-      </Card>
+      <div className="bg-zinc-900 rounded-2xl p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
+            <MapPin className="h-5 w-5 text-emerald-400" />
+          </div>
+          <h3 className="text-base font-semibold text-white">{t("course", "courseLocation")}</h3>
+        </div>
+        <div className="flex flex-col items-center justify-center py-12 text-muted-foreground bg-zinc-800/50 rounded-xl">
+          <MapPin className="h-10 w-10 mb-3 opacity-30" />
+          <p className="text-sm">{t("course", "mapNotAvailable")}</p>
+        </div>
+      </div>
     );
   }
 
   return (
-    <Card className="mb-4">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-lg">{t("course", "courseLocation")}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div 
-          className="bg-gray-200 h-[300px] rounded-md relative overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
-          onClick={handleMapClick}
-        >
-          <div
-            ref={mapContainerRef}
-            className="absolute inset-0 w-full h-full"
-          />
-          
-          {/* Loading state */}
-          {isLoading && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-200 z-10">
-              <div className="relative w-10 h-10">
-                <div className="absolute inset-0 rounded-full border-3 border-green-600/20"></div>
-                <div className="absolute inset-0 rounded-full border-3 border-green-600 border-t-transparent animate-spin"></div>
-                <Map className="absolute inset-0 w-5 h-5 m-auto text-green-600/70" />
-              </div>
-              <p className="text-sm text-muted-foreground mt-3">Loading map...</p>
-            </div>
-          )}
-          
-          {/* Error state */}
-          {error && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-200 z-10">
-              <Globe className="h-12 w-12 text-muted-foreground opacity-50 mb-3" />
-              <p className="text-muted-foreground mb-3 text-center px-4 text-sm">{error}</p>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => window.location.reload()}
-              >
-                {t("common", "tryAgain")}
-              </Button>
-            </div>
-          )}
-          
-          {/* Map attribution */}
-          {!error && !isLoading && (
-            <div className="absolute bottom-1 right-1 text-[8px] text-muted-foreground bg-white/80 px-1 rounded">
-              © Mapbox © OpenStreetMap
-            </div>
-          )}
-
-          {/* Tap to open overlay */}
-          {!error && !isLoading && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 hover:opacity-100 transition-opacity">
-              <div className="bg-white/90 px-3 py-2 rounded-md text-sm font-medium">
-                Tap to open in map
-              </div>
-            </div>
-          )}
+    <div className="bg-zinc-900 rounded-2xl p-4 sm:p-5">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
+            <MapPin className="h-5 w-5 text-emerald-400" />
+          </div>
+          <h3 className="text-base font-semibold text-white">{t("course", "courseLocation")}</h3>
         </div>
-
         {courseId && (
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="w-full mt-3"
+          <button
             onClick={handleMapClick}
+            className="flex items-center gap-2 text-xs text-emerald-400 hover:text-emerald-300 transition-colors"
           >
-            <Map className="w-4 h-4 mr-2" />
-            Open in Map
-          </Button>
+            <span>Ver en mapa</span>
+            <ExternalLink className="w-3.5 h-3.5" />
+          </button>
         )}
-      </CardContent>
-    </Card>
+      </div>
+      
+      <div 
+        className="h-[220px] sm:h-[280px] rounded-xl relative overflow-hidden cursor-pointer group"
+        onClick={handleMapClick}
+      >
+        <div
+          ref={mapContainerRef}
+          className="absolute inset-0 w-full h-full"
+        />
+        
+        {/* Loading state */}
+        {isLoading && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-zinc-800 z-10">
+            <div className="relative w-12 h-12">
+              <div className="absolute inset-0 rounded-full border-2 border-emerald-500/20"></div>
+              <div className="absolute inset-0 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin"></div>
+              <Map className="absolute inset-0 w-5 h-5 m-auto text-emerald-500/70" />
+            </div>
+            <p className="text-xs text-muted-foreground mt-3">Cargando mapa...</p>
+          </div>
+        )}
+        
+        {/* Error state */}
+        {error && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-zinc-800 z-10">
+            <MapPin className="h-10 w-10 text-muted-foreground opacity-30 mb-3" />
+            <p className="text-muted-foreground text-sm text-center px-4">{error}</p>
+          </div>
+        )}
+        
+        {/* Hover overlay */}
+        {!error && !isLoading && (
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
+            <div className="bg-zinc-900/90 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-medium text-white flex items-center gap-2">
+              <Map className="w-4 h-4" />
+              Abrir en mapa
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 

@@ -1,73 +1,80 @@
+import { MapPin, Phone, Globe, ChevronRight } from "lucide-react";
 
-import { Card, CardContent } from "@/components/ui/card";
-import { MapPin, Phone, Globe, ExternalLink } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+interface CourseCTARowProps {
+  course: {
+    address?: string | null;
+    city?: string | null;
+    state?: string | null;
+    phone?: string | null;
+    website?: string | null;
+  };
+  language: string;
+  onLocationClick: () => void;
+  onPhoneClick: () => void;
+  onWebsiteClick: () => void;
+}
 
-export function CourseCTARow({ course, language, onLocationClick, onPhoneClick, onWebsiteClick }: any) {
+export function CourseCTARow({ course, language, onLocationClick, onPhoneClick, onWebsiteClick }: CourseCTARowProps) {
+  const ctaItems = [
+    {
+      id: 'directions',
+      show: !!course.address,
+      icon: MapPin,
+      iconBg: 'bg-blue-500/20',
+      iconColor: 'text-blue-400',
+      title: language === "en" ? "Directions" : "Direcciones",
+      subtitle: [course.address, course.city].filter(Boolean).join(', ') || 'Ver ubicación',
+      onClick: onLocationClick,
+    },
+    {
+      id: 'phone',
+      show: !!course.phone,
+      icon: Phone,
+      iconBg: 'bg-emerald-500/20',
+      iconColor: 'text-emerald-400',
+      title: language === "en" ? "Call" : "Llamar",
+      subtitle: course.phone || '',
+      onClick: onPhoneClick,
+    },
+    {
+      id: 'website',
+      show: !!course.website,
+      icon: Globe,
+      iconBg: 'bg-purple-500/20',
+      iconColor: 'text-purple-400',
+      title: language === "en" ? "Website" : "Sitio Web",
+      subtitle: 'Visitar página',
+      onClick: onWebsiteClick,
+    },
+  ].filter(item => item.show);
+
+  if (ctaItems.length === 0) return null;
+
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-      {course.address && (
-        <Card 
-          className="cursor-pointer hover:shadow-md transition-all duration-200 hover:bg-accent/10 border-2 hover:border-primary/20"
-          onClick={onLocationClick}
-        >
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
-                <MapPin className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm mb-1">{language === "en" ? "Get Directions" : "Obtener Direcciones"}</p>
-                <p className="text-xs text-muted-foreground truncate">
-                  {[course.address, course.city, course.state].filter(Boolean).join(', ')}
-                </p>
-              </div>
-              <ExternalLink className="h-4 w-4 text-muted-foreground" />
+    <div className="bg-zinc-900 rounded-2xl overflow-hidden">
+      {ctaItems.map((item, index) => {
+        const Icon = item.icon;
+        const isLast = index === ctaItems.length - 1;
+        
+        return (
+          <button
+            key={item.id}
+            onClick={item.onClick}
+            className={`w-full flex items-center gap-4 p-4 hover:bg-zinc-800/50 active:bg-zinc-800 transition-colors ${
+              !isLast ? 'border-b border-zinc-800' : ''
+            }`}
+          >
+            <div className={`w-11 h-11 rounded-xl ${item.iconBg} flex items-center justify-center flex-shrink-0`}>
+              <Icon className={`h-5 w-5 ${item.iconColor}`} />
             </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {course.phone && (
-        <Card 
-          className="cursor-pointer hover:shadow-md transition-all duration-200 hover:bg-accent/10 border-2 hover:border-primary/20"
-          onClick={onPhoneClick}
-        >
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
-                <Phone className="h-5 w-5 text-green-600 dark:text-green-400" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm mb-1">{language === "en" ? "Call Course" : "Llamar"}</p>
-                <p className="text-xs text-muted-foreground">{course.phone}</p>
-              </div>
-              <ExternalLink className="h-4 w-4 text-muted-foreground" />
+            <div className="flex-1 text-left min-w-0">
+              <p className="font-medium text-white text-sm">{item.title}</p>
+              <p className="text-xs text-muted-foreground truncate mt-0.5">{item.subtitle}</p>
             </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {course.website && (
-        <Card 
-          className="cursor-pointer hover:shadow-md transition-all duration-200 hover:bg-accent/10 border-2 hover:border-primary/20"
-          onClick={onWebsiteClick}
-        >
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg">
-                <Globe className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm mb-1">{language === "en" ? "Visit Website" : "Visitar Web"}</p>
-                <p className="text-xs text-muted-foreground truncate">Website</p>
-              </div>
-              <ExternalLink className="h-4 w-4 text-muted-foreground" />
-            </div>
-          </CardContent>
-        </Card>
-      )}
+            <ChevronRight className="h-5 w-5 text-zinc-600 flex-shrink-0" />
+          </button>
+        );
+      })}
     </div>
   );
 }
