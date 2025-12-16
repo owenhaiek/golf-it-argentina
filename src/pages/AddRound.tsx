@@ -79,7 +79,7 @@ const AddRound = () => {
         title: t("addRound", "roundSaved") || "Round saved successfully!",
       });
       
-      navigate('/');
+      navigate('/profile');
     },
     onError: (error) => {
       console.error('Error adding round:', error);
