@@ -177,7 +177,7 @@ export const MapControls = ({ map, onStyleChange, currentStyle }: MapControlsPro
   const StyleIcon = getStyleIcon(currentStyle);
 
   return (
-    <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
+    <div className="absolute right-4 z-10 flex flex-col gap-2" style={{ top: 'max(1rem, env(safe-area-inset-top, 1rem))' }}>
       {/* Map Style Toggle */}
       <Button
         onClick={handleStyleToggle}

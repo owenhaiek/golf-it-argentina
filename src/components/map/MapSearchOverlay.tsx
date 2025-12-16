@@ -132,7 +132,7 @@ export const MapSearchOverlay = ({ courses, onSelectCourse, onOpenChange }: MapS
   return (
     <>
       {/* Top left controls - Profile & Search */}
-      <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
+      <div className="absolute left-4 z-10 flex flex-col gap-2" style={{ top: 'max(1rem, env(safe-area-inset-top, 1rem))' }}>
         {/* Profile button */}
         <motion.div whileTap={{ scale: 0.9 }}>
           <Button
