@@ -80,13 +80,13 @@ export const MapActionMenu = ({ onOpenChange }: MapActionMenuProps) => {
             {actions.map((action, index) => (
               <motion.button
                 key={action.route}
-                initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                initial={{ opacity: 0, y: 12, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                exit={{ opacity: 0, y: 8, scale: 0.98 }}
                 transition={{ 
-                  duration: 0.2,
-                  delay: index * 0.03,
-                  ease: [0.25, 0.46, 0.45, 0.94]
+                  duration: 0.12,
+                  delay: index * 0.015,
+                  ease: [0.2, 0.9, 0.3, 1]
                 }}
                 onClick={() => handleAction(action.route)}
                 className="flex items-center gap-3 bg-background/95 backdrop-blur-md shadow-2xl rounded-2xl p-3.5 min-w-[250px] active:scale-[0.97] transition-transform duration-100 will-change-transform"
