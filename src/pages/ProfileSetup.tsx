@@ -109,10 +109,10 @@ const ProfileSetup = () => {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-background">
-      <div className="flex-shrink-0 p-4 bg-background border-b border-border">
+    <div className="h-screen flex flex-col" style={{ backgroundColor: '#092820' }}>
+      <div className="flex-shrink-0 p-4 border-b border-white/10">
         <div className="flex items-center justify-center">
-          <h1 className="text-2xl font-bold text-foreground">Completa tu Perfil</h1>
+          <h1 className="text-2xl font-bold text-white">Completa tu Perfil</h1>
         </div>
       </div>
       
