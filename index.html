@@ -33,8 +33,24 @@
     
     <title>GolfIt - Encontrá donde jugar!</title>
   </head>
-  <body>
-    <div id="root"></div>
+  <body style="background-color: #092820; margin: 0;">
+    <div id="root">
+      <!-- Initial loading screen - shows immediately before React loads -->
+      <div id="initial-loader" style="position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background-color: #092820; z-index: 9999;">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 24px;">
+          <img src="/lovable-uploads/3dc401b2-fdd6-4815-a300-aa3c9b61ed9d.png" alt="GolfIt" style="width: 80px; height: 80px; object-fit: contain; animation: pulse 1.5s ease-in-out infinite;" />
+          <div style="display: flex; gap: 6px;">
+            <div style="width: 8px; height: 8px; background: white; border-radius: 50%; animation: bounce 1s ease-in-out infinite;"></div>
+            <div style="width: 8px; height: 8px; background: white; border-radius: 50%; animation: bounce 1s ease-in-out 0.1s infinite;"></div>
+            <div style="width: 8px; height: 8px; background: white; border-radius: 50%; animation: bounce 1s ease-in-out 0.2s infinite;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <style>
+      @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.8; transform: scale(0.95); } }
+      @keyframes bounce { 0%, 100% { transform: translateY(0); opacity: 0.4; } 50% { transform: translateY(-8px); opacity: 1; } }
+    </style>
     <!-- Mapbox GL JS -->
     <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
     <!-- Added the required Lovable script tag -->

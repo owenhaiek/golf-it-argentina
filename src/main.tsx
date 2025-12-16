@@ -1,47 +1,25 @@
 import { createRoot } from 'react-dom/client'
-import { useState, useEffect } from 'react'
 import App from './App.tsx'
 import './index.css'
-import AppLoadingScreen from './components/ui/AppLoadingScreen.tsx'
 
 // Initialize dark mode immediately before React renders
 if (typeof window !== 'undefined') {
   document.documentElement.classList.add("dark");
-}
-
-// Root component with immediate green background
-const Root = () => {
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    // Ultra-fast loading - only wait for essential readiness
-    const init = () => {
-      // Use requestIdleCallback for non-critical work, or fallback to rAF
-      const scheduleEnd = window.requestIdleCallback || requestAnimationFrame;
-      
-      // Minimum 300ms to show branding, but don't block longer
-      const minTime = 300;
-      const start = Date.now();
-      
-      scheduleEnd(() => {
-        const elapsed = Date.now() - start;
-        const remaining = Math.max(0, minTime - elapsed);
-        setTimeout(() => setIsLoading(false), remaining);
-      });
-    };
-    
-    if (document.readyState === 'complete') {
-      init();
-    } else {
-      window.addEventListener('load', init, { once: true });
+  
+  // Remove initial loader once React is ready
+  const removeLoader = () => {
+    const loader = document.getElementById('initial-loader');
+    if (loader) {
+      loader.style.opacity = '0';
+      loader.style.transition = 'opacity 0.2s ease-out';
+      setTimeout(() => loader.remove(), 200);
     }
-  }, []);
-
-  if (isLoading) {
-    return <AppLoadingScreen />;
-  }
-
-  return <App />;
+  };
+  
+  // Remove loader after a small delay to ensure smooth transition
+  requestAnimationFrame(() => {
+    requestAnimationFrame(removeLoader);
+  });
 }
 
-createRoot(document.getElementById("root")!).render(<Root />);
+createRoot(document.getElementById("root")!).render(<App />);
