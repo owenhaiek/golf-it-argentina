@@ -1,8 +1,4 @@
-
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Flag, Target } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CourseHoleDetailsProps {
@@ -20,55 +16,42 @@ const CourseHoleDetails = ({
 }: CourseHoleDetailsProps) => {
   const { t } = useLanguage();
   
-  // Generate hole data using real course data when available
   const generateHoleData = () => {
     const holeData = [];
-    
-    // Handle 9-hole courses by duplicating data for 18 holes if needed
     let actualHolePars = holePars;
     let actualHoleHandicaps = holeHandicaps;
     
-    // If we have 9 hole pars but need 18 holes, duplicate them
     if (holePars.length === 9 && holes === 18) {
       actualHolePars = [...holePars, ...holePars];
     }
     
-    // If we have 9 hole handicaps but need 18 holes, duplicate them
     if (holeHandicaps.length === 9 && holes === 18) {
       actualHoleHandicaps = [...holeHandicaps, ...holeHandicaps];
     }
     
     for (let i = 1; i <= holes; i++) {
-      // Use actual hole par if available, otherwise generate realistic defaults
       let par;
       if (actualHolePars && actualHolePars[i - 1]) {
         par = actualHolePars[i - 1];
       } else {
-        // Generate realistic par distribution as fallback
         if (i % 6 === 0 || i % 12 === 0) {
-          par = 5; // Par 5 holes
+          par = 5;
         } else if (i % 3 === 0) {
-          par = 3; // Par 3 holes
+          par = 3;
         } else {
-          par = 4; // Par 4 holes (most common)
+          par = 4;
         }
       }
       
-      // Use actual handicap if available, otherwise generate defaults
       let handicap;
       if (actualHoleHandicaps && actualHoleHandicaps[i - 1]) {
         handicap = actualHoleHandicaps[i - 1];
       } else {
-        // Generate handicap (difficulty rating 1-18)
         handicap = i <= 9 ? i * 2 - 1 : (i - 9) * 2;
         if (handicap > 18) handicap = handicap - 18;
       }
       
-      holeData.push({
-        hole: i,
-        par: par,
-        handicap: handicap
-      });
+      holeData.push({ hole: i, par, handicap });
     }
     
     return holeData;
@@ -82,128 +65,151 @@ const CourseHoleDetails = ({
   const backNinePar = backNine.reduce((sum, hole) => sum + hole.par, 0);
   const totalPar = frontNinePar + backNinePar;
 
-  const HoleTable = ({ holes, title, totalPar }: {
-    holes: any[], 
-    title: string, 
-    totalPar: number
+  const getParColor = (par: number) => {
+    switch (par) {
+      case 3: return 'bg-blue-500/20 text-blue-400';
+      case 4: return 'bg-zinc-700 text-zinc-300';
+      case 5: return 'bg-emerald-500/20 text-emerald-400';
+      default: return 'bg-zinc-700 text-zinc-300';
+    }
+  };
+
+  const HoleTable = ({ holesData, title, totalParValue }: {
+    holesData: { hole: number; par: number; handicap: number }[];
+    title: string;
+    totalParValue: number;
   }) => (
-    <Card className="w-full">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-lg flex items-center gap-2">
-          <Flag className="h-5 w-5 text-primary" />
-          {title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="text-center font-semibold">Hole</TableHead>
-              {holes.map((hole) => (
-                <TableHead key={hole.hole} className="text-center min-w-[50px]">
-                  {hole.hole}
-                </TableHead>
-              ))}
-              <TableHead className="text-center font-semibold bg-primary/5">Total</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            <TableRow className="hover:bg-muted/50">
-              <TableCell className="font-medium">Par</TableCell>
-              {holes.map((hole) => (
-                <TableCell key={hole.hole} className="text-center">
-                  <Badge variant={hole.par === 3 ? "secondary" : hole.par === 5 ? "default" : "outline"}>
-                    {hole.par}
-                  </Badge>
-                </TableCell>
-              ))}
-              <TableCell className="text-center font-bold bg-primary/5">{totalPar}</TableCell>
-            </TableRow>
-            <TableRow className="hover:bg-muted/50">
-              <TableCell className="font-medium">Handicap</TableCell>
-              {holes.map((hole) => (
-                <TableCell key={hole.hole} className="text-center text-sm text-muted-foreground">
-                  {hole.handicap}
-                </TableCell>
-              ))}
-              <TableCell className="text-center text-muted-foreground bg-primary/5">-</TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
+    <div className="bg-zinc-900 rounded-2xl p-4 sm:p-5">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
+          <Flag className="h-5 w-5 text-emerald-400" />
+        </div>
+        <h3 className="text-base font-semibold text-white">{title}</h3>
+      </div>
+      
+      <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+        <div className="min-w-[500px]">
+          {/* Hole numbers */}
+          <div className="flex items-center gap-1 mb-2">
+            <div className="w-16 sm:w-20 text-xs text-zinc-500 font-medium">Hoyo</div>
+            {holesData.map((hole) => (
+              <div key={hole.hole} className="flex-1 text-center">
+                <span className="text-xs sm:text-sm font-semibold text-white">{hole.hole}</span>
+              </div>
+            ))}
+            <div className="w-12 sm:w-14 text-center">
+              <span className="text-xs sm:text-sm font-semibold text-emerald-400">Total</span>
+            </div>
+          </div>
+          
+          {/* Par row */}
+          <div className="flex items-center gap-1 mb-2 bg-zinc-800/50 rounded-xl p-2">
+            <div className="w-16 sm:w-20 text-xs text-zinc-400 font-medium">Par</div>
+            {holesData.map((hole) => (
+              <div key={hole.hole} className="flex-1 flex justify-center">
+                <span className={`w-6 h-6 sm:w-7 sm:h-7 rounded-lg flex items-center justify-center text-xs sm:text-sm font-bold ${getParColor(hole.par)}`}>
+                  {hole.par}
+                </span>
+              </div>
+            ))}
+            <div className="w-12 sm:w-14 flex justify-center">
+              <span className="w-8 h-6 sm:w-10 sm:h-7 rounded-lg bg-emerald-500/20 flex items-center justify-center text-xs sm:text-sm font-bold text-emerald-400">
+                {totalParValue}
+              </span>
+            </div>
+          </div>
+          
+          {/* Handicap row */}
+          <div className="flex items-center gap-1 p-2">
+            <div className="w-16 sm:w-20 text-xs text-zinc-500 font-medium">Hcp</div>
+            {holesData.map((hole) => (
+              <div key={hole.hole} className="flex-1 text-center">
+                <span className="text-xs text-zinc-500">{hole.handicap}</span>
+              </div>
+            ))}
+            <div className="w-12 sm:w-14 text-center">
+              <span className="text-xs text-zinc-600">-</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Course Summary Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Flag className="h-5 w-5 text-primary" />
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">{t("course", "totalHoles")}</p>
-                <p className="text-2xl font-bold">{holes}</p>
-              </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="bg-zinc-900 rounded-2xl p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="w-9 h-9 rounded-xl bg-emerald-500/20 flex items-center justify-center">
+              <Flag className="h-4 w-4 text-emerald-400" />
             </div>
-          </CardContent>
-        </Card>
+          </div>
+          <p className="text-2xl sm:text-3xl font-bold text-white mb-1">{holes}</p>
+          <p className="text-xs sm:text-sm text-zinc-400">{t("course", "totalHoles")}</p>
+        </div>
         
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Target className="h-5 w-5 text-primary" />
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">{t("course", "totalPar")}</p>
-                <p className="text-2xl font-bold">{totalPar}</p>
-              </div>
+        <div className="bg-zinc-900 rounded-2xl p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="w-9 h-9 rounded-xl bg-purple-500/20 flex items-center justify-center">
+              <Target className="h-4 w-4 text-purple-400" />
             </div>
-          </CardContent>
-        </Card>
+          </div>
+          <p className="text-2xl sm:text-3xl font-bold text-white mb-1">{totalPar}</p>
+          <p className="text-xs sm:text-sm text-zinc-400">{t("course", "totalPar")}</p>
+        </div>
       </div>
 
       {/* Front Nine */}
       <HoleTable 
-        holes={frontNine} 
+        holesData={frontNine} 
         title={t("course", "frontNine")} 
-        totalPar={frontNinePar}
+        totalParValue={frontNinePar}
       />
 
       {/* Back Nine */}
       {holes === 18 && (
         <HoleTable 
-          holes={backNine} 
+          holesData={backNine} 
           title={t("course", "backNine")} 
-          totalPar={backNinePar}
+          totalParValue={backNinePar}
         />
       )}
 
-      {/* Course Totals */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Target className="h-5 w-5 text-primary" />
-            {t("course", "courseTotals")}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-3 gap-4">
-            <div className="text-center">
-              <p className="text-sm text-muted-foreground">Par 3 Holes</p>
-              <p className="text-xl font-bold">{holeData.filter(h => h.par === 3).length}</p>
-            </div>
-            <div className="text-center">
-              <p className="text-sm text-muted-foreground">Par 4 Holes</p>
-              <p className="text-xl font-bold">{holeData.filter(h => h.par === 4).length}</p>
-            </div>
-            <div className="text-center">
-              <p className="text-sm text-muted-foreground">Par 5 Holes</p>
-              <p className="text-xl font-bold">{holeData.filter(h => h.par === 5).length}</p>
-            </div>
+      {/* Par Distribution */}
+      <div className="bg-zinc-900 rounded-2xl p-4 sm:p-5">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center">
+            <Target className="h-5 w-5 text-purple-400" />
           </div>
-        </CardContent>
-      </Card>
+          <h3 className="text-base font-semibold text-white">{t("course", "courseTotals")}</h3>
+        </div>
+        
+        <div className="grid grid-cols-3 gap-3">
+          <div className="bg-zinc-800/50 rounded-xl p-3 text-center">
+            <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center mx-auto mb-2">
+              <span className="text-sm font-bold text-blue-400">3</span>
+            </div>
+            <p className="text-xl sm:text-2xl font-bold text-white">{holeData.filter(h => h.par === 3).length}</p>
+            <p className="text-xs text-zinc-500">Par 3</p>
+          </div>
+          <div className="bg-zinc-800/50 rounded-xl p-3 text-center">
+            <div className="w-8 h-8 rounded-lg bg-zinc-600/50 flex items-center justify-center mx-auto mb-2">
+              <span className="text-sm font-bold text-zinc-300">4</span>
+            </div>
+            <p className="text-xl sm:text-2xl font-bold text-white">{holeData.filter(h => h.par === 4).length}</p>
+            <p className="text-xs text-zinc-500">Par 4</p>
+          </div>
+          <div className="bg-zinc-800/50 rounded-xl p-3 text-center">
+            <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center mx-auto mb-2">
+              <span className="text-sm font-bold text-emerald-400">5</span>
+            </div>
+            <p className="text-xl sm:text-2xl font-bold text-white">{holeData.filter(h => h.par === 5).length}</p>
+            <p className="text-xs text-zinc-500">Par 5</p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
