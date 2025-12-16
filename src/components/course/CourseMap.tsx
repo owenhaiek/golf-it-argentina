@@ -107,14 +107,11 @@ export const CourseMap = ({
       </div>;
   }
   return <div className="bg-zinc-900 rounded-2xl p-4 sm:p-5">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
-            <MapPin className="h-5 w-5 text-emerald-400" />
-          </div>
-          <h3 className="text-base font-semibold text-white">{t("course", "courseLocation")}</h3>
+      <div className="flex items-center gap-3 mb-4">
+        <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
+          <MapPin className="h-5 w-5 text-emerald-400" />
         </div>
-        {courseId}
+        <h3 className="text-base font-semibold text-white">{t("course", "courseLocation")}</h3>
       </div>
       
       <div className="h-[220px] sm:h-[280px] rounded-xl relative overflow-hidden cursor-pointer group" onClick={handleMapClick}>

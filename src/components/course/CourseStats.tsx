@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Target, Calendar, Trophy, Users, Award, TrendingUp } from "lucide-react";
@@ -27,42 +26,34 @@ interface CourseStatsProps {
 
 const CourseStats = ({ rounds, isLoading, coursePar = 72, courseHolePars }: CourseStatsProps) => {
   const { t } = useLanguage();
-  // Helper function to calculate the correct par for a round
+  
   const calculateRoundPar = (round: Round) => {
-    // Check if this is a 9-hole round from the notes
     if (round.notes && round.notes.includes('9 holes played')) {
       if (courseHolePars && courseHolePars.length >= 18) {
-        // Calculate front 9 or back 9 par based on notes
         if (round.notes.includes('(front 9)')) {
           return courseHolePars.slice(0, 9).reduce((a, b) => a + b, 0);
         } else if (round.notes.includes('(back 9)')) {
           return courseHolePars.slice(9, 18).reduce((a, b) => a + b, 0);
         }
       }
-      // Fallback: assume 9 holes is half the course par
       return Math.round(coursePar / 2);
     }
-    
     return coursePar;
   };
 
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {[...Array(4)].map((_, i) => (
-            <Card key={i} className="animate-pulse">
-              <CardContent className="p-4">
-                <div className="h-16 bg-muted rounded"></div>
-              </CardContent>
-            </Card>
+            <div key={i} className="bg-zinc-900 rounded-2xl p-4 animate-pulse">
+              <div className="h-16 bg-zinc-800 rounded-xl"></div>
+            </div>
           ))}
         </div>
-        <Card className="animate-pulse">
-          <CardContent className="p-6">
-            <div className="h-48 bg-muted rounded"></div>
-          </CardContent>
-        </Card>
+        <div className="bg-zinc-900 rounded-2xl p-6 animate-pulse">
+          <div className="h-32 bg-zinc-800 rounded-xl"></div>
+        </div>
       </div>
     );
   }
@@ -70,28 +61,27 @@ const CourseStats = ({ rounds, isLoading, coursePar = 72, courseHolePars }: Cour
   if (!rounds || rounds.length === 0) {
     return (
       <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Trophy className="h-5 w-5 text-primary" />
-              {t("course", "courseStatistics")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-            <Users className="h-16 w-16 text-muted-foreground/50 mb-4" />
-            <h3 className="text-lg font-medium mb-2">{t("course", "noRoundsRecorded")}</h3>
-            <p className="text-muted-foreground max-w-md">
+        <div className="bg-zinc-900 rounded-2xl p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
+              <Trophy className="h-5 w-5 text-emerald-400" />
+            </div>
+            <h3 className="text-base font-semibold text-white">{t("course", "courseStatistics")}</h3>
+          </div>
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <Users className="h-14 w-14 text-zinc-600 mb-4" />
+            <h3 className="text-lg font-medium text-white mb-2">{t("course", "noRoundsRecorded")}</h3>
+            <p className="text-zinc-400 text-sm max-w-md">
               {t("course", "firstToPlayCourse")}
             </p>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     );
   }
 
   const totalRounds = rounds.length;
   
-  // Calculate weighted average score considering different par values
   let totalScoreVsPar = 0;
   rounds.forEach(round => {
     const roundPar = calculateRoundPar(round);
@@ -99,7 +89,6 @@ const CourseStats = ({ rounds, isLoading, coursePar = 72, courseHolePars }: Cour
   });
   const averageVsPar = totalScoreVsPar / totalRounds;
 
-  // Calculate best and worst rounds with correct par calculations
   const bestRound = rounds.reduce((min, round) => {
     const minVsPar = min.score - calculateRoundPar(min);
     const roundVsPar = round.score - calculateRoundPar(round);
@@ -112,10 +101,8 @@ const CourseStats = ({ rounds, isLoading, coursePar = 72, courseHolePars }: Cour
     return roundVsPar > maxVsPar ? round : max;
   }, rounds[0]);
 
-  // Get unique players
   const uniquePlayers = new Set(rounds.map(round => round.user_id)).size;
 
-  // Sort rounds for leaderboard (best scores relative to par first)
   const sortedRounds = [...rounds].sort((a, b) => {
     const aVsPar = a.score - calculateRoundPar(a);
     const bVsPar = b.score - calculateRoundPar(b);
@@ -126,115 +113,113 @@ const CourseStats = ({ rounds, isLoading, coursePar = 72, courseHolePars }: Cour
   const worstRoundPar = calculateRoundPar(worstRound);
 
   return (
-    <div className="space-y-6">
-      {/* Overview Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 border-blue-200 dark:border-blue-800">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-blue-700 dark:text-blue-300">{t("course", "totalRounds")}</p>
-                <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">{totalRounds}</p>
-              </div>
-              <Calendar className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+    <div className="space-y-4">
+      {/* Stats Grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {/* Total Rounds */}
+        <div className="bg-zinc-900 rounded-2xl p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="w-9 h-9 rounded-xl bg-blue-500/20 flex items-center justify-center">
+              <Calendar className="h-4 w-4 text-blue-400" />
             </div>
-          </CardContent>
-        </Card>
+          </div>
+          <p className="text-2xl sm:text-3xl font-bold text-white mb-1">{totalRounds}</p>
+          <p className="text-xs sm:text-sm text-zinc-400">{t("course", "totalRounds")}</p>
+        </div>
 
-        <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 border-green-200 dark:border-green-800">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-green-700 dark:text-green-300">{t("course", "averageVsPar")}</p>
-                <p className={`text-2xl font-bold ${averageVsPar > 0 ? 'text-red-600 dark:text-red-400' : averageVsPar < 0 ? 'text-green-600 dark:text-green-400' : 'text-blue-600 dark:text-blue-400'}`}>
-                  {averageVsPar > 0 ? `+${averageVsPar.toFixed(1)}` : averageVsPar.toFixed(1)}
-                </p>
-              </div>
-              <TrendingUp className="h-8 w-8 text-green-600 dark:text-green-400" />
+        {/* Average vs Par */}
+        <div className="bg-zinc-900 rounded-2xl p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="w-9 h-9 rounded-xl bg-emerald-500/20 flex items-center justify-center">
+              <TrendingUp className="h-4 w-4 text-emerald-400" />
             </div>
-          </CardContent>
-        </Card>
+          </div>
+          <p className={`text-2xl sm:text-3xl font-bold mb-1 ${
+            averageVsPar > 0 ? 'text-red-400' : averageVsPar < 0 ? 'text-emerald-400' : 'text-blue-400'
+          }`}>
+            {averageVsPar > 0 ? `+${averageVsPar.toFixed(1)}` : averageVsPar.toFixed(1)}
+          </p>
+          <p className="text-xs sm:text-sm text-zinc-400">{t("course", "averageVsPar")}</p>
+        </div>
 
-        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900 border-purple-200 dark:border-purple-800">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-purple-700 dark:text-purple-300">{t("course", "bestRound")}</p>
-                <p className={`text-2xl font-bold ${bestRound.score - bestRoundPar > 0 ? 'text-red-600 dark:text-red-400' : bestRound.score - bestRoundPar < 0 ? 'text-green-600 dark:text-green-400' : 'text-blue-600 dark:text-blue-400'}`}>
-                  {bestRound.score - bestRoundPar > 0 ? `+${bestRound.score - bestRoundPar}` : bestRound.score - bestRoundPar}
-                </p>
-              </div>
-              <Target className="h-8 w-8 text-purple-600 dark:text-purple-400" />
+        {/* Best Round */}
+        <div className="bg-zinc-900 rounded-2xl p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="w-9 h-9 rounded-xl bg-purple-500/20 flex items-center justify-center">
+              <Target className="h-4 w-4 text-purple-400" />
             </div>
-          </CardContent>
-        </Card>
+          </div>
+          <p className={`text-2xl sm:text-3xl font-bold mb-1 ${
+            bestRound.score - bestRoundPar > 0 ? 'text-red-400' : bestRound.score - bestRoundPar < 0 ? 'text-emerald-400' : 'text-blue-400'
+          }`}>
+            {bestRound.score - bestRoundPar > 0 ? `+${bestRound.score - bestRoundPar}` : bestRound.score - bestRoundPar}
+          </p>
+          <p className="text-xs sm:text-sm text-zinc-400">{t("course", "bestRound")}</p>
+        </div>
 
-        <Card className="bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-950 dark:to-amber-900 border-amber-200 dark:border-amber-800">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-amber-700 dark:text-amber-300">{t("course", "players")}</p>
-                <p className="text-2xl font-bold text-amber-900 dark:text-amber-100">{uniquePlayers}</p>
-              </div>
-              <Users className="h-8 w-8 text-amber-600 dark:text-amber-400" />
+        {/* Players */}
+        <div className="bg-zinc-900 rounded-2xl p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="w-9 h-9 rounded-xl bg-amber-500/20 flex items-center justify-center">
+              <Users className="h-4 w-4 text-amber-400" />
             </div>
-          </CardContent>
-        </Card>
+          </div>
+          <p className="text-2xl sm:text-3xl font-bold text-white mb-1">{uniquePlayers}</p>
+          <p className="text-xs sm:text-sm text-zinc-400">{t("course", "players")}</p>
+        </div>
       </div>
 
       {/* Best Round Showcase */}
-      <Card className="bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-950 dark:to-green-950 border-emerald-200 dark:border-emerald-800">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-xl flex items-center gap-3">
-            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900">
-              <Award className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+      <div className="bg-zinc-900 rounded-2xl p-4 sm:p-5">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
+            <Award className="h-5 w-5 text-emerald-400" />
+          </div>
+          <h3 className="text-base font-semibold text-white">{t("course", "bestRound")}</h3>
+        </div>
+        
+        <div className="flex items-center gap-4">
+          <Avatar className="h-14 w-14 sm:h-16 sm:w-16 ring-2 ring-emerald-500/30">
+            <AvatarImage 
+              src={bestRound.profiles?.avatar_url || ''} 
+              alt={bestRound.profiles?.username || 'Anonymous'} 
+            />
+            <AvatarFallback className="bg-zinc-800 text-emerald-400 text-lg font-semibold">
+              {bestRound.profiles?.username?.charAt(0).toUpperCase() || 'A'}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 sm:gap-3 flex-wrap mb-1">
+              <span className="text-2xl sm:text-3xl font-bold text-white">
+                {bestRound.score}
+              </span>
+              <div className={`px-2.5 py-0.5 rounded-full text-xs sm:text-sm font-medium ${
+                bestRound.score - bestRoundPar < 0 
+                  ? 'bg-emerald-500/20 text-emerald-400' 
+                  : bestRound.score - bestRoundPar === 0
+                  ? 'bg-blue-500/20 text-blue-400'
+                  : 'bg-amber-500/20 text-amber-400'
+              }`}>
+                {bestRound.score - bestRoundPar > 0 ? `+${bestRound.score - bestRoundPar}` : bestRound.score - bestRoundPar}
+              </div>
             </div>
-            <span className="text-emerald-900 dark:text-emerald-100">{t("course", "bestRound")}</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center gap-4">
-            <Avatar className="h-16 w-16 ring-2 ring-emerald-200 dark:ring-emerald-800">
-              <AvatarImage 
-                src={bestRound.profiles?.avatar_url || ''} 
-                alt={bestRound.profiles?.username || 'Anonymous'} 
-              />
-              <AvatarFallback className="bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300 text-lg font-semibold">
-                {bestRound.profiles?.username?.charAt(0).toUpperCase() || 'A'}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-2">
-                <span className="text-3xl font-bold text-emerald-700 dark:text-emerald-300">
-                  {bestRound.score}
-                </span>
-                <div className={`px-3 py-1 rounded-full text-sm font-medium ${
-                  bestRound.score - bestRoundPar < 0 
-                    ? 'bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300' 
-                    : bestRound.score - bestRoundPar === 0
-                    ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300'
-                    : 'bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-300'
-                }`}>
-                  {bestRound.score - bestRoundPar > 0 ? `+${bestRound.score - bestRoundPar}` : bestRound.score - bestRoundPar}
-                </div>
-              </div>
-              <div className="text-emerald-700 dark:text-emerald-300 font-medium text-lg">
-                {bestRound.profiles?.username || 'Anonymous Player'}
-              </div>
-              <div className="text-emerald-600 dark:text-emerald-400 text-sm">
-                {format(new Date(bestRound.date), "MMMM d, yyyy")} • Par {bestRoundPar}
-              </div>
+            <div className="text-white font-medium text-sm sm:text-base truncate">
+              {bestRound.profiles?.username || 'Anonymous Player'}
+            </div>
+            <div className="text-zinc-400 text-xs sm:text-sm">
+              {format(new Date(bestRound.date), "d MMM yyyy")} • Par {bestRoundPar}
             </div>
           </div>
-          {bestRound.notes && (
-            <div className="bg-white/50 dark:bg-black/20 p-3 rounded-lg border border-emerald-200 dark:border-emerald-800">
-              <p className="text-sm text-emerald-700 dark:text-emerald-300 italic">
-                "{bestRound.notes}"
-              </p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        </div>
+        
+        {bestRound.notes && (
+          <div className="mt-4 bg-zinc-800/50 p-3 rounded-xl">
+            <p className="text-sm text-zinc-300 italic">
+              "{bestRound.notes}"
+            </p>
+          </div>
+        )}
+      </div>
 
       {/* Leaderboard */}
       <CourseLeaderboard rounds={sortedRounds} isLoading={false} coursePar={coursePar} />
