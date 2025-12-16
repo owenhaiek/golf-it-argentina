@@ -109,17 +109,17 @@ const ProfileSetup = () => {
   };
 
   return (
-    <div className="h-screen flex flex-col" style={{ backgroundColor: '#092820' }}>
-      <div className="flex-shrink-0 p-4 border-b border-white/10">
+    <div className="h-screen flex flex-col bg-background">
+      <div className="flex-shrink-0 p-4 bg-background border-b border-border">
         <div className="flex items-center justify-center">
-          <h1 className="text-2xl font-bold text-white">Completa tu Perfil</h1>
+          <h1 className="text-2xl font-bold text-foreground">Completa tu Perfil</h1>
         </div>
       </div>
       
       <ScrollArea className="flex-1">
         <div className="p-4 flex items-center justify-center min-h-full">
           <div className="w-full max-w-md">
-            <Card className="overflow-hidden border-0 shadow-md bg-gradient-to-br from-white to-muted dark:bg-black dark:from-black dark:to-gray-900">
+            <Card className="overflow-hidden border-0 shadow-md" style={{ backgroundColor: '#092820' }}>
               <CardHeader className="pb-6 text-center">
                 {/* Logo Section */}
                 <div className="flex justify-center mb-6">
@@ -159,10 +159,10 @@ const ProfileSetup = () => {
                   </div>
                 </div>
 
-                <CardTitle className="text-xl font-bold text-black dark:text-white mb-2">
+                <CardTitle className="text-xl font-bold text-white mb-2">
                   Configura tu Perfil
                 </CardTitle>
-                <p className="text-sm text-muted-foreground mb-8">
+                <p className="text-sm text-white/60 mb-8">
                   Agrega tu información personal y foto de perfil
                 </p>
               </CardHeader>
@@ -170,7 +170,7 @@ const ProfileSetup = () => {
               <CardContent className="px-6 pb-6">
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
-                    <label htmlFor="fullName" className="flex items-center gap-2 text-sm font-medium text-muted-foreground mb-1">
+                    <label htmlFor="fullName" className="flex items-center gap-2 text-sm font-medium text-white/70 mb-1">
                       <User className="h-4 w-4" /> Nombre Completo
                     </label>
                     <Input
@@ -185,7 +185,7 @@ const ProfileSetup = () => {
                   </div>
                   
                   <div>
-                    <label htmlFor="username" className="flex items-center gap-2 text-sm font-medium text-muted-foreground mb-1">
+                    <label htmlFor="username" className="flex items-center gap-2 text-sm font-medium text-white/70 mb-1">
                       <Hash className="h-4 w-4" /> Nombre de Usuario
                     </label>
                     <Input
