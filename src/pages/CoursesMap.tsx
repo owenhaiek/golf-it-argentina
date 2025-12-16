@@ -10,7 +10,6 @@ import { MapEmptyState } from "@/components/map/MapEmptyState";
 import { MapSearchOverlay } from "@/components/map/MapSearchOverlay";
 import { MapActionMenu } from "@/components/map/MapActionMenu";
 import { resetActiveMarker, setActiveMarker } from "@/utils/mapMarkers";
-
 interface GolfCourse {
   id: string;
   name: string;
@@ -26,7 +25,6 @@ interface GolfCourse {
   phone?: string;
   website?: string;
 }
-
 const CoursesMap = () => {
   const [selectedCourse, setSelectedCourse] = useState<GolfCourse | null>(null);
   const [searchParams] = useSearchParams();
@@ -37,7 +35,7 @@ const CoursesMap = () => {
   const handleCourseSelect = React.useCallback((course: GolfCourse) => {
     setSelectedCourse(course);
     setActiveMarker(course.id);
-    
+
     // Center map on selected course with a slight delay to ensure map is ready
     setTimeout(() => {
       if (mapRef.current && course.latitude && course.longitude) {
@@ -63,16 +61,18 @@ const CoursesMap = () => {
   }, [handleCourseSelect]);
 
   // Fetch courses data
-  const { data: courses, isLoading: coursesLoading, error: coursesError } = useQuery({
+  const {
+    data: courses,
+    isLoading: coursesLoading,
+    error: coursesError
+  } = useQuery({
     queryKey: ['courses-map'],
     queryFn: async () => {
       console.log("[CoursesMap] Fetching courses...");
-      const { data, error } = await supabase
-        .from('golf_courses')
-        .select('*')
-        .not('latitude', 'is', null)
-        .not('longitude', 'is', null)
-        .order('name');
+      const {
+        data,
+        error
+      } = await supabase.from('golf_courses').select('*').not('latitude', 'is', null).not('longitude', 'is', null).order('name');
       if (error) throw error;
       console.log("[CoursesMap] Courses loaded:", data?.length || 0);
       return data || [];
@@ -89,76 +89,45 @@ const CoursesMap = () => {
       }
     }
   }, [focusCourseId, courses, handleCourseSelect]);
-
   const handleRetry = () => {
     window.location.reload();
   };
 
   // Error state
   if (coursesError) {
-    return (
-      <MapErrorState 
-        coursesError={coursesError} 
-        onRetry={handleRetry} 
-      />
-    );
+    return <MapErrorState coursesError={coursesError} onRetry={handleRetry} />;
   }
 
   // Loading state
   if (coursesLoading) {
-    return (
-      <MapLoadingState 
-        coursesLoading={coursesLoading} 
-        mapLoading={false} 
-      />
-    );
+    return <MapLoadingState coursesLoading={coursesLoading} mapLoading={false} />;
   }
-
-  return (
-    <div className="fixed inset-0 w-screen h-screen overflow-hidden">
+  return <div className="fixed inset-0 w-screen h-screen overflow-hidden">
       {/* Map container - full screen */}
       <div className="absolute inset-0">
-        <MapContainer 
-          courses={courses || []}
-          onCourseSelect={handleCourseSelect}
-          focusCourseId={focusCourseId}
-          onMapReady={(map) => { mapRef.current = map; }}
-        />
+        <MapContainer courses={courses || []} onCourseSelect={handleCourseSelect} focusCourseId={focusCourseId} onMapReady={map => {
+        mapRef.current = map;
+      }} />
         
         {/* Empty state */}
         {courses && courses.length === 0 && <MapEmptyState />}
       </div>
       
       {/* App logo - bottom left */}
-      <div className="absolute bottom-6 left-4 z-10" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
-        <div className="w-12 h-12 rounded-2xl overflow-hidden shadow-lg bg-background/80 backdrop-blur-sm border border-border/50">
-          <img 
-            src="/lovable-uploads/c4b5d185-bd84-43f5-8ec7-4de4b18ca81c.png" 
-            alt="Golfit Logo" 
-            className="w-full h-full object-cover"
-          />
-        </div>
+      <div className="absolute bottom-6 left-4 z-10" style={{
+      paddingBottom: 'env(safe-area-inset-bottom, 0px)'
+    }}>
+        
       </div>
       
       {/* Search overlay */}
-      <MapSearchOverlay 
-        courses={courses || []}
-        onSelectCourse={handleSearchSelect}
-      />
+      <MapSearchOverlay courses={courses || []} onSelectCourse={handleSearchSelect} />
       
       {/* Action menu (Add round, tournament, match) */}
       <MapActionMenu />
       
       {/* Course info tab */}
-      {selectedCourse && (
-        <CourseInfoTab 
-          course={selectedCourse}
-          onClose={handleCloseInfoTab}
-          isOpen={!!selectedCourse}
-        />
-      )}
-    </div>
-  );
+      {selectedCourse && <CourseInfoTab course={selectedCourse} onClose={handleCloseInfoTab} isOpen={!!selectedCourse} />}
+    </div>;
 };
-
 export default CoursesMap;
