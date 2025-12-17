@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useNavigate } from "react-router-dom";
 import { Search, MapPin, Flag, Check, ChevronRight, Map } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -25,6 +24,7 @@ interface AddRoundStep1Props {
   selectedCourse: string;
   onSelectCourse: (courseId: string) => void;
   onNext: () => void;
+  onExitToMap: () => void;
 }
 
 const AddRoundStep1 = ({ 
@@ -32,10 +32,10 @@ const AddRoundStep1 = ({
   isLoadingCourses, 
   selectedCourse, 
   onSelectCourse, 
-  onNext 
+  onNext,
+  onExitToMap
 }: AddRoundStep1Props) => {
   const { t } = useLanguage();
-  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
 
   const filteredCourses = courses?.filter(course =>
@@ -146,7 +146,7 @@ const AddRoundStep1 = ({
       <div className="fixed bottom-0 left-0 right-0 p-3 sm:p-4 bg-gradient-to-t from-background via-background to-transparent pt-6">
         <div className="max-w-2xl mx-auto flex gap-2 sm:gap-3">
           <Button
-            onClick={() => navigate('/')}
+            onClick={onExitToMap}
             variant="outline"
             className="flex-1 h-11 sm:h-14 rounded-xl sm:rounded-2xl font-medium sm:font-semibold text-sm sm:text-base px-3 sm:px-4"
           >

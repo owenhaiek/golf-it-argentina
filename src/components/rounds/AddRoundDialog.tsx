@@ -241,6 +241,7 @@ const AddRoundDialog = ({ open, onOpenChange, preselectedCourseId }: AddRoundDia
               selectedCourse={selectedCourse}
               onSelectCourse={handleSelectCourse}
               onNext={() => setCurrentStep(2)}
+              onExitToMap={() => onOpenChange(false)}
             />
           )}
           
@@ -253,6 +254,7 @@ const AddRoundDialog = ({ open, onOpenChange, preselectedCourseId }: AddRoundDia
               selectedCourseData={selectedCourseData}
               onNext={() => setCurrentStep(3)}
               onBack={() => setCurrentStep(1)}
+              onExitToMap={() => onOpenChange(false)}
             />
           )}
           
@@ -268,6 +270,7 @@ const AddRoundDialog = ({ open, onOpenChange, preselectedCourseId }: AddRoundDia
               onSubmit={handleSubmit}
               onBack={() => setCurrentStep(2)}
               isSubmitting={addRoundMutation.isPending}
+              onExitToMap={() => onOpenChange(false)}
             />
           )}
         </div>
