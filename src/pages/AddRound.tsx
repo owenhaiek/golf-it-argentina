@@ -6,8 +6,18 @@ import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Flag } from "lucide-react";
+import { ArrowLeft, Flag, MapPin, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 import AddRoundStep1 from "@/components/rounds/AddRoundStep1";
 import AddRoundStep2 from "@/components/rounds/AddRoundStep2";
@@ -27,6 +37,12 @@ const AddRound = () => {
   const [holesPlayed, setHolesPlayed] = useState<"9" | "18" | "27">("18");
   const [selectedSide, setSelectedSide] = useState<"front" | "back">("front");
   const [scores, setScores] = useState<number[]>(Array(18).fill(0));
+  const [showExitConfirmation, setShowExitConfirmation] = useState(false);
+
+  const handleExitToMap = () => {
+    sessionStorage.setItem('map-entry-animation', 'true');
+    navigate('/');
+  };
 
   const { data: courses = [], isLoading: isLoadingCourses } = useQuery({
     queryKey: ['courses'],
@@ -256,6 +272,7 @@ const AddRound = () => {
                 selectedCourse={selectedCourse}
                 onSelectCourse={handleSelectCourse}
                 onNext={() => setCurrentStep(2)}
+                onExitToMap={() => setShowExitConfirmation(true)}
               />
             </motion.div>
           )}
@@ -278,6 +295,7 @@ const AddRound = () => {
                   selectedCourseData={selectedCourseData}
                   onNext={() => setCurrentStep(3)}
                   onBack={() => setCurrentStep(1)}
+                  onExitToMap={() => setShowExitConfirmation(true)}
                 />
               </div>
             </motion.div>
@@ -304,12 +322,36 @@ const AddRound = () => {
                   onSubmit={handleSubmit}
                   onBack={() => setCurrentStep(2)}
                   isSubmitting={addRoundMutation.isPending}
+                  onExitToMap={() => setShowExitConfirmation(true)}
                 />
               </div>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
+
+      {/* Exit Confirmation Dialog */}
+      <AlertDialog open={showExitConfirmation} onOpenChange={setShowExitConfirmation}>
+        <AlertDialogContent className="bg-zinc-900/95 backdrop-blur-xl border-zinc-800">
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Salir al mapa?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Perderás el progreso de la ronda que estás creando. ¿Estás seguro que deseas volver al mapa?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-zinc-800 border-zinc-700 hover:bg-zinc-700">
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleExitToMap}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
+            >
+              Sí, salir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

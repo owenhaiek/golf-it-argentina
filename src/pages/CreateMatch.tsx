@@ -14,6 +14,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion, AnimatePresence } from "framer-motion";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const CreateMatch = () => {
   const navigate = useNavigate();
@@ -40,6 +50,12 @@ const CreateMatch = () => {
   });
   
   const [isLoading, setIsLoading] = useState(false);
+  const [showExitConfirmation, setShowExitConfirmation] = useState(false);
+
+  const handleExitToMap = () => {
+    sessionStorage.setItem('map-entry-animation', 'true');
+    navigate('/');
+  };
 
   const selectedCourse = courses.find(c => c.id === formData.courseId);
   const selectedOpponent = friends.find(friend => friend.id === formData.opponentId);
@@ -244,7 +260,7 @@ const CreateMatch = () => {
               <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 bg-gradient-to-t from-background via-background to-transparent pt-6">
                 <div className="max-w-2xl mx-auto flex gap-2 sm:gap-3">
                   <Button
-                    onClick={() => navigate('/')}
+                    onClick={() => setShowExitConfirmation(true)}
                     variant="outline"
                     className="flex-1 h-11 sm:h-14 rounded-xl sm:rounded-2xl font-medium sm:font-semibold text-sm sm:text-base px-3 sm:px-4"
                   >
@@ -350,7 +366,7 @@ const CreateMatch = () => {
               <div className="fixed bottom-0 left-0 right-0 p-3 sm:p-4 bg-gradient-to-t from-background via-background to-transparent pt-6">
                 <div className="max-w-2xl mx-auto flex gap-2 sm:gap-3">
                   <Button
-                    onClick={() => navigate('/')}
+                    onClick={() => setShowExitConfirmation(true)}
                     variant="outline"
                     className="flex-1 h-11 sm:h-14 rounded-xl sm:rounded-2xl font-medium sm:font-semibold text-sm sm:text-base px-3 sm:px-4"
                   >
@@ -496,7 +512,7 @@ const CreateMatch = () => {
               <div className="fixed bottom-0 left-0 right-0 p-3 sm:p-4 bg-gradient-to-t from-background via-background to-transparent pt-6">
                 <div className="max-w-2xl mx-auto flex gap-2 sm:gap-3">
                   <Button
-                    onClick={() => navigate('/')}
+                    onClick={() => setShowExitConfirmation(true)}
                     variant="outline"
                     className="flex-1 h-11 sm:h-14 rounded-xl sm:rounded-2xl font-medium sm:font-semibold text-sm sm:text-base px-3 sm:px-4"
                   >
@@ -526,6 +542,29 @@ const CreateMatch = () => {
           )}
         </AnimatePresence>
       </div>
+
+      {/* Exit Confirmation Dialog */}
+      <AlertDialog open={showExitConfirmation} onOpenChange={setShowExitConfirmation}>
+        <AlertDialogContent className="bg-zinc-900/95 backdrop-blur-xl border-zinc-800">
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Salir al mapa?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Perderás el progreso del desafío que estás creando. ¿Estás seguro que deseas volver al mapa?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-zinc-800 border-zinc-700 hover:bg-zinc-700">
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleExitToMap}
+              className="bg-red-500 hover:bg-red-600 text-white"
+            >
+              Sí, salir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

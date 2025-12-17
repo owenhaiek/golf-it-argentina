@@ -1,9 +1,8 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import ScoreCard from "./ScoreCard";
 import { Button } from "@/components/ui/button";
-import { Map, Check, Flag, MapPin } from "lucide-react";
+import { Map, Check, Flag } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface AddRoundStep3Props {
@@ -14,6 +13,7 @@ interface AddRoundStep3Props {
   onSubmit: (notes: string) => void;
   onBack: () => void;
   isSubmitting: boolean;
+  onExitToMap: () => void;
 }
 
 const AddRoundStep3 = ({
@@ -23,10 +23,10 @@ const AddRoundStep3 = ({
   selectedSide,
   onSubmit,
   onBack,
-  isSubmitting
+  isSubmitting,
+  onExitToMap
 }: AddRoundStep3Props) => {
   const { t } = useLanguage();
-  const navigate = useNavigate();
   const [notes, setNotes] = useState("");
   
   const handleSubmit = () => {
@@ -113,7 +113,7 @@ const AddRoundStep3 = ({
       <div className="fixed bottom-0 left-0 right-0 p-3 sm:p-4 bg-gradient-to-t from-background via-background to-transparent pt-6">
         <div className="max-w-2xl mx-auto flex gap-2 sm:gap-3">
           <Button
-            onClick={() => navigate('/')}
+            onClick={onExitToMap}
             variant="outline"
             className="flex-1 h-11 sm:h-14 rounded-xl sm:rounded-2xl font-medium sm:font-semibold text-sm sm:text-base px-3 sm:px-4"
             disabled={isSubmitting}
