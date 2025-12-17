@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { validatePassword } from "@/utils/security";
+import { validatePassword, getPasswordStrength } from "@/utils/security";
 import { motion } from "framer-motion";
 import { Lock, ShieldCheck, ArrowRight, ArrowLeft } from "lucide-react";
 
@@ -15,6 +15,9 @@ const ResetPassword = () => {
   const [isValidToken, setIsValidToken] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const passwordStrength = getPasswordStrength(password);
+  const passwordsMatch = password && confirmPassword && password === confirmPassword;
 
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
@@ -156,10 +159,7 @@ const ResetPassword = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-zinc-950">
-      {/* Subtle gradient background */}
       <div className="absolute inset-0 bg-gradient-to-br from-emerald-950/20 via-zinc-950 to-zinc-950" />
-      
-      {/* Ambient glow */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl" />
       
       <motion.div 
@@ -222,9 +222,42 @@ const ResetPassword = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="pl-11 h-12 bg-zinc-800/50 border-zinc-700/50 text-white placeholder:text-zinc-500 focus:border-emerald-500/50 focus:ring-emerald-500/20 rounded-xl transition-all"
+                  className={`pl-11 h-12 bg-zinc-800/50 text-white placeholder:text-zinc-500 rounded-xl transition-all duration-300 ${
+                    passwordsMatch
+                      ? 'border-emerald-500/70 focus:border-emerald-500 focus:ring-emerald-500/20'
+                      : 'border-zinc-700/50 focus:border-emerald-500/50 focus:ring-emerald-500/20'
+                  }`}
                 />
               </div>
+
+              {/* Password Strength Indicator */}
+              {password && (
+                <motion.div 
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="space-y-2 px-1"
+                >
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-zinc-500">Fortaleza:</span>
+                    <span className={`font-medium ${
+                      passwordStrength.score <= 25 ? 'text-red-400' :
+                      passwordStrength.score <= 50 ? 'text-orange-400' :
+                      passwordStrength.score <= 75 ? 'text-yellow-400' :
+                      'text-emerald-400'
+                    }`}>
+                      {passwordStrength.label}
+                    </span>
+                  </div>
+                  <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                    <motion.div 
+                      initial={{ width: 0 }}
+                      animate={{ width: `${passwordStrength.score}%` }}
+                      transition={{ duration: 0.3, ease: "easeOut" }}
+                      className={`h-full rounded-full transition-colors duration-300 ${passwordStrength.color}`}
+                    />
+                  </div>
+                </motion.div>
+              )}
               
               {/* Confirm Password Input */}
               <div className="relative">
@@ -235,37 +268,15 @@ const ResetPassword = () => {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
-                  className={`pl-11 h-12 bg-zinc-800/50 border-zinc-700/50 text-white placeholder:text-zinc-500 focus:border-emerald-500/50 focus:ring-emerald-500/20 rounded-xl transition-all ${
+                  className={`pl-11 h-12 bg-zinc-800/50 text-white placeholder:text-zinc-500 rounded-xl transition-all duration-300 ${
                     confirmPassword && password !== confirmPassword 
-                      ? 'border-red-500/50 focus:border-red-500/50' 
-                      : confirmPassword && password === confirmPassword 
-                        ? 'border-emerald-500/50' 
-                        : ''
+                      ? 'border-red-500/70 focus:border-red-500 focus:ring-red-500/20' 
+                      : passwordsMatch 
+                        ? 'border-emerald-500/70 focus:border-emerald-500 focus:ring-emerald-500/20' 
+                        : 'border-zinc-700/50 focus:border-emerald-500/50 focus:ring-emerald-500/20'
                   }`}
                 />
-                {/* Password match indicator */}
-                {confirmPassword && (
-                  <motion.span 
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs ${
-                      password === confirmPassword ? 'text-emerald-400' : 'text-red-400'
-                    }`}
-                  >
-                    {password === confirmPassword ? '✓' : '✗'}
-                  </motion.span>
-                )}
               </div>
-            </div>
-
-            {/* Password requirements hint */}
-            <div className="text-xs text-zinc-500 space-y-1 px-1">
-              <p>La contraseña debe tener:</p>
-              <ul className="list-disc list-inside space-y-0.5 text-zinc-600">
-                <li>Mínimo 8 caracteres</li>
-                <li>Al menos una mayúscula</li>
-                <li>Al menos un número</li>
-              </ul>
             </div>
 
             {/* Submit Button */}
