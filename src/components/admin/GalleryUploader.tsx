@@ -1,9 +1,9 @@
-
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Upload, X, GalleryHorizontal } from "lucide-react";
+import { Loader2, Upload, X, Images, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface GalleryUploaderProps {
   onGalleryUpdated: (urls: string) => void;
@@ -19,7 +19,6 @@ const GalleryUploader = ({
   const [uploading, setUploading] = useState(false);
   const { toast } = useToast();
   
-  // Parse initial gallery URLs
   const initialUrls = initialGallery 
     ? initialGallery.split(',').map(url => url.trim()).filter(url => url !== '')
     : [];
@@ -30,31 +29,23 @@ const GalleryUploader = ({
     try {
       setUploading(true);
       
-      // Generate a unique file name
       const fileExt = file.name.split('.').pop();
       const fileName = `gallery_${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
       const filePath = `${fileName}`;
 
-      // Upload to Supabase
       const { data, error } = await supabase.storage
         .from(bucketName)
         .upload(filePath, file);
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
-      // Get public URL
       const { data: publicUrlData } = supabase.storage
         .from(bucketName)
         .getPublicUrl(filePath);
 
-      // Update gallery state
       const publicUrl = publicUrlData.publicUrl;
       const updatedGallery = [...galleryImages, publicUrl];
       setGalleryImages(updatedGallery);
-      
-      // Update parent component with comma-separated URLs
       onGalleryUpdated(updatedGallery.join(','));
       
       toast({
@@ -91,37 +82,71 @@ const GalleryUploader = ({
 
   return (
     <div className="space-y-4">
-      {galleryImages.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-          {galleryImages.map((imageUrl, index) => (
-            <div key={index} className="relative">
-              <img
-                src={imageUrl}
-                alt={`Gallery image ${index + 1}`}
-                className="h-24 w-full object-cover rounded-md"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = 'https://placehold.co/600x400?text=Error';
-                }}
-              />
-              <button
-                type="button"
-                onClick={() => removeImage(index)}
-                className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors"
-                title="Eliminar imagen"
+      <AnimatePresence>
+        {galleryImages.length > 0 && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="grid grid-cols-2 sm:grid-cols-3 gap-3"
+          >
+            {galleryImages.map((imageUrl, index) => (
+              <motion.div 
+                key={index} 
+                className="relative group"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={{ delay: index * 0.05 }}
               >
-                <X className="h-3 w-3" />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
+                <img
+                  src={imageUrl}
+                  alt={`Gallery image ${index + 1}`}
+                  className="h-24 w-full object-cover rounded-lg border border-zinc-700/50"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = 'https://placehold.co/600x400?text=Error';
+                  }}
+                />
+                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                  <button
+                    type="button"
+                    onClick={() => removeImage(index)}
+                    className="bg-red-500/90 text-white p-1.5 rounded-full hover:bg-red-600 transition-colors"
+                    title="Eliminar imagen"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+                <div className="absolute bottom-1 right-1 bg-black/60 text-white text-xs px-1.5 py-0.5 rounded">
+                  {index + 1}
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
       
       <div
-        className="border-2 border-dashed border-gray-300 rounded-md p-4 flex flex-col items-center justify-center text-gray-500 cursor-pointer"
+        className="border-2 border-dashed border-zinc-700/50 rounded-lg p-6 flex flex-col items-center justify-center text-zinc-400 cursor-pointer hover:border-green-500/50 hover:bg-zinc-800/30 transition-all duration-300"
         onClick={() => document.getElementById('gallery-upload')?.click()}
       >
-        <GalleryHorizontal className="h-6 w-6 mb-2" />
-        <p className="text-sm text-center">Toca para agregar imágenes a la galería</p>
+        <div className="w-12 h-12 rounded-full bg-zinc-800/50 flex items-center justify-center mb-3">
+          {galleryImages.length > 0 ? (
+            <Plus className="h-6 w-6 text-green-500" />
+          ) : (
+            <Images className="h-6 w-6 text-green-500" />
+          )}
+        </div>
+        <p className="text-sm text-center font-medium">
+          {galleryImages.length > 0 
+            ? "Agregar más imágenes" 
+            : "Toca para agregar imágenes a la galería"
+          }
+        </p>
+        {galleryImages.length > 0 && (
+          <span className="text-xs text-zinc-500 mt-1">
+            {galleryImages.length} imagen{galleryImages.length !== 1 ? 'es' : ''} en la galería
+          </span>
+        )}
       </div>
       
       <input
@@ -132,6 +157,17 @@ const GalleryUploader = ({
         disabled={uploading}
         className="hidden"
       />
+
+      {uploading && (
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="flex items-center justify-center gap-2 text-green-400 text-sm"
+        >
+          <Loader2 className="h-4 w-4 animate-spin" />
+          Subiendo imagen...
+        </motion.div>
+      )}
     </div>
   );
 };
