@@ -28,48 +28,21 @@ export const BackToMapButton = () => {
       }}
     >
       <motion.div
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
+        whileHover={{ scale: 1.03 }}
+        whileTap={{ scale: 0.97 }}
       >
         <Button 
           onClick={handleClick}
-          className="pointer-events-auto h-14 px-8 rounded-full bg-primary hover:bg-primary/90 shadow-2xl text-base font-semibold gap-3 relative overflow-hidden group"
+          className="pointer-events-auto h-12 px-6 rounded-full bg-zinc-900/90 backdrop-blur-xl border border-zinc-700/50 hover:bg-zinc-800/90 hover:border-zinc-600/50 shadow-2xl shadow-black/50 text-sm font-medium gap-2.5 relative overflow-hidden group transition-all duration-300"
         >
-          {/* Animated background gradient */}
-          <motion.div
-            className="absolute inset-0 bg-gradient-to-r from-primary via-emerald-400 to-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-            animate={{
-              backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
-            }}
-            transition={{
-              duration: 3,
-              repeat: Infinity,
-              ease: "linear"
-            }}
-            style={{ backgroundSize: '200% 100%' }}
-          />
-          
-          {/* Pulse ring effect */}
-          <motion.div
-            className="absolute inset-0 rounded-full border-2 border-primary/50"
-            animate={{
-              scale: [1, 1.15, 1],
-              opacity: [0.5, 0, 0.5],
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: "easeInOut"
-            }}
-          />
+          {/* Subtle glow effect */}
+          <div className="absolute inset-0 rounded-full bg-gradient-to-r from-emerald-500/0 via-emerald-500/10 to-emerald-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
           
           {/* Content */}
-          <motion.div
-            className="relative z-10 flex items-center gap-3"
-          >
+          <div className="relative z-10 flex items-center gap-2.5 text-zinc-100">
             <motion.div
               animate={{
-                x: [0, -3, 0],
+                x: [0, -2, 0],
               }}
               transition={{
                 duration: 1.5,
@@ -77,11 +50,11 @@ export const BackToMapButton = () => {
                 ease: "easeInOut"
               }}
             >
-              <ChevronLeft className="w-5 h-5" />
+              <ChevronLeft className="w-4 h-4 text-zinc-400" />
             </motion.div>
-            <Map className="w-5 h-5" />
+            <Map className="w-4 h-4 text-emerald-400" />
             <span>Volver al Mapa</span>
-          </motion.div>
+          </div>
         </Button>
       </motion.div>
     </motion.div>
