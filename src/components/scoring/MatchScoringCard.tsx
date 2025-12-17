@@ -5,14 +5,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Match } from "@/hooks/useTournamentsAndMatches";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, ArrowRight, Check, Trophy, Swords } from "lucide-react";
-import ScoreInput from "@/components/rounds/ScoreInput";
-import HoleVisualization from "@/components/rounds/HoleVisualization";
-import ScoreSummary from "@/components/rounds/ScoreSummary";
+import { ArrowLeft, ArrowRight, Check, Trophy, Swords, Zap, MapPin, Target, Minus, Plus } from "lucide-react";
 
 interface MatchScoringCardProps {
   match: Match;
@@ -52,16 +48,16 @@ export const MatchScoringCard = ({ match, open, onOpenChange, onSuccess }: Match
     const playerScores: PlayerScore[] = [
       {
         user_id: match.creator_id || "",
-        name: match.creator?.full_name || 'Creator',
-        username: match.creator?.username || 'creator',
+        name: match.creator?.full_name || 'Creador',
+        username: match.creator?.username || 'creador',
         avatar_url: match.creator?.avatar_url,
         hole_scores: new Array(18).fill(0),
         total_score: 0,
       },
       {
         user_id: match.opponent_id || "",
-        name: match.opponent?.full_name || 'Opponent',
-        username: match.opponent?.username || 'opponent',
+        name: match.opponent?.full_name || 'Oponente',
+        username: match.opponent?.username || 'oponente',
         avatar_url: match.opponent?.avatar_url,
         hole_scores: new Array(18).fill(0),
         total_score: 0,
@@ -92,23 +88,33 @@ export const MatchScoringCard = ({ match, open, onOpenChange, onSuccess }: Match
   const completedHoles = currentPlayer?.hole_scores.filter(score => score > 0).length || 0;
 
   const getScoreColor = (score: number, par: number): string => {
-    if (score === 0) return 'text-muted-foreground';
+    if (score === 0) return 'text-zinc-500';
     const diff = score - par;
-    if (diff < 0) return 'text-green-500 dark:text-green-400';
-    if (diff === 0) return 'text-blue-500 dark:text-blue-400';
-    return 'text-red-500 dark:text-red-400';
+    if (diff < 0) return 'text-emerald-400';
+    if (diff === 0) return 'text-blue-400';
+    return 'text-red-400';
   };
 
   const getScoreTerm = (score: number, par: number): string => {
-    if (score === 0) return '';
+    if (score === 0) return '-';
     const diff = score - par;
     if (diff === -2) return 'Eagle';
     if (diff === -1) return 'Birdie';
     if (diff === 0) return 'Par';
     if (diff === 1) return 'Bogey';
-    if (diff === 2) return 'Double Bogey';
+    if (diff === 2) return 'Double';
     if (diff > 2) return 'Triple+';
     return '';
+  };
+
+  const getScoreBackground = (score: number, par: number): string => {
+    if (score === 0) return 'bg-zinc-800';
+    const diff = score - par;
+    if (diff <= -2) return 'bg-amber-500/20 border-amber-500/30';
+    if (diff === -1) return 'bg-emerald-500/20 border-emerald-500/30';
+    if (diff === 0) return 'bg-blue-500/20 border-blue-500/30';
+    if (diff === 1) return 'bg-orange-500/20 border-orange-500/30';
+    return 'bg-red-500/20 border-red-500/30';
   };
 
   const incrementScore = () => {
@@ -134,8 +140,8 @@ export const MatchScoringCard = ({ match, open, onOpenChange, onSuccess }: Match
   const goToNextHole = () => {
     if (currentScore === 0) {
       toast({
-        title: "Enter a score",
-        description: "Please enter a score for this hole before proceeding.",
+        title: "Ingresa un puntaje",
+        description: "Por favor ingresa un puntaje antes de continuar.",
         variant: "destructive"
       });
       return;
@@ -145,8 +151,8 @@ export const MatchScoringCard = ({ match, open, onOpenChange, onSuccess }: Match
       setCurrentHoleIndex(currentHoleIndex + 1);
     } else {
       toast({
-        title: "Round Complete!",
-        description: `${currentPlayer?.name} has completed their round.`,
+        title: "Ronda Completa",
+        description: `${currentPlayer?.name} ha completado su ronda.`,
       });
     }
   };
@@ -155,8 +161,8 @@ export const MatchScoringCard = ({ match, open, onOpenChange, onSuccess }: Match
     setCurrentPlayerIndex(playerIndex);
     setCurrentHoleIndex(0);
     toast({
-      title: "Player Selected",
-      description: `Now entering scores for ${players[playerIndex]?.name}`,
+      title: "Jugador Seleccionado",
+      description: `Ingresando puntajes para ${players[playerIndex]?.name}`,
     });
   };
 
@@ -218,8 +224,8 @@ export const MatchScoringCard = ({ match, open, onOpenChange, onSuccess }: Match
       }
 
       toast({
-        title: "Scores Submitted",
-        description: "Match scores have been submitted successfully.",
+        title: "Puntajes Enviados",
+        description: "Los puntajes del partido han sido guardados.",
       });
       
       onSuccess();
@@ -228,7 +234,7 @@ export const MatchScoringCard = ({ match, open, onOpenChange, onSuccess }: Match
       console.error('Error submitting scores:', error);
       toast({
         title: "Error",
-        description: "Failed to submit scores. Please try again.",
+        description: "No se pudieron guardar los puntajes.",
         variant: "destructive",
       });
     } finally {
@@ -240,163 +246,200 @@ export const MatchScoringCard = ({ match, open, onOpenChange, onSuccess }: Match
     player.hole_scores.every(score => score > 0)
   );
 
+  const totalPar = coursePars.slice(0, completedHoles).reduce((sum, par) => sum + par, 0);
+  const vsParScore = (currentPlayer?.total_score || 0) - totalPar;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[95vh] overflow-y-auto p-0">
-        <DialogHeader className="p-4 pb-2">
-          <DialogTitle className="flex items-center gap-2 text-lg">
-            <Swords className="h-5 w-5 text-red-500" />
-            {match?.name || "Match Scoring"}
-          </DialogTitle>
-        </DialogHeader>
-
-        <div className="px-4 space-y-4">
-          {/* User vs User Header */}
-          <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-secondary/5">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                {/* Player 1 - Clickable */}
-                <div 
-                  className={`flex flex-col items-center space-y-2 p-3 rounded-lg transition-all duration-300 cursor-pointer hover:scale-110 ${
-                    currentPlayerIndex === 0 ? 'bg-primary/20 ring-2 ring-primary/50 scale-105' : 'bg-muted/30 hover:bg-muted/50'
-                  }`}
-                  onClick={() => selectPlayer(0)}
-                >
-                  <Avatar className={`h-12 w-12 ring-2 transition-all duration-300 ${
-                    currentPlayerIndex === 0 ? 'ring-primary/70 shadow-lg' : 'ring-muted-foreground/30'
-                  }`}>
-                    <AvatarImage src={players[0]?.avatar_url} alt={`${players[0]?.name} profile`} />
-                    <AvatarFallback className={`text-sm font-bold ${
-                      currentPlayerIndex === 0 ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'
-                    }`}>
-                      {players[0]?.name?.[0] || "P1"}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="text-center">
-                    <div className="font-semibold text-sm truncate max-w-20">
-                      {players[0]?.name || 'Player 1'}
-                    </div>
-                    <div className={`text-xs ${currentPlayerIndex === 0 ? 'text-primary font-medium' : 'text-muted-foreground'}`}>
-                      {players[0]?.username}
-                    </div>
-                    <Badge variant="outline" className={`text-xs mt-1 ${
-                      currentPlayerIndex === 0 ? 'border-primary/50 text-primary bg-primary/10' : 'border-muted-foreground/30'
-                    }`}>
-                      {players[0]?.total_score || 0}
-                    </Badge>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      {getCurrentPlayerProgress(0)}/18 holes
-                      {isPlayerComplete(0) && (
-                        <div className="text-green-600 font-medium">✓ Complete</div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* VS Indicator */}
-                <div className="flex flex-col items-center space-y-2">
-                  <div className="bg-gradient-to-r from-red-500 to-orange-500 p-3 rounded-full shadow-lg animate-pulse">
-                    <Swords className="h-6 w-6 text-white" />
-                  </div>
-                  <span className="text-xs font-bold text-muted-foreground tracking-wider">VS</span>
-                  <div className="text-xs text-center text-muted-foreground">
-                    <div className="font-medium">{match?.name}</div>
-                  </div>
-                </div>
-
-                {/* Player 2 - Clickable */}
-                <div 
-                  className={`flex flex-col items-center space-y-2 p-3 rounded-lg transition-all duration-300 cursor-pointer hover:scale-110 ${
-                    currentPlayerIndex === 1 ? 'bg-secondary/20 ring-2 ring-secondary/50 scale-105' : 'bg-muted/30 hover:bg-muted/50'
-                  }`}
-                  onClick={() => selectPlayer(1)}
-                >
-                  <Avatar className={`h-12 w-12 ring-2 transition-all duration-300 ${
-                    currentPlayerIndex === 1 ? 'ring-secondary/70 shadow-lg' : 'ring-muted-foreground/30'
-                  }`}>
-                    <AvatarImage src={players[1]?.avatar_url} alt={`${players[1]?.name} profile`} />
-                    <AvatarFallback className={`text-sm font-bold ${
-                      currentPlayerIndex === 1 ? 'bg-secondary/20 text-secondary-foreground' : 'bg-muted text-muted-foreground'
-                    }`}>
-                      {players[1]?.name?.[0] || "P2"}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="text-center">
-                    <div className="font-semibold text-sm truncate max-w-20">
-                      {players[1]?.name || 'Player 2'}
-                    </div>
-                    <div className={`text-xs ${currentPlayerIndex === 1 ? 'text-secondary-foreground font-medium' : 'text-muted-foreground'}`}>
-                      {players[1]?.username}
-                    </div>
-                    <Badge variant="outline" className={`text-xs mt-1 ${
-                      currentPlayerIndex === 1 ? 'border-secondary/50 text-secondary-foreground bg-secondary/10' : 'border-muted-foreground/30'
-                    }`}>
-                      {players[1]?.total_score || 0}
-                    </Badge>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      {getCurrentPlayerProgress(1)}/18 holes
-                      {isPlayerComplete(1) && (
-                        <div className="text-green-600 font-medium">✓ Complete</div>
-                      )}
-                    </div>
-                  </div>
-                </div>
+      <DialogContent className="max-w-md max-h-[95vh] overflow-y-auto p-0 bg-zinc-950 border-white/10">
+        {/* Header */}
+        <div className="sticky top-0 z-10 bg-zinc-950/95 backdrop-blur-xl border-b border-white/5 p-4">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-red-500/10 border border-red-500/20">
+                <Swords className="h-5 w-5 text-red-400" />
               </div>
+              <div>
+                <span className="text-lg font-semibold text-foreground">{match?.name || "Cargar Puntajes"}</span>
+                <p className="text-sm text-zinc-500 flex items-center gap-1.5 mt-0.5">
+                  <MapPin className="h-3.5 w-3.5" />
+                  {match?.golf_courses?.name || 'Campo de Golf'}
+                </p>
+              </div>
+            </DialogTitle>
+          </DialogHeader>
+        </div>
 
-              {/* Current Player Indicator */}
-              <div className="mt-4 p-2 bg-background/80 rounded-lg border border-border/50">
+        <div className="px-4 pb-4 space-y-4">
+          {/* Players VS Section */}
+          <div className="bg-zinc-900 rounded-2xl p-4 border border-white/5">
+            <div className="flex items-center justify-between">
+              {/* Player 1 - Clickable */}
+              <button 
+                className={`flex flex-col items-center space-y-2 p-3 rounded-xl transition-all duration-300 flex-1 ${
+                  currentPlayerIndex === 0 
+                    ? 'bg-emerald-500/10 ring-2 ring-emerald-500/50 scale-105' 
+                    : 'hover:bg-zinc-800'
+                }`}
+                onClick={() => selectPlayer(0)}
+              >
+                <Avatar className={`h-14 w-14 ring-2 transition-all duration-300 ${
+                  currentPlayerIndex === 0 ? 'ring-emerald-500/70 shadow-lg shadow-emerald-500/20' : 'ring-zinc-700'
+                }`}>
+                  <AvatarImage src={players[0]?.avatar_url} alt={players[0]?.name} />
+                  <AvatarFallback className={`font-bold ${
+                    currentPlayerIndex === 0 ? 'bg-emerald-500/20 text-emerald-400' : 'bg-zinc-800 text-zinc-400'
+                  }`}>
+                    {players[0]?.name?.[0] || "P1"}
+                  </AvatarFallback>
+                </Avatar>
                 <div className="text-center">
-                  <span className="text-sm text-muted-foreground">Now Scoring: </span>
-                  <span className="font-semibold text-foreground">
-                    {currentPlayer?.name}
-                  </span>
-                  {user?.id === currentPlayer?.user_id && (
-                    <Badge variant="default" className="ml-2 text-xs bg-green-100 text-green-700 border-green-200">
-                      Your Turn
-                    </Badge>
-                  )}
+                  <div className="font-medium text-sm truncate max-w-20 text-foreground">
+                    {players[0]?.name || 'Jugador 1'}
+                  </div>
+                  <Badge className={`text-xs mt-1 border-0 ${
+                    currentPlayerIndex === 0 ? 'bg-emerald-500/20 text-emerald-400' : 'bg-zinc-800 text-zinc-400'
+                  }`}>
+                    {players[0]?.total_score || 0}
+                  </Badge>
+                  <div className="text-[10px] text-zinc-500 mt-1">
+                    {getCurrentPlayerProgress(0)}/18
+                    {isPlayerComplete(0) && (
+                      <span className="text-emerald-400 ml-1">✓</span>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </button>
 
-          {/* Progress Indicator */}
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span>Progress</span>
-              <span>{completedHoles}/18 holes</span>
+              {/* VS Indicator */}
+              <div className="flex flex-col items-center px-2">
+                <div className="bg-gradient-to-br from-red-500/20 to-orange-500/20 p-3 rounded-full border border-red-500/30">
+                  <Zap className="h-5 w-5 text-red-400" />
+                </div>
+                <span className="text-xs font-bold text-zinc-600 mt-1.5 tracking-wider">VS</span>
+              </div>
+
+              {/* Player 2 - Clickable */}
+              <button 
+                className={`flex flex-col items-center space-y-2 p-3 rounded-xl transition-all duration-300 flex-1 ${
+                  currentPlayerIndex === 1 
+                    ? 'bg-red-500/10 ring-2 ring-red-500/50 scale-105' 
+                    : 'hover:bg-zinc-800'
+                }`}
+                onClick={() => selectPlayer(1)}
+              >
+                <Avatar className={`h-14 w-14 ring-2 transition-all duration-300 ${
+                  currentPlayerIndex === 1 ? 'ring-red-500/70 shadow-lg shadow-red-500/20' : 'ring-zinc-700'
+                }`}>
+                  <AvatarImage src={players[1]?.avatar_url} alt={players[1]?.name} />
+                  <AvatarFallback className={`font-bold ${
+                    currentPlayerIndex === 1 ? 'bg-red-500/20 text-red-400' : 'bg-zinc-800 text-zinc-400'
+                  }`}>
+                    {players[1]?.name?.[0] || "P2"}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="text-center">
+                  <div className="font-medium text-sm truncate max-w-20 text-foreground">
+                    {players[1]?.name || 'Jugador 2'}
+                  </div>
+                  <Badge className={`text-xs mt-1 border-0 ${
+                    currentPlayerIndex === 1 ? 'bg-red-500/20 text-red-400' : 'bg-zinc-800 text-zinc-400'
+                  }`}>
+                    {players[1]?.total_score || 0}
+                  </Badge>
+                  <div className="text-[10px] text-zinc-500 mt-1">
+                    {getCurrentPlayerProgress(1)}/18
+                    {isPlayerComplete(1) && (
+                      <span className="text-emerald-400 ml-1">✓</span>
+                    )}
+                  </div>
+                </div>
+              </button>
             </div>
-            <Progress value={(completedHoles / 18) * 100} className="h-2" />
+
+            {/* Current Player Indicator */}
+            <div className="mt-4 p-2.5 bg-zinc-800/50 rounded-xl border border-white/5">
+              <div className="text-center text-sm">
+                <span className="text-zinc-500">Ingresando puntajes para: </span>
+                <span className="font-semibold text-foreground">
+                  {currentPlayer?.name}
+                </span>
+              </div>
+            </div>
           </div>
 
-          {/* Course Name */}
-          <div className="text-center">
-            <h2 className="text-lg font-semibold">{match?.golf_courses?.name || 'Course'}</h2>
+          {/* Progress */}
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-zinc-500">Progreso</span>
+              <span className="font-medium text-foreground">{completedHoles}/18 hoyos</span>
+            </div>
+            <Progress value={(completedHoles / 18) * 100} className="h-2 bg-zinc-800" />
           </div>
 
           {/* Score Summary */}
-          <ScoreSummary
-            currentTotal={currentPlayer?.total_score || 0}
-            totalPar={coursePars.slice(0, completedHoles).reduce((sum, par) => sum + par, 0)}
-            vsParScore={(currentPlayer?.total_score || 0) - coursePars.slice(0, completedHoles).reduce((sum, par) => sum + par, 0)}
-          />
+          <div className="grid grid-cols-3 gap-3">
+            <div className="bg-zinc-900 rounded-xl p-3 text-center border border-white/5">
+              <div className="text-xs text-zinc-500 mb-1">Total</div>
+              <div className="text-2xl font-bold text-foreground">{currentPlayer?.total_score || 0}</div>
+            </div>
+            <div className="bg-zinc-900 rounded-xl p-3 text-center border border-white/5">
+              <div className="text-xs text-zinc-500 mb-1">Par</div>
+              <div className="text-2xl font-bold text-foreground">{totalPar}</div>
+            </div>
+            <div className={`rounded-xl p-3 text-center border ${
+              vsParScore < 0 ? 'bg-emerald-500/10 border-emerald-500/20' : 
+              vsParScore === 0 ? 'bg-blue-500/10 border-blue-500/20' : 
+              'bg-red-500/10 border-red-500/20'
+            }`}>
+              <div className="text-xs text-zinc-500 mb-1">vs Par</div>
+              <div className={`text-2xl font-bold ${
+                vsParScore < 0 ? 'text-emerald-400' : 
+                vsParScore === 0 ? 'text-blue-400' : 'text-red-400'
+              }`}>
+                {vsParScore > 0 ? '+' : ''}{vsParScore}
+              </div>
+            </div>
+          </div>
 
-          {/* Hole Visualization */}
-          <HoleVisualization
-            currentHoleIndex={currentHoleIndex}
-            holeOffset={0}
-            currentPar={currentPar}
-            currentScore={currentScore}
-          />
+          {/* Hole Display */}
+          <div className="bg-zinc-900 rounded-2xl p-6 border border-white/5">
+            <div className="text-center mb-4">
+              <div className="text-zinc-500 text-sm">Hoyo</div>
+              <div className="text-4xl font-bold text-foreground">{currentHoleIndex + 1}</div>
+              <Badge className="mt-2 bg-zinc-800 border-0 text-zinc-400">
+                Par {currentPar}
+              </Badge>
+            </div>
 
-          {/* Score Input */}
-          <ScoreInput
-            currentScore={currentScore}
-            onIncrement={incrementScore}
-            onDecrement={decrementScore}
-            scoreColor={getScoreColor(currentScore, currentPar)}
-            scoreTerm={getScoreTerm(currentScore, currentPar)}
-          />
+            {/* Score Input */}
+            <div className="flex items-center justify-center gap-6">
+              <button
+                onClick={decrementScore}
+                disabled={currentScore === 0}
+                className="p-4 rounded-full bg-zinc-800 hover:bg-zinc-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-95 border border-white/5"
+              >
+                <Minus className="h-6 w-6 text-foreground" />
+              </button>
+              
+              <div className={`w-24 h-24 rounded-2xl flex flex-col items-center justify-center border-2 transition-all ${getScoreBackground(currentScore, currentPar)}`}>
+                <span className={`text-4xl font-bold ${getScoreColor(currentScore, currentPar)}`}>
+                  {currentScore || '-'}
+                </span>
+                <span className={`text-xs font-medium ${getScoreColor(currentScore, currentPar)}`}>
+                  {getScoreTerm(currentScore, currentPar)}
+                </span>
+              </div>
+
+              <button
+                onClick={incrementScore}
+                disabled={currentScore >= 15}
+                className="p-4 rounded-full bg-zinc-800 hover:bg-zinc-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-95 border border-white/5"
+              >
+                <Plus className="h-6 w-6 text-foreground" />
+              </button>
+            </div>
+          </div>
 
           {/* Navigation */}
           <div className="flex gap-3">
@@ -404,79 +447,84 @@ export const MatchScoringCard = ({ match, open, onOpenChange, onSuccess }: Match
               variant="outline"
               onClick={goToPreviousHole}
               disabled={currentHoleIndex === 0}
-              className="flex-1 h-12"
+              className="flex-1 h-12 rounded-xl bg-zinc-900 border-white/5 hover:bg-zinc-800"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Previous
+              Anterior
             </Button>
             
             <Button
               onClick={goToNextHole}
               disabled={!currentScore}
-              className="flex-1 h-12"
+              className="flex-1 h-12 rounded-xl bg-primary hover:bg-primary/90"
             >
               {currentHoleIndex < 17 ? (
                 <>
-                  Next Hole
+                  Siguiente
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </>
               ) : (
                 <>
-                  Finish Round
+                  Finalizar
                   <Check className="ml-2 h-4 w-4" />
                 </>
               )}
             </Button>
           </div>
 
-          {/* Finalize Match Button - Show when both players are complete */}
+          {/* Finalize Match Button */}
           {isAllPlayersComplete && (
-            <div className="pt-4 border-t space-y-4">
-              <div className="bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-950/20 dark:to-blue-950/20 p-4 rounded-lg border border-green-200 dark:border-green-800">
-                <h3 className="font-semibold text-center mb-3">Match Results</h3>
+            <div className="pt-4 border-t border-white/5 space-y-4">
+              <div className="bg-gradient-to-br from-emerald-500/10 to-blue-500/10 p-4 rounded-2xl border border-emerald-500/20">
+                <h3 className="font-semibold text-center mb-3 text-foreground">Resultados del Partido</h3>
                 <div className="space-y-2">
                   {players
                     .sort((a, b) => (a.total_score || 999) - (b.total_score || 999))
                     .map((player, index) => (
-                      <div key={player.user_id} className={`flex items-center justify-between p-2 rounded ${
-                        index === 0 ? 'bg-amber-100 dark:bg-amber-900/20 border border-amber-300' : 'bg-muted/50'
+                      <div key={player.user_id} className={`flex items-center justify-between p-3 rounded-xl ${
+                        index === 0 ? 'bg-amber-500/10 border border-amber-500/30' : 'bg-zinc-800/50'
                       }`}>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-3">
+                          {index === 0 && (
+                            <div className="p-1.5 rounded-lg bg-amber-500/20">
+                              <Trophy className="h-4 w-4 text-amber-400" />
+                            </div>
+                          )}
                           <Avatar className="h-8 w-8">
                             <AvatarImage src={player.avatar_url} />
-                            <AvatarFallback className="text-xs">{player.name?.[0]}</AvatarFallback>
+                            <AvatarFallback className="text-xs bg-zinc-800">{player.name?.[0]}</AvatarFallback>
                           </Avatar>
-                          <span className="font-medium">{player.name}</span>
-                          {index === 0 && (
-                            <Trophy className="h-4 w-4 text-amber-600" />
-                          )}
+                          <span className={`font-medium ${index === 0 ? 'text-amber-400' : 'text-foreground'}`}>
+                            {player.name}
+                          </span>
                         </div>
-                        <Badge variant={index === 0 ? "default" : "outline"} className={
-                          index === 0 ? "bg-amber-100 text-amber-800 border-amber-300" : ""
-                        }>
+                        <Badge className={`${index === 0 ? 'bg-amber-500/20 text-amber-400' : 'bg-zinc-800 text-zinc-400'} border-0`}>
                           {player.total_score}
                         </Badge>
                       </div>
                     ))}
                 </div>
               </div>
-              
-              <Button 
-                onClick={submitScores} 
+
+              <Button
+                onClick={submitScores}
                 disabled={loading}
-                className="w-full h-12 bg-green-600 hover:bg-green-700 text-white font-semibold"
+                className="w-full h-14 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-semibold text-lg shadow-lg shadow-emerald-500/20"
               >
-                {loading ? "Finalizing..." : (
+                {loading ? (
                   <>
-                    <Trophy className="mr-2 h-5 w-5" />
-                    Finalize Match & Save Results
+                    <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                    Guardando...
+                  </>
+                ) : (
+                  <>
+                    <Trophy className="h-5 w-5 mr-2" />
+                    Finalizar Partido
                   </>
                 )}
               </Button>
             </div>
           )}
-
-          <div className="pb-4" />
         </div>
       </DialogContent>
     </Dialog>
