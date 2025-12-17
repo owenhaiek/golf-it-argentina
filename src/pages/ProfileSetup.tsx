@@ -2,13 +2,12 @@ import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { Camera, User, Hash, Loader2 } from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Camera, User, Hash, ArrowRight } from "lucide-react";
+import { motion } from "framer-motion";
 
 const ProfileSetup = () => {
   const [fullName, setFullName] = useState("");
@@ -58,7 +57,6 @@ const ProfileSetup = () => {
     try {
       let avatarUrl = null;
 
-      // Upload avatar if provided
       if (avatarFile && user?.id) {
         const fileExt = avatarFile.name.split('.').pop();
         const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}`;
@@ -109,118 +107,156 @@ const ProfileSetup = () => {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-background">
-      <div className="flex-shrink-0 p-4 bg-background border-b border-border">
-        <div className="flex items-center justify-center">
-          <h1 className="text-2xl font-bold text-foreground">Completa tu Perfil</h1>
-        </div>
-      </div>
+    <div className="min-h-screen flex items-center justify-center p-4 bg-zinc-950">
+      {/* Subtle gradient background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-emerald-950/20 via-zinc-950 to-zinc-950" />
       
-      <ScrollArea className="flex-1">
-        <div className="p-4 flex items-center justify-center min-h-full">
-          <div className="w-full max-w-md">
-            <Card className="overflow-hidden border-0 shadow-lg bg-zinc-900">
-              <CardHeader className="pb-6 text-center">
-                {/* Logo Section */}
-                <div className="flex justify-center mb-6">
-                  <div className="w-28 h-28 flex items-center justify-center">
-                    <img 
-                      src="/lovable-uploads/0f8f9459-f386-41e8-a1f0-1466dcce96cc.png" 
-                      alt="Golf Flag" 
-                      className="w-full h-full object-contain drop-shadow-lg"
-                    />
-                  </div>
-                </div>
+      {/* Ambient glow */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl" />
 
-                {/* Avatar Section */}
-                <div className="relative w-28 h-28 mx-auto mb-4">
-                  <div 
-                    className="relative w-28 h-28 rounded-full ring-2 ring-primary ring-offset-2 cursor-pointer transition-all duration-200 hover:ring-primary/80"
-                    onClick={handleAvatarClick}
-                  >
-                    <Avatar className="w-28 h-28 border-4 border-white shadow-md hover:opacity-95 transition-opacity">
-                      <AvatarImage src={avatarPreview} />
-                      <AvatarFallback className="bg-primary/10 text-primary text-3xl font-bold">
-                        {fullName?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U'}
-                      </AvatarFallback>
-                    </Avatar>
-                    
-                    <input 
-                      ref={fileInputRef}
-                      type="file" 
-                      accept="image/*" 
-                      className="hidden" 
-                      onChange={handleAvatarChange} 
-                    />
-                    
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-full text-white">
-                      <Camera className="h-6 w-6" />
-                    </div>
-                  </div>
-                </div>
-
-                <CardTitle className="text-xl font-bold text-white mb-2">
-                  Configura tu Perfil
-                </CardTitle>
-                <p className="text-sm text-muted-foreground mb-8">
-                  Agrega tu información personal y foto de perfil
-                </p>
-              </CardHeader>
-              
-              <CardContent className="px-6 pb-6">
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div>
-                    <label htmlFor="fullName" className="flex items-center gap-2 text-sm font-medium text-muted-foreground mb-1">
-                      <User className="h-4 w-4" /> Nombre Completo
-                    </label>
-                    <Input
-                      id="fullName"
-                      type="text"
-                      placeholder="Ingresa tu nombre completo"
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      required
-                      className="border-primary/20 focus:border-primary"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="username" className="flex items-center gap-2 text-sm font-medium text-muted-foreground mb-1">
-                      <Hash className="h-4 w-4" /> Nombre de Usuario
-                    </label>
-                    <Input
-                      id="username"
-                      type="text"
-                      placeholder="Ingresa tu nombre de usuario"
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
-                      required
-                      className="border-primary/20 focus:border-primary"
-                    />
-                  </div>
-                  
-                  <div className="pt-4">
-                    <Button 
-                      type="submit" 
-                      className="w-full"
-                      disabled={isLoading}
-                    >
-                      {isLoading ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Guardando...
-                        </>
-                      ) : (
-                        "Completar Perfil"
-                      )}
-                    </Button>
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="w-full max-w-md space-y-8 relative z-10"
+      >
+        {/* Logo Section */}
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="flex flex-col items-center"
+        >
+          <div className="w-20 h-20 mb-3">
+            <img 
+              src="/lovable-uploads/0f8f9459-f386-41e8-a1f0-1466dcce96cc.png" 
+              alt="Golf Flag" 
+              className="w-full h-full object-contain drop-shadow-2xl"
+            />
           </div>
-        </div>
-      </ScrollArea>
+          <h1 className="text-4xl font-bebas tracking-widest text-white">
+            GOLFIT
+          </h1>
+        </motion.div>
+
+        {/* Card */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="bg-zinc-900/80 backdrop-blur-xl rounded-2xl p-6 shadow-2xl shadow-black/50"
+        >
+          {/* Header */}
+          <div className="text-center mb-6">
+            <h2 className="text-xl font-semibold text-white">
+              Completa tu Perfil
+            </h2>
+            <p className="text-zinc-400 text-sm mt-1">
+              Agrega tu información personal
+            </p>
+          </div>
+
+          {/* Avatar Section */}
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4, delay: 0.3 }}
+            className="flex justify-center mb-6"
+          >
+            <div 
+              className="relative w-28 h-28 cursor-pointer group"
+              onClick={handleAvatarClick}
+            >
+              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-emerald-500/30 to-emerald-700/30 animate-pulse group-hover:from-emerald-500/50 group-hover:to-emerald-700/50 transition-all" />
+              <Avatar className="w-28 h-28 border-2 border-zinc-700/50 shadow-xl">
+                <AvatarImage src={avatarPreview || undefined} />
+                <AvatarFallback className="bg-zinc-800 text-emerald-400 text-3xl font-bold">
+                  {fullName?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U'}
+                </AvatarFallback>
+              </Avatar>
+              
+              <input 
+                ref={fileInputRef}
+                type="file" 
+                accept="image/*" 
+                className="hidden" 
+                onChange={handleAvatarChange} 
+              />
+              
+              <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                <Camera className="h-6 w-6 text-white" />
+              </div>
+              
+              {/* Camera badge */}
+              <div className="absolute bottom-0 right-0 w-8 h-8 bg-emerald-600 rounded-full flex items-center justify-center border-2 border-zinc-900 shadow-lg">
+                <Camera className="h-4 w-4 text-white" />
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-3">
+              {/* Full Name Input */}
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-500" />
+                <Input
+                  type="text"
+                  placeholder="Nombre completo"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  required
+                  className="pl-11 h-12 bg-zinc-800/50 border-zinc-700/50 text-white placeholder:text-zinc-500 focus:border-emerald-500/50 focus:ring-emerald-500/20 rounded-xl transition-all"
+                />
+              </div>
+              
+              {/* Username Input */}
+              <div className="relative">
+                <Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-500" />
+                <Input
+                  type="text"
+                  placeholder="Nombre de usuario"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required
+                  className="pl-11 h-12 bg-zinc-800/50 border-zinc-700/50 text-white placeholder:text-zinc-500 focus:border-emerald-500/50 focus:ring-emerald-500/20 rounded-xl transition-all"
+                />
+              </div>
+            </div>
+
+            {/* Submit Button */}
+            <div className="pt-2">
+              <Button 
+                type="submit" 
+                className="w-full h-12 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg shadow-emerald-900/30"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <span>Guardando...</span>
+                  </div>
+                ) : (
+                  <span className="flex items-center gap-2">
+                    Completar Perfil
+                    <ArrowRight className="h-4 w-4" />
+                  </span>
+                )}
+              </Button>
+            </div>
+          </form>
+        </motion.div>
+
+        {/* Footer */}
+        <motion.p 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+          className="text-center text-zinc-600 text-xs"
+        >
+          Podrás editar tu perfil más tarde
+        </motion.p>
+      </motion.div>
     </div>
   );
 };

@@ -7,7 +7,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { FcGoogle } from "react-icons/fc";
 import { motion } from "framer-motion";
-import { Mail, Lock, ArrowRight, ArrowLeft } from "lucide-react";
+import { Mail, Lock, ArrowRight, ArrowLeft, ShieldCheck } from "lucide-react";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -15,12 +15,24 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast();
   const { t } = useLanguage();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate confirm password on signup
+    if (!isLogin && password !== confirmPassword) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Las contraseñas no coinciden",
+      });
+      return;
+    }
+    
     setIsLoading(true);
 
     try {
@@ -198,6 +210,11 @@ const Auth = () => {
     }
   }, [navigate, toast, t]);
 
+  // Reset confirm password when switching modes
+  React.useEffect(() => {
+    setConfirmPassword("");
+  }, [isLogin]);
+
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-zinc-950">
       {/* Subtle gradient background */}
@@ -226,7 +243,7 @@ const Auth = () => {
               className="w-full h-full object-contain drop-shadow-2xl"
             />
           </div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">
+          <h1 className="text-5xl font-bebas tracking-widest text-white">
             GOLFIT
           </h1>
           <p className="text-zinc-500 text-sm mt-1">
@@ -292,13 +309,52 @@ const Auth = () => {
                   />
                 </motion.div>
               )}
+
+              {/* Confirm Password Input - Only on signup */}
+              {!isLogin && !showForgotPassword && (
+                <motion.div 
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ delay: 0.1 }}
+                  className="relative"
+                >
+                  <ShieldCheck className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-500" />
+                  <Input
+                    type="password"
+                    placeholder="Confirmar contraseña"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    className={`pl-11 h-12 bg-zinc-800/50 border-zinc-700/50 text-white placeholder:text-zinc-500 focus:border-emerald-500/50 focus:ring-emerald-500/20 rounded-xl transition-all ${
+                      confirmPassword && password !== confirmPassword 
+                        ? 'border-red-500/50 focus:border-red-500/50' 
+                        : confirmPassword && password === confirmPassword 
+                          ? 'border-emerald-500/50' 
+                          : ''
+                    }`}
+                  />
+                  {/* Password match indicator */}
+                  {confirmPassword && (
+                    <motion.span 
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs ${
+                        password === confirmPassword ? 'text-emerald-400' : 'text-red-400'
+                      }`}
+                    >
+                      {password === confirmPassword ? '✓' : '✗'}
+                    </motion.span>
+                  )}
+                </motion.div>
+              )}
             </div>
 
             {/* Submit Button */}
             <Button 
               type="submit" 
               className="w-full h-12 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg shadow-emerald-900/30"
-              disabled={isLoading}
+              disabled={isLoading || (!isLogin && !showForgotPassword && password !== confirmPassword)}
             >
               {isLoading ? (
                 <div className="flex items-center gap-2">
