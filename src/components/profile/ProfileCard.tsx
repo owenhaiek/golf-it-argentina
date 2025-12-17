@@ -296,21 +296,36 @@ const ProfileCard = ({
           </div> : <div className="mt-6">
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="outline" className="text-red-500 hover:bg-red-50 hover:text-red-600 transition-colors border border-red-200">
+                <Button 
+                  variant="outline" 
+                  className="bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-all duration-300 border border-red-500/30 hover:border-red-500/50"
+                >
                   <LogOut className="w-4 h-4 mr-2" />
                   {t("profile", "logout")}
                 </Button>
               </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>{t("profile", "logout")}</AlertDialogTitle>
-                  <AlertDialogDescription>
+              <AlertDialogContent className="bg-zinc-900/95 backdrop-blur-xl border border-white/10 shadow-2xl">
+                <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 via-transparent to-transparent rounded-lg pointer-events-none" />
+                <AlertDialogHeader className="relative">
+                  <div className="mx-auto mb-4 w-14 h-14 rounded-full bg-red-500/10 flex items-center justify-center">
+                    <LogOut className="w-7 h-7 text-red-400" />
+                  </div>
+                  <AlertDialogTitle className="text-xl text-center text-foreground">
+                    {t("profile", "logout")}
+                  </AlertDialogTitle>
+                  <AlertDialogDescription className="text-center text-muted-foreground">
                     {t("profile", "logoutConfirm")}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>{t("common", "cancel")}</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleLogout}>
+                <AlertDialogFooter className="relative flex-col sm:flex-row gap-2 mt-4">
+                  <AlertDialogCancel className="w-full sm:w-auto bg-zinc-800/80 border-white/10 hover:bg-zinc-700/80 text-foreground">
+                    {t("common", "cancel")}
+                  </AlertDialogCancel>
+                  <AlertDialogAction 
+                    onClick={handleLogout}
+                    className="w-full sm:w-auto bg-red-500/90 hover:bg-red-500 text-white border-0"
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
                     {t("profile", "logout")}
                   </AlertDialogAction>
                 </AlertDialogFooter>
