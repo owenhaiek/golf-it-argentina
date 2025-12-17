@@ -1,9 +1,9 @@
-
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Upload, X } from "lucide-react";
+import { Loader2, Upload, X, ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface ImageUploaderProps {
   onImageUploaded: (url: string) => void;
@@ -24,26 +24,20 @@ const ImageUploader = ({
     try {
       setUploading(true);
       
-      // Generate a unique file name to avoid collisions
       const fileExt = file.name.split('.').pop();
       const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
       const filePath = `${fileName}`;
 
-      // Upload the file to Supabase storage
       const { data, error } = await supabase.storage
         .from(bucketName)
         .upload(filePath, file);
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
-      // Get the public URL
       const { data: publicUrlData } = supabase.storage
         .from(bucketName)
         .getPublicUrl(filePath);
 
-      // Set the preview and call the onImageUploaded callback
       const publicUrl = publicUrlData.publicUrl;
       setPreview(publicUrl);
       onImageUploaded(publicUrl);
@@ -79,36 +73,52 @@ const ImageUploader = ({
   };
 
   return (
-    <div className="space-y-2">
-      {preview ? (
-        <div className="relative">
-          <img 
-            src={preview} 
-            alt="Preview" 
-            className="h-40 w-full object-cover rounded-md" 
-            onError={(e) => {
-              (e.target as HTMLImageElement).src = 'https://placehold.co/600x400?text=Error+al+cargar+imagen';
-            }}
-          />
-          <button
-            type="button"
-            onClick={clearImage}
-            className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors"
-            title="Eliminar imagen"
+    <div className="space-y-3">
+      <AnimatePresence mode="wait">
+        {preview ? (
+          <motion.div 
+            key="preview"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="relative group"
           >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-      ) : (
-        <div 
-          className="border-2 border-dashed border-gray-300 rounded-md p-6 flex flex-col items-center justify-center text-gray-500"
-          onClick={() => document.getElementById('image-upload')?.click()}
-        >
-          <Upload className="h-8 w-8 mb-2" />
-          <p className="mb-2 text-center">Toca para subir una imagen</p>
-          <span className="text-xs text-center">JPG, PNG, GIF hasta 5MB</span>
-        </div>
-      )}
+            <img 
+              src={preview} 
+              alt="Preview" 
+              className="h-48 w-full object-cover rounded-lg border border-zinc-700/50" 
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = 'https://placehold.co/600x400?text=Error+al+cargar+imagen';
+              }}
+            />
+            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+              <button
+                type="button"
+                onClick={clearImage}
+                className="bg-red-500/90 text-white p-2 rounded-full hover:bg-red-600 transition-colors"
+                title="Eliminar imagen"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div 
+            key="upload"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="border-2 border-dashed border-zinc-700/50 rounded-lg p-8 flex flex-col items-center justify-center text-zinc-400 cursor-pointer hover:border-green-500/50 hover:bg-zinc-800/30 transition-all duration-300"
+            onClick={() => document.getElementById('image-upload')?.click()}
+          >
+            <div className="w-16 h-16 rounded-full bg-zinc-800/50 flex items-center justify-center mb-4">
+              <ImageIcon className="h-8 w-8 text-green-500" />
+            </div>
+            <p className="mb-2 text-center font-medium">Toca para subir una imagen</p>
+            <span className="text-xs text-zinc-500 text-center">JPG, PNG, GIF hasta 5MB</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
       
       <input
         type="file"
@@ -122,9 +132,13 @@ const ImageUploader = ({
       <label htmlFor="image-upload">
         <Button
           type="button"
-          variant={preview ? "outline" : "default"}
+          variant="outline"
           disabled={uploading}
-          className="w-full cursor-pointer"
+          className={`w-full cursor-pointer ${
+            preview 
+              ? "bg-zinc-800/50 border-zinc-700/50 text-zinc-300 hover:bg-zinc-700/50 hover:text-white" 
+              : "bg-green-500/20 border-green-500/30 text-green-400 hover:bg-green-500/30"
+          }`}
           asChild
         >
           <span>
@@ -134,9 +148,15 @@ const ImageUploader = ({
                 Subiendo...
               </>
             ) : preview ? (
-              "Cambiar imagen"
+              <>
+                <Upload className="mr-2 h-4 w-4" />
+                Cambiar imagen
+              </>
             ) : (
-              "Seleccionar imagen"
+              <>
+                <Upload className="mr-2 h-4 w-4" />
+                Seleccionar imagen
+              </>
             )}
           </span>
         </Button>
