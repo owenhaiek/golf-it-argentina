@@ -62,6 +62,7 @@ export default {
       fontFamily: {
         sans: ["SF Pro Display", "system-ui", "sans-serif"],
         poppins: ["Poppins", "sans-serif"],
+        bebas: ["Bebas Neue", "sans-serif"],
       },
       keyframes: {
         fadeIn: {
