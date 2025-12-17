@@ -8,6 +8,7 @@ import { FriendRequestButton } from "@/components/profile/FriendRequestButton";
 import { ChevronLeft, Users, Search, X } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
+import { motion } from "framer-motion";
 
 interface Profile {
   id: string;
@@ -54,7 +55,11 @@ const Friends = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="sticky top-0 z-40 bg-zinc-900/95 backdrop-blur-sm border-b border-zinc-800">
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="sticky top-0 z-40 bg-zinc-900/95 backdrop-blur-sm border-b border-zinc-800"
+      >
         <div className="px-4 py-4">
           <div className="flex items-center justify-between">
             <button 
@@ -72,7 +77,7 @@ const Friends = () => {
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
       
       {/* Search Input */}
       <div className="p-4 pb-0">

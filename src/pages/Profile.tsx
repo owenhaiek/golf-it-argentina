@@ -10,6 +10,7 @@ import { FriendSuggestions } from "@/components/profile/FriendSuggestions";
 import { TournamentsAndMatchesSection } from "@/components/profile/TournamentsAndMatchesSection";
 import { NotificationButton } from "@/components/ui/NotificationButton";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { motion } from "framer-motion";
 
 const Profile = () => {
   const { user, loading } = useAuth();
@@ -36,12 +37,16 @@ const Profile = () => {
 
   return (
     <div className="h-screen flex flex-col">
-      <div className="flex-shrink-0 px-4 py-3 bg-background/80 backdrop-blur-xl border-b border-white/5 sticky top-0 z-40 touch-none">
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex-shrink-0 px-4 py-3 bg-background/80 backdrop-blur-xl border-b border-white/5 sticky top-0 z-40 touch-none"
+      >
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-semibold text-foreground">{t("common", "profile")}</h1>
           <NotificationButton />
         </div>
-      </div>
+      </motion.div>
       
       <div className="flex-1">
         <div className="p-4 space-y-6 pb-28">
