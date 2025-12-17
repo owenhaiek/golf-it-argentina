@@ -304,7 +304,7 @@ const ProfileCard = ({
                   {t("profile", "logout")}
                 </Button>
               </AlertDialogTrigger>
-              <AlertDialogContent className="bg-zinc-900/95 backdrop-blur-xl border border-white/10 shadow-2xl">
+              <AlertDialogContent className="bg-zinc-900/95 backdrop-blur-xl border border-white/10 shadow-2xl mx-4 max-w-[calc(100%-2rem)] sm:max-w-lg">
                 <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 via-transparent to-transparent rounded-lg pointer-events-none" />
                 <AlertDialogHeader className="relative">
                   <div className="mx-auto mb-4 w-14 h-14 rounded-full bg-red-500/10 flex items-center justify-center">

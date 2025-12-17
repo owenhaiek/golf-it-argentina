@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/sheet";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { motion } from "framer-motion";
 
 type LanguageType = "en" | "es";
 
@@ -32,7 +33,11 @@ const Settings = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="sticky top-0 z-40 bg-zinc-900/95 backdrop-blur-sm border-b border-zinc-800">
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="sticky top-0 z-40 bg-zinc-900/95 backdrop-blur-sm border-b border-zinc-800"
+      >
         <div className="px-4 py-4">
           <div className="flex items-center justify-between">
             <button 
@@ -50,7 +55,7 @@ const Settings = () => {
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
       
       <div className="p-4 space-y-4 pb-28">
         {/* Language Settings */}

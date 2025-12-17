@@ -5,6 +5,7 @@ import { useUserProfileData } from "@/hooks/useUserProfileData";
 import UserProfileCard from "@/components/profile/UserProfileCard";
 import UserStatsCard from "@/components/profile/UserStatsCard";
 import UserRecentRounds from "@/components/profile/UserRecentRounds";
+import { motion } from "framer-motion";
 
 const UserProfile = () => {
   const { userId } = useParams<{ userId: string }>();
@@ -42,7 +43,11 @@ const UserProfile = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="sticky top-0 z-40 bg-zinc-900/95 backdrop-blur-sm border-b border-zinc-800">
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="sticky top-0 z-40 bg-zinc-900/95 backdrop-blur-sm border-b border-zinc-800"
+      >
         <div className="px-4 py-4">
           <div className="flex items-center justify-between">
             <button 
@@ -57,7 +62,7 @@ const UserProfile = () => {
             </h1>
           </div>
         </div>
-      </div>
+      </motion.div>
       
       <div className="p-4 space-y-4 pb-28">
         <UserProfileCard 
