@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { validatePassword } from "@/utils/security";
+import { motion } from "framer-motion";
+import { Lock, ShieldCheck, ArrowRight, ArrowLeft } from "lucide-react";
 
 const ResetPassword = () => {
   const [password, setPassword] = useState("");
@@ -20,7 +21,6 @@ const ResetPassword = () => {
     
     const validateResetLink = async () => {
       try {
-        // Check URL for recovery tokens
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
         const queryParams = new URLSearchParams(window.location.search);
         
@@ -30,7 +30,6 @@ const ResetPassword = () => {
         
         console.log('Reset link validation:', { type, hasTokens: !!(accessToken && refreshToken) });
         
-        // If we have recovery tokens, set the session
         if (type === 'recovery' && accessToken && refreshToken) {
           const { data, error } = await supabase.auth.setSession({
             access_token: accessToken,
@@ -49,7 +48,6 @@ const ResetPassword = () => {
           }
         }
         
-        // Check if user already has a valid session (fallback)
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user) {
           console.log('Existing session found');
@@ -57,7 +55,6 @@ const ResetPassword = () => {
           return;
         }
         
-        // If no valid session or tokens, show error
         throw new Error('No valid reset session found');
         
       } catch (error) {
@@ -65,8 +62,8 @@ const ResetPassword = () => {
         timeoutId = setTimeout(() => {
           toast({
             variant: "destructive",
-            title: "Invalid Reset Link",
-            description: "This password reset link is invalid or has expired. Please request a new one.",
+            title: "Enlace Inválido",
+            description: "Este enlace de restablecimiento es inválido o ha expirado. Por favor solicita uno nuevo.",
           });
           navigate('/auth');
         }, 1000);
@@ -89,17 +86,16 @@ const ResetPassword = () => {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Passwords do not match",
+        description: "Las contraseñas no coinciden",
       });
       return;
     }
 
-    // Validate password strength
     const validation = validatePassword(password);
     if (!validation.isValid) {
       toast({
         variant: "destructive",
-        title: "Password too weak",
+        title: "Contraseña muy débil",
         description: validation.errors.join(", "),
       });
       return;
@@ -115,11 +111,10 @@ const ResetPassword = () => {
       if (error) throw error;
 
       toast({
-        title: "Password Updated",
-        description: "Your password has been successfully updated. You can now sign in with your new password.",
+        title: "Contraseña Actualizada",
+        description: "Tu contraseña ha sido actualizada exitosamente.",
       });
       
-      // Sign out and redirect to auth page
       await supabase.auth.signOut();
       navigate('/auth');
     } catch (error: any) {
@@ -127,92 +122,198 @@ const ResetPassword = () => {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "An error occurred while updating your password.",
+        description: error.message || "Ocurrió un error al actualizar tu contraseña.",
       });
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Loading state
   if (!isValidToken) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-primary">
-        <div className="w-full max-w-md">
-          <Card className="animate-in border-0 shadow-xl bg-primary">
-            <CardContent className="p-6 text-center">
-              <p className="text-white">Validating reset link...</p>
-            </CardContent>
-          </Card>
-        </div>
+      <div className="min-h-screen flex items-center justify-center p-4 bg-zinc-950">
+        <div className="absolute inset-0 bg-gradient-to-br from-emerald-950/20 via-zinc-950 to-zinc-950" />
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl" />
+        
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="relative z-10 flex flex-col items-center gap-4"
+        >
+          <div className="w-20 h-20">
+            <img 
+              src="/lovable-uploads/0f8f9459-f386-41e8-a1f0-1466dcce96cc.png" 
+              alt="Golf Flag" 
+              className="w-full h-full object-contain drop-shadow-2xl animate-pulse"
+            />
+          </div>
+          <p className="text-zinc-400 text-sm">Validando enlace...</p>
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-primary">
-      <div className="w-full max-w-md space-y-6">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-zinc-950">
+      {/* Subtle gradient background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-emerald-950/20 via-zinc-950 to-zinc-950" />
+      
+      {/* Ambient glow */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl" />
+      
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="w-full max-w-md space-y-8 relative z-10"
+      >
         {/* Logo Section */}
-        <div className="flex justify-center mb-8">
-          <div className="w-32 h-32 flex items-center justify-center">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="flex flex-col items-center"
+        >
+          <div className="w-24 h-24 mb-4">
             <img 
               src="/lovable-uploads/0f8f9459-f386-41e8-a1f0-1466dcce96cc.png" 
               alt="Golf Flag" 
-              className="w-full h-full object-contain drop-shadow-lg"
+              className="w-full h-full object-contain drop-shadow-2xl"
             />
           </div>
-        </div>
+          <h1 className="text-5xl font-bebas tracking-widest text-white">
+            GOLFIT
+          </h1>
+          <p className="text-zinc-500 text-sm mt-1">
+            Tu compañero de golf
+          </p>
+        </motion.div>
 
-        <Card className="animate-in border-0 shadow-xl bg-primary">
-          <CardHeader className="space-y-1 text-center pb-6">
-            <CardTitle className="text-2xl font-bold text-white">
-              Crear Nueva Contraseña
-            </CardTitle>
-            <CardDescription className="text-white/90">
-              Ingresa tu nueva contraseña para continuar
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
+        {/* Card */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="bg-zinc-900/80 backdrop-blur-xl rounded-2xl p-6 shadow-2xl shadow-black/50"
+        >
+          {/* Header */}
+          <div className="text-center mb-6">
+            <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-emerald-500/10 flex items-center justify-center">
+              <ShieldCheck className="h-6 w-6 text-emerald-400" />
+            </div>
+            <h2 className="text-xl font-semibold text-white">
+              Nueva Contraseña
+            </h2>
+            <p className="text-zinc-400 text-sm mt-1">
+              Ingresa tu nueva contraseña segura
+            </p>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-3">
+              {/* New Password Input */}
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-500" />
                 <Input
                   type="password"
                   placeholder="Nueva contraseña"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="bg-white/10 border-white/20 text-white placeholder:text-white/70 focus:border-white/40 focus:ring-white/20"
+                  className="pl-11 h-12 bg-zinc-800/50 border-zinc-700/50 text-white placeholder:text-zinc-500 focus:border-emerald-500/50 focus:ring-emerald-500/20 rounded-xl transition-all"
                 />
+              </div>
+              
+              {/* Confirm Password Input */}
+              <div className="relative">
+                <ShieldCheck className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-500" />
                 <Input
                   type="password"
                   placeholder="Confirmar nueva contraseña"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
-                  className="bg-white/10 border-white/20 text-white placeholder:text-white/70 focus:border-white/40 focus:ring-white/20"
+                  className={`pl-11 h-12 bg-zinc-800/50 border-zinc-700/50 text-white placeholder:text-zinc-500 focus:border-emerald-500/50 focus:ring-emerald-500/20 rounded-xl transition-all ${
+                    confirmPassword && password !== confirmPassword 
+                      ? 'border-red-500/50 focus:border-red-500/50' 
+                      : confirmPassword && password === confirmPassword 
+                        ? 'border-emerald-500/50' 
+                        : ''
+                  }`}
                 />
+                {/* Password match indicator */}
+                {confirmPassword && (
+                  <motion.span 
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs ${
+                      password === confirmPassword ? 'text-emerald-400' : 'text-red-400'
+                    }`}
+                  >
+                    {password === confirmPassword ? '✓' : '✗'}
+                  </motion.span>
+                )}
               </div>
-              <Button 
-                type="submit" 
-                className="w-full bg-white hover:bg-white/90 text-primary font-semibold"
-                disabled={isLoading}
-              >
-                {isLoading ? "Actualizando..." : "Actualizar Contraseña"}
-              </Button>
-            </form>
-            
-            <div className="text-center pt-4">
-              <Button
-                variant="default"
-                type="button"
-                onClick={() => navigate('/auth')}
-                className="w-full bg-white/10 hover:bg-white/20 text-white border border-white/20"
-              >
-                Volver al inicio de sesión
-              </Button>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+
+            {/* Password requirements hint */}
+            <div className="text-xs text-zinc-500 space-y-1 px-1">
+              <p>La contraseña debe tener:</p>
+              <ul className="list-disc list-inside space-y-0.5 text-zinc-600">
+                <li>Mínimo 8 caracteres</li>
+                <li>Al menos una mayúscula</li>
+                <li>Al menos un número</li>
+              </ul>
+            </div>
+
+            {/* Submit Button */}
+            <Button 
+              type="submit" 
+              className="w-full h-12 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg shadow-emerald-900/30"
+              disabled={isLoading || password !== confirmPassword}
+            >
+              {isLoading ? (
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span>Actualizando...</span>
+                </div>
+              ) : (
+                <span className="flex items-center gap-2">
+                  Actualizar Contraseña
+                  <ArrowRight className="h-4 w-4" />
+                </span>
+              )}
+            </Button>
+          </form>
+          
+          {/* Back to Login */}
+          <div className="mt-6 pt-6 border-t border-zinc-800">
+            <Button
+              variant="ghost"
+              type="button"
+              onClick={() => navigate('/auth')}
+              className="w-full h-11 text-zinc-400 hover:text-white hover:bg-zinc-800/50 rounded-xl transition-all"
+            >
+              <span className="flex items-center gap-2">
+                <ArrowLeft className="h-4 w-4" />
+                Volver al inicio de sesión
+              </span>
+            </Button>
+          </div>
+        </motion.div>
+
+        {/* Footer */}
+        <motion.p 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+          className="text-center text-zinc-600 text-xs"
+        >
+          Tu contraseña será actualizada de forma segura
+        </motion.p>
+      </motion.div>
     </div>
   );
 };
