@@ -1,16 +1,14 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { hashPassword, verifyPassword, sanitizeInput, validateEmail, validatePassword, authRateLimiter } from "@/utils/security";
-import { Separator } from "@/components/ui/separator";
-import { Building2, ArrowLeft } from "lucide-react";
+import { hashPassword, verifyPassword, sanitizeInput, validateEmail, validatePassword, authRateLimiter, getPasswordStrength } from "@/utils/security";
+import { Building2, ArrowLeft, Mail, Lock, User, Phone, ArrowRight } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
+import { motion } from "framer-motion";
 
 const CourseManagerAuth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -23,7 +21,8 @@ const CourseManagerAuth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Fetch golf courses for registration
+  const passwordStrength = getPasswordStrength(password);
+
   const { data: golfCourses } = useQuery({
     queryKey: ['golfCourses'],
     queryFn: async () => {
@@ -45,28 +44,26 @@ const CourseManagerAuth = () => {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Please enter both email and password",
+        description: "Ingresa email y contraseña",
       });
       return;
     }
 
-    // Input validation and sanitization
     if (!validateEmail(email)) {
       toast({
         variant: "destructive",
-        title: "Invalid Email",
-        description: "Please enter a valid email address",
+        title: "Email Inválido",
+        description: "Por favor ingresa un email válido",
       });
       return;
     }
 
-    // Rate limiting check
     const sanitizedEmail = sanitizeInput(email).toLowerCase();
     if (!authRateLimiter.isAllowed(sanitizedEmail)) {
       toast({
         variant: "destructive",
-        title: "Too Many Attempts",
-        description: "Too many login attempts. Please try again in 15 minutes.",
+        title: "Demasiados Intentos",
+        description: "Demasiados intentos. Intenta de nuevo en 15 minutos.",
       });
       return;
     }
@@ -74,75 +71,41 @@ const CourseManagerAuth = () => {
     setIsLoading(true);
 
     try {
-      console.log("Attempting course manager login with email:", email);
-      
-      // First, let's check if there are any active managers with this email
       const { data: managers, error: fetchError } = await supabase
         .from('course_managers')
         .select(`
-          id,
-          name,
-          email,
-          password_hash,
-          course_id,
-          is_active,
-          golf_courses (
-            name
-          )
+          id, name, email, password_hash, course_id, is_active,
+          golf_courses (name)
         `)
         .eq('email', sanitizedEmail)
         .eq('is_active', true);
 
-      if (fetchError) {
-        console.error("Error fetching manager:", fetchError);
-        throw fetchError;
-      }
-
-      console.log("Found managers:", managers);
+      if (fetchError) throw fetchError;
 
       if (!managers || managers.length === 0) {
-        console.log("No managers found with email:", sanitizedEmail);
         toast({
           variant: "destructive",
-          title: "Authentication Failed",
-          description: "No active course manager account found with this email. Please check your email or contact admin for approval.",
+          title: "Error de Autenticación",
+          description: "No se encontró cuenta de manager activa con este email.",
         });
         return;
       }
 
       const manager = managers[0];
-      console.log("Manager found:", {
-        id: manager.id,
-        email: manager.email,
-        hasPasswordHash: !!manager.password_hash,
-        passwordHashLength: manager.password_hash?.length
-      });
-      
-      // Try secure password verification methods
       const providedPassword = password.trim();
       const storedHash = manager.password_hash;
       
       let isValidPassword = false;
       
       try {
-        // Try bcrypt verification first (for properly hashed passwords)
         isValidPassword = await verifyPassword(providedPassword, storedHash);
       } catch (bcryptError) {
-        console.log("Bcrypt verification failed, trying legacy methods");
-        
-        // Fall back to legacy hash formats for backward compatibility
         isValidPassword = 
-          btoa(providedPassword) === storedHash || // Base64 encoded
-          providedPassword === storedHash; // Direct match (for unhashed passwords - security risk!)
+          btoa(providedPassword) === storedHash || 
+          providedPassword === storedHash;
       }
       
-      console.log("Password verification:", {
-        isValidPassword,
-        method: isValidPassword ? 'verified' : 'failed'
-      });
-      
       if (isValidPassword) {
-        // Reset rate limiter on successful login
         authRateLimiter.reset(sanitizedEmail);
         
         const managerData = {
@@ -153,30 +116,26 @@ const CourseManagerAuth = () => {
           course_name: (manager.golf_courses as any)?.name || 'Unknown Course'
         };
         
-        console.log("Login successful, storing manager data:", managerData);
         localStorage.setItem('courseManager', JSON.stringify(managerData));
         
         toast({
-          title: "Welcome back!",
-          description: `Logged in as ${manager.name} for ${(manager.golf_courses as any)?.name || 'Unknown Course'}`,
+          title: "¡Bienvenido!",
+          description: `Sesión iniciada como ${manager.name}`,
         });
         
-        // Fixed redirect: navigate to the specific course dashboard
         navigate(`/course-dashboard/${manager.course_id}`);
       } else {
-        console.log("Password verification failed");
         toast({
           variant: "destructive",
-          title: "Authentication Failed",
-          description: "Invalid password. Please check your password and try again.",
+          title: "Error de Autenticación",
+          description: "Contraseña incorrecta.",
         });
       }
     } catch (error: any) {
-      console.error("Login error:", error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "An error occurred during login",
+        description: error.message || "Ocurrió un error durante el inicio de sesión",
       });
     } finally {
       setIsLoading(false);
@@ -190,17 +149,16 @@ const CourseManagerAuth = () => {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Please fill in all required fields",
+        description: "Por favor completa todos los campos requeridos",
       });
       return;
     }
 
-    // Input validation and sanitization
     if (!validateEmail(email)) {
       toast({
         variant: "destructive",
-        title: "Invalid Email",
-        description: "Please enter a valid email address",
+        title: "Email Inválido",
+        description: "Por favor ingresa un email válido",
       });
       return;
     }
@@ -209,7 +167,7 @@ const CourseManagerAuth = () => {
     if (!passwordValidation.isValid) {
       toast({
         variant: "destructive",
-        title: "Invalid Password",
+        title: "Contraseña Inválida",
         description: passwordValidation.errors.join(', '),
       });
       return;
@@ -218,12 +176,9 @@ const CourseManagerAuth = () => {
     setIsLoading(true);
 
     try {
-      // Sanitize inputs
       const sanitizedName = sanitizeInput(name);
       const sanitizedEmail = sanitizeInput(email).toLowerCase();
       const sanitizedPhone = phone ? sanitizeInput(phone) : null;
-      
-      // Use proper password hashing instead of Base64
       const hashedPassword = await hashPassword(password.trim());
       
       const { error } = await supabase
@@ -239,11 +194,10 @@ const CourseManagerAuth = () => {
       if (error) throw error;
 
       toast({
-        title: "Registration Submitted",
-        description: "Your registration has been submitted for admin approval. You'll be notified once approved.",
+        title: "Registro Enviado",
+        description: "Tu registro ha sido enviado para aprobación del administrador.",
       });
 
-      // Reset form
       setName("");
       setEmail("");
       setPassword("");
@@ -251,123 +205,215 @@ const CourseManagerAuth = () => {
       setSelectedCourseId("");
       setIsLogin(true);
     } catch (error: any) {
-      console.error("Registration error:", error);
       toast({
         variant: "destructive",
-        title: "Registration Failed",
-        description: error.message || "An error occurred during registration",
+        title: "Error de Registro",
+        description: error.message || "Ocurrió un error durante el registro",
       });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleBackToApp = () => {
-    navigate("/");
-  };
-
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-muted">
-      <Card className="w-full max-w-md animate-in">
-        <CardHeader className="space-y-1">
-          <div className="flex items-center justify-between">
-            <Button variant="ghost" size="sm" onClick={handleBackToApp}>
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to App
-            </Button>
+    <div className="min-h-screen flex items-center justify-center p-4 bg-zinc-950">
+      <div className="absolute inset-0 bg-gradient-to-br from-emerald-950/20 via-zinc-950 to-zinc-950" />
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl" />
+      
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="w-full max-w-md space-y-8 relative z-10"
+      >
+        {/* Header */}
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="flex flex-col items-center"
+        >
+          <div className="w-16 h-16 mb-4 rounded-2xl bg-emerald-500/10 flex items-center justify-center">
+            <Building2 className="h-8 w-8 text-emerald-400" />
           </div>
-          <div className="flex items-center justify-center mb-4">
-            <Building2 className="h-12 w-12 text-primary" />
+          <h1 className="text-3xl font-bold text-white">
+            Course Manager
+          </h1>
+          <p className="text-zinc-500 text-sm mt-1">
+            Panel de administración de campos
+          </p>
+        </motion.div>
+
+        {/* Card */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="bg-zinc-900/80 backdrop-blur-xl rounded-2xl p-6 shadow-2xl shadow-black/50"
+        >
+          {/* Back Button */}
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => navigate("/")}
+            className="mb-4 text-zinc-400 hover:text-white hover:bg-zinc-800/50 -ml-2"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Volver a la App
+          </Button>
+
+          {/* Header */}
+          <div className="text-center mb-6">
+            <h2 className="text-xl font-semibold text-white">
+              {isLogin ? "Iniciar Sesión" : "Registro de Manager"}
+            </h2>
+            <p className="text-zinc-400 text-sm mt-1">
+              {isLogin 
+                ? "Accede al panel de tu campo de golf"
+                : "Solicita acceso como manager (requiere aprobación)"
+              }
+            </p>
           </div>
-          <CardTitle className="text-2xl font-bold text-center">
-            {isLogin ? "Course Manager Login" : "Course Manager Registration"}
-          </CardTitle>
-          <CardDescription className="text-center">
-            {isLogin 
-              ? "Sign in to manage your golf course reservations"
-              : "Apply to become a course manager (admin approval required)"
-            }
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+
+          {/* Form */}
           <form onSubmit={isLogin ? handleLogin : handleRegister} className="space-y-4">
-            {!isLogin && (
-              <>
+            <div className="space-y-3">
+              {!isLogin && (
+                <>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-500" />
+                    <Input
+                      type="text"
+                      placeholder="Nombre completo"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      required
+                      className="pl-11 h-12 bg-zinc-800/50 border-zinc-700/50 text-white placeholder:text-zinc-500 focus:border-emerald-500/50 focus:ring-emerald-500/20 rounded-xl"
+                    />
+                  </div>
+                  
+                  <Select value={selectedCourseId} onValueChange={setSelectedCourseId} required>
+                    <SelectTrigger className="h-12 bg-zinc-800/50 border-zinc-700/50 text-white rounded-xl focus:border-emerald-500/50">
+                      <Building2 className="h-5 w-5 text-zinc-500 mr-2" />
+                      <SelectValue placeholder="Seleccionar Campo de Golf" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-zinc-900 border-zinc-700">
+                      {golfCourses?.map((course) => (
+                        <SelectItem key={course.id} value={course.id} className="text-white hover:bg-zinc-800">
+                          {course.name} {course.city && `- ${course.city}`}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-500" />
+                    <Input
+                      type="tel"
+                      placeholder="Teléfono (opcional)"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      className="pl-11 h-12 bg-zinc-800/50 border-zinc-700/50 text-white placeholder:text-zinc-500 focus:border-emerald-500/50 focus:ring-emerald-500/20 rounded-xl"
+                    />
+                  </div>
+                </>
+              )}
+              
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-500" />
                 <Input
-                  type="text"
-                  placeholder="Full Name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  type="email"
+                  placeholder="Email del manager"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   required
+                  className="pl-11 h-12 bg-zinc-800/50 border-zinc-700/50 text-white placeholder:text-zinc-500 focus:border-emerald-500/50 focus:ring-emerald-500/20 rounded-xl"
                 />
-                <Select value={selectedCourseId} onValueChange={setSelectedCourseId} required>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select Golf Course" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white z-50">
-                    {golfCourses?.map((course) => (
-                      <SelectItem key={course.id} value={course.id}>
-                        {course.name} {course.city && `- ${course.city}`}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              </div>
+              
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-500" />
                 <Input
-                  type="tel"
-                  placeholder="Phone Number (optional)"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  type="password"
+                  placeholder="Contraseña"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="pl-11 h-12 bg-zinc-800/50 border-zinc-700/50 text-white placeholder:text-zinc-500 focus:border-emerald-500/50 focus:ring-emerald-500/20 rounded-xl"
                 />
-              </>
-            )}
-            <Input
-              type="email"
-              placeholder="Manager Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-            <Input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+              </div>
+
+              {/* Password Strength - Only on register */}
+              {!isLogin && password && (
+                <motion.div 
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="space-y-2 px-1"
+                >
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-zinc-500">Fortaleza:</span>
+                    <span className={`font-medium ${
+                      passwordStrength.score <= 25 ? 'text-red-400' :
+                      passwordStrength.score <= 50 ? 'text-orange-400' :
+                      passwordStrength.score <= 75 ? 'text-yellow-400' :
+                      'text-emerald-400'
+                    }`}>
+                      {passwordStrength.label}
+                    </span>
+                  </div>
+                  <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                    <motion.div 
+                      initial={{ width: 0 }}
+                      animate={{ width: `${passwordStrength.score}%` }}
+                      transition={{ duration: 0.3 }}
+                      className={`h-full rounded-full ${passwordStrength.color}`}
+                    />
+                  </div>
+                </motion.div>
+              )}
+            </div>
+
             <Button 
               type="submit" 
-              className="w-full bg-primary hover:bg-primary-hover"
+              className="w-full h-12 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl transition-all shadow-lg shadow-emerald-900/30"
               disabled={isLoading}
             >
-              {isLoading 
-                ? (isLogin ? "Signing In..." : "Submitting...") 
-                : (isLogin ? "Sign In" : "Submit Registration")
-              }
+              {isLoading ? (
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span>{isLogin ? "Iniciando..." : "Enviando..."}</span>
+                </div>
+              ) : (
+                <span className="flex items-center gap-2">
+                  {isLogin ? "Iniciar Sesión" : "Enviar Solicitud"}
+                  <ArrowRight className="h-4 w-4" />
+                </span>
+              )}
             </Button>
           </form>
           
-          <Separator />
-          
-          <div className="text-center">
-            <button
+          {/* Toggle Login/Register */}
+          <div className="mt-6 pt-6 border-t border-zinc-800">
+            <Button
+              variant="ghost"
               type="button"
               onClick={() => setIsLogin(!isLogin)}
-              className="text-primary hover:text-primary-hover underline text-sm"
+              className="w-full h-11 text-zinc-400 hover:text-white hover:bg-zinc-800/50 rounded-xl"
             >
               {isLogin 
-                ? "Need to register as a course manager?" 
-                : "Already have an account? Sign in"}
-            </button>
+                ? "¿Necesitas registrarte como manager?" 
+                : "¿Ya tienes cuenta? Inicia sesión"}
+            </Button>
           </div>
           
-          <div className="text-center text-sm text-muted-foreground">
+          <p className="text-center text-zinc-600 text-xs mt-4">
             {isLogin 
-              ? "Need access? Contact your golf course administrator"
-              : "Registration requires admin approval"
+              ? "¿Necesitas acceso? Contacta al administrador"
+              : "El registro requiere aprobación del administrador"
             }
-          </div>
-        </CardContent>
-      </Card>
+          </p>
+        </motion.div>
+      </motion.div>
     </div>
   );
 };

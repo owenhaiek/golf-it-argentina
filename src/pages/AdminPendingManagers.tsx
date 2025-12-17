@@ -1,7 +1,5 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -13,12 +11,13 @@ import {
   Mail, 
   Phone, 
   Calendar,
-  Filter,
   Users,
   Clock,
-  MapPin
+  MapPin,
+  ArrowLeft
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { useNavigate } from "react-router-dom";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,6 +36,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { motion } from "framer-motion";
 
 interface PendingManager {
   id: string;
@@ -61,6 +61,7 @@ const AdminPendingManagers = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchPendingManagers();
@@ -77,19 +78,14 @@ const AdminPendingManagers = () => {
         .from("pending_course_managers")
         .select(`
           *,
-          golf_courses (
-            name,
-            city,
-            state
-          )
+          golf_courses (name, city, state)
         `)
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error("Error fetching pending managers:", error);
         toast({
           title: "Error",
-          description: "Failed to fetch pending managers.",
+          description: "No se pudieron cargar los managers pendientes.",
           variant: "destructive",
         });
         return;
@@ -97,10 +93,9 @@ const AdminPendingManagers = () => {
 
       setPendingManagers(data || []);
     } catch (error: any) {
-      console.error("Error fetching pending managers:", error);
       toast({
         title: "Error",
-        description: error.message || "Failed to fetch pending managers.",
+        description: error.message || "No se pudieron cargar los managers pendientes.",
         variant: "destructive",
       });
     } finally {
@@ -134,24 +129,22 @@ const AdminPendingManagers = () => {
       });
 
       if (error) {
-        console.error("Error approving manager:", error);
         toast({
           title: "Error",
-          description: "Failed to approve manager.",
+          description: "No se pudo aprobar el manager.",
           variant: "destructive",
         });
       } else {
         toast({
-          title: "Success",
-          description: "Manager approved successfully.",
+          title: "Éxito",
+          description: "Manager aprobado exitosamente.",
         });
         fetchPendingManagers();
       }
     } catch (error: any) {
-      console.error("Error approving manager:", error);
       toast({
         title: "Error",
-        description: error.message || "Failed to approve manager.",
+        description: error.message || "No se pudo aprobar el manager.",
         variant: "destructive",
       });
     } finally {
@@ -167,24 +160,22 @@ const AdminPendingManagers = () => {
       });
 
       if (error) {
-        console.error("Error rejecting manager:", error);
         toast({
           title: "Error",
-          description: "Failed to reject manager.",
+          description: "No se pudo rechazar el manager.",
           variant: "destructive",
         });
       } else {
         toast({
-          title: "Success",
-          description: "Manager rejected successfully.",
+          title: "Éxito",
+          description: "Manager rechazado exitosamente.",
         });
         fetchPendingManagers();
       }
     } catch (error: any) {
-      console.error("Error rejecting manager:", error);
       toast({
         title: "Error",
-        description: error.message || "Failed to reject manager.",
+        description: error.message || "No se pudo rechazar el manager.",
         variant: "destructive",
       });
     } finally {
@@ -192,16 +183,16 @@ const AdminPendingManagers = () => {
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+        return <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">Pendiente</Badge>;
       case 'approved':
-        return 'bg-green-100 text-green-800 border-green-200';
+        return <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">Aprobado</Badge>;
       case 'rejected':
-        return 'bg-red-100 text-red-800 border-red-200';
+        return <Badge className="bg-red-500/20 text-red-400 border-red-500/30">Rechazado</Badge>;
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return <Badge className="bg-zinc-500/20 text-zinc-400 border-zinc-500/30">{status}</Badge>;
     }
   };
 
@@ -211,188 +202,204 @@ const AdminPendingManagers = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-2 text-muted-foreground">Loading pending managers...</p>
-        </div>
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
+        <div className="absolute inset-0 bg-gradient-to-br from-emerald-950/20 via-zinc-950 to-zinc-950" />
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="relative z-10 flex flex-col items-center gap-4"
+        >
+          <div className="w-8 h-8 border-2 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin" />
+          <p className="text-zinc-400">Cargando solicitudes...</p>
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-6">
-        <div className="mb-8">
+    <div className="min-h-screen bg-zinc-950">
+      <div className="absolute inset-0 bg-gradient-to-br from-emerald-950/10 via-zinc-950 to-zinc-950 fixed" />
+      
+      <div className="relative z-10 container mx-auto px-4 py-6">
+        {/* Header */}
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <div className="flex items-center gap-4 mb-6">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate('/admin')}
+              className="flex items-center gap-2 bg-zinc-900/50 border-zinc-700/50 text-zinc-300 hover:bg-zinc-800 hover:text-white rounded-xl"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Volver
+            </Button>
+          </div>
+          
           <div className="flex items-center gap-3 mb-4">
-            <Building2 className="h-8 w-8 text-primary" />
+            <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+              <Building2 className="h-6 w-6 text-emerald-400" />
+            </div>
             <div>
-              <h1 className="text-3xl font-bold text-foreground">Course Manager Applications</h1>
-              <p className="text-muted-foreground">Review and manage pending course manager registrations</p>
+              <h1 className="text-2xl font-bold text-white">Solicitudes de Managers</h1>
+              <p className="text-zinc-500 text-sm">Revisar y gestionar registros pendientes</p>
             </div>
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <Card>
-              <CardContent className="flex items-center p-4">
-                <Clock className="h-8 w-8 text-yellow-500 mr-3" />
-                <div>
-                  <p className="text-2xl font-bold text-foreground">{pendingCount}</p>
-                  <p className="text-sm text-muted-foreground">Pending</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            {[
+              { icon: Clock, count: pendingCount, label: 'Pendientes', color: 'text-yellow-400' },
+              { icon: Check, count: approvedCount, label: 'Aprobados', color: 'text-emerald-400' },
+              { icon: X, count: rejectedCount, label: 'Rechazados', color: 'text-red-400' },
+              { icon: Users, count: pendingManagers.length, label: 'Total', color: 'text-blue-400' },
+            ].map((stat, i) => (
+              <motion.div
+                key={stat.label}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.05 }}
+                className="bg-zinc-900/50 backdrop-blur-sm rounded-xl p-4 border border-zinc-800/50"
+              >
+                <div className="flex items-center gap-3">
+                  <stat.icon className={`h-6 w-6 ${stat.color}`} />
+                  <div>
+                    <p className="text-2xl font-bold text-white">{stat.count}</p>
+                    <p className="text-xs text-zinc-500">{stat.label}</p>
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="flex items-center p-4">
-                <Check className="h-8 w-8 text-green-500 mr-3" />
-                <div>
-                  <p className="text-2xl font-bold text-foreground">{approvedCount}</p>
-                  <p className="text-sm text-muted-foreground">Approved</p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="flex items-center p-4">
-                <X className="h-8 w-8 text-red-500 mr-3" />
-                <div>
-                  <p className="text-2xl font-bold text-foreground">{rejectedCount}</p>
-                  <p className="text-sm text-muted-foreground">Rejected</p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="flex items-center p-4">
-                <Users className="h-8 w-8 text-blue-500 mr-3" />
-                <div>
-                  <p className="text-2xl font-bold text-foreground">{pendingManagers.length}</p>
-                  <p className="text-sm text-muted-foreground">Total Applications</p>
-                </div>
-              </CardContent>
-            </Card>
+              </motion.div>
+            ))}
           </div>
 
           {/* Filters */}
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
+          <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-500 h-4 w-4" />
               <Input
-                placeholder="Search by name, email, or course..."
+                placeholder="Buscar por nombre, email o campo..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-10 h-11 bg-zinc-900/50 border-zinc-700/50 text-white placeholder:text-zinc-500 rounded-xl focus:border-emerald-500/50"
               />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full sm:w-[180px]">
-                <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Filter by status" />
+              <SelectTrigger className="w-full sm:w-[180px] h-11 bg-zinc-900/50 border-zinc-700/50 text-white rounded-xl">
+                <SelectValue placeholder="Filtrar por estado" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="approved">Approved</SelectItem>
-                <SelectItem value="rejected">Rejected</SelectItem>
+              <SelectContent className="bg-zinc-900 border-zinc-700">
+                <SelectItem value="all" className="text-white">Todos</SelectItem>
+                <SelectItem value="pending" className="text-white">Pendientes</SelectItem>
+                <SelectItem value="approved" className="text-white">Aprobados</SelectItem>
+                <SelectItem value="rejected" className="text-white">Rechazados</SelectItem>
               </SelectContent>
             </Select>
           </div>
-        </div>
+        </motion.div>
 
         {/* Applications List */}
         {filteredManagers.length === 0 ? (
-          <Card>
-            <CardContent className="text-center py-12">
-              <Building2 className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium text-muted-foreground mb-2">
-                {searchTerm || statusFilter !== "all" ? "No matching applications" : "No applications yet"}
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                {searchTerm || statusFilter !== "all" 
-                  ? "Try adjusting your search or filter criteria." 
-                  : "Course manager applications will appear here when submitted."
-                }
-              </p>
-            </CardContent>
-          </Card>
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="bg-zinc-900/50 backdrop-blur-sm rounded-2xl p-12 border border-zinc-800/50 text-center"
+          >
+            <Building2 className="h-12 w-12 mx-auto text-zinc-600 mb-4" />
+            <h3 className="text-lg font-medium text-zinc-400 mb-2">
+              {searchTerm || statusFilter !== "all" ? "No hay resultados" : "Sin solicitudes"}
+            </h3>
+            <p className="text-sm text-zinc-600">
+              {searchTerm || statusFilter !== "all" 
+                ? "Intenta ajustar los filtros de búsqueda." 
+                : "Las solicitudes de managers aparecerán aquí."
+              }
+            </p>
+          </motion.div>
         ) : (
-          <div className="grid gap-6">
-            {filteredManagers.map((manager) => (
-              <Card key={manager.id} className="hover:shadow-md transition-shadow">
-                <CardHeader className="pb-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-4">
-                      <div className="bg-primary/10 p-3 rounded-full">
-                        <Users className="h-6 w-6 text-primary" />
+          <div className="space-y-4">
+            {filteredManagers.map((manager, index) => (
+              <motion.div 
+                key={manager.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+                className="bg-zinc-900/50 backdrop-blur-sm rounded-2xl p-5 border border-zinc-800/50 hover:border-zinc-700/50 transition-colors"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-start gap-4 flex-1">
+                    <div className="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
+                      <Users className="h-6 w-6 text-emerald-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="text-lg font-semibold text-white truncate">{manager.name}</h3>
+                        {getStatusBadge(manager.status)}
                       </div>
-                      <div className="flex-1">
-                        <CardTitle className="text-xl text-foreground mb-1">{manager.name}</CardTitle>
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2 text-muted-foreground">
-                            <Mail className="h-4 w-4" />
-                            <span className="text-sm">{manager.email}</span>
+                      <div className="space-y-1.5">
+                        <div className="flex items-center gap-2 text-zinc-400 text-sm">
+                          <Mail className="h-4 w-4 flex-shrink-0" />
+                          <span className="truncate">{manager.email}</span>
+                        </div>
+                        {manager.phone && (
+                          <div className="flex items-center gap-2 text-zinc-400 text-sm">
+                            <Phone className="h-4 w-4 flex-shrink-0" />
+                            <span>{manager.phone}</span>
                           </div>
-                          {manager.phone && (
-                            <div className="flex items-center gap-2 text-muted-foreground">
-                              <Phone className="h-4 w-4" />
-                              <span className="text-sm">{manager.phone}</span>
-                            </div>
-                          )}
-                          <div className="flex items-center gap-2 text-muted-foreground">
-                            <Building2 className="h-4 w-4" />
-                            <span className="text-sm font-medium">{manager.golf_courses.name}</span>
-                          </div>
-                          {(manager.golf_courses.city || manager.golf_courses.state) && (
-                            <div className="flex items-center gap-2 text-muted-foreground">
-                              <MapPin className="h-4 w-4" />
-                              <span className="text-sm">
-                                {[manager.golf_courses.city, manager.golf_courses.state].filter(Boolean).join(', ')}
-                              </span>
-                            </div>
-                          )}
-                          <div className="flex items-center gap-2 text-muted-foreground">
-                            <Calendar className="h-4 w-4" />
-                            <span className="text-sm">
-                              Applied {new Date(manager.created_at).toLocaleDateString()}
+                        )}
+                        <div className="flex items-center gap-2 text-zinc-400 text-sm">
+                          <Building2 className="h-4 w-4 flex-shrink-0" />
+                          <span className="font-medium text-zinc-300">{manager.golf_courses.name}</span>
+                        </div>
+                        {(manager.golf_courses.city || manager.golf_courses.state) && (
+                          <div className="flex items-center gap-2 text-zinc-500 text-sm">
+                            <MapPin className="h-4 w-4 flex-shrink-0" />
+                            <span>
+                              {[manager.golf_courses.city, manager.golf_courses.state].filter(Boolean).join(', ')}
                             </span>
                           </div>
+                        )}
+                        <div className="flex items-center gap-2 text-zinc-500 text-sm">
+                          <Calendar className="h-4 w-4 flex-shrink-0" />
+                          <span>
+                            {new Date(manager.created_at).toLocaleDateString('es-AR')}
+                          </span>
                         </div>
                       </div>
                     </div>
-                    <Badge className={getStatusColor(manager.status)}>
-                      {manager.status.charAt(0).toUpperCase() + manager.status.slice(1)}
-                    </Badge>
                   </div>
-                </CardHeader>
-                
-                {manager.status === 'pending' && (
-                  <CardContent className="pt-0">
-                    <div className="flex gap-3">
+                  
+                  {manager.status === 'pending' && (
+                    <div className="flex gap-2 flex-shrink-0">
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button 
                             size="sm" 
-                            className="bg-green-600 hover:bg-green-700 text-white"
+                            className="bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg"
                             disabled={actionLoading === manager.id}
                           >
-                            <Check className="w-4 h-4 mr-2" />
-                            Approve
+                            <Check className="w-4 h-4 mr-1" />
+                            Aprobar
                           </Button>
                         </AlertDialogTrigger>
-                        <AlertDialogContent>
+                        <AlertDialogContent className="bg-zinc-900 border-zinc-700">
                           <AlertDialogHeader>
-                            <AlertDialogTitle>Approve Course Manager</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Are you sure you want to approve {manager.name} as a course manager for {manager.golf_courses.name}? 
-                              They will be able to manage reservations and access the course dashboard.
+                            <AlertDialogTitle className="text-white">Aprobar Manager</AlertDialogTitle>
+                            <AlertDialogDescription className="text-zinc-400">
+                              ¿Estás seguro de aprobar a {manager.name} como manager de {manager.golf_courses.name}?
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogCancel className="bg-zinc-800 border-zinc-700 text-white hover:bg-zinc-700">
+                              Cancelar
+                            </AlertDialogCancel>
                             <AlertDialogAction
                               onClick={() => handleApprove(manager.id)}
-                              className="bg-green-600 hover:bg-green-700"
+                              className="bg-emerald-600 hover:bg-emerald-500"
                             >
-                              Approve Manager
+                              Aprobar
                             </AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
@@ -403,35 +410,37 @@ const AdminPendingManagers = () => {
                           <Button 
                             size="sm" 
                             variant="destructive"
+                            className="rounded-lg"
                             disabled={actionLoading === manager.id}
                           >
-                            <X className="w-4 h-4 mr-2" />
-                            Reject
+                            <X className="w-4 h-4 mr-1" />
+                            Rechazar
                           </Button>
                         </AlertDialogTrigger>
-                        <AlertDialogContent>
+                        <AlertDialogContent className="bg-zinc-900 border-zinc-700">
                           <AlertDialogHeader>
-                            <AlertDialogTitle>Reject Application</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Are you sure you want to reject {manager.name}'s application to manage {manager.golf_courses.name}? 
-                              This action cannot be undone.
+                            <AlertDialogTitle className="text-white">Rechazar Solicitud</AlertDialogTitle>
+                            <AlertDialogDescription className="text-zinc-400">
+                              ¿Estás seguro de rechazar la solicitud de {manager.name}?
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogCancel className="bg-zinc-800 border-zinc-700 text-white hover:bg-zinc-700">
+                              Cancelar
+                            </AlertDialogCancel>
                             <AlertDialogAction
                               onClick={() => handleReject(manager.id)}
-                              className="bg-red-600 hover:bg-red-700"
+                              className="bg-red-600 hover:bg-red-500"
                             >
-                              Reject Application
+                              Rechazar
                             </AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
                       </AlertDialog>
                     </div>
-                  </CardContent>
-                )}
-              </Card>
+                  )}
+                </div>
+              </motion.div>
             ))}
           </div>
         )}
