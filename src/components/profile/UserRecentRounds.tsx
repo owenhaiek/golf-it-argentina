@@ -1,14 +1,12 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
-import { Trophy, Calendar, Loader2, Eye, Plus, Minus, Check } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Trophy, Calendar, Loader2, Eye, Plus, Minus, Check, Flag, ChevronDown } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import RoundScoreDialog from "./RoundScoreDialog";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Round {
   id: string;
@@ -18,6 +16,7 @@ interface Round {
   score: number;
   notes?: string;
   created_at: string;
+  hole_scores?: number[];
   golf_courses?: {
     name: string;
     par?: number;
@@ -32,7 +31,6 @@ interface UserRecentRoundsProps {
 }
 
 const UserRecentRounds = ({ rounds, roundsLoading }: UserRecentRoundsProps) => {
-  const navigate = useNavigate();
   const { t } = useLanguage();
   const [showAllRounds, setShowAllRounds] = useState(false);
   const [displayLimit, setDisplayLimit] = useState(5);
@@ -117,28 +115,44 @@ const UserRecentRounds = ({ rounds, roundsLoading }: UserRecentRoundsProps) => {
 
   if (roundsLoading) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">{t("profile", "recentRounds")}</CardTitle>
-        </CardHeader>
-        <CardContent className="flex items-center justify-center py-8">
-          <Loader2 className="h-8 w-8 animate-spin" />
-        </CardContent>
-      </Card>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+            <div className="h-8 w-8 rounded-lg bg-primary/20 flex items-center justify-center">
+              <Trophy className="h-4 w-4 text-primary" />
+            </div>
+            {t("profile", "recentRounds")}
+          </h2>
+        </div>
+        <div className="flex items-center justify-center py-12">
+          <div className="w-10 h-10 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+        </div>
+      </div>
     );
   }
 
   if (!rounds || rounds.length === 0) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">{t("profile", "recentRounds")}</CardTitle>
-        </CardHeader>
-        <CardContent className="text-center py-8">
-          <Trophy className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+            <div className="h-8 w-8 rounded-lg bg-primary/20 flex items-center justify-center">
+              <Trophy className="h-4 w-4 text-primary" />
+            </div>
+            {t("profile", "recentRounds")}
+          </h2>
+        </div>
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="rounded-2xl bg-zinc-900/80 backdrop-blur-xl p-8 text-center"
+        >
+          <div className="h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+            <Flag className="h-8 w-8 text-primary/50" />
+          </div>
           <p className="text-muted-foreground">{t("profile", "noRoundsRecorded")}</p>
-        </CardContent>
-      </Card>
+        </motion.div>
+      </div>
     );
   }
 
@@ -153,117 +167,147 @@ const UserRecentRounds = ({ rounds, roundsLoading }: UserRecentRoundsProps) => {
 
   return (
     <>
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">{t("profile", "recentRounds")}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {roundsToShow.map((round) => {
-            const coursePar = calculateRoundPar(round);
-            const scoreDiff = round.score - coursePar;
-            
-            let scoreStatus;
-            let scoreColor;
-            let ScoreIcon;
-            
-            if (scoreDiff < 0) {
-              scoreStatus = `${Math.abs(scoreDiff)} under par`;
-              scoreColor = "text-green-600";
-              ScoreIcon = Minus;
-            } else if (scoreDiff > 0) {
-              scoreStatus = `${scoreDiff} over par`;
-              scoreColor = "text-red-600";
-              ScoreIcon = Plus;
-            } else {
-              scoreStatus = "At par";
-              scoreColor = "text-blue-600";
-              ScoreIcon = Check;
-            }
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+            <div className="h-8 w-8 rounded-lg bg-primary/20 flex items-center justify-center">
+              <Trophy className="h-4 w-4 text-primary" />
+            </div>
+            {t("profile", "recentRounds")}
+          </h2>
+        </div>
 
-            return (
-              <Card key={round.id} className="relative overflow-hidden">
-                {round.golf_courses?.image_url && (
-                  <div className="h-32 bg-cover bg-center relative">
-                    <img 
-                      src={round.golf_courses.image_url} 
-                      alt={round.golf_courses.name}
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-black/40" />
-                  </div>
-                )}
-                
-                <CardContent className="p-4">
-                  <div className="flex justify-between items-start mb-2">
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-lg leading-tight">
-                        {round.golf_courses?.name || "Unknown Course"}
-                      </h3>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-                        <Calendar className="h-4 w-4" />
-                        <span>{format(new Date(round.date), "MMM d, yyyy")}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleViewRoundScore(round)}
-                        className="text-primary hover:text-primary/80"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
+        <div className="space-y-3">
+          <AnimatePresence mode="popLayout">
+            {roundsToShow.map((round, index) => {
+              const coursePar = calculateRoundPar(round);
+              const scoreDiff = round.score - coursePar;
+              
+              let scoreColor;
+              let scoreBgColor;
+              let ScoreIcon;
+              let scoreLabel;
+              
+              if (scoreDiff < 0) {
+                scoreColor = "text-green-400";
+                scoreBgColor = "bg-green-500/20";
+                ScoreIcon = Minus;
+                scoreLabel = Math.abs(scoreDiff);
+              } else if (scoreDiff > 0) {
+                scoreColor = "text-red-400";
+                scoreBgColor = "bg-red-500/20";
+                ScoreIcon = Plus;
+                scoreLabel = scoreDiff;
+              } else {
+                scoreColor = "text-blue-400";
+                scoreBgColor = "bg-blue-500/20";
+                ScoreIcon = Check;
+                scoreLabel = "E";
+              }
 
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-2">
-                      <Trophy className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm text-muted-foreground">Score:</span>
-                      <Badge variant="secondary" className="text-lg font-bold">
-                        {round.score}
-                      </Badge>
-                    </div>
-                    
-                    <div className={`flex items-center gap-1 ${scoreColor}`}>
-                      <ScoreIcon className="h-4 w-4" />
-                      <span className="text-sm font-medium">{scoreStatus}</span>
-                    </div>
-                  </div>
+              // Extract holes info from notes
+              const holesPlayed = round.notes?.includes('9 holes') ? '9H' : 
+                                 round.notes?.includes('18 holes') ? '18H' : 
+                                 round.notes?.includes('27 holes') ? '27H' : '18H';
 
-                  {round.notes && (
-                    <div className="mt-3 p-2 bg-muted rounded text-sm">
-                      <strong>Notes:</strong> {round.notes}
+              return (
+                <motion.div
+                  key={round.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ delay: index * 0.05 }}
+                  className="group relative overflow-hidden rounded-2xl bg-zinc-900/80 backdrop-blur-xl"
+                >
+                  {/* Course Image Background */}
+                  {round.golf_courses?.image_url && (
+                    <div className="absolute inset-0 opacity-20 group-hover:opacity-30 transition-opacity">
+                      <img 
+                        src={round.golf_courses.image_url} 
+                        alt={round.golf_courses.name}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-r from-zinc-900 via-zinc-900/80 to-transparent" />
                     </div>
                   )}
-                </CardContent>
-              </Card>
-            );
-          })}
-          
-          {hasMoreRounds && (
-            <div className="text-center">
-              <Button 
-                variant="link" 
-                onClick={handleViewAllRounds}
-                disabled={allRoundsLoading}
-              >
-                {allRoundsLoading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Loading...
-                  </>
-                ) : showAllRounds ? (
-                  "Load More Rounds"
-                ) : (
-                  "View All Rounds"
-                )}
-              </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                  
+                  <div className="relative p-4">
+                    <div className="flex items-start gap-4">
+                      {/* Score Circle */}
+                      <div className="flex-shrink-0">
+                        <div className={`h-16 w-16 rounded-2xl ${scoreBgColor} flex flex-col items-center justify-center`}>
+                          <span className="text-2xl font-bold text-foreground">{round.score}</span>
+                          <div className={`flex items-center text-xs font-medium ${scoreColor}`}>
+                            <ScoreIcon className="h-3 w-3" />
+                            <span>{scoreLabel}</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Course Info */}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-foreground text-base leading-tight truncate">
+                          {round.golf_courses?.name || "Unknown Course"}
+                        </h3>
+                        
+                        <div className="flex items-center gap-3 mt-1.5 text-xs text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <Calendar className="h-3 w-3" />
+                            {format(new Date(round.date), "d MMM, yyyy")}
+                          </span>
+                          <span className="px-1.5 py-0.5 rounded-md bg-zinc-800 text-zinc-400">
+                            {holesPlayed}
+                          </span>
+                          <span className="text-zinc-500">
+                            Par {coursePar}
+                          </span>
+                        </div>
+                        
+                        {/* Action Buttons */}
+                        <div className="flex items-center gap-2 mt-3">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleViewRoundScore(round)}
+                            className="h-8 px-3 rounded-lg bg-zinc-800/80 hover:bg-zinc-700 text-foreground text-xs"
+                          >
+                            <Eye className="h-3.5 w-3.5 mr-1.5" />
+                            Ver Scorecard
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
+        </div>
+
+        {hasMoreRounds && (
+          <div className="text-center pt-2">
+            <Button 
+              variant="ghost"
+              size="sm"
+              onClick={handleViewAllRounds}
+              disabled={allRoundsLoading}
+              className="text-primary hover:text-primary/80"
+            >
+              {allRoundsLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Cargando...
+                </>
+              ) : (
+                <>
+                  <ChevronDown className="h-4 w-4 mr-1" />
+                  {showAllRounds ? "Cargar más" : "Ver todas las rondas"}
+                </>
+              )}
+            </Button>
+          </div>
+        )}
+      </div>
 
       <RoundScoreDialog
         round={selectedRound}
