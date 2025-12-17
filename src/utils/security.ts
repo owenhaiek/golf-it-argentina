@@ -36,6 +36,22 @@ export const validatePassword = (password: string): { isValid: boolean; errors: 
   };
 };
 
+export const getPasswordStrength = (password: string): { score: number; label: string; color: string } => {
+  let score = 0;
+  
+  if (password.length >= 8) score += 1;
+  if (password.length >= 12) score += 1;
+  if (/[a-z]/.test(password)) score += 1;
+  if (/[A-Z]/.test(password)) score += 1;
+  if (/\d/.test(password)) score += 1;
+  if (/[@$!%*?&#^()_+\-=\[\]{}|;:,.<>]/.test(password)) score += 1;
+  
+  if (score <= 2) return { score: 25, label: 'Débil', color: 'bg-red-500' };
+  if (score <= 3) return { score: 50, label: 'Regular', color: 'bg-orange-500' };
+  if (score <= 4) return { score: 75, label: 'Buena', color: 'bg-yellow-500' };
+  return { score: 100, label: 'Fuerte', color: 'bg-emerald-500' };
+};
+
 export const sanitizeInput = (input: string): string => {
   return input
     .trim()
