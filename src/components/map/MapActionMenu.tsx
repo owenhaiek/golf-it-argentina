@@ -44,62 +44,71 @@ export const MapActionMenu = ({ onOpenChange }: MapActionMenuProps) => {
     }
   ];
 
+  // Haptic feedback function
+  const triggerHaptic = useCallback(() => {
+    if ('vibrate' in navigator) {
+      navigator.vibrate(10); // Short, subtle vibration
+    }
+  }, []);
+
   const handleAction = useCallback((route: string) => {
+    triggerHaptic();
     setIsOpen(false);
     requestAnimationFrame(() => {
-      setTimeout(() => navigate(route), 150);
+      setTimeout(() => navigate(route), 100);
     });
-  }, [navigate]);
+  }, [navigate, triggerHaptic]);
 
-  const toggleMenu = useCallback(() => setIsOpen(prev => !prev), []);
+  const toggleMenu = useCallback(() => {
+    triggerHaptic();
+    setIsOpen(prev => !prev);
+  }, [triggerHaptic]);
 
-  // Animation variants for container
+  // Animation variants for container - faster timing
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.06,
-        delayChildren: 0.02,
+        staggerChildren: 0.04,
+        delayChildren: 0.01,
       }
     },
     exit: {
       opacity: 0,
       transition: {
-        staggerChildren: 0.03,
+        staggerChildren: 0.02,
         staggerDirection: -1,
+        duration: 0.1
       }
     }
   };
 
-  // Animation variants for items
+  // Animation variants for items - snappier spring
   const itemVariants = {
     hidden: { 
       opacity: 0, 
-      y: 20, 
-      scale: 0.8,
-      filter: "blur(4px)"
+      y: 16, 
+      scale: 0.9,
     },
     visible: { 
       opacity: 1, 
       y: 0, 
       scale: 1,
-      filter: "blur(0px)",
       transition: {
         type: "spring",
-        stiffness: 400,
-        damping: 25,
-        mass: 0.8
+        stiffness: 500,
+        damping: 28,
+        mass: 0.6
       }
     },
     exit: { 
       opacity: 0, 
-      y: 10, 
-      scale: 0.9,
-      filter: "blur(2px)",
+      y: 8, 
+      scale: 0.95,
       transition: {
-        duration: 0.15,
-        ease: "easeIn"
+        duration: 0.1,
+        ease: "easeOut"
       }
     }
   };
@@ -113,7 +122,7 @@ export const MapActionMenu = ({ onOpenChange }: MapActionMenuProps) => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
             className="fixed inset-0 z-[5] bg-black/50 backdrop-blur-sm"
             onClick={() => setIsOpen(false)}
           />
@@ -180,15 +189,15 @@ export const MapActionMenu = ({ onOpenChange }: MapActionMenuProps) => {
       >
         <motion.button
           onClick={toggleMenu}
-          whileTap={{ scale: 0.9 }}
+          whileTap={{ scale: 0.92 }}
           animate={{ 
             rotate: isOpen ? 135 : 0,
             scale: isOpen ? 1.05 : 1
           }}
           transition={{ 
             type: "spring",
-            stiffness: 400,
-            damping: 20
+            stiffness: 500,
+            damping: 25
           }}
           className={`
             h-14 w-14 rounded-full 
