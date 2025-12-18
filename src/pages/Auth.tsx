@@ -176,36 +176,72 @@ const Auth = () => {
   };
 
   React.useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const confirmed = urlParams.get('confirmed');
-    const provider = urlParams.get('provider');
-    const reset = urlParams.get('reset');
-    
-    if (confirmed === 'true') {
-      toast({
-        title: t("auth", "emailConfirmed") || "Email Confirmed",
-        description: t("auth", "accountConfirmed") || "Your account has been confirmed. You can now sign in.",
-      });
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
-    
-    if (provider === 'google') {
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session) {
-          navigate("/");
+    const handleAuthCallback = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      
+      const confirmed = urlParams.get('confirmed');
+      const provider = urlParams.get('provider');
+      const reset = urlParams.get('reset');
+      
+      // Check for OAuth tokens in hash (from Google callback)
+      const accessToken = hashParams.get('access_token');
+      const refreshToken = hashParams.get('refresh_token');
+      
+      if (confirmed === 'true') {
+        toast({
+          title: t("auth", "emailConfirmed") || "Email Confirmed",
+          description: t("auth", "accountConfirmed") || "Your account has been confirmed. You can now sign in.",
+        });
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+      
+      // Handle OAuth callback with tokens in hash
+      if (accessToken && refreshToken) {
+        try {
+          const { data, error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+          
+          if (error) {
+            console.error('Error setting session:', error);
+            toast({
+              variant: "destructive",
+              title: "Error de autenticación",
+              description: "No se pudo completar el inicio de sesión.",
+            });
+          } else if (data.session) {
+            window.history.replaceState({}, document.title, window.location.pathname);
+            navigate("/");
+            return;
+          }
+        } catch (err) {
+          console.error('OAuth callback error:', err);
         }
-      });
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
+      }
+      
+      // Fallback: check if provider=google and session exists
+      if (provider === 'google') {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          window.history.replaceState({}, document.title, window.location.pathname);
+          navigate("/");
+          return;
+        }
+      }
+      
+      if (reset === 'true') {
+        toast({
+          title: "Password Reset",
+          description: "You can now enter a new password.",
+        });
+        setIsLogin(true);
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    };
     
-    if (reset === 'true') {
-      toast({
-        title: "Password Reset",
-        description: "You can now enter a new password.",
-      });
-      setIsLogin(true);
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
+    handleAuthCallback();
   }, [navigate, toast, t]);
 
   React.useEffect(() => {
