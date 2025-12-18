@@ -105,7 +105,7 @@ export const TournamentsAndMatchesSection = () => {
         </div>
         <div className="space-y-3">
           {Array(2).fill(0).map((_, i) => (
-            <div key={i} className="bg-zinc-900 rounded-2xl p-4 animate-pulse border border-white/5">
+            <div key={i} className="bg-zinc-900 rounded-2xl p-4 border border-white/5">
               <div className="flex items-center gap-3 mb-4">
                 <div className="h-10 w-10 bg-zinc-800 rounded-xl" />
                 <div className="space-y-2 flex-1">
