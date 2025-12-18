@@ -99,6 +99,7 @@ const Auth = () => {
     setIsLoading(true);
 
     try {
+      // Try Supabase native email first
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/reset-password`,
       });
@@ -106,12 +107,11 @@ const Auth = () => {
       if (error) {
         console.log('Supabase email failed, trying backup service:', error.message);
         
-        const resetUrl = `${window.location.origin}/reset-password?email=${encodeURIComponent(email)}&fallback=true`;
-        
+        // Use edge function with Admin API to generate proper recovery link
         const backupResponse = await supabase.functions.invoke('send-password-reset', {
           body: {
             email: email,
-            resetUrl: resetUrl
+            redirectUrl: `${window.location.origin}/reset-password`
           }
         });
         
@@ -137,17 +137,12 @@ const Auth = () => {
           console.error('Backup email service failed:', backupResponse.data);
           throw new Error('El servicio de correo de respaldo falló. Por favor contacta al soporte.');
         }
-        
-        toast({
-          title: "Email de Recuperación Enviado",
-          description: "Revisa tu correo electrónico para las instrucciones de recuperación de contraseña.",
-        });
-      } else {
-        toast({
-          title: "Email de Recuperación Enviado",
-          description: "Revisa tu correo electrónico para las instrucciones de recuperación de contraseña.",
-        });
       }
+      
+      toast({
+        title: "Email de Recuperación Enviado",
+        description: "Revisa tu correo electrónico para las instrucciones de recuperación de contraseña.",
+      });
       
       setShowForgotPassword(false);
     } catch (error: any) {

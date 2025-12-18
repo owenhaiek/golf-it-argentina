@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { Resend } from "npm:resend@2.0.0";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
@@ -11,7 +12,7 @@ const corsHeaders = {
 
 interface PasswordResetRequest {
   email: string;
-  resetUrl: string;
+  redirectUrl: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -28,16 +29,62 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { email, resetUrl }: PasswordResetRequest = await req.json();
+    const { email, redirectUrl }: PasswordResetRequest = await req.json();
 
-    if (!email || !resetUrl) {
+    if (!email) {
       return new Response(
-        JSON.stringify({ error: "Email and resetUrl are required" }),
+        JSON.stringify({ error: "Email is required" }),
         {
           status: 400,
           headers: { "Content-Type": "application/json", ...corsHeaders },
         }
       );
+    }
+
+    console.log(`Generating password reset link for: ${email}`);
+
+    // Create Supabase admin client to generate magic link
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    });
+
+    // Generate recovery link using Admin API
+    const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
+      type: 'recovery',
+      email: email,
+      options: {
+        redirectTo: redirectUrl || 'https://golfitargentina.com/reset-password',
+      },
+    });
+
+    if (linkError) {
+      console.error('Error generating recovery link:', linkError);
+      
+      // If user not found, return a generic success to prevent email enumeration
+      if (linkError.message?.includes('User not found')) {
+        return new Response(
+          JSON.stringify({ success: true, message: "If an account exists, a reset email has been sent" }),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json", ...corsHeaders },
+          }
+        );
+      }
+      
+      throw new Error(`Failed to generate recovery link: ${linkError.message}`);
+    }
+
+    // The generated link contains the proper recovery tokens
+    const resetUrl = linkData.properties?.action_link;
+    
+    if (!resetUrl) {
+      throw new Error('No action link generated');
     }
 
     console.log(`Sending password reset email to: ${email}`);
@@ -104,19 +151,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Check if there was an error from Resend
     if (emailResponse.error) {
       console.error("Resend API error details:", emailResponse.error);
-      
-      // Provide more specific error messages
-      let errorMessage = `Resend API error: ${emailResponse.error.message}`;
-      
-      if (emailResponse.error.message?.includes('domain')) {
-        errorMessage = 'Email domain not verified. Please verify your domain in Resend.';
-      } else if (emailResponse.error.message?.includes('API key')) {
-        errorMessage = 'Invalid Resend API key. Please check your configuration.';
-      } else if (emailResponse.error.message?.includes('rate limit')) {
-        errorMessage = 'Email rate limit exceeded. Please try again later.';
-      }
-      
-      throw new Error(errorMessage);
+      throw new Error(`Resend API error: ${emailResponse.error.message}`);
     }
 
     return new Response(
