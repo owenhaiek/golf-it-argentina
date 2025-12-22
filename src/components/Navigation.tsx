@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { AddMenu } from "./AddMenu";
 import { useNavigationTouch } from "@/hooks/useNavigationTouch";
+import { hapticLight } from "@/hooks/useDespiaNative";
 
 export const Navigation = () => {
   const { t } = useLanguage();
@@ -53,6 +54,7 @@ const NavItem = ({
   <li>
     <NavLink
       to={to}
+      onClick={() => hapticLight()}
       className={({ isActive }) =>
         cn(
           "flex flex-col items-center justify-center gap-1 py-2 px-3 transition-all duration-200 min-h-[44px] rounded-md",
