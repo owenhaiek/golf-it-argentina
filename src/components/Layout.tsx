@@ -7,6 +7,7 @@ import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { InvitationDrawer } from "./ui/InvitationDrawer";
 import PWAInstallPrompt from "./ui/PWAInstallPrompt";
 import { BackToMapButton } from "./ui/BackToMapButton";
+import { hapticSuccess, hideBars, isDespiaNative } from "@/hooks/useDespiaNative";
 
 export const Layout = () => {
   const mainRef = useRef<HTMLDivElement>(null);
@@ -28,6 +29,21 @@ export const Layout = () => {
       mainRef.current.scrollTo({ top: 0, behavior: 'instant' });
     }
   }, [location.pathname]);
+
+  // Initialize native app settings
+  useEffect(() => {
+    if (isDespiaNative()) {
+      // Hide native browser bars for fullscreen experience
+      hideBars(true);
+    }
+  }, []);
+
+  // Haptic feedback when refresh is triggered
+  useEffect(() => {
+    if (isRefreshing) {
+      hapticSuccess();
+    }
+  }, [isRefreshing]);
 
   // Set up event listeners
   useEffect(() => {
