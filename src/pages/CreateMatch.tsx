@@ -108,7 +108,7 @@ const CreateMatch = () => {
       } else {
         toast.success(t("matches", "matchChallengeSent"));
       }
-      navigate("/friends");
+      navigate("/profile?tab=competitions");
     } catch (error: any) {
       console.error("Error creating match:", error);
       toast.error(t("matches", "failedToCreate"));
