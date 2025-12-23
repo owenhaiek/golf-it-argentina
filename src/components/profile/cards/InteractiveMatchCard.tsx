@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Swords, MapPin, Calendar, Trophy, Target, Clock, Edit, Trash2, Check, X, Flame, Zap } from "lucide-react";
+import { Swords, MapPin, Calendar, Trophy, Target, Clock, Edit, Trash2, Flame, Zap } from "lucide-react";
 import { Match } from "@/hooks/useTournamentsAndMatches";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
@@ -14,56 +14,38 @@ interface InteractiveMatchCardProps {
   onLoadScores?: (match: Match) => void;
   onEdit?: (match: Match) => void;
   onDelete?: (matchId: string) => void;
-  onAccept?: (matchId: string) => void;
-  onDecline?: (matchId: string) => void;
-  isAccepting?: boolean;
-  isDeclining?: boolean;
 }
 
 export const InteractiveMatchCard = ({
   match,
   onLoadScores,
   onEdit,
-  onDelete,
-  onAccept,
-  onDecline,
-  isAccepting,
-  isDeclining
+  onDelete
 }: InteractiveMatchCardProps) => {
   const { user } = useAuth();
   const [isHovered, setIsHovered] = useState(false);
   
   const isCreator = match.creator_id === user?.id;
   const isOpponent = match.opponent_id === user?.id;
-  const isPending = match.status === 'pending';
-  const isActive = match.status === 'accepted';
+  const isActive = match.status === 'accepted' || match.status === 'pending';
   const isCompleted = match.status === 'completed';
 
   const getStatusConfig = () => {
-    if (isPending) {
+    if (isCompleted) {
       return {
-        bgClass: 'bg-gradient-to-br from-blue-500/10 to-blue-600/5',
-        badgeClass: 'bg-blue-500/20 text-blue-400 border-0',
-        iconColor: 'text-blue-400',
-        accentColor: 'bg-blue-500',
-        label: 'Pendiente'
-      };
-    }
-    if (isActive) {
-      return {
-        bgClass: 'bg-gradient-to-br from-emerald-500/10 to-emerald-600/5',
-        badgeClass: 'bg-emerald-500/20 text-emerald-400 border-0',
-        iconColor: 'text-emerald-400',
-        accentColor: 'bg-emerald-500',
-        label: 'En Juego'
+        bgClass: 'bg-gradient-to-br from-zinc-500/10 to-zinc-600/5',
+        badgeClass: 'bg-zinc-500/20 text-zinc-400 border-0',
+        iconColor: 'text-zinc-400',
+        accentColor: 'bg-zinc-500',
+        label: 'Finalizado'
       };
     }
     return {
-      bgClass: 'bg-gradient-to-br from-zinc-500/10 to-zinc-600/5',
-      badgeClass: 'bg-zinc-500/20 text-zinc-400 border-0',
-      iconColor: 'text-zinc-400',
-      accentColor: 'bg-zinc-500',
-      label: 'Finalizado'
+      bgClass: 'bg-gradient-to-br from-emerald-500/10 to-emerald-600/5',
+      badgeClass: 'bg-emerald-500/20 text-emerald-400 border-0',
+      iconColor: 'text-emerald-400',
+      accentColor: 'bg-emerald-500',
+      label: 'Activo'
     };
   };
 
@@ -198,29 +180,8 @@ export const InteractiveMatchCard = ({
         )}
 
         {/* Action Buttons */}
-        <div className="pt-2">
-          {isPending && isOpponent && (
-            <div className="flex gap-2">
-              <Button
-                onClick={() => onAccept?.(match.id)}
-                disabled={isAccepting}
-                className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white h-11 rounded-xl font-medium"
-              >
-                <Check className="h-4 w-4 mr-2" />
-                {isAccepting ? "Aceptando..." : "Aceptar"}
-              </Button>
-              <Button
-                onClick={() => onDecline?.(match.id)}
-                disabled={isDeclining}
-                variant="outline"
-                className="flex-1 h-11 rounded-xl bg-red-500/10 border-red-500/20 text-red-400 hover:bg-red-500/20"
-              >
-                <X className="h-4 w-4 mr-2" />
-                {isDeclining ? "Rechazando..." : "Rechazar"}
-              </Button>
-            </div>
-          )}
-
+        <div className="pt-2 space-y-2">
+          {/* Load Scores - available for active matches */}
           {isActive && (isCreator || isOpponent) && (
             <Button
               onClick={() => onLoadScores?.(match)}
@@ -231,7 +192,8 @@ export const InteractiveMatchCard = ({
             </Button>
           )}
 
-          {isPending && isCreator && (
+          {/* Edit/Delete - available for creator in any non-completed state */}
+          {!isCompleted && isCreator && (
             <div className="flex gap-2">
               <Button
                 onClick={() => onEdit?.(match)}

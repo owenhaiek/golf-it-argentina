@@ -164,9 +164,8 @@ export const useTournamentsAndMatches = () => {
   const activeTournaments = tournaments?.filter(t => t.status === 'active') || [];
   const completedTournaments = tournaments?.filter(t => t.status === 'completed') || [];
 
-  // Get matches by status
-  const pendingMatches = matches?.filter(m => m.status === 'pending') || [];
-  const activeMatches = matches?.filter(m => m.status === 'active' || m.status === 'accepted') || [];
+  // Get matches by status - all non-completed matches are now "active"
+  const activeMatches = matches?.filter(m => m.status !== 'completed' && m.status !== 'cancelled') || [];
   const completedMatches = matches?.filter(m => m.status === 'completed') || [];
 
   // Accept match mutation
@@ -271,7 +270,6 @@ export const useTournamentsAndMatches = () => {
     upcomingTournaments,
     activeTournaments,
     completedTournaments,
-    pendingMatches,
     activeMatches,
     completedMatches,
     
