@@ -87,22 +87,6 @@ const CreateTournament = () => {
       toast.error(t("tournaments", "fillRequiredFields"));
       return;
     }
-
-    const now = new Date();
-    const selectedDateTime = new Date(formData.startDate);
-    
-    if (formData.startTime) {
-      const [hours, minutes] = formData.startTime.split(':').map(Number);
-      selectedDateTime.setHours(hours, minutes, 0, 0);
-    } else {
-      selectedDateTime.setHours(23, 59, 59, 999);
-    }
-    
-    if (selectedDateTime < now) {
-      toast.error("La fecha y hora del torneo ya pasó");
-      return;
-    }
-
     if (selectedParticipants.length === 0) {
       toast.error(t("tournaments", "selectOneParticipant"));
       return;

@@ -77,21 +77,6 @@ const CreateMatch = () => {
       return;
     }
 
-    const now = new Date();
-    const selectedDateTime = new Date(formData.matchDate);
-    
-    if (formData.matchTime) {
-      const [hours, minutes] = formData.matchTime.split(':').map(Number);
-      selectedDateTime.setHours(hours, minutes, 0, 0);
-    } else {
-      selectedDateTime.setHours(23, 59, 59, 999);
-    }
-    
-    if (selectedDateTime < now) {
-      toast.error("La fecha y hora del partido ya pasó");
-      return;
-    }
-    
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const matchDateOnly = new Date(formData.matchDate);
