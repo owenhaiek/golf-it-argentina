@@ -151,7 +151,7 @@ export const MatchScoringDialog = ({ match, open, onOpenChange, onSuccess }: Mat
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md p-0 gap-0 bg-background border-border/50 max-h-[70vh] sm:max-h-[75vh] overflow-hidden mx-4 rounded-2xl">
+      <DialogContent className="max-w-sm p-0 gap-0 bg-background border-border/50 max-h-[60vh] sm:max-h-[65vh] overflow-hidden mx-4 rounded-2xl">
         {/* Header */}
         <div className="p-4 bg-background/80 backdrop-blur-lg border-b border-border/50">
           <div className="flex items-center gap-3">
@@ -194,7 +194,7 @@ export const MatchScoringDialog = ({ match, open, onOpenChange, onSuccess }: Mat
           ))}
         </div>
 
-        <ScrollArea className="flex-1 max-h-[40vh]">
+        <ScrollArea className="flex-1 max-h-[30vh]">
           <div className="p-4">
             {activePlayer && (
               <div className="space-y-4">
