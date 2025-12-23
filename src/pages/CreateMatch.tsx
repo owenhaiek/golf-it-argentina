@@ -45,6 +45,7 @@ const CreateMatch = () => {
     opponentId: "",
     courseId: "",
     matchDate: "",
+    matchTime: "",
     matchType: "stroke_play",
     stakes: ""
   });
@@ -76,16 +77,26 @@ const CreateMatch = () => {
       return;
     }
 
-    const selectedDate = new Date(formData.matchDate);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const now = new Date();
+    const selectedDateTime = new Date(formData.matchDate);
     
-    if (selectedDate < today) {
-      toast.error(t("matches", "matchDatePast"));
+    if (formData.matchTime) {
+      const [hours, minutes] = formData.matchTime.split(':').map(Number);
+      selectedDateTime.setHours(hours, minutes, 0, 0);
+    } else {
+      selectedDateTime.setHours(23, 59, 59, 999);
+    }
+    
+    if (selectedDateTime < now) {
+      toast.error("La fecha y hora del partido ya pasó");
       return;
     }
     
-    const isSameDayMatch = selectedDate.getTime() === today.getTime();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const matchDateOnly = new Date(formData.matchDate);
+    matchDateOnly.setHours(0, 0, 0, 0);
+    const isSameDayMatch = matchDateOnly.getTime() === today.getTime();
 
     setIsLoading(true);
     
@@ -123,7 +134,7 @@ const CreateMatch = () => {
 
   const canProceedStep1 = !!formData.courseId;
   const canProceedStep2 = !!formData.opponentId;
-  const canSubmit = canProceedStep1 && canProceedStep2 && !!formData.name && !!formData.matchDate;
+  const canSubmit = canProceedStep1 && canProceedStep2 && !!formData.name && !!formData.matchDate && !!formData.matchTime;
   
   const isSameDay = formData.matchDate && new Date(formData.matchDate).toDateString() === new Date().toDateString();
 
@@ -257,7 +268,7 @@ const CreateMatch = () => {
               </ScrollArea>
 
               {/* Fixed bottom buttons - Two column layout */}
-              <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 bg-gradient-to-t from-background via-background to-transparent pt-6">
+              <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 bg-gradient-to-t from-background via-background to-transparent pt-6 pb-[calc(0.75rem+var(--safe-area-bottom))] sm:pb-[calc(1rem+var(--safe-area-bottom))]">
                 <div className="max-w-2xl mx-auto flex gap-2 sm:gap-3">
                   <Button
                     onClick={() => setShowExitConfirmation(true)}
@@ -363,7 +374,7 @@ const CreateMatch = () => {
               </div>
 
               {/* Fixed bottom buttons - Two column layout */}
-              <div className="fixed bottom-0 left-0 right-0 p-3 sm:p-4 bg-gradient-to-t from-background via-background to-transparent pt-6">
+              <div className="fixed bottom-0 left-0 right-0 p-3 sm:p-4 bg-gradient-to-t from-background via-background to-transparent pt-6 pb-[calc(0.75rem+var(--safe-area-bottom))] sm:pb-[calc(1rem+var(--safe-area-bottom))]">
                 <div className="max-w-2xl mx-auto flex gap-2 sm:gap-3">
                   <Button
                     onClick={() => setShowExitConfirmation(true)}
@@ -453,13 +464,22 @@ const CreateMatch = () => {
                       <Calendar className="h-4 w-4 text-red-500" />
                       {t("matches", "matchDateRequired")}
                     </Label>
-                    <Input
-                      type="date"
-                      min={new Date().toISOString().split('T')[0]}
-                      value={formData.matchDate}
-                      onChange={(e) => handleInputChange("matchDate", e.target.value)}
-                      className="h-12 rounded-xl bg-muted/50 border-0 focus-visible:ring-red-500"
-                    />
+                    <div className="grid grid-cols-2 gap-3">
+                      <Input
+                        type="date"
+                        min={new Date().toISOString().split('T')[0]}
+                        value={formData.matchDate}
+                        onChange={(e) => handleInputChange("matchDate", e.target.value)}
+                        className="h-12 rounded-xl bg-muted/50 border-0 focus-visible:ring-red-500"
+                      />
+                      <Input
+                        type="time"
+                        value={formData.matchTime}
+                        onChange={(e) => handleInputChange("matchTime", e.target.value)}
+                        className="h-12 rounded-xl bg-muted/50 border-0 focus-visible:ring-red-500"
+                        placeholder="Hora"
+                      />
+                    </div>
                     {isSameDay && (
                       <motion.div
                         initial={{ opacity: 0, y: -10 }}
@@ -509,7 +529,7 @@ const CreateMatch = () => {
               </div>
 
               {/* Fixed bottom buttons - Two column layout */}
-              <div className="fixed bottom-0 left-0 right-0 p-3 sm:p-4 bg-gradient-to-t from-background via-background to-transparent pt-6">
+              <div className="fixed bottom-0 left-0 right-0 p-3 sm:p-4 bg-gradient-to-t from-background via-background to-transparent pt-6 pb-[calc(0.75rem+var(--safe-area-bottom))] sm:pb-[calc(1rem+var(--safe-area-bottom))]">
                 <div className="max-w-2xl mx-auto flex gap-2 sm:gap-3">
                   <Button
                     onClick={() => setShowExitConfirmation(true)}

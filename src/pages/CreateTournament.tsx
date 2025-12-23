@@ -48,6 +48,7 @@ const CreateTournament = () => {
     description: "",
     courseId: "",
     startDate: "",
+    startTime: "",
     maxPlayers: 8,
     tournamentType: "stroke_play"
   });
@@ -87,12 +88,18 @@ const CreateTournament = () => {
       return;
     }
 
-    const selectedDate = new Date(formData.startDate);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const now = new Date();
+    const selectedDateTime = new Date(formData.startDate);
     
-    if (selectedDate < today) {
-      toast.error(t("tournaments", "startDateFuture"));
+    if (formData.startTime) {
+      const [hours, minutes] = formData.startTime.split(':').map(Number);
+      selectedDateTime.setHours(hours, minutes, 0, 0);
+    } else {
+      selectedDateTime.setHours(23, 59, 59, 999);
+    }
+    
+    if (selectedDateTime < now) {
+      toast.error("La fecha y hora del torneo ya pasó");
       return;
     }
 
@@ -149,7 +156,7 @@ const CreateTournament = () => {
   };
 
   const canProceedStep1 = !!formData.courseId;
-  const canProceedStep2 = !!formData.name && !!formData.startDate;
+  const canProceedStep2 = !!formData.name && !!formData.startDate && !!formData.startTime;
   const canSubmit = canProceedStep1 && canProceedStep2 && selectedParticipants.length > 0;
 
   return (
@@ -282,7 +289,7 @@ const CreateTournament = () => {
               </ScrollArea>
 
               {/* Fixed bottom buttons - Two column layout */}
-              <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 bg-gradient-to-t from-background via-background to-transparent pt-6">
+              <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 bg-gradient-to-t from-background via-background to-transparent pt-6 pb-[calc(0.75rem+var(--safe-area-bottom))] sm:pb-[calc(1rem+var(--safe-area-bottom))]">
                 <div className="max-w-2xl mx-auto flex gap-2 sm:gap-3">
                   <Button
                     onClick={() => setShowExitConfirmation(true)}
@@ -362,13 +369,22 @@ const CreateTournament = () => {
                       <Calendar className="h-4 w-4 text-amber-500" />
                       {t("tournaments", "tournamentDateRequired")}
                     </Label>
-                    <Input
-                      type="date"
-                      min={new Date().toISOString().split('T')[0]}
-                      value={formData.startDate}
-                      onChange={(e) => handleInputChange("startDate", e.target.value)}
-                      className="h-12 rounded-xl bg-muted/50 border-0 focus-visible:ring-amber-500"
-                    />
+                    <div className="grid grid-cols-2 gap-3">
+                      <Input
+                        type="date"
+                        min={new Date().toISOString().split('T')[0]}
+                        value={formData.startDate}
+                        onChange={(e) => handleInputChange("startDate", e.target.value)}
+                        className="h-12 rounded-xl bg-muted/50 border-0 focus-visible:ring-amber-500"
+                      />
+                      <Input
+                        type="time"
+                        value={formData.startTime}
+                        onChange={(e) => handleInputChange("startTime", e.target.value)}
+                        className="h-12 rounded-xl bg-muted/50 border-0 focus-visible:ring-amber-500"
+                        placeholder="Hora"
+                      />
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
@@ -403,7 +419,7 @@ const CreateTournament = () => {
               </div>
 
               {/* Fixed bottom buttons - Two column layout */}
-              <div className="fixed bottom-0 left-0 right-0 p-3 sm:p-4 bg-gradient-to-t from-background via-background to-transparent pt-6">
+              <div className="fixed bottom-0 left-0 right-0 p-3 sm:p-4 bg-gradient-to-t from-background via-background to-transparent pt-6 pb-[calc(0.75rem+var(--safe-area-bottom))] sm:pb-[calc(1rem+var(--safe-area-bottom))]">
                 <div className="max-w-2xl mx-auto flex gap-2 sm:gap-3">
                   <Button
                     onClick={() => setShowExitConfirmation(true)}
@@ -504,7 +520,7 @@ const CreateTournament = () => {
               </div>
 
               {/* Fixed bottom buttons - Two column layout */}
-              <div className="fixed bottom-0 left-0 right-0 p-3 sm:p-4 bg-gradient-to-t from-background via-background to-transparent pt-6">
+              <div className="fixed bottom-0 left-0 right-0 p-3 sm:p-4 bg-gradient-to-t from-background via-background to-transparent pt-6 pb-[calc(0.75rem+var(--safe-area-bottom))] sm:pb-[calc(1rem+var(--safe-area-bottom))]">
                 <div className="max-w-2xl mx-auto flex gap-2 sm:gap-3">
                   <Button
                     onClick={() => setShowExitConfirmation(true)}
