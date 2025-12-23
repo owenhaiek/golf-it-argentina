@@ -7,9 +7,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Match } from "@/hooks/useTournamentsAndMatches";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Swords, Flag } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface MatchScoringDialogProps {
   match: Match;
@@ -33,6 +35,7 @@ export const MatchScoringDialog = ({ match, open, onOpenChange, onSuccess }: Mat
   const [loading, setLoading] = useState(false);
   const [players, setPlayers] = useState<PlayerScore[]>([]);
   const [coursePars, setCoursePars] = useState<number[]>([]);
+  const [activePlayerIndex, setActivePlayerIndex] = useState(0);
 
   useEffect(() => {
     if (open && match?.id) {
@@ -47,7 +50,7 @@ export const MatchScoringDialog = ({ match, open, onOpenChange, onSuccess }: Mat
     const playerScores: PlayerScore[] = [
       {
         user_id: match.creator_id || "",
-        name: match.creator?.full_name || 'Creator',
+        name: match.creator?.full_name || 'Creador',
         username: match.creator?.username || 'creator',
         avatar_url: match.creator?.avatar_url,
         hole_scores: new Array(18).fill(0),
@@ -55,7 +58,7 @@ export const MatchScoringDialog = ({ match, open, onOpenChange, onSuccess }: Mat
       },
       {
         user_id: match.opponent_id || "",
-        name: match.opponent?.full_name || 'Opponent',
+        name: match.opponent?.full_name || 'Oponente',
         username: match.opponent?.username || 'opponent',
         avatar_url: match.opponent?.avatar_url,
         hole_scores: new Array(18).fill(0),
@@ -125,8 +128,8 @@ export const MatchScoringDialog = ({ match, open, onOpenChange, onSuccess }: Mat
       }
 
       toast({
-        title: "Scores Submitted",
-        description: "Match scores have been submitted successfully.",
+        title: "Puntajes Guardados",
+        description: "Los puntajes del partido han sido guardados.",
       });
       
       onSuccess();
@@ -135,7 +138,7 @@ export const MatchScoringDialog = ({ match, open, onOpenChange, onSuccess }: Mat
       console.error('Error submitting scores:', error);
       toast({
         title: "Error",
-        description: "Failed to submit scores. Please try again.",
+        description: "No se pudieron guardar los puntajes.",
         variant: "destructive",
       });
     } finally {
@@ -143,81 +146,158 @@ export const MatchScoringDialog = ({ match, open, onOpenChange, onSuccess }: Mat
     }
   };
 
+  const activePlayer = players[activePlayerIndex];
+  const totalPar = coursePars.reduce((a, b) => a + b, 0);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Match Scoring - {match?.name || "Loading..."}</DialogTitle>
-        </DialogHeader>
+      <DialogContent className="max-w-md p-0 gap-0 bg-background border-border/50 max-h-[70vh] sm:max-h-[75vh] overflow-hidden mx-4 rounded-2xl">
+        {/* Header */}
+        <div className="p-4 bg-background/80 backdrop-blur-lg border-b border-border/50">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center">
+              <Swords className="h-5 w-5 text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <DialogTitle className="text-base font-bold truncate">{match?.name || "Partido"}</DialogTitle>
+              <p className="text-xs text-muted-foreground">Cargar puntajes</p>
+            </div>
+          </div>
+        </div>
         
-        <div className="space-y-6">
-          {players.map((player, playerIndex) => (
-            <Card key={player.user_id}>
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-3">
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage src={player.avatar_url} />
-                    <AvatarFallback>{player.name?.[0] || "?"}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <div className="font-semibold">{player.name}</div>
-                    <div className="text-sm text-muted-foreground">@{player.username}</div>
+        {/* Player Tabs */}
+        <div className="flex border-b border-border/50">
+          {players.map((player, index) => (
+            <motion.button
+              key={player.user_id}
+              onClick={() => setActivePlayerIndex(index)}
+              className={`flex-1 flex items-center justify-center gap-2 p-3 transition-colors ${
+                activePlayerIndex === index 
+                  ? 'bg-red-500/10 border-b-2 border-red-500' 
+                  : 'hover:bg-muted/50'
+              }`}
+              whileTap={{ scale: 0.98 }}
+            >
+              <Avatar className="h-7 w-7">
+                <AvatarImage src={player.avatar_url} />
+                <AvatarFallback className="text-xs bg-red-500/20 text-red-600">
+                  {player.name?.[0] || "?"}
+                </AvatarFallback>
+              </Avatar>
+              <div className="text-left min-w-0">
+                <p className="text-xs font-medium truncate">{player.name?.split(' ')[0]}</p>
+                <p className="text-[10px] text-muted-foreground">
+                  Total: {player.total_score || 0}
+                </p>
+              </div>
+            </motion.button>
+          ))}
+        </div>
+
+        <ScrollArea className="flex-1 max-h-[40vh]">
+          <div className="p-4">
+            {activePlayer && (
+              <div className="space-y-4">
+                {/* Front 9 */}
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Flag className="h-4 w-4 text-primary" />
+                    <Label className="text-sm font-medium">Front 9</Label>
                   </div>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-9 gap-2 mb-4">
-                  {/* Front 9 */}
-                  {coursePars.slice(0, 9).map((par, holeIndex) => (
-                    <div key={holeIndex} className="text-center">
-                      <Label className="text-xs">Hole {holeIndex + 1}</Label>
-                      <div className="text-xs text-muted-foreground">Par {par}</div>
-                      <Input
-                        type="number"
-                        min="1"
-                        max="15"
-                        value={player.hole_scores[holeIndex] || ''}
-                        onChange={(e) => updateHoleScore(playerIndex, holeIndex, parseInt(e.target.value) || 0)}
-                        className="text-center h-8"
-                      />
-                    </div>
-                  ))}
+                  <div className="grid grid-cols-3 gap-2">
+                    {coursePars.slice(0, 9).map((par, holeIndex) => (
+                      <div key={holeIndex} className="text-center bg-muted/30 rounded-xl p-2">
+                        <div className="flex justify-between text-[10px] text-muted-foreground mb-1 px-1">
+                          <span>H{holeIndex + 1}</span>
+                          <span>P{par}</span>
+                        </div>
+                        <Input
+                          type="number"
+                          min="1"
+                          max="15"
+                          value={activePlayer.hole_scores[holeIndex] || ''}
+                          onChange={(e) => updateHoleScore(activePlayerIndex, holeIndex, parseInt(e.target.value) || 0)}
+                          className="text-center h-9 text-sm font-medium bg-background border-0 focus-visible:ring-red-500"
+                        />
+                      </div>
+                    ))}
+                  </div>
                 </div>
                 
-                <div className="grid grid-cols-9 gap-2 mb-4">
-                  {/* Back 9 */}
-                  {coursePars.slice(9, 18).map((par, holeIndex) => (
-                    <div key={holeIndex + 9} className="text-center">
-                      <Label className="text-xs">Hole {holeIndex + 10}</Label>
-                      <div className="text-xs text-muted-foreground">Par {par}</div>
-                      <Input
-                        type="number"
-                        min="1"
-                        max="15"
-                        value={player.hole_scores[holeIndex + 9] || ''}
-                        onChange={(e) => updateHoleScore(playerIndex, holeIndex + 9, parseInt(e.target.value) || 0)}
-                        className="text-center h-8"
-                      />
-                    </div>
-                  ))}
+                {/* Back 9 */}
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Flag className="h-4 w-4 text-primary" />
+                    <Label className="text-sm font-medium">Back 9</Label>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    {coursePars.slice(9, 18).map((par, holeIndex) => (
+                      <div key={holeIndex + 9} className="text-center bg-muted/30 rounded-xl p-2">
+                        <div className="flex justify-between text-[10px] text-muted-foreground mb-1 px-1">
+                          <span>H{holeIndex + 10}</span>
+                          <span>P{par}</span>
+                        </div>
+                        <Input
+                          type="number"
+                          min="1"
+                          max="15"
+                          value={activePlayer.hole_scores[holeIndex + 9] || ''}
+                          onChange={(e) => updateHoleScore(activePlayerIndex, holeIndex + 9, parseInt(e.target.value) || 0)}
+                          className="text-center h-9 text-sm font-medium bg-background border-0 focus-visible:ring-red-500"
+                        />
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                
-                <div className="flex justify-between items-center pt-2 border-t">
-                  <span className="font-medium">Total Score:</span>
-                  <Badge variant="outline" className="text-lg">
+              </div>
+            )}
+          </div>
+        </ScrollArea>
+
+        {/* Summary & Actions */}
+        <div className="p-4 border-t border-border/50 bg-background space-y-3">
+          {/* Score Summary */}
+          <div className="flex justify-between items-center bg-muted/30 rounded-xl p-3">
+            <div className="flex items-center gap-4">
+              {players.map((player, index) => (
+                <div key={player.user_id} className="flex items-center gap-2">
+                  <Avatar className="h-6 w-6">
+                    <AvatarImage src={player.avatar_url} />
+                    <AvatarFallback className="text-[10px]">{player.name?.[0]}</AvatarFallback>
+                  </Avatar>
+                  <Badge variant={index === 0 ? "default" : "secondary"} className="text-sm">
                     {player.total_score || 0}
                   </Badge>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
+              ))}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              Par {totalPar}
+            </div>
+          </div>
           
-          <div className="flex justify-end gap-2 pt-4 border-t">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+          <div className="flex gap-3">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => onOpenChange(false)}
+              className="flex-1 h-11 rounded-xl"
+            >
+              Cancelar
             </Button>
-            <Button onClick={submitScores} disabled={loading}>
-              {loading ? "Submitting..." : "Submit Scores"}
+            <Button 
+              onClick={submitScores} 
+              disabled={loading}
+              className="flex-1 h-11 rounded-xl bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white"
+            >
+              {loading ? (
+                <div className="flex items-center gap-2">
+                  <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+                  Guardando
+                </div>
+              ) : (
+                "Guardar"
+              )}
             </Button>
           </div>
         </div>

@@ -130,7 +130,7 @@ const CreateTournament = () => {
       if (participantsError) throw participantsError;
 
       toast.success(t("tournaments", "tournamentCreatedSuccess"));
-      navigate("/home");
+      navigate("/profile?tab=competitions");
     } catch (error: any) {
       console.error("Error creating tournament:", error);
       toast.error(t("tournaments", "failedToCreate"));
