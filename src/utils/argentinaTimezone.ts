@@ -97,3 +97,15 @@ export const getDayName = (dayIndex: number): string => {
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   return days[dayIndex] || '';
 };
+
+/**
+ * Parse a date string (YYYY-MM-DD) as a local date without timezone conversion issues
+ * This prevents the common bug where dates appear one day off due to UTC parsing
+ * @param {string} dateString - Date in format YYYY-MM-DD
+ * @returns {Date} Date object set to local midnight
+ */
+export const parseLocalDate = (dateString: string): Date => {
+  // Split the date string and create date with local timezone
+  const [year, month, day] = dateString.split('-').map(Number);
+  return new Date(year, month - 1, day); // month is 0-indexed in JS
+};

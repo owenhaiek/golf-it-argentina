@@ -6,6 +6,7 @@ import { Trophy, MapPin, Calendar, Users, Crown, Target, Clock, Edit, Trash2, Do
 import { Tournament } from "@/hooks/useTournamentsAndMatches";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
+import { parseLocalDate } from "@/utils/argentinaTimezone";
 
 interface InteractiveTournamentCardProps {
   tournament: Tournament;
@@ -108,7 +109,7 @@ export const InteractiveTournamentCard = ({
               <span>Fecha</span>
             </div>
             <p className="text-sm font-medium text-foreground">
-              {format(new Date(tournament.start_date), 'dd MMM yyyy')}
+              {format(parseLocalDate(tournament.start_date), 'dd MMM yyyy')}
             </p>
           </div>
           <div className="bg-white/5 rounded-xl p-3 space-y-1">
@@ -242,7 +243,7 @@ export const InteractiveTournamentCard = ({
           {isUpcoming && !isCreator && (
             <div className="flex items-center justify-center gap-2 py-2 text-muted-foreground bg-white/5 rounded-xl">
               <Calendar className="h-4 w-4" />
-              <span className="text-sm">Inicia el {format(new Date(tournament.start_date), 'dd MMM')}</span>
+              <span className="text-sm">Inicia el {format(parseLocalDate(tournament.start_date), 'dd MMM')}</span>
             </div>
           )}
         </div>
