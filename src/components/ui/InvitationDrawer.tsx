@@ -10,6 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { format } from "date-fns";
+import { parseLocalDate } from "@/utils/argentinaTimezone";
 
 export const InvitationDrawer = () => {
   const { user } = useAuth();
@@ -146,7 +147,7 @@ export const InvitationDrawer = () => {
                   <div className="flex items-center gap-3 text-sm">
                     <Clock className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                     <span className="text-muted-foreground">
-                      {format(new Date(invitation.match_date), 'MMMM d, yyyy')}
+                      {format(parseLocalDate(invitation.match_date), 'MMMM d, yyyy')}
                     </span>
                   </div>
                   

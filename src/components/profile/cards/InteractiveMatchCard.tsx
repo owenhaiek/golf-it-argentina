@@ -7,6 +7,7 @@ import { Match } from "@/hooks/useTournamentsAndMatches";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { parseLocalDate } from "@/utils/argentinaTimezone";
 
 interface InteractiveMatchCardProps {
   match: Match;
@@ -163,7 +164,7 @@ export const InteractiveMatchCard = ({
               <span>Fecha</span>
             </div>
             <p className="text-sm font-medium text-foreground">
-              {format(new Date(match.match_date), 'dd MMM yyyy', { locale: es })}
+              {format(parseLocalDate(match.match_date), 'dd MMM yyyy', { locale: es })}
             </p>
           </div>
           {match.stakes && (
