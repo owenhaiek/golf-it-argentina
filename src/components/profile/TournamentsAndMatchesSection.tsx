@@ -25,15 +25,10 @@ export const TournamentsAndMatchesSection = () => {
     upcomingTournaments,
     activeTournaments,
     completedTournaments,
-    pendingMatches,
     activeMatches,
     completedMatches,
     isLoading,
-    refetchAll,
-    acceptMatch,
-    declineMatch,
-    isAcceptingMatch,
-    isDecliningMatch
+    refetchAll
   } = useTournamentsAndMatches();
 
   const [viewMode, setViewMode] = useState<ViewMode>('tournaments');
@@ -125,7 +120,7 @@ export const TournamentsAndMatchesSection = () => {
   }
 
   const totalTournaments = upcomingTournaments.length + activeTournaments.length + completedTournaments.length;
-  const totalMatches = pendingMatches.length + activeMatches.length + completedMatches.length;
+  const totalMatches = activeMatches.length + completedMatches.length;
 
   if (totalTournaments === 0 && totalMatches === 0) {
     return (
@@ -272,10 +267,6 @@ export const TournamentsAndMatchesSection = () => {
                   onLoadScores={(match) => setMatchScoringCard({ open: true, match })}
                   onEdit={(match) => setEditMatchDialog({ open: true, match })}
                   onDelete={deleteMatch}
-                  onAccept={acceptMatch}
-                  onDecline={declineMatch}
-                  isAccepting={isAcceptingMatch}
-                  isDeclining={isDecliningMatch}
                 />
               ))}
               {activeMatches.length === 0 && (
@@ -308,27 +299,10 @@ export const TournamentsAndMatchesSection = () => {
               )}
             </>
           ) : (
-            <>
-              {pendingMatches.map((match) => (
-                <InteractiveMatchCard
-                  key={match.id}
-                  match={match}
-                  onLoadScores={(match) => setMatchScoringCard({ open: true, match })}
-                  onEdit={(match) => setEditMatchDialog({ open: true, match })}
-                  onDelete={deleteMatch}
-                  onAccept={acceptMatch}
-                  onDecline={declineMatch}
-                  isAccepting={isAcceptingMatch}
-                  isDeclining={isDecliningMatch}
-                />
-              ))}
-              {pendingMatches.length === 0 && (
-                <EmptyState 
-                  icon={<Swords className="h-8 w-8 text-zinc-600" />}
-                  message="Sin partidos pendientes"
-                />
-              )}
-            </>
+            <EmptyState 
+              icon={<Swords className="h-8 w-8 text-zinc-600" />}
+              message="Los partidos se crean directamente como activos"
+            />
           )}
         </TabsContent>
 
@@ -360,10 +334,6 @@ export const TournamentsAndMatchesSection = () => {
                   onLoadScores={(match) => setMatchScoringCard({ open: true, match })}
                   onEdit={(match) => setEditMatchDialog({ open: true, match })}
                   onDelete={deleteMatch}
-                  onAccept={acceptMatch}
-                  onDecline={declineMatch}
-                  isAccepting={isAcceptingMatch}
-                  isDeclining={isDecliningMatch}
                 />
               ))}
               {completedMatches.length === 0 && (

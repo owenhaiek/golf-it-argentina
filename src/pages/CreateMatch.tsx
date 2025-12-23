@@ -77,12 +77,6 @@ const CreateMatch = () => {
       return;
     }
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const matchDateOnly = new Date(formData.matchDate);
-    matchDateOnly.setHours(0, 0, 0, 0);
-    const isSameDayMatch = matchDateOnly.getTime() === today.getTime();
-
     setIsLoading(true);
     
     try {
@@ -96,18 +90,14 @@ const CreateMatch = () => {
           match_date: formData.matchDate,
           match_type: formData.matchType,
           stakes: formData.stakes || null,
-          status: isSameDayMatch ? 'accepted' : 'pending'
+          status: 'accepted' // Always create as active/accepted
         })
         .select()
         .single();
 
       if (error) throw error;
 
-      if (isSameDayMatch) {
-        toast.success("Match created and ready to play!");
-      } else {
-        toast.success(t("matches", "matchChallengeSent"));
-      }
+      toast.success("¡Partido creado!");
       navigate("/profile?tab=competitions");
     } catch (error: any) {
       console.error("Error creating match:", error);
