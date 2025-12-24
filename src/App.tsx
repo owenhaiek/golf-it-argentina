@@ -35,6 +35,7 @@ import CourseDashboard from "./pages/CourseDashboard";
 import AdminCourseEdit from "./pages/AdminCourseEdit";
 import AdminCourseEditList from "./pages/AdminCourseEditList";
 import AdminPendingManagers from "./pages/AdminPendingManagers";
+import Subscription from "./pages/Subscription";
 
 const queryClient = new QueryClient();
 
@@ -96,6 +97,7 @@ function App() {
                         <Route path="/search-users" element={<SearchUsers />} />
                         <Route path="/settings" element={<Settings />} />
                         <Route path="/search" element={<Search />} />
+                        <Route path="/subscription" element={<Subscription />} />
                       </Route>
                     </Routes>
                   </AuthGuard>

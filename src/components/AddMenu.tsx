@@ -2,14 +2,16 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
-import { Plus, Flag, Trophy, Swords } from "lucide-react";
+import { Plus, Flag, Trophy, Swords, Crown, Lock } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useSubscription } from "@/hooks/useSubscription";
 import { motion, AnimatePresence } from "framer-motion";
 
 export const AddMenu = () => {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const { t, language } = useLanguage();
+  const { isPremium, isLoading } = useSubscription();
 
   const handleAddRound = () => {
     setOpen(false);
@@ -18,6 +20,11 @@ export const AddMenu = () => {
 
   const handleCreateTournament = () => {
     setOpen(false);
+    if (!isPremium) {
+      // Redirect to subscription page if not premium
+      navigate('/subscription');
+      return;
+    }
     navigate('/create-tournament');
   };
 
@@ -32,21 +39,28 @@ export const AddMenu = () => {
       icon: Flag,
       title: t("addRound", "title"),
       subtitle: language === "en" ? "Record your golf round" : "Registra tu ronda de golf",
-      gradient: "bg-primary hover:bg-primary/90"
+      gradient: "bg-primary hover:bg-primary/90",
+      requiresPremium: false
     },
     {
       onClick: handleCreateTournament,
       icon: Trophy,
       title: language === "en" ? "Create Tournament" : "Crear Torneo",
-      subtitle: language === "en" ? "Organize a tournament with friends" : "Organiza un torneo con amigos",
-      gradient: "bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700"
+      subtitle: isPremium 
+        ? (language === "en" ? "Organize a tournament with friends" : "Organiza un torneo con amigos")
+        : (language === "en" ? "Premium feature" : "Función premium"),
+      gradient: isPremium 
+        ? "bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700"
+        : "bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700",
+      requiresPremium: true
     },
     {
       onClick: handleCreateMatch,
       icon: Swords,
       title: language === "en" ? "Challenge Friend" : "Desafiar Amigo",
       subtitle: language === "en" ? "Start a head-to-head match" : "Iniciar un duelo uno a uno",
-      gradient: "bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700"
+      gradient: "bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700",
+      requiresPremium: false
     }
   ];
 
@@ -84,13 +98,21 @@ export const AddMenu = () => {
               >
                 <Button 
                   onClick={item.onClick}
-                  className={`w-full h-16 ${item.gradient} text-white flex items-center justify-start gap-4 text-lg transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]`}
+                  className={`w-full h-16 ${item.gradient} text-white flex items-center justify-start gap-4 text-lg transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] relative`}
                 >
                   <item.icon size={24} />
-                  <div className="text-left">
-                    <div className="font-semibold">{item.title}</div>
+                  <div className="text-left flex-1">
+                    <div className="font-semibold flex items-center gap-2">
+                      {item.title}
+                      {item.requiresPremium && !isPremium && (
+                        <Crown size={14} className="text-amber-300" />
+                      )}
+                    </div>
                     <div className="text-sm opacity-90">{item.subtitle}</div>
                   </div>
+                  {item.requiresPremium && !isPremium && (
+                    <Lock size={18} className="opacity-70" />
+                  )}
                 </Button>
               </motion.div>
             ))}
