@@ -39,8 +39,8 @@ export const MapActionMenu = ({ onOpenChange }: MapActionMenuProps) => {
       label: t('matches', 'challengeFriend'),
       description: t('matches', 'matchDetails'),
       route: '/create-match',
-      color: 'bg-blue-500',
-      shadowColor: 'shadow-blue-500/30'
+      color: 'bg-gradient-to-br from-red-500 to-red-600',
+      shadowColor: 'shadow-red-500/30'
     }
   ];
 
