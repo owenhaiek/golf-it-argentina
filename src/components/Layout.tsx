@@ -5,7 +5,7 @@ import GolfAnimationLoader from "./ui/GolfAnimationLoader";
 import { motion } from "framer-motion";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { InvitationDrawer } from "./ui/InvitationDrawer";
-import PWAInstallPrompt from "./ui/PWAInstallPrompt";
+
 import { BackToMapButton } from "./ui/BackToMapButton";
 import { hapticSuccess, hideBars, isDespiaNative } from "@/hooks/useDespiaNative";
 
@@ -132,8 +132,6 @@ export const Layout = () => {
       {/* Invitation Drawer */}
       <InvitationDrawer />
       
-      {/* PWA Install Prompt */}
-      <PWAInstallPrompt />
     </div>
   );
 };
