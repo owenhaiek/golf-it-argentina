@@ -93,18 +93,18 @@ const Subscription = () => {
 
   if (isPremium) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-red-950 via-red-900 to-background">
-        <div className="p-4 bg-background/20 backdrop-blur-lg border-b border-white/10">
+      <div className="min-h-screen bg-background">
+        <div className="p-4 bg-background/80 backdrop-blur-lg border-b border-border/50">
           <div className="flex items-center gap-3 max-w-2xl mx-auto">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => navigate(-1)}
-              className="h-10 w-10 p-0 rounded-full text-white hover:bg-white/10"
+              className="h-10 w-10 p-0 rounded-full"
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <h1 className="text-lg font-bold text-white">
+            <h1 className="text-lg font-bold">
               {language === "en" ? "Subscription" : "Suscripción"}
             </h1>
           </div>
@@ -119,10 +119,10 @@ const Subscription = () => {
             <Crown className="h-12 w-12 text-white" />
           </motion.div>
 
-          <h2 className="text-2xl font-bold text-white mb-2">
+          <h2 className="text-2xl font-bold mb-2">
             {language === "en" ? "You're Premium!" : "¡Eres Premium!"}
           </h2>
-          <p className="text-white/70">
+          <p className="text-muted-foreground">
             {language === "en" 
               ? "Enjoy all premium features" 
               : "Disfruta de todas las funciones premium"}
@@ -133,19 +133,19 @@ const Subscription = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-950 via-red-900 to-background">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="p-4 bg-background/20 backdrop-blur-lg border-b border-white/10">
+      <div className="p-4 bg-background/80 backdrop-blur-lg border-b border-border/50">
         <div className="flex items-center gap-3 max-w-2xl mx-auto">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => navigate(-1)}
-            className="h-10 w-10 p-0 rounded-full text-white hover:bg-white/10"
+            className="h-10 w-10 p-0 rounded-full"
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <h1 className="text-lg font-bold text-white">
+          <h1 className="text-lg font-bold">
             {language === "en" ? "Go Premium" : "Hazte Premium"}
           </h1>
         </div>
@@ -167,10 +167,10 @@ const Subscription = () => {
             <Crown className="h-10 w-10 text-white" />
           </motion.div>
 
-          <h2 className="text-2xl font-bold text-white mb-2">
+          <h2 className="text-2xl font-bold mb-2">
             {language === "en" ? "Unlock Premium Features" : "Desbloquea Funciones Premium"}
           </h2>
-          <p className="text-white/70">
+          <p className="text-muted-foreground">
             {language === "en" 
               ? "Take your golf game to the next level" 
               : "Lleva tu juego de golf al siguiente nivel"}
@@ -179,7 +179,7 @@ const Subscription = () => {
 
         {/* Premium Features */}
         <div className="space-y-3">
-          <h3 className="text-sm font-medium text-white/60 uppercase tracking-wider">
+          <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
             {language === "en" ? "Premium Features" : "Funciones Premium"}
           </h3>
           {premiumFeatures.map((feature, index) => (
@@ -188,14 +188,14 @@ const Subscription = () => {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3 + index * 0.1 }}
-              className="flex items-start gap-4 p-4 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/10"
+              className="flex items-start gap-4 p-4 rounded-2xl bg-muted/50 border border-border/50"
             >
               <div className="h-10 w-10 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center flex-shrink-0">
                 <feature.icon className="h-5 w-5 text-white" />
               </div>
               <div>
-                <h4 className="font-semibold text-white">{feature.title}</h4>
-                <p className="text-sm text-white/70">{feature.description}</p>
+                <h4 className="font-semibold">{feature.title}</h4>
+                <p className="text-sm text-muted-foreground">{feature.description}</p>
               </div>
             </motion.div>
           ))}
@@ -203,7 +203,7 @@ const Subscription = () => {
 
         {/* Free Features */}
         <div className="space-y-3">
-          <h3 className="text-sm font-medium text-white/60 uppercase tracking-wider">
+          <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
             {language === "en" ? "Free Features" : "Funciones Gratis"}
           </h3>
           {freeFeatures.map((feature, index) => (
@@ -212,15 +212,15 @@ const Subscription = () => {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.6 + index * 0.1 }}
-              className="flex items-start gap-4 p-4 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/5"
+              className="flex items-start gap-4 p-4 rounded-2xl bg-muted/30 border border-border/30"
             >
-              <div className="h-10 w-10 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
-                <feature.icon className="h-5 w-5 text-white/70" />
+              <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                <feature.icon className="h-5 w-5 text-muted-foreground" />
               </div>
               <div className="flex items-center gap-2 flex-1">
                 <div>
-                  <h4 className="font-semibold text-white/80">{feature.title}</h4>
-                  <p className="text-sm text-white/50">{feature.description}</p>
+                  <h4 className="font-semibold text-foreground/80">{feature.title}</h4>
+                  <p className="text-sm text-muted-foreground">{feature.description}</p>
                 </div>
                 <Check className="h-5 w-5 text-primary ml-auto" />
               </div>
@@ -230,7 +230,7 @@ const Subscription = () => {
       </div>
 
       {/* Fixed CTA */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-red-950 via-red-950 to-transparent pt-8 pb-[calc(1rem+var(--safe-area-bottom))]">
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background via-background to-transparent pt-8 pb-[calc(1rem+var(--safe-area-bottom))]">
         <div className="max-w-2xl mx-auto space-y-3">
           <Button
             onClick={() => handlePurchase(monthlyPackage)}
@@ -246,7 +246,7 @@ const Subscription = () => {
               </>
             )}
           </Button>
-          <p className="text-center text-white/50 text-sm">
+          <p className="text-center text-muted-foreground text-sm">
             {language === "en" 
               ? "Cancel anytime • Restore purchases in settings" 
               : "Cancela cuando quieras • Restaura compras en ajustes"}
