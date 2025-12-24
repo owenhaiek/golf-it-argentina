@@ -1,4 +1,4 @@
-
+import { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,6 +10,7 @@ import { DarkModeProvider } from "./contexts/DarkModeContext";
 import { AuthGuard } from "./components/AuthGuard";
 import { AdminGuard } from "./components/security/AdminGuard";
 import { Layout } from "./components/Layout";
+import { initializeRevenueCat } from "./services/revenueCat";
 import Index from "./pages/Index";
 import Home from "./pages/Home";
 import Profile from "./pages/Profile";
@@ -38,6 +39,11 @@ import AdminPendingManagers from "./pages/AdminPendingManagers";
 const queryClient = new QueryClient();
 
 function App() {
+  // Initialize RevenueCat for native mobile platforms
+  useEffect(() => {
+    initializeRevenueCat();
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <DarkModeProvider>
