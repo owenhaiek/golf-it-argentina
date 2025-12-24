@@ -273,8 +273,8 @@ const CreateTournament = () => {
               </ScrollArea>
 
               {/* Fixed bottom buttons - Two column layout */}
-              <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 bg-gradient-to-t from-background via-background to-transparent pt-6 pb-[calc(0.75rem+var(--safe-area-bottom))] sm:pb-[calc(1rem+var(--safe-area-bottom))]">
-                <div className="max-w-2xl mx-auto flex gap-2 sm:gap-3">
+              <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 bg-gradient-to-t from-background via-background to-transparent pt-6 pb-[calc(1.5rem+var(--safe-area-bottom))] sm:pb-[calc(1.5rem+var(--safe-area-bottom))]">
+                <div className="max-w-2xl mx-auto flex gap-2 sm:gap-3 mb-2">
                   <Button
                     onClick={() => setShowExitConfirmation(true)}
                     variant="outline"
@@ -403,8 +403,8 @@ const CreateTournament = () => {
               </div>
 
               {/* Fixed bottom buttons - Two column layout */}
-              <div className="fixed bottom-0 left-0 right-0 p-3 sm:p-4 bg-gradient-to-t from-background via-background to-transparent pt-6 pb-[calc(0.75rem+var(--safe-area-bottom))] sm:pb-[calc(1rem+var(--safe-area-bottom))]">
-                <div className="max-w-2xl mx-auto flex gap-2 sm:gap-3">
+              <div className="fixed bottom-0 left-0 right-0 p-3 sm:p-4 bg-gradient-to-t from-background via-background to-transparent pt-6 pb-[calc(1.5rem+var(--safe-area-bottom))] sm:pb-[calc(1.5rem+var(--safe-area-bottom))]">
+                <div className="max-w-2xl mx-auto flex gap-2 sm:gap-3 mb-2">
                   <Button
                     onClick={() => setShowExitConfirmation(true)}
                     variant="outline"
@@ -504,8 +504,8 @@ const CreateTournament = () => {
               </div>
 
               {/* Fixed bottom buttons - Two column layout */}
-              <div className="fixed bottom-0 left-0 right-0 p-3 sm:p-4 bg-gradient-to-t from-background via-background to-transparent pt-6 pb-[calc(0.75rem+var(--safe-area-bottom))] sm:pb-[calc(1rem+var(--safe-area-bottom))]">
-                <div className="max-w-2xl mx-auto flex gap-2 sm:gap-3">
+              <div className="fixed bottom-0 left-0 right-0 p-3 sm:p-4 bg-gradient-to-t from-background via-background to-transparent pt-6 pb-[calc(1.5rem+var(--safe-area-bottom))] sm:pb-[calc(1.5rem+var(--safe-area-bottom))]">
+                <div className="max-w-2xl mx-auto flex gap-2 sm:gap-3 mb-2">
                   <Button
                     onClick={() => setShowExitConfirmation(true)}
                     variant="outline"

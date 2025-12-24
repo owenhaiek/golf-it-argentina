@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Settings as SettingsIcon, Languages, Shield, FileText, HelpCircle, ChevronRight, ChevronLeft } from "lucide-react";
+import { Settings as SettingsIcon, Languages, Shield, FileText, HelpCircle, ChevronRight, ChevronLeft, Crown, Check, RefreshCw } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -13,7 +13,10 @@ import {
 } from "@/components/ui/sheet";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useSubscription } from "@/hooks/useSubscription";
+import { restorePurchases } from "@/services/revenueCat";
 import { motion } from "framer-motion";
+import { Capacitor } from "@capacitor/core";
 
 type LanguageType = "en" | "es";
 
@@ -21,6 +24,7 @@ const Settings = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { language, setLanguage, t } = useLanguage();
+  const { isPremium, isLoading: isLoadingSubscription, refreshSubscription } = useSubscription();
 
   const handleLanguageChange = (lang: string) => {
     setLanguage(lang as LanguageType);
@@ -28,6 +32,33 @@ const Settings = () => {
       title: lang === "en" ? "Language changed to English" : "Idioma cambiado a Español",
       description: lang === "en" ? "All app content will display in English" : "Todo el contenido se mostrará en Español",
     });
+  };
+
+  const handleRestorePurchases = async () => {
+    if (!Capacitor.isNativePlatform()) {
+      toast({
+        title: language === "en" ? "Web Mode" : "Modo Web",
+        description: language === "en" ? "Restore purchases is only available on mobile" : "Restaurar compras solo está disponible en móvil",
+      });
+      return;
+    }
+
+    try {
+      const result = await restorePurchases();
+      if (result) {
+        refreshSubscription();
+        toast({
+          title: language === "en" ? "Purchases Restored" : "Compras Restauradas",
+          description: language === "en" ? "Your purchases have been restored" : "Tus compras han sido restauradas",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: language === "en" ? "Failed to restore purchases" : "Error al restaurar compras",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -58,6 +89,84 @@ const Settings = () => {
       </motion.div>
       
       <div className="p-4 space-y-4 pb-28">
+        {/* Subscription Section */}
+        <div className="bg-zinc-900 rounded-2xl overflow-hidden">
+          <div className="p-4">
+            <div className="flex items-center gap-3 mb-4">
+              <div className={`w-9 h-9 rounded-full flex items-center justify-center ${
+                isPremium ? 'bg-amber-500/20' : 'bg-zinc-700'
+              }`}>
+                <Crown className={`h-4 w-4 ${isPremium ? 'text-amber-400' : 'text-zinc-400'}`} />
+              </div>
+              <div className="flex-1">
+                <span className="font-medium text-white">
+                  {language === "en" ? "Subscription" : "Suscripción"}
+                </span>
+                <p className="text-xs text-zinc-500">
+                  {isPremium 
+                    ? (language === "en" ? "Premium Plan Active" : "Plan Premium Activo")
+                    : (language === "en" ? "Free Plan" : "Plan Gratuito")}
+                </p>
+              </div>
+              {isPremium && (
+                <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-amber-500/20">
+                  <Check className="h-3 w-3 text-amber-400" />
+                  <span className="text-xs font-medium text-amber-400">Premium</span>
+                </div>
+              )}
+            </div>
+
+            {/* Current Plan */}
+            <div className={`p-4 rounded-xl mb-3 ${
+              isPremium 
+                ? 'bg-gradient-to-br from-amber-500/10 to-amber-600/5 border border-amber-500/20' 
+                : 'bg-zinc-800'
+            }`}>
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-semibold text-white">
+                  {isPremium 
+                    ? (language === "en" ? "Premium" : "Premium") 
+                    : (language === "en" ? "Free" : "Gratis")}
+                </span>
+                {isPremium && (
+                  <span className="text-xs text-amber-400 font-medium">
+                    {language === "en" ? "Active" : "Activo"}
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-zinc-400">
+                {isPremium 
+                  ? (language === "en" 
+                      ? "Unlimited tournaments, detailed stats, and priority support" 
+                      : "Torneos ilimitados, estadísticas detalladas y soporte prioritario")
+                  : (language === "en" 
+                      ? "Add rounds and challenge friends" 
+                      : "Añadir rondas y desafiar amigos")}
+              </p>
+            </div>
+
+            {/* Action Button */}
+            {!isPremium ? (
+              <Button
+                onClick={() => navigate('/subscription')}
+                className="w-full h-12 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-semibold"
+              >
+                <Crown className="h-4 w-4 mr-2" />
+                {language === "en" ? "Upgrade to Premium" : "Obtener Premium"}
+              </Button>
+            ) : (
+              <Button
+                onClick={handleRestorePurchases}
+                variant="outline"
+                className="w-full h-12 rounded-xl"
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                {language === "en" ? "Restore Purchases" : "Restaurar Compras"}
+              </Button>
+            )}
+          </div>
+        </div>
+
         {/* Language Settings */}
         <div className="bg-zinc-900 rounded-2xl overflow-hidden">
           <div className="p-4">
