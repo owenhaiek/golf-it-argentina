@@ -1,10 +1,10 @@
-
 import { Outlet, useLocation } from "react-router-dom";
 import { useRef, useEffect } from "react";
 import GolfAnimationLoader from "./ui/GolfAnimationLoader";
 import { motion } from "framer-motion";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { InvitationDrawer } from "./ui/InvitationDrawer";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 
 import { BackToMapButton } from "./ui/BackToMapButton";
 import { hapticSuccess, hideBars, isDespiaNative } from "@/hooks/useDespiaNative";
@@ -22,6 +22,9 @@ export const Layout = () => {
   } = usePullToRefresh({
     disabled: location.pathname === '/courses-map'
   });
+
+  // Initialize push notifications
+  usePushNotifications();
 
   // Scroll to top when route changes
   useEffect(() => {

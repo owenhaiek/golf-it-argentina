@@ -387,6 +387,7 @@ export type Database = {
           full_name: string | null
           handicap: number | null
           id: string
+          notification_settings: Json | null
           updated_at: string | null
           username: string | null
         }
@@ -395,6 +396,7 @@ export type Database = {
           full_name?: string | null
           handicap?: number | null
           id: string
+          notification_settings?: Json | null
           updated_at?: string | null
           username?: string | null
         }
@@ -403,8 +405,36 @@ export type Database = {
           full_name?: string | null
           handicap?: number | null
           id?: string
+          notification_settings?: Json | null
           updated_at?: string | null
           username?: string | null
+        }
+        Relationships: []
+      }
+      push_tokens: {
+        Row: {
+          created_at: string
+          id: string
+          platform: string
+          token: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          platform?: string
+          token: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          platform?: string
+          token?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
