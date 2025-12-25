@@ -1,4 +1,3 @@
-
 project_id = "zlmotrppstqjnovpfgbd"
 
 [api]
@@ -38,4 +37,12 @@ verify_jwt = true
 
 # Configuration for the send-password-reset edge function
 [functions.send-password-reset]
+verify_jwt = false
+
+# Configuration for the send-push-notification edge function
+[functions.send-push-notification]
+verify_jwt = true
+
+# Configuration for the check-event-reminders edge function (cron job)
+[functions.check-event-reminders]
 verify_jwt = false

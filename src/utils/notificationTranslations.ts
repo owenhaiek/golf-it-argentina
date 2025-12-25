@@ -51,6 +51,18 @@ export const getTranslatedNotification = (
         title: t("notifications", "matchDeclinedTitle"),
         message: `${senderName} ${t("notifications", "matchDeclinedMessage")}`
       };
+
+    case 'match_reminder':
+      return {
+        title: t("notifications", "matchReminderTitle") || '⛳ Partido próximo',
+        message: notification.message
+      };
+
+    case 'tournament_reminder':
+      return {
+        title: t("notifications", "tournamentReminderTitle") || '🏆 Torneo próximo',
+        message: notification.message
+      };
     
     default:
       // Return original title and message for unknown types
