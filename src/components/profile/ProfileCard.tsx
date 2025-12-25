@@ -7,7 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { Loader2, LogOut, Edit3, Check, X, Camera, User, Hash, Settings, Users } from "lucide-react";
+import { Loader2, LogOut, Edit3, Check, X, Camera, User, Hash, Bell, Users } from "lucide-react";
+import { useNotifications } from "@/hooks/useNotifications";
+import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -39,10 +41,14 @@ const ProfileCard = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { friends, receivedRequests } = useFriendsData();
+  const { unreadCount } = useNotifications();
   const friendsCount = friends.length;
   const pendingCount = receivedRequests.length;
   const handleGoToFriends = () => {
     navigate('/friends');
+  };
+  const handleGoToNotifications = () => {
+    navigate('/notifications');
   };
 
   const [isEditing, setIsEditing] = useState(false);
@@ -178,7 +184,6 @@ const ProfileCard = ({
 
   const handleLogout = async () => {
     try {
-      console.log("Initiating logout process");
       await signOut();
       toast({
         title: t("profile", "logoutSuccess")
@@ -191,10 +196,6 @@ const ProfileCard = ({
         variant: "destructive"
       });
     }
-  };
-
-  const handleGoToSettings = () => {
-    navigate('/settings');
   };
 
   if (profileLoading) {
@@ -224,9 +225,19 @@ const ProfileCard = ({
           </div>}
 
         {!isEditing && <div className="absolute right-4 top-4 flex gap-2">
-            <Button variant="ghost" size="icon" onClick={handleGoToSettings} className="text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-full">
-              <Settings className="h-5 w-5" />
-            </Button>
+            <div className="relative">
+              <Button variant="ghost" size="icon" onClick={handleGoToNotifications} className="text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-full">
+                <Bell className="h-5 w-5" />
+              </Button>
+              {unreadCount > 0 && (
+                <Badge 
+                  variant="destructive" 
+                  className="absolute -top-1 -right-1 h-4 min-w-4 px-1 flex items-center justify-center text-[10px]"
+                >
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </Badge>
+              )}
+            </div>
             <Button variant="ghost" size="icon" onClick={handleEditClick} className="text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-full">
               <Edit3 className="h-5 w-5" />
             </Button>
