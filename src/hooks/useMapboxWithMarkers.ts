@@ -93,7 +93,7 @@ export const useMapboxWithMarkers = ({
     
   }, [map, courses, isLoading, isInitialized, addMarkersToMap, focusCourseId]);
 
-  // Handle course focus - separate effect with simpler logic
+  // Handle course focus - only for URL-based focus (not marker clicks)
   useEffect(() => {
     if (!map || !focusCourseId || !courses || courses.length === 0 || 
         !isInitialized || isLoading) {
@@ -116,15 +116,10 @@ export const useMapboxWithMarkers = ({
     // Mark this course as focused to prevent duplicates
     hasFocusedRef.current = focusCourseId;
     
-    // Focus with proper timing
-    setTimeout(() => {
-      focusOnCourse(map, courseToFocus, () => {
-        console.log("[MapboxWithMarkers] Focus complete, selecting course");
-        onCourseSelect(courseToFocus);
-      });
-    }, 600);
+    // Just focus on the course, don't re-select (marker click already selected it)
+    focusOnCourse(map, courseToFocus);
 
-  }, [map, focusCourseId, courses, isInitialized, isLoading, focusOnCourse, onCourseSelect]);
+  }, [map, focusCourseId, courses, isInitialized, isLoading, focusOnCourse]);
 
   // Reset focus tracking when focusCourseId changes
   useEffect(() => {
