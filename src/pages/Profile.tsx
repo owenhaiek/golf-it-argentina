@@ -1,4 +1,3 @@
-
 import { useAuth } from "@/contexts/AuthContext";
 
 import { useProfileData } from "@/hooks/useProfileData";
@@ -8,14 +7,17 @@ import UserStatsCard from "@/components/profile/UserStatsCard";
 import { FriendsSection } from "@/components/profile/FriendsSection";
 import { FriendSuggestions } from "@/components/profile/FriendSuggestions";
 import { TournamentsAndMatchesSection } from "@/components/profile/TournamentsAndMatchesSection";
-import { NotificationButton } from "@/components/ui/NotificationButton";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion } from "framer-motion";
+import { Settings } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 const Profile = () => {
   const { user, loading } = useAuth();
   const { profile, profileLoading, rounds, roundsLoading } = useProfileData();
   const { t } = useLanguage();
+  const navigate = useNavigate();
 
   if (loading || profileLoading) {
     return (
@@ -44,7 +46,14 @@ const Profile = () => {
       >
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-semibold text-foreground">{t("common", "profile")}</h1>
-          <NotificationButton />
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => navigate('/settings')} 
+            className="rounded-full bg-muted/50 hover:bg-muted/70 transition-colors"
+          >
+            <Settings size={16} className="text-muted-foreground" />
+          </Button>
         </div>
       </motion.div>
       
