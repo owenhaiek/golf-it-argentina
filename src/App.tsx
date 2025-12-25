@@ -25,6 +25,7 @@ import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
 import ProfileSetup from "./pages/ProfileSetup";
 import Settings from "./pages/Settings";
+import CoursesMap from "./pages/CoursesMap";
 import NotFound from "./pages/NotFound";
 import CourseManagerAuth from "./pages/CourseManagerAuth";
 import CourseDashboard from "./pages/CourseDashboard";
@@ -75,9 +76,11 @@ function App() {
                 <Route path="/*" element={
                   <AuthGuard>
                     <Routes>
-                      {/* Home page with Layout */}
+                      {/* Map is the homepage - fullscreen without Layout */}
+                      <Route path="/home" element={<CoursesMap />} />
+                      
+                      {/* Other pages use Layout wrapper */}
                       <Route element={<Layout />}>
-                        <Route path="/home" element={<Home />} />
                         <Route path="/profile" element={<Profile />} />
                         <Route path="/friends" element={<Friends />} />
                         <Route path="/notifications" element={<Notifications />} />
