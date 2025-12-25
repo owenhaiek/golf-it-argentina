@@ -35,6 +35,11 @@ const CoursesMap = () => {
   const [searchParams] = useSearchParams();
 
   const handleCourseSelect = (course: GolfCourse) => {
+    // Prevent re-selecting the same course (fixes reopening issue)
+    if (selectedCourse?.id === course.id) {
+      return;
+    }
+    
     setSelectedCourse(course);
     
     // Center map on course
