@@ -11,14 +11,17 @@ let activeMarkerId: string | null = null;
 
 // Inject global styles once - NO TRANSFORMS to avoid Mapbox conflicts
 const injectMarkerStyles = () => {
-  if (document.getElementById('golf-marker-styles-v9')) return;
+  if (document.getElementById('golf-marker-styles-v10')) return;
   
   // Remove old styles
-  const oldStyle = document.getElementById('golf-marker-styles-v8');
-  if (oldStyle) oldStyle.remove();
+  const oldStyles = ['golf-marker-styles-v8', 'golf-marker-styles-v9'];
+  oldStyles.forEach(id => {
+    const oldStyle = document.getElementById(id);
+    if (oldStyle) oldStyle.remove();
+  });
   
   const style = document.createElement('style');
-  style.id = 'golf-marker-styles-v9';
+  style.id = 'golf-marker-styles-v10';
   style.textContent = `
     @keyframes marker-glow {
       0%, 100% {
@@ -26,6 +29,20 @@ const injectMarkerStyles = () => {
       }
       50% {
         opacity: 0.7;
+      }
+    }
+    
+    @keyframes marker-appear {
+      0% {
+        opacity: 0;
+        transform: scale(0);
+      }
+      50% {
+        transform: scale(1.2);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1);
       }
     }
     
@@ -41,6 +58,8 @@ const injectMarkerStyles = () => {
       align-items: center;
       justify-content: center;
       box-shadow: 0 0 20px rgba(34, 197, 94, 0.4), 0 4px 12px rgba(0, 0, 0, 0.2);
+      opacity: 0;
+      animation: marker-appear 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
     }
     
     .golf-marker-v7::before {
@@ -89,11 +108,16 @@ const injectMarkerStyles = () => {
 
 export const createMarkerElement = (course: GolfCourse, onCourseSelect: (course: GolfCourse) => void) => {
   injectMarkerStyles();
+  const currentIndex = markerIndex;
   markerIndex++;
   
   const el = document.createElement("div");
   el.className = 'golf-marker-v7';
   el.dataset.courseId = course.id;
+  
+  // Staggered animation delay based on marker index (max 2 seconds total spread)
+  const delay = Math.min(currentIndex * 30, 2000);
+  el.style.animationDelay = `${delay}ms`;
   
   // Simple marker with golf flag icon
   el.innerHTML = `
