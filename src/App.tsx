@@ -21,14 +21,10 @@ import Course from "./pages/Course";
 import AddRound from "./pages/AddRound";
 import CreateTournament from "./pages/CreateTournament";
 import CreateMatch from "./pages/CreateMatch";
-import AddReservation from "./pages/AddReservation";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
 import ProfileSetup from "./pages/ProfileSetup";
-import SearchUsers from "./pages/SearchUsers";
-import CoursesMap from "./pages/CoursesMap";
 import Settings from "./pages/Settings";
-import Search from "./pages/Search";
 import NotFound from "./pages/NotFound";
 import CourseManagerAuth from "./pages/CourseManagerAuth";
 import CourseDashboard from "./pages/CourseDashboard";
@@ -79,12 +75,9 @@ function App() {
                 <Route path="/*" element={
                   <AuthGuard>
                     <Routes>
-                      {/* Map is now the homepage - fullscreen without Layout */}
-                      <Route path="/home" element={<CoursesMap />} />
-                      <Route path="/courses-map" element={<CoursesMap />} />
-                      
-                      {/* Other pages use Layout wrapper for consistent styling */}
+                      {/* Home page with Layout */}
                       <Route element={<Layout />}>
+                        <Route path="/home" element={<Home />} />
                         <Route path="/profile" element={<Profile />} />
                         <Route path="/friends" element={<Friends />} />
                         <Route path="/notifications" element={<Notifications />} />
@@ -93,10 +86,7 @@ function App() {
                         <Route path="/add-round" element={<AddRound />} />
                         <Route path="/create-tournament" element={<CreateTournament />} />
                         <Route path="/create-match" element={<CreateMatch />} />
-                        <Route path="/add-reservation" element={<AddReservation />} />
-                        <Route path="/search-users" element={<SearchUsers />} />
                         <Route path="/settings" element={<Settings />} />
-                        <Route path="/search" element={<Search />} />
                         <Route path="/subscription" element={<Subscription />} />
                       </Route>
                     </Routes>
