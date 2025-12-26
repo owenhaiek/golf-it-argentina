@@ -101,6 +101,7 @@ export const useTournamentsAndMatches = () => {
       return data as Tournament[];
     },
     enabled: !!user?.id,
+    staleTime: 1000 * 60 * 2, // 2 minutes cache
   });
 
   // Fetch user's matches (created or challenged)
@@ -157,6 +158,7 @@ export const useTournamentsAndMatches = () => {
       return enrichedMatches as Match[];
     },
     enabled: !!user?.id,
+    staleTime: 1000 * 60 * 2, // 2 minutes cache
   });
 
   // Get tournaments by status
