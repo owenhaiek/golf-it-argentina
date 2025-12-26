@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,7 +9,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Match } from "@/hooks/useTournamentsAndMatches";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Swords, Flag } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -150,20 +149,20 @@ export const MatchScoringDialog = ({ match, open, onOpenChange, onSuccess }: Mat
   const totalPar = coursePars.reduce((a, b) => a + b, 0);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-sm p-0 gap-0 bg-background border-border/50 max-h-[50vh] overflow-hidden mx-4 rounded-2xl">
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerContent className="max-h-[75vh] bg-background border-border/50">
         {/* Header */}
-        <div className="p-4 bg-background/80 backdrop-blur-lg border-b border-border/50">
+        <DrawerHeader className="p-3 pb-2 border-b border-border/50">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center">
-              <Swords className="h-5 w-5 text-white" />
+            <div className="h-9 w-9 rounded-full bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center">
+              <Swords className="h-4 w-4 text-white" />
             </div>
             <div className="flex-1 min-w-0">
-              <DialogTitle className="text-base font-bold truncate">{match?.name || "Partido"}</DialogTitle>
+              <DrawerTitle className="text-sm font-bold truncate">{match?.name || "Partido"}</DrawerTitle>
               <p className="text-xs text-muted-foreground">Cargar puntajes</p>
             </div>
           </div>
-        </div>
+        </DrawerHeader>
         
         {/* Player Tabs */}
         <div className="flex border-b border-border/50">
@@ -171,16 +170,16 @@ export const MatchScoringDialog = ({ match, open, onOpenChange, onSuccess }: Mat
             <motion.button
               key={player.user_id}
               onClick={() => setActivePlayerIndex(index)}
-              className={`flex-1 flex items-center justify-center gap-2 p-3 transition-colors ${
+              className={`flex-1 flex items-center justify-center gap-2 p-2 transition-colors ${
                 activePlayerIndex === index 
                   ? 'bg-red-500/10 border-b-2 border-red-500' 
                   : 'hover:bg-muted/50'
               }`}
               whileTap={{ scale: 0.98 }}
             >
-              <Avatar className="h-7 w-7">
+              <Avatar className="h-6 w-6">
                 <AvatarImage src={player.avatar_url} />
-                <AvatarFallback className="text-xs bg-red-500/20 text-red-600">
+                <AvatarFallback className="text-[10px] bg-red-500/20 text-red-600">
                   {player.name?.[0] || "?"}
                 </AvatarFallback>
               </Avatar>
@@ -194,20 +193,21 @@ export const MatchScoringDialog = ({ match, open, onOpenChange, onSuccess }: Mat
           ))}
         </div>
 
-        <ScrollArea className="flex-1 max-h-[20vh]">
-          <div className="p-4">
+        {/* Scrollable Content */}
+        <div className="overflow-y-auto flex-1 max-h-[35vh]">
+          <div className="p-3">
             {activePlayer && (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {/* Front 9 */}
                 <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <Flag className="h-4 w-4 text-primary" />
-                    <Label className="text-sm font-medium">Front 9</Label>
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <Flag className="h-3.5 w-3.5 text-primary" />
+                    <Label className="text-xs font-medium">Front 9</Label>
                   </div>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-3 gap-1.5">
                     {coursePars.slice(0, 9).map((par, holeIndex) => (
-                      <div key={holeIndex} className="text-center bg-muted/30 rounded-xl p-2">
-                        <div className="flex justify-between text-[10px] text-muted-foreground mb-1 px-1">
+                      <div key={holeIndex} className="text-center bg-muted/30 rounded-lg p-1.5">
+                        <div className="flex justify-between text-[9px] text-muted-foreground mb-0.5 px-0.5">
                           <span>H{holeIndex + 1}</span>
                           <span>P{par}</span>
                         </div>
@@ -217,7 +217,7 @@ export const MatchScoringDialog = ({ match, open, onOpenChange, onSuccess }: Mat
                           max="15"
                           value={activePlayer.hole_scores[holeIndex] || ''}
                           onChange={(e) => updateHoleScore(activePlayerIndex, holeIndex, parseInt(e.target.value) || 0)}
-                          className="text-center h-9 text-sm font-medium bg-background border-0 focus-visible:ring-red-500"
+                          className="text-center h-8 text-sm font-medium bg-background border-0 focus-visible:ring-red-500"
                         />
                       </div>
                     ))}
@@ -226,14 +226,14 @@ export const MatchScoringDialog = ({ match, open, onOpenChange, onSuccess }: Mat
                 
                 {/* Back 9 */}
                 <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <Flag className="h-4 w-4 text-primary" />
-                    <Label className="text-sm font-medium">Back 9</Label>
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <Flag className="h-3.5 w-3.5 text-primary" />
+                    <Label className="text-xs font-medium">Back 9</Label>
                   </div>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-3 gap-1.5">
                     {coursePars.slice(9, 18).map((par, holeIndex) => (
-                      <div key={holeIndex + 9} className="text-center bg-muted/30 rounded-xl p-2">
-                        <div className="flex justify-between text-[10px] text-muted-foreground mb-1 px-1">
+                      <div key={holeIndex + 9} className="text-center bg-muted/30 rounded-lg p-1.5">
+                        <div className="flex justify-between text-[9px] text-muted-foreground mb-0.5 px-0.5">
                           <span>H{holeIndex + 10}</span>
                           <span>P{par}</span>
                         </div>
@@ -243,7 +243,7 @@ export const MatchScoringDialog = ({ match, open, onOpenChange, onSuccess }: Mat
                           max="15"
                           value={activePlayer.hole_scores[holeIndex + 9] || ''}
                           onChange={(e) => updateHoleScore(activePlayerIndex, holeIndex + 9, parseInt(e.target.value) || 0)}
-                          className="text-center h-9 text-sm font-medium bg-background border-0 focus-visible:ring-red-500"
+                          className="text-center h-8 text-sm font-medium bg-background border-0 focus-visible:ring-red-500"
                         />
                       </div>
                     ))}
@@ -252,20 +252,20 @@ export const MatchScoringDialog = ({ match, open, onOpenChange, onSuccess }: Mat
               </div>
             )}
           </div>
-        </ScrollArea>
+        </div>
 
         {/* Summary & Actions */}
-        <div className="p-4 border-t border-border/50 bg-background space-y-3">
+        <div className="p-3 border-t border-border/50 bg-background space-y-2">
           {/* Score Summary */}
-          <div className="flex justify-between items-center bg-muted/30 rounded-xl p-3">
-            <div className="flex items-center gap-4">
+          <div className="flex justify-between items-center bg-muted/30 rounded-lg p-2">
+            <div className="flex items-center gap-3">
               {players.map((player, index) => (
-                <div key={player.user_id} className="flex items-center gap-2">
-                  <Avatar className="h-6 w-6">
+                <div key={player.user_id} className="flex items-center gap-1.5">
+                  <Avatar className="h-5 w-5">
                     <AvatarImage src={player.avatar_url} />
-                    <AvatarFallback className="text-[10px]">{player.name?.[0]}</AvatarFallback>
+                    <AvatarFallback className="text-[9px]">{player.name?.[0]}</AvatarFallback>
                   </Avatar>
-                  <Badge variant={index === 0 ? "default" : "secondary"} className="text-sm">
+                  <Badge variant={index === 0 ? "default" : "secondary"} className="text-xs h-5">
                     {player.total_score || 0}
                   </Badge>
                 </div>
@@ -276,19 +276,19 @@ export const MatchScoringDialog = ({ match, open, onOpenChange, onSuccess }: Mat
             </div>
           </div>
           
-          <div className="flex gap-3">
+          <div className="flex gap-2">
             <Button 
               type="button" 
               variant="outline" 
               onClick={() => onOpenChange(false)}
-              className="flex-1 h-11 rounded-xl"
+              className="flex-1 h-10 rounded-xl text-sm"
             >
               Cancelar
             </Button>
             <Button 
               onClick={submitScores} 
               disabled={loading}
-              className="flex-1 h-11 rounded-xl bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white"
+              className="flex-1 h-10 rounded-xl bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white text-sm"
             >
               {loading ? (
                 <div className="flex items-center gap-2">
@@ -301,7 +301,7 @@ export const MatchScoringDialog = ({ match, open, onOpenChange, onSuccess }: Mat
             </Button>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </DrawerContent>
+    </Drawer>
   );
 };
