@@ -9,8 +9,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Match } from "@/hooks/useTournamentsAndMatches";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Swords, Flag } from "lucide-react";
-import { motion } from "framer-motion";
+import { Swords, Flag, ChevronLeft, ChevronRight, Minus, Plus } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface MatchScoringDialogProps {
   match: Match;
@@ -34,12 +34,14 @@ export const MatchScoringDialog = ({ match, open, onOpenChange, onSuccess }: Mat
   const [loading, setLoading] = useState(false);
   const [players, setPlayers] = useState<PlayerScore[]>([]);
   const [coursePars, setCoursePars] = useState<number[]>([]);
-  const [activePlayerIndex, setActivePlayerIndex] = useState(0);
+  const [activeHoleIndex, setActiveHoleIndex] = useState(0);
+  const [viewMode, setViewMode] = useState<'single' | 'all'>('single');
 
   useEffect(() => {
     if (open && match?.id) {
       initializePlayers();
       fetchCoursePars();
+      setActiveHoleIndex(0);
     }
   }, [open, match?.id]);
 
@@ -85,9 +87,14 @@ export const MatchScoringDialog = ({ match, open, onOpenChange, onSuccess }: Mat
 
   const updateHoleScore = (playerIndex: number, holeIndex: number, score: number) => {
     const updatedPlayers = [...players];
-    updatedPlayers[playerIndex].hole_scores[holeIndex] = score;
+    updatedPlayers[playerIndex].hole_scores[holeIndex] = Math.max(0, score);
     updatedPlayers[playerIndex].total_score = updatedPlayers[playerIndex].hole_scores.reduce((sum, s) => sum + s, 0);
     setPlayers(updatedPlayers);
+  };
+
+  const adjustScore = (playerIndex: number, holeIndex: number, delta: number) => {
+    const currentScore = players[playerIndex].hole_scores[holeIndex] || 0;
+    updateHoleScore(playerIndex, holeIndex, currentScore + delta);
   };
 
   const submitScores = async () => {
@@ -145,114 +152,241 @@ export const MatchScoringDialog = ({ match, open, onOpenChange, onSuccess }: Mat
     }
   };
 
-  const activePlayer = players[activePlayerIndex];
+  const goToPrevHole = () => setActiveHoleIndex(prev => Math.max(0, prev - 1));
+  const goToNextHole = () => setActiveHoleIndex(prev => Math.min(17, prev + 1));
+
   const totalPar = coursePars.reduce((a, b) => a + b, 0);
+  const currentPar = coursePars[activeHoleIndex] || 4;
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="max-h-[75vh] bg-background border-border/50">
+      <DrawerContent className="max-h-[80vh] bg-background border-border/50">
         {/* Header */}
         <DrawerHeader className="p-3 pb-2 border-b border-border/50">
-          <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-full bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center">
-              <Swords className="h-4 w-4 text-white" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="h-9 w-9 rounded-full bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center">
+                <Swords className="h-4 w-4 text-white" />
+              </div>
+              <div className="min-w-0">
+                <DrawerTitle className="text-sm font-bold truncate">{match?.name || "Partido"}</DrawerTitle>
+                <p className="text-xs text-muted-foreground">Cargar puntajes</p>
+              </div>
             </div>
-            <div className="flex-1 min-w-0">
-              <DrawerTitle className="text-sm font-bold truncate">{match?.name || "Partido"}</DrawerTitle>
-              <p className="text-xs text-muted-foreground">Cargar puntajes</p>
+            <div className="flex gap-1">
+              <Button
+                variant={viewMode === 'single' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('single')}
+                className="h-7 text-[10px] px-2"
+              >
+                Por hoyo
+              </Button>
+              <Button
+                variant={viewMode === 'all' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('all')}
+                className="h-7 text-[10px] px-2"
+              >
+                Todos
+              </Button>
             </div>
           </div>
         </DrawerHeader>
-        
-        {/* Player Tabs */}
-        <div className="flex border-b border-border/50">
-          {players.map((player, index) => (
-            <motion.button
-              key={player.user_id}
-              onClick={() => setActivePlayerIndex(index)}
-              className={`flex-1 flex items-center justify-center gap-2 p-2 transition-colors ${
-                activePlayerIndex === index 
-                  ? 'bg-red-500/10 border-b-2 border-red-500' 
-                  : 'hover:bg-muted/50'
-              }`}
-              whileTap={{ scale: 0.98 }}
-            >
-              <Avatar className="h-6 w-6">
-                <AvatarImage src={player.avatar_url} />
-                <AvatarFallback className="text-[10px] bg-red-500/20 text-red-600">
-                  {player.name?.[0] || "?"}
-                </AvatarFallback>
-              </Avatar>
-              <div className="text-left min-w-0">
-                <p className="text-xs font-medium truncate">{player.name?.split(' ')[0]}</p>
-                <p className="text-[10px] text-muted-foreground">
-                  Total: {player.total_score || 0}
-                </p>
-              </div>
-            </motion.button>
-          ))}
-        </div>
 
-        {/* Scrollable Content */}
-        <div className="overflow-y-auto flex-1 max-h-[35vh]">
-          <div className="p-3">
-            {activePlayer && (
-              <div className="space-y-3">
-                {/* Front 9 */}
-                <div>
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <Flag className="h-3.5 w-3.5 text-primary" />
-                    <Label className="text-xs font-medium">Front 9</Label>
-                  </div>
-                  <div className="grid grid-cols-3 gap-1.5">
-                    {coursePars.slice(0, 9).map((par, holeIndex) => (
-                      <div key={holeIndex} className="text-center bg-muted/30 rounded-lg p-1.5">
-                        <div className="flex justify-between text-[9px] text-muted-foreground mb-0.5 px-0.5">
-                          <span>H{holeIndex + 1}</span>
-                          <span>P{par}</span>
-                        </div>
-                        <Input
-                          type="number"
-                          min="1"
-                          max="15"
-                          value={activePlayer.hole_scores[holeIndex] || ''}
-                          onChange={(e) => updateHoleScore(activePlayerIndex, holeIndex, parseInt(e.target.value) || 0)}
-                          className="text-center h-8 text-sm font-medium bg-background border-0 focus-visible:ring-red-500"
-                        />
-                      </div>
-                    ))}
-                  </div>
+        {viewMode === 'single' ? (
+          <>
+            {/* Hole Navigation */}
+            <div className="flex items-center justify-between px-3 py-2 border-b border-border/50 bg-muted/30">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={goToPrevHole}
+                disabled={activeHoleIndex === 0}
+                className="h-9 w-9 p-0"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </Button>
+              
+              <motion.div 
+                key={activeHoleIndex}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="flex flex-col items-center"
+              >
+                <div className="flex items-center gap-2">
+                  <Flag className="h-4 w-4 text-red-500" />
+                  <span className="text-lg font-bold">Hoyo {activeHoleIndex + 1}</span>
                 </div>
-                
-                {/* Back 9 */}
-                <div>
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <Flag className="h-3.5 w-3.5 text-primary" />
-                    <Label className="text-xs font-medium">Back 9</Label>
-                  </div>
-                  <div className="grid grid-cols-3 gap-1.5">
-                    {coursePars.slice(9, 18).map((par, holeIndex) => (
-                      <div key={holeIndex + 9} className="text-center bg-muted/30 rounded-lg p-1.5">
-                        <div className="flex justify-between text-[9px] text-muted-foreground mb-0.5 px-0.5">
-                          <span>H{holeIndex + 10}</span>
-                          <span>P{par}</span>
-                        </div>
-                        <Input
-                          type="number"
-                          min="1"
-                          max="15"
-                          value={activePlayer.hole_scores[holeIndex + 9] || ''}
-                          onChange={(e) => updateHoleScore(activePlayerIndex, holeIndex + 9, parseInt(e.target.value) || 0)}
-                          className="text-center h-8 text-sm font-medium bg-background border-0 focus-visible:ring-red-500"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                <Badge variant="secondary" className="text-xs">Par {currentPar}</Badge>
+              </motion.div>
+              
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={goToNextHole}
+                disabled={activeHoleIndex === 17}
+                className="h-9 w-9 p-0"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </Button>
+            </div>
+
+            {/* Hole Indicators */}
+            <div className="px-3 py-2 border-b border-border/50">
+              <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-hide">
+                {Array.from({ length: 18 }, (_, i) => {
+                  const hasScore = players.some(p => p.hole_scores[i] > 0);
+                  const isActive = i === activeHoleIndex;
+                  return (
+                    <motion.button
+                      key={i}
+                      onClick={() => setActiveHoleIndex(i)}
+                      className={`flex-shrink-0 w-7 h-7 rounded-full text-xs font-medium transition-all ${
+                        isActive 
+                          ? 'bg-red-500 text-white scale-110' 
+                          : hasScore 
+                            ? 'bg-green-500/20 text-green-600 border border-green-500/50' 
+                            : 'bg-muted/50 text-muted-foreground'
+                      }`}
+                      whileTap={{ scale: 0.9 }}
+                    >
+                      {i + 1}
+                    </motion.button>
+                  );
+                })}
               </div>
-            )}
-          </div>
-        </div>
+            </div>
+
+            {/* Single Hole Score Input */}
+            <div className="p-4">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeHoleIndex}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="space-y-4"
+                >
+                  {players.map((player, playerIndex) => (
+                    <div key={player.user_id} className="bg-muted/30 rounded-xl p-3">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={player.avatar_url} />
+                            <AvatarFallback className="text-xs bg-red-500/20 text-red-600">
+                              {player.name?.[0] || "?"}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="text-sm font-medium">{player.name?.split(' ')[0]}</p>
+                            <p className="text-[10px] text-muted-foreground">Total: {player.total_score}</p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center justify-center gap-3">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => adjustScore(playerIndex, activeHoleIndex, -1)}
+                          disabled={player.hole_scores[activeHoleIndex] <= 0}
+                          className="h-12 w-12 rounded-full"
+                        >
+                          <Minus className="h-5 w-5" />
+                        </Button>
+                        
+                        <div className="relative">
+                          <Input
+                            type="number"
+                            min="0"
+                            max="15"
+                            value={player.hole_scores[activeHoleIndex] || ''}
+                            onChange={(e) => updateHoleScore(playerIndex, activeHoleIndex, parseInt(e.target.value) || 0)}
+                            className="text-center h-16 w-20 text-2xl font-bold bg-background border-2 border-red-500/30 focus-visible:ring-red-500 rounded-xl"
+                          />
+                          {player.hole_scores[activeHoleIndex] > 0 && (
+                            <Badge 
+                              className={`absolute -top-2 -right-2 text-[10px] ${
+                                player.hole_scores[activeHoleIndex] < currentPar 
+                                  ? 'bg-green-500' 
+                                  : player.hole_scores[activeHoleIndex] === currentPar 
+                                    ? 'bg-blue-500' 
+                                    : 'bg-orange-500'
+                              }`}
+                            >
+                              {player.hole_scores[activeHoleIndex] - currentPar === 0 
+                                ? 'E' 
+                                : player.hole_scores[activeHoleIndex] - currentPar > 0 
+                                  ? `+${player.hole_scores[activeHoleIndex] - currentPar}` 
+                                  : player.hole_scores[activeHoleIndex] - currentPar}
+                            </Badge>
+                          )}
+                        </div>
+                        
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => adjustScore(playerIndex, activeHoleIndex, 1)}
+                          className="h-12 w-12 rounded-full"
+                        >
+                          <Plus className="h-5 w-5" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          </>
+        ) : (
+          <>
+            {/* All Holes View - Scrollable */}
+            <div className="overflow-y-auto flex-1 max-h-[40vh] p-3">
+              {players.map((player, playerIndex) => (
+                <div key={player.user_id} className="mb-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Avatar className="h-6 w-6">
+                      <AvatarImage src={player.avatar_url} />
+                      <AvatarFallback className="text-[10px] bg-red-500/20 text-red-600">
+                        {player.name?.[0] || "?"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="text-sm font-medium">{player.name?.split(' ')[0]}</span>
+                    <Badge variant="secondary" className="text-xs ml-auto">
+                      Total: {player.total_score}
+                    </Badge>
+                  </div>
+                  
+                  <div className="grid grid-cols-6 gap-1">
+                    {coursePars.map((par, holeIndex) => (
+                      <div 
+                        key={holeIndex} 
+                        className={`text-center bg-muted/30 rounded-lg p-1 cursor-pointer transition-all ${
+                          activeHoleIndex === holeIndex ? 'ring-2 ring-red-500' : ''
+                        }`}
+                        onClick={() => {
+                          setActiveHoleIndex(holeIndex);
+                          setViewMode('single');
+                        }}
+                      >
+                        <div className="text-[8px] text-muted-foreground">H{holeIndex + 1}</div>
+                        <Input
+                          type="number"
+                          min="0"
+                          max="15"
+                          value={player.hole_scores[holeIndex] || ''}
+                          onChange={(e) => updateHoleScore(playerIndex, holeIndex, parseInt(e.target.value) || 0)}
+                          className="text-center h-6 text-xs font-medium bg-background border-0 focus-visible:ring-red-500 p-0"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
 
         {/* Summary & Actions */}
         <div className="p-3 border-t border-border/50 bg-background space-y-2">
