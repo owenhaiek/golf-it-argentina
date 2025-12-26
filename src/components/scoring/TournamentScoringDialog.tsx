@@ -9,8 +9,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Tournament } from "@/hooks/useTournamentsAndMatches";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Trophy, Flag, ChevronLeft, ChevronRight } from "lucide-react";
-import { motion } from "framer-motion";
+import { Trophy, Flag, ChevronLeft, ChevronRight, Minus, Plus } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface TournamentScoringDialogProps {
   tournament: Tournament;
@@ -37,11 +37,15 @@ export const TournamentScoringDialog = ({ tournament, open, onOpenChange, onSucc
   const [coursePars, setCoursePars] = useState<number[]>([]);
   const [roundNumber, setRoundNumber] = useState(1);
   const [activeParticipantIndex, setActiveParticipantIndex] = useState(0);
+  const [activeHoleIndex, setActiveHoleIndex] = useState(0);
+  const [viewMode, setViewMode] = useState<'single' | 'all'>('single');
 
   useEffect(() => {
     if (open && tournament?.id) {
       fetchParticipants();
       fetchCoursePars();
+      setActiveHoleIndex(0);
+      setActiveParticipantIndex(0);
     }
   }, [open, tournament?.id]);
 
@@ -102,9 +106,14 @@ export const TournamentScoringDialog = ({ tournament, open, onOpenChange, onSucc
 
   const updateHoleScore = (participantIndex: number, holeIndex: number, score: number) => {
     const updatedParticipants = [...participants];
-    updatedParticipants[participantIndex].hole_scores[holeIndex] = score;
+    updatedParticipants[participantIndex].hole_scores[holeIndex] = Math.max(0, score);
     updatedParticipants[participantIndex].total_score = updatedParticipants[participantIndex].hole_scores.reduce((sum, s) => sum + s, 0);
     setParticipants(updatedParticipants);
+  };
+
+  const adjustScore = (participantIndex: number, holeIndex: number, delta: number) => {
+    const currentScore = participants[participantIndex].hole_scores[holeIndex] || 0;
+    updateHoleScore(participantIndex, holeIndex, currentScore + delta);
   };
 
   const submitScores = async () => {
@@ -150,37 +159,56 @@ export const TournamentScoringDialog = ({ tournament, open, onOpenChange, onSucc
 
   const activeParticipant = participants[activeParticipantIndex];
   const totalPar = coursePars.reduce((a, b) => a + b, 0);
+  const currentPar = coursePars[activeHoleIndex] || 4;
 
-  const goToPrevParticipant = () => {
-    setActiveParticipantIndex(prev => Math.max(0, prev - 1));
-  };
+  const goToPrevHole = () => setActiveHoleIndex(prev => Math.max(0, prev - 1));
+  const goToNextHole = () => setActiveHoleIndex(prev => Math.min(17, prev + 1));
 
-  const goToNextParticipant = () => {
-    setActiveParticipantIndex(prev => Math.min(participants.length - 1, prev + 1));
-  };
+  const goToPrevParticipant = () => setActiveParticipantIndex(prev => Math.max(0, prev - 1));
+  const goToNextParticipant = () => setActiveParticipantIndex(prev => Math.min(participants.length - 1, prev + 1));
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="max-h-[75vh] bg-background border-border/50">
+      <DrawerContent className="max-h-[80vh] bg-background border-border/50">
         {/* Header */}
         <DrawerHeader className="p-3 pb-2 border-b border-border/50">
-          <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center">
-              <Trophy className="h-4 w-4 text-white" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <DrawerTitle className="text-sm font-bold truncate">{tournament?.name || "Torneo"}</DrawerTitle>
-              <div className="flex items-center gap-2 mt-0.5">
-                <Badge variant="secondary" className="text-[10px] h-5">Ronda {roundNumber}</Badge>
-                <Input
-                  type="number"
-                  min="1"
-                  max="4"
-                  value={roundNumber}
-                  onChange={(e) => setRoundNumber(parseInt(e.target.value) || 1)}
-                  className="w-12 h-5 text-xs text-center p-1"
-                />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="h-9 w-9 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center">
+                <Trophy className="h-4 w-4 text-white" />
               </div>
+              <div className="min-w-0">
+                <DrawerTitle className="text-sm font-bold truncate">{tournament?.name || "Torneo"}</DrawerTitle>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <Badge variant="secondary" className="text-[10px] h-5">Ronda {roundNumber}</Badge>
+                  <Input
+                    type="number"
+                    min="1"
+                    max="4"
+                    value={roundNumber}
+                    onChange={(e) => setRoundNumber(parseInt(e.target.value) || 1)}
+                    className="w-12 h-5 text-xs text-center p-1"
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-1">
+              <Button
+                variant={viewMode === 'single' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('single')}
+                className="h-7 text-[10px] px-2"
+              >
+                Por hoyo
+              </Button>
+              <Button
+                variant={viewMode === 'all' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('all')}
+                className="h-7 text-[10px] px-2"
+              >
+                Todos
+              </Button>
             </div>
           </div>
         </DrawerHeader>
@@ -230,66 +258,215 @@ export const TournamentScoringDialog = ({ tournament, open, onOpenChange, onSucc
           </div>
         )}
 
-        {/* Scrollable Content */}
-        <div className="overflow-y-auto flex-1 max-h-[30vh]">
-          <div className="p-3">
-            {activeParticipant && (
-              <div className="space-y-3">
-                {/* Front 9 */}
-                <div>
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <Flag className="h-3.5 w-3.5 text-primary" />
-                    <Label className="text-xs font-medium">Front 9</Label>
-                  </div>
-                  <div className="grid grid-cols-3 gap-1.5">
-                    {coursePars.slice(0, 9).map((par, holeIndex) => (
-                      <div key={holeIndex} className="text-center bg-muted/30 rounded-lg p-1.5">
-                        <div className="flex justify-between text-[9px] text-muted-foreground mb-0.5 px-0.5">
-                          <span>H{holeIndex + 1}</span>
-                          <span>P{par}</span>
-                        </div>
-                        <Input
-                          type="number"
-                          min="1"
-                          max="15"
-                          value={activeParticipant.hole_scores[holeIndex] || ''}
-                          onChange={(e) => updateHoleScore(activeParticipantIndex, holeIndex, parseInt(e.target.value) || 0)}
-                          className="text-center h-8 text-sm font-medium bg-background border-0 focus-visible:ring-amber-500"
-                        />
-                      </div>
-                    ))}
-                  </div>
+        {viewMode === 'single' ? (
+          <>
+            {/* Hole Navigation */}
+            <div className="flex items-center justify-between px-3 py-2 border-b border-border/50">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={goToPrevHole}
+                disabled={activeHoleIndex === 0}
+                className="h-9 w-9 p-0"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </Button>
+              
+              <motion.div 
+                key={activeHoleIndex}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="flex flex-col items-center"
+              >
+                <div className="flex items-center gap-2">
+                  <Flag className="h-4 w-4 text-amber-500" />
+                  <span className="text-lg font-bold">Hoyo {activeHoleIndex + 1}</span>
                 </div>
-                
-                {/* Back 9 */}
-                <div>
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <Flag className="h-3.5 w-3.5 text-primary" />
-                    <Label className="text-xs font-medium">Back 9</Label>
-                  </div>
-                  <div className="grid grid-cols-3 gap-1.5">
-                    {coursePars.slice(9, 18).map((par, holeIndex) => (
-                      <div key={holeIndex + 9} className="text-center bg-muted/30 rounded-lg p-1.5">
-                        <div className="flex justify-between text-[9px] text-muted-foreground mb-0.5 px-0.5">
-                          <span>H{holeIndex + 10}</span>
-                          <span>P{par}</span>
-                        </div>
-                        <Input
-                          type="number"
-                          min="1"
-                          max="15"
-                          value={activeParticipant.hole_scores[holeIndex + 9] || ''}
-                          onChange={(e) => updateHoleScore(activeParticipantIndex, holeIndex + 9, parseInt(e.target.value) || 0)}
-                          className="text-center h-8 text-sm font-medium bg-background border-0 focus-visible:ring-amber-500"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                <Badge variant="secondary" className="text-xs">Par {currentPar}</Badge>
+              </motion.div>
+              
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={goToNextHole}
+                disabled={activeHoleIndex === 17}
+                className="h-9 w-9 p-0"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </Button>
+            </div>
+
+            {/* Hole Indicators */}
+            <div className="px-3 py-2 border-b border-border/50">
+              <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-hide">
+                {Array.from({ length: 18 }, (_, i) => {
+                  const hasScore = activeParticipant?.hole_scores[i] > 0;
+                  const isActive = i === activeHoleIndex;
+                  return (
+                    <motion.button
+                      key={i}
+                      onClick={() => setActiveHoleIndex(i)}
+                      className={`flex-shrink-0 w-7 h-7 rounded-full text-xs font-medium transition-all ${
+                        isActive 
+                          ? 'bg-amber-500 text-white scale-110' 
+                          : hasScore 
+                            ? 'bg-green-500/20 text-green-600 border border-green-500/50' 
+                            : 'bg-muted/50 text-muted-foreground'
+                      }`}
+                      whileTap={{ scale: 0.9 }}
+                    >
+                      {i + 1}
+                    </motion.button>
+                  );
+                })}
               </div>
-            )}
-          </div>
-        </div>
+            </div>
+
+            {/* Single Hole Score Input */}
+            <div className="p-4">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={`${activeParticipantIndex}-${activeHoleIndex}`}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                >
+                  {activeParticipant && (
+                    <div className="bg-muted/30 rounded-xl p-4">
+                      <div className="flex items-center justify-center gap-4">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => adjustScore(activeParticipantIndex, activeHoleIndex, -1)}
+                          disabled={activeParticipant.hole_scores[activeHoleIndex] <= 0}
+                          className="h-14 w-14 rounded-full"
+                        >
+                          <Minus className="h-6 w-6" />
+                        </Button>
+                        
+                        <div className="relative">
+                          <Input
+                            type="number"
+                            min="0"
+                            max="15"
+                            value={activeParticipant.hole_scores[activeHoleIndex] || ''}
+                            onChange={(e) => updateHoleScore(activeParticipantIndex, activeHoleIndex, parseInt(e.target.value) || 0)}
+                            className="text-center h-20 w-24 text-3xl font-bold bg-background border-2 border-amber-500/30 focus-visible:ring-amber-500 rounded-xl"
+                          />
+                          {activeParticipant.hole_scores[activeHoleIndex] > 0 && (
+                            <Badge 
+                              className={`absolute -top-2 -right-2 text-xs ${
+                                activeParticipant.hole_scores[activeHoleIndex] < currentPar 
+                                  ? 'bg-green-500' 
+                                  : activeParticipant.hole_scores[activeHoleIndex] === currentPar 
+                                    ? 'bg-blue-500' 
+                                    : 'bg-orange-500'
+                              }`}
+                            >
+                              {activeParticipant.hole_scores[activeHoleIndex] - currentPar === 0 
+                                ? 'E' 
+                                : activeParticipant.hole_scores[activeHoleIndex] - currentPar > 0 
+                                  ? `+${activeParticipant.hole_scores[activeHoleIndex] - currentPar}` 
+                                  : activeParticipant.hole_scores[activeHoleIndex] - currentPar}
+                            </Badge>
+                          )}
+                        </div>
+                        
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => adjustScore(activeParticipantIndex, activeHoleIndex, 1)}
+                          className="h-14 w-14 rounded-full"
+                        >
+                          <Plus className="h-6 w-6" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          </>
+        ) : (
+          <>
+            {/* All Holes View */}
+            <div className="overflow-y-auto flex-1 max-h-[35vh] p-3">
+              {activeParticipant && (
+                <div className="space-y-3">
+                  {/* Front 9 */}
+                  <div>
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <Flag className="h-3.5 w-3.5 text-primary" />
+                      <Label className="text-xs font-medium">Front 9</Label>
+                    </div>
+                    <div className="grid grid-cols-3 gap-1.5">
+                      {coursePars.slice(0, 9).map((par, holeIndex) => (
+                        <div 
+                          key={holeIndex} 
+                          className={`text-center bg-muted/30 rounded-lg p-1.5 cursor-pointer transition-all ${
+                            activeHoleIndex === holeIndex ? 'ring-2 ring-amber-500' : ''
+                          }`}
+                          onClick={() => {
+                            setActiveHoleIndex(holeIndex);
+                            setViewMode('single');
+                          }}
+                        >
+                          <div className="flex justify-between text-[9px] text-muted-foreground mb-0.5 px-0.5">
+                            <span>H{holeIndex + 1}</span>
+                            <span>P{par}</span>
+                          </div>
+                          <Input
+                            type="number"
+                            min="1"
+                            max="15"
+                            value={activeParticipant.hole_scores[holeIndex] || ''}
+                            onChange={(e) => updateHoleScore(activeParticipantIndex, holeIndex, parseInt(e.target.value) || 0)}
+                            className="text-center h-8 text-sm font-medium bg-background border-0 focus-visible:ring-amber-500"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* Back 9 */}
+                  <div>
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <Flag className="h-3.5 w-3.5 text-primary" />
+                      <Label className="text-xs font-medium">Back 9</Label>
+                    </div>
+                    <div className="grid grid-cols-3 gap-1.5">
+                      {coursePars.slice(9, 18).map((par, holeIndex) => (
+                        <div 
+                          key={holeIndex + 9} 
+                          className={`text-center bg-muted/30 rounded-lg p-1.5 cursor-pointer transition-all ${
+                            activeHoleIndex === holeIndex + 9 ? 'ring-2 ring-amber-500' : ''
+                          }`}
+                          onClick={() => {
+                            setActiveHoleIndex(holeIndex + 9);
+                            setViewMode('single');
+                          }}
+                        >
+                          <div className="flex justify-between text-[9px] text-muted-foreground mb-0.5 px-0.5">
+                            <span>H{holeIndex + 10}</span>
+                            <span>P{par}</span>
+                          </div>
+                          <Input
+                            type="number"
+                            min="1"
+                            max="15"
+                            value={activeParticipant.hole_scores[holeIndex + 9] || ''}
+                            onChange={(e) => updateHoleScore(activeParticipantIndex, holeIndex + 9, parseInt(e.target.value) || 0)}
+                            className="text-center h-8 text-sm font-medium bg-background border-0 focus-visible:ring-amber-500"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </>
+        )}
 
         {/* Summary & Actions */}
         <div className="p-3 border-t border-border/50 bg-background space-y-2">
