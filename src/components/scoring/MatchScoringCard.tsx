@@ -402,12 +402,49 @@ export const MatchScoringCard = ({ match, open, onOpenChange, onSuccess }: Match
             </div>
           </div>
 
+          {/* Hole Selector Grid */}
+          <div className="bg-zinc-900 rounded-2xl p-3 border border-white/5">
+            <div className="flex items-center justify-between mb-2 px-1">
+              <span className="text-xs text-zinc-500 font-medium">Seleccionar Hoyo</span>
+              <span className="text-xs text-zinc-500">{currentHoleIndex + 1}/18</span>
+            </div>
+            <div className="grid grid-cols-9 gap-1.5">
+              {Array.from({ length: 18 }, (_, i) => {
+                const holeScore = currentPlayer?.hole_scores[i] || 0;
+                const holePar = coursePars[i] || 4;
+                const isActive = i === currentHoleIndex;
+                const hasScore = holeScore > 0;
+                
+                return (
+                  <button
+                    key={i}
+                    onClick={() => setCurrentHoleIndex(i)}
+                    className={`
+                      aspect-square rounded-lg text-xs font-semibold transition-all
+                      flex items-center justify-center
+                      ${isActive 
+                        ? 'bg-primary text-primary-foreground ring-2 ring-primary/50 scale-110 shadow-lg' 
+                        : hasScore 
+                          ? `${getScoreBackground(holeScore, holePar)} ${getScoreColor(holeScore, holePar)}` 
+                          : 'bg-zinc-800 text-zinc-500 hover:bg-zinc-700'
+                      }
+                    `}
+                  >
+                    {i + 1}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           {/* Hole Display */}
-          <div className="bg-zinc-900 rounded-2xl p-6 border border-white/5">
-            <div className="text-center mb-4">
-              <div className="text-zinc-500 text-sm">Hoyo</div>
-              <div className="text-4xl font-bold text-foreground">{currentHoleIndex + 1}</div>
-              <Badge className="mt-2 bg-zinc-800 border-0 text-zinc-400">
+          <div className="bg-zinc-900 rounded-2xl p-5 border border-white/5">
+            <div className="text-center mb-3">
+              <div className="flex items-center justify-center gap-2">
+                <Target className="h-4 w-4 text-primary" />
+                <span className="text-zinc-500 text-sm">Hoyo {currentHoleIndex + 1}</span>
+              </div>
+              <Badge className="mt-1 bg-zinc-800 border-0 text-zinc-400">
                 Par {currentPar}
               </Badge>
             </div>
@@ -422,11 +459,11 @@ export const MatchScoringCard = ({ match, open, onOpenChange, onSuccess }: Match
                 <Minus className="h-6 w-6 text-foreground" />
               </button>
               
-              <div className={`w-24 h-24 rounded-2xl flex flex-col items-center justify-center border-2 transition-all ${getScoreBackground(currentScore, currentPar)}`}>
-                <span className={`text-4xl font-bold ${getScoreColor(currentScore, currentPar)}`}>
+              <div className={`w-20 h-20 rounded-2xl flex flex-col items-center justify-center border-2 transition-all ${getScoreBackground(currentScore, currentPar)}`}>
+                <span className={`text-3xl font-bold ${getScoreColor(currentScore, currentPar)}`}>
                   {currentScore || '-'}
                 </span>
-                <span className={`text-xs font-medium ${getScoreColor(currentScore, currentPar)}`}>
+                <span className={`text-[10px] font-medium ${getScoreColor(currentScore, currentPar)}`}>
                   {getScoreTerm(currentScore, currentPar)}
                 </span>
               </div>
