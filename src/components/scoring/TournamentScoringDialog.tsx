@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,7 +9,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Tournament } from "@/hooks/useTournamentsAndMatches";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Trophy, Flag, ChevronLeft, ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -161,16 +160,16 @@ export const TournamentScoringDialog = ({ tournament, open, onOpenChange, onSucc
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-sm p-0 gap-0 bg-background border-border/50 max-h-[50vh] overflow-hidden mx-4 rounded-2xl">
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerContent className="max-h-[75vh] bg-background border-border/50">
         {/* Header */}
-        <div className="p-4 bg-background/80 backdrop-blur-lg border-b border-border/50">
+        <DrawerHeader className="p-3 pb-2 border-b border-border/50">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center">
-              <Trophy className="h-5 w-5 text-white" />
+            <div className="h-9 w-9 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center">
+              <Trophy className="h-4 w-4 text-white" />
             </div>
             <div className="flex-1 min-w-0">
-              <DialogTitle className="text-base font-bold truncate">{tournament?.name || "Torneo"}</DialogTitle>
+              <DrawerTitle className="text-sm font-bold truncate">{tournament?.name || "Torneo"}</DrawerTitle>
               <div className="flex items-center gap-2 mt-0.5">
                 <Badge variant="secondary" className="text-[10px] h-5">Ronda {roundNumber}</Badge>
                 <Input
@@ -184,17 +183,17 @@ export const TournamentScoringDialog = ({ tournament, open, onOpenChange, onSucc
               </div>
             </div>
           </div>
-        </div>
+        </DrawerHeader>
         
         {/* Participant Navigation */}
         {participants.length > 0 && (
-          <div className="flex items-center justify-between px-4 py-2 border-b border-border/50 bg-muted/30">
+          <div className="flex items-center justify-between px-3 py-2 border-b border-border/50 bg-muted/30">
             <Button
               variant="ghost"
               size="sm"
               onClick={goToPrevParticipant}
               disabled={activeParticipantIndex === 0}
-              className="h-8 w-8 p-0"
+              className="h-7 w-7 p-0"
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
@@ -205,15 +204,15 @@ export const TournamentScoringDialog = ({ tournament, open, onOpenChange, onSucc
               animate={{ opacity: 1, y: 0 }}
               className="flex items-center gap-2"
             >
-              <Avatar className="h-8 w-8">
+              <Avatar className="h-7 w-7">
                 <AvatarImage src={activeParticipant?.avatar_url} />
                 <AvatarFallback className="text-xs bg-amber-500/20 text-amber-600">
                   {activeParticipant?.full_name?.[0] || "?"}
                 </AvatarFallback>
               </Avatar>
               <div className="text-center">
-                <p className="text-sm font-medium">{activeParticipant?.full_name}</p>
-                <p className="text-[10px] text-muted-foreground">
+                <p className="text-xs font-medium">{activeParticipant?.full_name}</p>
+                <p className="text-[9px] text-muted-foreground">
                   {activeParticipantIndex + 1} de {participants.length} • Total: {activeParticipant?.total_score || 0}
                 </p>
               </div>
@@ -224,27 +223,28 @@ export const TournamentScoringDialog = ({ tournament, open, onOpenChange, onSucc
               size="sm"
               onClick={goToNextParticipant}
               disabled={activeParticipantIndex === participants.length - 1}
-              className="h-8 w-8 p-0"
+              className="h-7 w-7 p-0"
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
         )}
 
-        <ScrollArea className="flex-1 max-h-[18vh]">
-          <div className="p-4">
+        {/* Scrollable Content */}
+        <div className="overflow-y-auto flex-1 max-h-[30vh]">
+          <div className="p-3">
             {activeParticipant && (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {/* Front 9 */}
                 <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <Flag className="h-4 w-4 text-primary" />
-                    <Label className="text-sm font-medium">Front 9</Label>
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <Flag className="h-3.5 w-3.5 text-primary" />
+                    <Label className="text-xs font-medium">Front 9</Label>
                   </div>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-3 gap-1.5">
                     {coursePars.slice(0, 9).map((par, holeIndex) => (
-                      <div key={holeIndex} className="text-center bg-muted/30 rounded-xl p-2">
-                        <div className="flex justify-between text-[10px] text-muted-foreground mb-1 px-1">
+                      <div key={holeIndex} className="text-center bg-muted/30 rounded-lg p-1.5">
+                        <div className="flex justify-between text-[9px] text-muted-foreground mb-0.5 px-0.5">
                           <span>H{holeIndex + 1}</span>
                           <span>P{par}</span>
                         </div>
@@ -254,7 +254,7 @@ export const TournamentScoringDialog = ({ tournament, open, onOpenChange, onSucc
                           max="15"
                           value={activeParticipant.hole_scores[holeIndex] || ''}
                           onChange={(e) => updateHoleScore(activeParticipantIndex, holeIndex, parseInt(e.target.value) || 0)}
-                          className="text-center h-9 text-sm font-medium bg-background border-0 focus-visible:ring-amber-500"
+                          className="text-center h-8 text-sm font-medium bg-background border-0 focus-visible:ring-amber-500"
                         />
                       </div>
                     ))}
@@ -263,14 +263,14 @@ export const TournamentScoringDialog = ({ tournament, open, onOpenChange, onSucc
                 
                 {/* Back 9 */}
                 <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <Flag className="h-4 w-4 text-primary" />
-                    <Label className="text-sm font-medium">Back 9</Label>
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <Flag className="h-3.5 w-3.5 text-primary" />
+                    <Label className="text-xs font-medium">Back 9</Label>
                   </div>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-3 gap-1.5">
                     {coursePars.slice(9, 18).map((par, holeIndex) => (
-                      <div key={holeIndex + 9} className="text-center bg-muted/30 rounded-xl p-2">
-                        <div className="flex justify-between text-[10px] text-muted-foreground mb-1 px-1">
+                      <div key={holeIndex + 9} className="text-center bg-muted/30 rounded-lg p-1.5">
+                        <div className="flex justify-between text-[9px] text-muted-foreground mb-0.5 px-0.5">
                           <span>H{holeIndex + 10}</span>
                           <span>P{par}</span>
                         </div>
@@ -280,7 +280,7 @@ export const TournamentScoringDialog = ({ tournament, open, onOpenChange, onSucc
                           max="15"
                           value={activeParticipant.hole_scores[holeIndex + 9] || ''}
                           onChange={(e) => updateHoleScore(activeParticipantIndex, holeIndex + 9, parseInt(e.target.value) || 0)}
-                          className="text-center h-9 text-sm font-medium bg-background border-0 focus-visible:ring-amber-500"
+                          className="text-center h-8 text-sm font-medium bg-background border-0 focus-visible:ring-amber-500"
                         />
                       </div>
                     ))}
@@ -289,26 +289,26 @@ export const TournamentScoringDialog = ({ tournament, open, onOpenChange, onSucc
               </div>
             )}
           </div>
-        </ScrollArea>
+        </div>
 
         {/* Summary & Actions */}
-        <div className="p-4 border-t border-border/50 bg-background space-y-3">
+        <div className="p-3 border-t border-border/50 bg-background space-y-2">
           {/* Leaderboard Summary */}
           {participants.length > 0 && (
-            <div className="bg-muted/30 rounded-xl p-3">
-              <p className="text-xs text-muted-foreground mb-2">Tabla de posiciones</p>
-              <div className="flex flex-wrap gap-2">
+            <div className="bg-muted/30 rounded-lg p-2">
+              <p className="text-[10px] text-muted-foreground mb-1.5">Tabla de posiciones</p>
+              <div className="flex flex-wrap gap-1.5">
                 {[...participants]
                   .sort((a, b) => (a.total_score || 999) - (b.total_score || 999))
                   .slice(0, 4)
                   .map((p, index) => (
-                    <div key={p.participant_id} className="flex items-center gap-1.5">
-                      <span className="text-xs font-medium text-muted-foreground">{index + 1}.</span>
-                      <Avatar className="h-5 w-5">
+                    <div key={p.participant_id} className="flex items-center gap-1">
+                      <span className="text-[10px] font-medium text-muted-foreground">{index + 1}.</span>
+                      <Avatar className="h-4 w-4">
                         <AvatarImage src={p.avatar_url} />
-                        <AvatarFallback className="text-[8px]">{p.full_name?.[0]}</AvatarFallback>
+                        <AvatarFallback className="text-[7px]">{p.full_name?.[0]}</AvatarFallback>
                       </Avatar>
-                      <Badge variant="outline" className="text-xs h-5">
+                      <Badge variant="outline" className="text-[10px] h-4 px-1">
                         {p.total_score || 0}
                       </Badge>
                     </div>
@@ -317,19 +317,19 @@ export const TournamentScoringDialog = ({ tournament, open, onOpenChange, onSucc
             </div>
           )}
           
-          <div className="flex gap-3">
+          <div className="flex gap-2">
             <Button 
               type="button" 
               variant="outline" 
               onClick={() => onOpenChange(false)}
-              className="flex-1 h-11 rounded-xl"
+              className="flex-1 h-10 rounded-xl text-sm"
             >
               Cancelar
             </Button>
             <Button 
               onClick={submitScores} 
               disabled={loading}
-              className="flex-1 h-11 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white"
+              className="flex-1 h-10 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white text-sm"
             >
               {loading ? (
                 <div className="flex items-center gap-2">
@@ -342,7 +342,7 @@ export const TournamentScoringDialog = ({ tournament, open, onOpenChange, onSucc
             </Button>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </DrawerContent>
+    </Drawer>
   );
 };
