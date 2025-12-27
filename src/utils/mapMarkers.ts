@@ -8,81 +8,48 @@ interface GolfCourse {
 
 let activeMarkerId: string | null = null;
 
-// Inject global styles once - Modern markers with subtle pulse
+// Inject global styles once - Clean, stable markers without size changes
 const injectMarkerStyles = () => {
-  if (document.getElementById('golf-marker-styles-v14')) return;
+  if (document.getElementById('golf-marker-styles-v13')) return;
   
   // Remove old styles
-  const oldStyles = ['golf-marker-styles-v8', 'golf-marker-styles-v9', 'golf-marker-styles-v10', 'golf-marker-styles-v11', 'golf-marker-styles-v12', 'golf-marker-styles-v13'];
+  const oldStyles = ['golf-marker-styles-v8', 'golf-marker-styles-v9', 'golf-marker-styles-v10', 'golf-marker-styles-v11', 'golf-marker-styles-v12'];
   oldStyles.forEach(id => {
     const oldStyle = document.getElementById(id);
     if (oldStyle) oldStyle.remove();
   });
   
   const style = document.createElement('style');
-  style.id = 'golf-marker-styles-v14';
+  style.id = 'golf-marker-styles-v13';
   style.textContent = `
-    @keyframes marker-glow {
-      0%, 100% { 
-        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.6), 0 4px 12px rgba(0, 0, 0, 0.25);
-      }
-      50% { 
-        box-shadow: 0 0 0 8px rgba(34, 197, 94, 0), 0 4px 12px rgba(0, 0, 0, 0.25);
-      }
-    }
-    
     .golf-marker {
-      width: 38px;
-      height: 38px;
+      width: 32px;
+      height: 32px;
       border-radius: 50%;
-      background: linear-gradient(145deg, #34d399 0%, #10b981 50%, #059669 100%);
-      border: 2.5px solid rgba(255, 255, 255, 0.95);
+      background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+      border: 2px solid white;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      animation: marker-glow 2.5s ease-in-out infinite;
-      backdrop-filter: blur(4px);
-      position: relative;
-    }
-    
-    .golf-marker::before {
-      content: '';
-      position: absolute;
-      inset: -1px;
-      border-radius: 50%;
-      background: linear-gradient(145deg, rgba(255,255,255,0.3) 0%, transparent 50%);
-      pointer-events: none;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+      transition: box-shadow 0.2s ease, border-color 0.2s ease;
     }
     
     .golf-marker:hover {
-      animation: none;
-      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.3), 0 6px 20px rgba(0, 0, 0, 0.35);
-      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
     }
     
     .golf-marker.active {
-      animation: none;
       border: 3px solid white;
-      box-shadow: 0 0 0 5px rgba(16, 185, 129, 0.4), 0 8px 24px rgba(0, 0, 0, 0.3);
-      background: linear-gradient(145deg, #10b981 0%, #059669 50%, #047857 100%);
+      box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3);
     }
     
-    .golf-marker-icon {
-      width: 18px;
-      height: 18px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      z-index: 1;
-    }
-    
-    .golf-marker-icon svg {
-      width: 100%;
-      height: 100%;
+    .golf-marker svg {
+      width: 14px;
+      height: 14px;
       color: white;
-      filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+      flex-shrink: 0;
     }
   `;
   document.head.appendChild(style);
@@ -95,14 +62,12 @@ export const createMarkerElement = (course: GolfCourse, onCourseSelect: (course:
   el.className = 'golf-marker';
   el.dataset.courseId = course.id;
   
-  // Modern golf flag icon with inner container
+  // Golf flag icon
   el.innerHTML = `
-    <div class="golf-marker-icon">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
-        <line x1="4" x2="4" y1="22" y2="15"/>
-      </svg>
-    </div>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
+      <line x1="4" x2="4" y1="22" y2="15"/>
+    </svg>
   `;
 
   // Click handler
