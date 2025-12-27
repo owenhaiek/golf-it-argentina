@@ -80,20 +80,18 @@ export const useMapMarkers = (onCourseSelect: (course: GolfCourse) => void) => {
       const markerElement = createMarkerElement(course, onCourseSelect);
 
       try {
-        // Create marker with proper LngLat object
+        // Create marker with proper anchor and alignment for stable positioning
         const marker = new mapboxgl.Marker({
           element: markerElement,
-          anchor: 'center'
-        });
-        
-        // Set position using setLngLat with array
-        marker.setLngLat([lng, lat]);
-        marker.addTo(mapInstance);
+          anchor: 'center',
+          pitchAlignment: 'map',
+          rotationAlignment: 'map'
+        })
+          .setLngLat([lng, lat])
+          .addTo(mapInstance);
 
         markersRef.current.push(marker);
         bounds.extend([lng, lat]);
-        
-        console.log(`✓ Successfully positioned marker for ${course.name} at coordinates [${lng}, ${lat}]`);
       } catch (error) {
         console.error(`Failed to add marker for ${course.name}:`, error);
         validMarkersCount--;

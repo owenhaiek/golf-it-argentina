@@ -23,9 +23,13 @@ const injectMarkerStyles = () => {
   const style = document.createElement('style');
   style.id = 'golf-marker-styles-v12';
   style.textContent = `
-    @keyframes simple-pulse {
-      0%, 100% { opacity: 0.4; }
-      50% { opacity: 0; }
+    @keyframes marker-pulse {
+      0%, 100% { 
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), 0 0 0 0 rgba(34, 197, 94, 0.4);
+      }
+      50% { 
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), 0 0 0 8px rgba(34, 197, 94, 0);
+      }
     }
     
     .golf-marker-v8 {
@@ -35,43 +39,27 @@ const injectMarkerStyles = () => {
       height: 36px;
       border-radius: 50%;
       background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-      border: 2px solid rgba(255, 255, 255, 0.8);
+      border: 2px solid rgba(255, 255, 255, 0.9);
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-      position: relative;
-    }
-    
-    .golf-marker-v8::before {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 52px;
-      height: 52px;
-      border-radius: 50%;
-      background: rgba(34, 197, 94, 0.3);
-      animation: simple-pulse 2s ease-in-out infinite;
-      z-index: -1;
+      animation: marker-pulse 3s ease-in-out infinite;
+      will-change: box-shadow;
     }
     
     .golf-marker-v8:hover {
       background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+      animation: none;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
     }
     
     .golf-marker-v8.active {
-      width: 44px;
-      height: 44px;
+      width: 42px;
+      height: 42px;
       background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
       border: 3px solid white;
+      animation: none;
       box-shadow: 0 0 20px rgba(34, 197, 94, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3);
-    }
-    
-    .golf-marker-v8.active::before {
-      display: none;
     }
     
     .golf-marker-v8 svg {

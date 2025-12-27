@@ -1,5 +1,6 @@
 import { useAuth } from "@/contexts/AuthContext";
-
+import { useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useProfileData } from "@/hooks/useProfileData";
 import ProfileCard from "@/components/profile/ProfileCard";
 import RecentRounds from "@/components/profile/RecentRounds";
@@ -12,12 +13,72 @@ import { motion } from "framer-motion";
 import { Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 const Profile = () => {
   const { user, loading } = useAuth();
   const { profile, profileLoading, rounds, roundsLoading } = useProfileData();
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  // Prefetch tournaments and matches data
+  useEffect(() => {
+    if (user?.id) {
+      // Prefetch tournaments
+      queryClient.prefetchQuery({
+        queryKey: ['userTournaments', user.id],
+        queryFn: async () => {
+          const { data } = await supabase
+            .from('tournaments')
+            .select(`
+              *,
+              golf_courses (name, city, state),
+              tournament_participants (id, user_id, status, profiles (full_name, username, avatar_url))
+            `)
+            .or(`creator_id.eq.${user.id},tournament_participants.user_id.eq.${user.id}`)
+            .order('start_date', { ascending: false });
+          return data || [];
+        },
+        staleTime: 1000 * 60 * 5,
+      });
+
+      // Prefetch matches
+      queryClient.prefetchQuery({
+        queryKey: ['userMatches', user.id],
+        queryFn: async () => {
+          const { data: matchesData } = await supabase
+            .from('matches')
+            .select(`*, golf_courses (name, city, state)`)
+            .or(`creator_id.eq.${user.id},opponent_id.eq.${user.id}`)
+            .order('match_date', { ascending: false });
+
+          if (!matchesData) return [];
+
+          const userIds = new Set<string>();
+          matchesData.forEach(match => {
+            userIds.add(match.creator_id);
+            userIds.add(match.opponent_id);
+          });
+
+          const { data: profilesData } = await supabase
+            .from('profiles')
+            .select('id, full_name, username, avatar_url')
+            .in('id', Array.from(userIds));
+
+          const profilesMap = new Map();
+          profilesData?.forEach(profile => profilesMap.set(profile.id, profile));
+
+          return matchesData.map(match => ({
+            ...match,
+            creator: profilesMap.get(match.creator_id) || null,
+            opponent: profilesMap.get(match.opponent_id) || null,
+          }));
+        },
+        staleTime: 1000 * 60 * 5,
+      });
+    }
+  }, [user?.id, queryClient]);
 
   if (loading || profileLoading) {
     return (
