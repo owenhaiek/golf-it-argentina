@@ -35,16 +35,11 @@ export const useMapMarkers = (onCourseSelect: (course: GolfCourse) => void) => {
   }, []);
 
   const addMarkersToMap = useCallback((mapInstance: any, coursesToAdd: GolfCourse[], shouldFitBounds = false) => {
-    console.log("[MapMarkers] Adding markers for", coursesToAdd.length, "courses");
-
     // Clear existing markers first
     clearMarkers();
-    
-    // Reset marker animation index for staggered animations
     resetMarkerIndex();
 
     if (!coursesToAdd || coursesToAdd.length === 0) {
-      console.log("[MapMarkers] No courses to add markers for");
       return;
     }
 
@@ -59,10 +54,6 @@ export const useMapMarkers = (onCourseSelect: (course: GolfCourse) => void) => {
 
     coursesToAdd.forEach(course => {
       if (!validateCoordinates(course.latitude, course.longitude)) {
-        console.warn(`Course ${course.name} has invalid coordinates:`, { 
-          lat: course.latitude, 
-          lng: course.longitude 
-        });
         return;
       }
       
@@ -70,22 +61,17 @@ export const useMapMarkers = (onCourseSelect: (course: GolfCourse) => void) => {
       const lat = Number(course.latitude);
       
       if (isNaN(lng) || isNaN(lat)) {
-        console.warn(`Course ${course.name} has NaN coordinates`);
         return;
       }
       
-      console.log(`Adding marker for ${course.name} at [${lng}, ${lat}]`);
       validMarkersCount++;
       
       const markerElement = createMarkerElement(course, onCourseSelect);
 
       try {
-        // Create marker with proper anchor and alignment for stable positioning
         const marker = new mapboxgl.Marker({
           element: markerElement,
-          anchor: 'center',
-          pitchAlignment: 'map',
-          rotationAlignment: 'map'
+          anchor: 'center'
         })
           .setLngLat([lng, lat])
           .addTo(mapInstance);
@@ -98,8 +84,6 @@ export const useMapMarkers = (onCourseSelect: (course: GolfCourse) => void) => {
       }
     });
 
-    console.log("[MapMarkers] Successfully added", validMarkersCount, "markers");
-
     // Fit bounds only if requested and we have valid markers
     if (shouldFitBounds && validMarkersCount > 0 && !bounds.isEmpty()) {
       setTimeout(() => {
@@ -107,12 +91,12 @@ export const useMapMarkers = (onCourseSelect: (course: GolfCourse) => void) => {
           mapInstance.fitBounds(bounds, {
             padding: { top: 80, bottom: 80, left: 80, right: 80 },
             maxZoom: 12,
-            duration: 1200,
+            duration: 1000,
           });
         } catch (error) {
           console.warn("[MapMarkers] Error fitting bounds:", error);
         }
-      }, 400);
+      }, 300);
     }
   }, [onCourseSelect, clearMarkers]);
 

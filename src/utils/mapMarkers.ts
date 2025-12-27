@@ -6,71 +6,50 @@ interface GolfCourse {
   longitude?: number;
 }
 
-let markerIndex = 0;
 let activeMarkerId: string | null = null;
 
-// Inject global styles once - Simple pulse animation for better performance
+// Inject global styles once - Clean, stable markers without size changes
 const injectMarkerStyles = () => {
-  if (document.getElementById('golf-marker-styles-v12')) return;
+  if (document.getElementById('golf-marker-styles-v13')) return;
   
   // Remove old styles
-  const oldStyles = ['golf-marker-styles-v8', 'golf-marker-styles-v9', 'golf-marker-styles-v10', 'golf-marker-styles-v11'];
+  const oldStyles = ['golf-marker-styles-v8', 'golf-marker-styles-v9', 'golf-marker-styles-v10', 'golf-marker-styles-v11', 'golf-marker-styles-v12'];
   oldStyles.forEach(id => {
     const oldStyle = document.getElementById(id);
     if (oldStyle) oldStyle.remove();
   });
   
   const style = document.createElement('style');
-  style.id = 'golf-marker-styles-v12';
+  style.id = 'golf-marker-styles-v13';
   style.textContent = `
-    @keyframes marker-pulse {
-      0%, 100% { 
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), 0 0 0 0 rgba(34, 197, 94, 0.4);
-      }
-      50% { 
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), 0 0 0 8px rgba(34, 197, 94, 0);
-      }
-    }
-    
-    .golf-marker-v8 {
-      pointer-events: auto !important;
-      cursor: pointer;
-      width: 36px;
-      height: 36px;
+    .golf-marker {
+      width: 32px;
+      height: 32px;
       border-radius: 50%;
       background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-      border: 2px solid rgba(255, 255, 255, 0.9);
+      border: 2px solid white;
       display: flex;
       align-items: center;
       justify-content: center;
-      animation: marker-pulse 3s ease-in-out infinite;
-      will-change: box-shadow;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+      transition: box-shadow 0.2s ease, border-color 0.2s ease;
     }
     
-    .golf-marker-v8:hover {
-      background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
-      animation: none;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    .golf-marker:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
     }
     
-    .golf-marker-v8.active {
-      width: 42px;
-      height: 42px;
-      background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+    .golf-marker.active {
       border: 3px solid white;
-      animation: none;
-      box-shadow: 0 0 20px rgba(34, 197, 94, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3);
     }
     
-    .golf-marker-v8 svg {
-      width: 16px;
-      height: 16px;
+    .golf-marker svg {
+      width: 14px;
+      height: 14px;
       color: white;
-    }
-    
-    .golf-marker-v8.active svg {
-      width: 18px;
-      height: 18px;
+      flex-shrink: 0;
     }
   `;
   document.head.appendChild(style);
@@ -78,15 +57,14 @@ const injectMarkerStyles = () => {
 
 export const createMarkerElement = (course: GolfCourse, onCourseSelect: (course: GolfCourse) => void) => {
   injectMarkerStyles();
-  markerIndex++;
   
   const el = document.createElement("div");
-  el.className = 'golf-marker-v8';
+  el.className = 'golf-marker';
   el.dataset.courseId = course.id;
   
-  // Simple marker with golf flag icon
+  // Golf flag icon
   el.innerHTML = `
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
       <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
       <line x1="4" x2="4" y1="22" y2="15"/>
     </svg>
@@ -99,7 +77,7 @@ export const createMarkerElement = (course: GolfCourse, onCourseSelect: (course:
     
     // Remove active from previous
     if (activeMarkerId) {
-      const prevActive = document.querySelector(`.golf-marker-v8[data-course-id="${activeMarkerId}"]`);
+      const prevActive = document.querySelector(`.golf-marker[data-course-id="${activeMarkerId}"]`);
       if (prevActive) prevActive.classList.remove('active');
     }
     
@@ -107,7 +85,6 @@ export const createMarkerElement = (course: GolfCourse, onCourseSelect: (course:
     el.classList.add('active');
     activeMarkerId = course.id;
     
-    console.log("[MapMarkers] Marker clicked:", course.name);
     onCourseSelect(course);
   });
 
@@ -117,13 +94,13 @@ export const createMarkerElement = (course: GolfCourse, onCourseSelect: (course:
 export const setActiveMarker = (courseId: string | null) => {
   // Remove previous active
   if (activeMarkerId) {
-    const prevActive = document.querySelector(`.golf-marker-v8[data-course-id="${activeMarkerId}"]`);
+    const prevActive = document.querySelector(`.golf-marker[data-course-id="${activeMarkerId}"]`);
     if (prevActive) prevActive.classList.remove('active');
   }
   
   // Set new active
   if (courseId) {
-    const newActive = document.querySelector(`.golf-marker-v8[data-course-id="${courseId}"]`);
+    const newActive = document.querySelector(`.golf-marker[data-course-id="${courseId}"]`);
     if (newActive) newActive.classList.add('active');
   }
   
@@ -131,12 +108,12 @@ export const setActiveMarker = (courseId: string | null) => {
 };
 
 export const resetMarkerIndex = () => {
-  markerIndex = 0;
+  // No longer needed but kept for compatibility
 };
 
 export const resetActiveMarker = () => {
   if (activeMarkerId) {
-    const prevActive = document.querySelector(`.golf-marker-v8[data-course-id="${activeMarkerId}"]`);
+    const prevActive = document.querySelector(`.golf-marker[data-course-id="${activeMarkerId}"]`);
     if (prevActive) prevActive.classList.remove('active');
   }
   activeMarkerId = null;
