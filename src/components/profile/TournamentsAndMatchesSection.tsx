@@ -93,25 +93,23 @@ export const TournamentsAndMatchesSection = () => {
     return (
       <div className="w-full space-y-4">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-amber-500/10">
+          <div className="p-2.5 rounded-xl bg-amber-500/10">
             <Trophy className="h-5 w-5 text-amber-500" />
           </div>
           <span className="font-semibold text-lg text-foreground">Torneos y Partidos</span>
         </div>
         <div className="space-y-3">
           {Array(2).fill(0).map((_, i) => (
-            <div key={i} className="bg-zinc-900 rounded-2xl p-4 border border-white/5">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="h-10 w-10 bg-zinc-800 rounded-xl" />
+            <div key={i} className="bg-card rounded-2xl p-4 border border-border/50 animate-pulse">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="h-10 w-10 bg-muted rounded-xl" />
                 <div className="space-y-2 flex-1">
-                  <div className="h-4 w-3/4 bg-zinc-800 rounded" />
-                  <div className="h-3 w-1/2 bg-zinc-800 rounded" />
+                  <div className="h-4 w-3/4 bg-muted rounded" />
+                  <div className="h-3 w-1/2 bg-muted rounded" />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="h-16 bg-zinc-800 rounded-xl" />
-                <div className="h-16 bg-zinc-800 rounded-xl" />
-              </div>
+              <div className="h-10 bg-muted rounded-lg mb-3" />
+              <div className="h-20 bg-muted rounded-xl" />
             </div>
           ))}
         </div>
@@ -126,22 +124,22 @@ export const TournamentsAndMatchesSection = () => {
     return (
       <div className="w-full">
         <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 rounded-xl bg-amber-500/10">
+          <div className="p-2.5 rounded-xl bg-amber-500/10">
             <Trophy className="h-5 w-5 text-amber-500" />
           </div>
           <span className="font-semibold text-lg text-foreground">Torneos y Partidos</span>
         </div>
-        <div className="bg-zinc-900 rounded-2xl p-8 text-center border border-white/5">
+        <div className="bg-card rounded-2xl p-8 text-center border border-border/50">
           <div className="relative inline-block mb-4">
-            <div className="p-4 rounded-2xl bg-zinc-800">
-              <Trophy className="h-10 w-10 text-zinc-600" />
+            <div className="p-4 rounded-2xl bg-muted">
+              <Trophy className="h-10 w-10 text-muted-foreground/50" />
             </div>
-            <div className="absolute -bottom-2 -right-2 p-2 rounded-xl bg-zinc-800">
-              <Swords className="h-5 w-5 text-zinc-600" />
+            <div className="absolute -bottom-2 -right-2 p-2 rounded-xl bg-muted border-2 border-background">
+              <Swords className="h-5 w-5 text-muted-foreground/50" />
             </div>
           </div>
           <p className="text-foreground font-medium">Sin torneos o partidos</p>
-          <p className="text-sm text-zinc-500 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             Crea un torneo o desafía a tus amigos
           </p>
         </div>
@@ -153,7 +151,7 @@ export const TournamentsAndMatchesSection = () => {
     <div className="w-full space-y-4">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <div className={`p-2 rounded-xl ${viewMode === 'tournaments' ? 'bg-amber-500/10' : 'bg-red-500/10'}`}>
+        <div className={`p-2.5 rounded-xl transition-colors ${viewMode === 'tournaments' ? 'bg-amber-500/10' : 'bg-red-500/10'}`}>
           {viewMode === 'tournaments' ? (
             <Trophy className="h-5 w-5 text-amber-500" />
           ) : (
@@ -166,15 +164,15 @@ export const TournamentsAndMatchesSection = () => {
       </div>
       
       {/* Mode Toggle */}
-      <div className="flex bg-zinc-900 p-1 rounded-xl w-full border border-white/5">
+      <div className="flex bg-muted/50 p-1 rounded-xl w-full border border-border/50">
         <Button
           size="sm"
           variant="ghost"
           onClick={() => setViewMode('tournaments')}
           className={`flex-1 h-10 text-sm justify-center rounded-lg transition-all ${
             viewMode === 'tournaments' 
-              ? 'bg-amber-500/20 text-amber-400 hover:bg-amber-500/30' 
-              : 'text-zinc-400 hover:bg-white/5 hover:text-zinc-300'
+              ? 'bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 shadow-sm' 
+              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
           }`}
         >
           <Trophy className="h-4 w-4 mr-2" />
@@ -183,7 +181,7 @@ export const TournamentsAndMatchesSection = () => {
             <Badge className={`ml-2 text-xs h-5 px-1.5 border-0 ${
               viewMode === 'tournaments' 
                 ? 'bg-amber-500/30 text-amber-300' 
-                : 'bg-zinc-800 text-zinc-400'
+                : 'bg-muted text-muted-foreground'
             }`}>
               {totalTournaments}
             </Badge>
@@ -195,8 +193,8 @@ export const TournamentsAndMatchesSection = () => {
           onClick={() => setViewMode('matches')}
           className={`flex-1 h-10 text-sm justify-center rounded-lg transition-all ${
             viewMode === 'matches' 
-              ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30' 
-              : 'text-zinc-400 hover:bg-white/5 hover:text-zinc-300'
+              ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30 shadow-sm' 
+              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
           }`}
         >
           <Swords className="h-4 w-4 mr-2" />
@@ -205,7 +203,7 @@ export const TournamentsAndMatchesSection = () => {
             <Badge className={`ml-2 text-xs h-5 px-1.5 border-0 ${
               viewMode === 'matches' 
                 ? 'bg-red-500/30 text-red-300' 
-                : 'bg-zinc-800 text-zinc-400'
+                : 'bg-muted text-muted-foreground'
             }`}>
               {totalMatches}
             </Badge>
@@ -215,24 +213,24 @@ export const TournamentsAndMatchesSection = () => {
 
       {/* Tabs Content */}
       <Tabs defaultValue="active" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 h-10 rounded-xl bg-zinc-900 border border-white/5 p-1">
+        <TabsList className="grid w-full grid-cols-3 h-10 rounded-xl bg-muted/50 border border-border/50 p-1">
           <TabsTrigger 
             value="active" 
-            className="flex items-center gap-1.5 text-xs rounded-lg data-[state=active]:bg-emerald-500/20 data-[state=active]:text-emerald-400"
+            className="flex items-center gap-1.5 text-xs rounded-lg data-[state=active]:bg-emerald-500/20 data-[state=active]:text-emerald-400 data-[state=active]:shadow-sm"
           >
             <Flame className="h-3.5 w-3.5" />
             <span>Activos</span>
           </TabsTrigger>
           <TabsTrigger 
             value="upcoming" 
-            className="flex items-center gap-1.5 text-xs rounded-lg data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-400"
+            className="flex items-center gap-1.5 text-xs rounded-lg data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-400 data-[state=active]:shadow-sm"
           >
             <Calendar className="h-3.5 w-3.5" />
             <span>Próximos</span>
           </TabsTrigger>
           <TabsTrigger 
             value="completed" 
-            className="flex items-center gap-1.5 text-xs rounded-lg data-[state=active]:bg-zinc-700 data-[state=active]:text-zinc-300"
+            className="flex items-center gap-1.5 text-xs rounded-lg data-[state=active]:bg-muted data-[state=active]:text-foreground data-[state=active]:shadow-sm"
           >
             <CheckCircle className="h-3.5 w-3.5" />
             <span>Finalizados</span>
@@ -397,8 +395,8 @@ export const TournamentsAndMatchesSection = () => {
 
 // Empty state component
 const EmptyState = ({ icon, message }: { icon: React.ReactNode; message: string }) => (
-  <div className="text-center py-8 bg-zinc-900 rounded-2xl border border-white/5">
-    <div className="flex justify-center mb-2">{icon}</div>
-    <p className="text-zinc-500 text-sm">{message}</p>
+  <div className="text-center py-8 bg-card rounded-2xl border border-border/50">
+    <div className="flex justify-center mb-2 opacity-50">{icon}</div>
+    <p className="text-muted-foreground text-sm">{message}</p>
   </div>
 );
