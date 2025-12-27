@@ -182,8 +182,7 @@ export const MapControls = ({ map, onStyleChange, currentStyle }: MapControlsPro
       <Button
         onClick={handleStyleToggle}
         size={isMobile ? "icon" : "sm"}
-        variant="secondary"
-        className="bg-background/95 backdrop-blur-sm hover:bg-background shadow-lg h-12 w-12 sm:h-10 sm:w-auto sm:px-3 text-foreground border-0"
+        className="bg-primary hover:bg-primary/90 shadow-lg shadow-primary/30 h-12 w-12 sm:h-10 sm:w-auto sm:px-3 text-primary-foreground border-0"
         title={`Cambiar a ${currentStyle === 'dark' ? 'satélite' : currentStyle === 'satellite' ? 'calles' : 'oscuro'}`}
       >
         <StyleIcon className="w-5 h-5 sm:w-4 sm:h-4 sm:mr-2" />
@@ -198,13 +197,12 @@ export const MapControls = ({ map, onStyleChange, currentStyle }: MapControlsPro
       <Button
         onClick={handleFindMyLocation}
         size={isMobile ? "icon" : "sm"}
-        variant="secondary"
         disabled={locationLoading}
-        className="bg-background/95 backdrop-blur-sm hover:bg-background shadow-lg h-12 w-12 sm:h-10 sm:w-auto sm:px-3 text-foreground border-0"
+        className="bg-primary hover:bg-primary/90 shadow-lg shadow-primary/30 h-12 w-12 sm:h-10 sm:w-auto sm:px-3 text-primary-foreground border-0"
         title="Mi ubicación"
       >
         {locationLoading ? (
-          <div className="w-5 h-5 sm:w-4 sm:h-4 animate-spin rounded-full border-2 border-foreground border-t-transparent" />
+          <div className="w-5 h-5 sm:w-4 sm:h-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
         ) : (
           <Crosshair className="w-5 h-5 sm:w-4 sm:h-4 sm:mr-2" />
         )}

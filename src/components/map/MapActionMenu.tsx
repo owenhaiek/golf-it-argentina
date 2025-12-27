@@ -81,32 +81,32 @@ export const MapActionMenu = ({ onOpenChange }: MapActionMenuProps) => {
     setIsOpen(prev => !prev);
   }, [triggerHaptic]);
 
-  // Animation variants for container - faster timing
+  // Animation variants for container - smooth and fast
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.04,
-        delayChildren: 0.01,
+        staggerChildren: 0.05,
+        delayChildren: 0,
       }
     },
     exit: {
       opacity: 0,
       transition: {
-        staggerChildren: 0.02,
+        staggerChildren: 0.03,
         staggerDirection: -1,
-        duration: 0.1
+        duration: 0.12
       }
     }
   };
 
-  // Animation variants for items - snappier spring
+  // Animation variants for items - smooth spring
   const itemVariants = {
     hidden: { 
       opacity: 0, 
-      y: 16, 
-      scale: 0.9,
+      y: 12, 
+      scale: 0.95,
     },
     visible: { 
       opacity: 1, 
@@ -114,17 +114,17 @@ export const MapActionMenu = ({ onOpenChange }: MapActionMenuProps) => {
       scale: 1,
       transition: {
         type: "spring",
-        stiffness: 500,
-        damping: 28,
-        mass: 0.6
+        stiffness: 400,
+        damping: 25,
+        mass: 0.5
       }
     },
     exit: { 
       opacity: 0, 
-      y: 8, 
-      scale: 0.95,
+      y: 6, 
+      scale: 0.97,
       transition: {
-        duration: 0.1,
+        duration: 0.12,
         ease: "easeOut"
       }
     }
@@ -139,7 +139,7 @@ export const MapActionMenu = ({ onOpenChange }: MapActionMenuProps) => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.15, ease: "easeOut" }}
+            transition={{ duration: 0.12, ease: "easeOut" }}
             className="fixed inset-0 z-[5] bg-black/50 backdrop-blur-sm"
             onClick={() => setIsOpen(false)}
           />

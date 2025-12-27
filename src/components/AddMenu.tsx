@@ -83,22 +83,22 @@ export const AddMenu = () => {
             {language === "en" ? "What would you like to add?" : "¿Qué te gustaría agregar?"}
           </DrawerTitle>
         </DrawerHeader>
-        <div className="p-6 space-y-4 pb-8">
+        <div className="p-6 space-y-3 pb-8">
           <AnimatePresence>
             {menuItems.map((item, index) => (
               <motion.div
                 key={index}
-                initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                initial={{ opacity: 0, y: 16, scale: 0.97 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{ 
-                  duration: 0.3, 
-                  delay: index * 0.08,
-                  ease: [0.23, 1, 0.32, 1]
+                  duration: 0.25, 
+                  delay: index * 0.06,
+                  ease: [0.25, 0.46, 0.45, 0.94]
                 }}
               >
                 <Button 
                   onClick={item.onClick}
-                  className={`w-full h-16 ${item.gradient} text-white flex items-center justify-start gap-4 text-lg transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] relative`}
+                  className={`w-full h-16 ${item.gradient} text-white flex items-center justify-start gap-4 text-lg transition-all duration-150 hover:scale-[1.02] active:scale-[0.98] relative`}
                 >
                   <item.icon size={24} />
                   <div className="text-left flex-1">
