@@ -214,7 +214,7 @@ export const MatchScoringDialog = ({ match, open, onOpenChange, onSuccess }: Mat
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="max-h-[85vh] bg-background border-border/50">
+      <DrawerContent className="max-h-[75vh] bg-background border-border/50 mx-3 rounded-t-[20px]">
         {/* Header */}
         <DrawerHeader className="p-3 pb-2 border-b border-border/50">
           <div className="flex items-center justify-between">
