@@ -134,12 +134,11 @@ export const MapSearchOverlay = ({ courses, onSelectCourse, onOpenChange }: MapS
       {/* Top left controls - Profile & Search */}
       <div className="absolute left-4 z-10 flex flex-col gap-2" style={{ top: 'max(1rem, env(safe-area-inset-top, 1rem))' }}>
         {/* Profile button */}
-        <motion.div whileTap={{ scale: 0.9 }}>
+        <motion.div whileTap={{ scale: 0.95 }}>
           <Button
             onClick={() => navigate('/profile')}
             size="icon"
-            variant="secondary"
-            className="h-12 w-12 bg-background/95 backdrop-blur-sm hover:bg-background shadow-lg text-foreground border-0"
+            className="h-12 w-12 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/30 text-primary-foreground border-0"
             title="Mi perfil"
           >
             <User className="w-5 h-5" />
@@ -151,17 +150,16 @@ export const MapSearchOverlay = ({ courses, onSelectCourse, onOpenChange }: MapS
           {!isOpen ? (
             <motion.div
               key="button"
-              initial={{ opacity: 0, scale: 0.9 }}
+              initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.15 }}
-              whileTap={{ scale: 0.9 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.12, ease: "easeOut" }}
+              whileTap={{ scale: 0.95 }}
             >
               <Button
                 onClick={() => setIsOpen(true)}
                 size="icon"
-                variant="secondary"
-                className="h-12 w-12 bg-background/95 backdrop-blur-sm hover:bg-background shadow-lg text-foreground border-0"
+                className="h-12 w-12 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/30 text-primary-foreground border-0"
                 title="Buscar"
               >
                 <Search className="w-5 h-5" />
