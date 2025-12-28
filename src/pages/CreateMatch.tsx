@@ -431,7 +431,7 @@ const CreateMatch = () => {
                     animate={{ scale: 1, opacity: 1 }}
                     className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-red-500/10 to-red-600/5 p-6"
                   >
-                    <div className="flex items-center justify-center gap-4 flex-wrap">
+                    <div className="flex items-center justify-center gap-3 flex-wrap">
                       {/* Creator */}
                       <div className="text-center">
                         <Avatar className="h-14 w-14 mx-auto ring-4 ring-red-500/20">
@@ -443,13 +443,15 @@ const CreateMatch = () => {
                         <p className="font-medium mt-2 text-xs">{t("matches", "you")}</p>
                       </div>
                       
-                      {/* VS indicator */}
-                      <div className="flex flex-col items-center">
-                        <div className="h-10 w-10 rounded-full bg-red-500/20 flex items-center justify-center">
-                          <Swords className="h-5 w-5 text-red-500" />
+                      {/* Only show VS if 2 players total (1 opponent) */}
+                      {selectedOpponents.length === 1 && (
+                        <div className="flex flex-col items-center">
+                          <div className="h-10 w-10 rounded-full bg-red-500/20 flex items-center justify-center">
+                            <Swords className="h-5 w-5 text-red-500" />
+                          </div>
+                          <span className="text-xs font-medium text-red-500 mt-1">VS</span>
                         </div>
-                        <span className="text-xs font-medium text-red-500 mt-1">VS</span>
-                      </div>
+                      )}
                       
                       {/* Opponents */}
                       {selectedOpponents.map((opponent) => (

@@ -24,9 +24,10 @@ export const InteractiveMatchCard = ({
   const isOpponent = match.opponent_id === user?.id;
   const isParticipant = match.participants?.some(p => p.user_id === user?.id) || isCreator || isOpponent;
   
-  // Get all unique participants for display
-  const allParticipants = match.participants && match.participants.length > 0 
-    ? match.participants 
+  // Get accepted participants for display
+  const acceptedParticipants = match.participants?.filter(p => p.status === 'accepted') || [];
+  const allParticipants = acceptedParticipants.length > 0 
+    ? acceptedParticipants 
     : [
         { id: '1', user_id: match.creator_id, status: 'accepted', profile: match.creator },
         { id: '2', user_id: match.opponent_id, status: 'accepted', profile: match.opponent }

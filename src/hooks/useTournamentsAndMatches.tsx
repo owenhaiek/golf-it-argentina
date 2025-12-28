@@ -116,13 +116,23 @@ export const useTournamentsAndMatches = () => {
     staleTime: 1000 * 60 * 2, // 2 minutes cache
   });
 
-  // Fetch user's matches (created or challenged)
+  // Fetch user's matches (created, challenged, or participating)
   const { data: matches, isLoading: matchesLoading, refetch: refetchMatches } = useQuery({
     queryKey: ['userMatches', user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
 
-      // First get the matches with golf course data
+      // First get matches where user is a participant
+      const { data: participatingMatches, error: participatingError } = await supabase
+        .from('match_participants')
+        .select('match_id')
+        .eq('user_id', user.id);
+
+      if (participatingError) console.error('Error fetching participating matches:', participatingError);
+
+      const participatingMatchIds = participatingMatches?.map(p => p.match_id) || [];
+
+      // Get all matches where user is creator, opponent, or participant
       const { data: matchesData, error: matchesError } = await supabase
         .from('matches')
         .select(`
@@ -133,7 +143,7 @@ export const useTournamentsAndMatches = () => {
             state
           )
         `)
-        .or(`creator_id.eq.${user.id},opponent_id.eq.${user.id}`)
+        .or(`creator_id.eq.${user.id},opponent_id.eq.${user.id}${participatingMatchIds.length > 0 ? `,id.in.(${participatingMatchIds.join(',')})` : ''}`)
         .order('match_date', { ascending: false });
 
       if (matchesError) throw matchesError;
