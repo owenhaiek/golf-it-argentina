@@ -26,6 +26,7 @@ interface GolfCourse {
   address?: string;
   phone?: string;
   website?: string;
+  is_open?: boolean;
 }
 
 const CoursesMap = () => {
@@ -67,7 +68,7 @@ const CoursesMap = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('golf_courses')
-        .select('id, name, city, state, par, holes, description, image_url, image_gallery, latitude, longitude, address, phone, website')
+        .select('id, name, city, state, par, holes, description, image_url, image_gallery, latitude, longitude, address, phone, website, is_open')
         .not('latitude', 'is', null)
         .not('longitude', 'is', null);
       
