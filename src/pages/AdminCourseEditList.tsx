@@ -48,35 +48,37 @@ const AdminCourseEditList = () => {
         <motion.div 
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-6 flex items-center justify-between"
+          className="mb-6 space-y-4"
         >
-          <div className="flex items-center gap-4">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => isEditing ? handleCancelEdit() : navigate('/admin')}
-              className="flex items-center gap-2 bg-zinc-900/50 border-zinc-700/50 text-zinc-300 hover:bg-zinc-800 hover:text-white rounded-xl"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              {isEditing ? "Volver a la Lista" : "Volver al Admin"}
-            </Button>
-            <h1 className="text-2xl font-bold text-white">
-              {isEditing 
-                ? (selectedCourse ? "Editar Campo de Golf" : "Agregar Nuevo Campo")
-                : "Gestionar Campos de Golf"
-              }
-            </h1>
+          {/* Mobile: Stack vertically */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => isEditing ? handleCancelEdit() : navigate('/admin')}
+                className="shrink-0 bg-zinc-900/50 border-zinc-700/50 text-zinc-300 hover:bg-zinc-800 hover:text-white rounded-xl h-10 w-10"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+              <h1 className="text-xl sm:text-2xl font-bold text-white leading-tight">
+                {isEditing 
+                  ? (selectedCourse ? "Editar Campo" : "Nuevo Campo")
+                  : "Gestionar Campos"
+                }
+              </h1>
+            </div>
+            
+            {!isEditing && (
+              <Button
+                onClick={handleAddNewCourse}
+                className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl shadow-lg shadow-emerald-900/30 w-full sm:w-auto"
+              >
+                <Plus className="h-4 w-4" />
+                Agregar Campo
+              </Button>
+            )}
           </div>
-          
-          {!isEditing && (
-            <Button
-              onClick={handleAddNewCourse}
-              className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl shadow-lg shadow-emerald-900/30"
-            >
-              <Plus className="h-4 w-4" />
-              Agregar Campo
-            </Button>
-          )}
         </motion.div>
         
         <motion.div

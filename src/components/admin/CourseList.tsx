@@ -318,7 +318,7 @@ const CourseList = ({ onEditCourse }: CourseListProps) => {
               {totalPages > 1 && (
                 <div className="mt-6">
                   <Pagination>
-                    <PaginationContent className="gap-1">
+                    <PaginationContent className="gap-1 flex-wrap justify-center">
                       <PaginationItem>
                         <PaginationPrevious 
                           onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
@@ -326,20 +326,21 @@ const CourseList = ({ onEditCourse }: CourseListProps) => {
                         />
                       </PaginationItem>
                       
-                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      {/* Show fewer page numbers on mobile */}
+                      {Array.from({ length: Math.min(3, totalPages) }, (_, i) => {
                         let pageNum;
-                        if (totalPages <= 5) {
+                        if (totalPages <= 3) {
                           pageNum = i + 1;
-                        } else if (currentPage <= 3) {
+                        } else if (currentPage <= 2) {
                           pageNum = i + 1;
-                        } else if (currentPage >= totalPages - 2) {
-                          pageNum = totalPages - 4 + i;
+                        } else if (currentPage >= totalPages - 1) {
+                          pageNum = totalPages - 2 + i;
                         } else {
-                          pageNum = currentPage - 2 + i;
+                          pageNum = currentPage - 1 + i;
                         }
                         
                         return (
-                          <PaginationItem key={pageNum}>
+                          <PaginationItem key={pageNum} className="hidden sm:block">
                             <PaginationLink 
                               isActive={currentPage === pageNum}
                               onClick={() => handlePageChange(pageNum)}
@@ -353,6 +354,13 @@ const CourseList = ({ onEditCourse }: CourseListProps) => {
                           </PaginationItem>
                         );
                       })}
+                      
+                      {/* Mobile: Show current page indicator */}
+                      <PaginationItem className="sm:hidden">
+                        <span className="px-3 py-2 text-sm text-zinc-400">
+                          {currentPage} / {totalPages}
+                        </span>
+                      </PaginationItem>
                       
                       <PaginationItem>
                         <PaginationNext 
