@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Trophy, Swords, Calendar, CheckCircle, Flame, ChevronRight } from "lucide-react";
+import { Trophy, Swords, Calendar, CheckCircle, Flame, ChevronRight, AlertTriangle } from "lucide-react";
 import { useTournamentsAndMatches } from "@/hooks/useTournamentsAndMatches";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,6 +15,16 @@ import { InteractiveTournamentCard } from "@/components/profile/cards/Interactiv
 import { MatchScoringCard } from "@/components/scoring/MatchScoringCard";
 import { TournamentScoringCard } from "@/components/scoring/TournamentScoringCard";
 import { motion, AnimatePresence } from "framer-motion";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 type FilterType = 'all' | 'active' | 'upcoming' | 'completed';
 
@@ -38,6 +48,23 @@ export const TournamentsAndMatchesSection = () => {
   const [matchScoringDialog, setMatchScoringDialog] = useState<{ open: boolean; match: any }>({ open: false, match: null });
   const [tournamentScoringCard, setTournamentScoringCard] = useState<{ open: boolean; tournament: any }>({ open: false, tournament: null });
   const [matchScoringCard, setMatchScoringCard] = useState<{ open: boolean; match: any }>({ open: false, match: null });
+  
+  // Delete confirmation dialog state
+  const [deleteDialog, setDeleteDialog] = useState<{
+    open: boolean;
+    type: 'tournament' | 'match';
+    id: string;
+    name: string;
+  }>({ open: false, type: 'tournament', id: '', name: '' });
+
+  const handleDeleteConfirm = async () => {
+    if (deleteDialog.type === 'tournament') {
+      await deleteTournament(deleteDialog.id);
+    } else {
+      await deleteMatch(deleteDialog.id);
+    }
+    setDeleteDialog({ open: false, type: 'tournament', id: '', name: '' });
+  };
 
   const deleteTournament = async (tournamentId: string) => {
     try {
@@ -252,14 +279,20 @@ export const TournamentsAndMatchesSection = () => {
                     tournament={item}
                     onLoadScores={(tournament) => setTournamentScoringCard({ open: true, tournament })}
                     onEdit={(tournament) => setEditTournamentDialog({ open: true, tournament })}
-                    onDelete={deleteTournament}
+                    onDelete={(tournamentId) => {
+                      const tournament = [...upcomingTournaments, ...activeTournaments, ...completedTournaments].find(t => t.id === tournamentId);
+                      setDeleteDialog({ open: true, type: 'tournament', id: tournamentId, name: tournament?.name || 'este torneo' });
+                    }}
                   />
                 ) : (
                   <InteractiveMatchCard
                     match={item}
                     onLoadScores={(match) => setMatchScoringCard({ open: true, match })}
                     onEdit={(match) => setEditMatchDialog({ open: true, match })}
-                    onDelete={deleteMatch}
+                    onDelete={(matchId) => {
+                      const match = [...activeMatches, ...completedMatches].find(m => m.id === matchId);
+                      setDeleteDialog({ open: true, type: 'match', id: matchId, name: match?.name || 'este partido' });
+                    }}
                   />
                 )}
               </motion.div>
@@ -312,6 +345,37 @@ export const TournamentsAndMatchesSection = () => {
         onOpenChange={(open) => setMatchScoringCard({ open, match: null })}
         onSuccess={refetchAll}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialog.open} onOpenChange={(open) => !open && setDeleteDialog(prev => ({ ...prev, open: false }))}>
+        <AlertDialogContent className="bg-card border-border rounded-2xl max-w-sm mx-auto">
+          <AlertDialogHeader>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2.5 rounded-xl bg-destructive/10">
+                <AlertTriangle className="h-5 w-5 text-destructive" />
+              </div>
+              <AlertDialogTitle className="text-lg font-semibold">
+                Eliminar {deleteDialog.type === 'tournament' ? 'Torneo' : 'Partido'}
+              </AlertDialogTitle>
+            </div>
+            <AlertDialogDescription className="text-muted-foreground">
+              ¿Estás seguro de que deseas eliminar <span className="font-medium text-foreground">"{deleteDialog.name}"</span>? 
+              Esta acción no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2 mt-4">
+            <AlertDialogCancel className="flex-1 h-11 rounded-xl bg-muted/50 border-border hover:bg-muted">
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteConfirm}
+              className="flex-1 h-11 rounded-xl bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

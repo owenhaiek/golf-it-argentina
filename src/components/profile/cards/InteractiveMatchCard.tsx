@@ -24,14 +24,53 @@ export const InteractiveMatchCard = ({
   const isOpponent = match.opponent_id === user?.id;
   const isParticipant = match.participants?.some(p => p.user_id === user?.id) || isCreator || isOpponent;
   
-  // Get accepted participants for display
-  const acceptedParticipants = match.participants?.filter(p => p.status === 'accepted') || [];
-  const allParticipants = acceptedParticipants.length > 0 
-    ? acceptedParticipants 
-    : [
-        { id: '1', user_id: match.creator_id, status: 'accepted', profile: match.creator },
-        { id: '2', user_id: match.opponent_id, status: 'accepted', profile: match.opponent }
-      ];
+  // Build complete participants list including creator and opponent
+  // First, get accepted participants from match_participants table
+  const acceptedFromParticipants = match.participants?.filter(p => p.status === 'accepted') || [];
+  
+  // Define participant type for display
+  type DisplayParticipant = {
+    id: string;
+    user_id: string;
+    status: string;
+    profile?: {
+      full_name?: string;
+      username?: string;
+      avatar_url?: string;
+    };
+  };
+  
+  // Create base participants from creator and opponent
+  const baseParticipants: DisplayParticipant[] = [
+    { id: 'creator', user_id: match.creator_id, status: 'accepted', profile: match.creator },
+    { id: 'opponent', user_id: match.opponent_id, status: 'accepted', profile: match.opponent }
+  ];
+  
+  // Combine: use accepted participants if they exist, otherwise use base participants
+  // Also add any additional accepted participants that aren't already in the list
+  const allParticipants = (() => {
+    const seenUserIds = new Set<string>();
+    const result: DisplayParticipant[] = [];
+    
+    // Always include creator first
+    seenUserIds.add(match.creator_id);
+    result.push(baseParticipants[0]);
+    
+    // Add accepted participants from match_participants (excluding creator)
+    acceptedFromParticipants.forEach(p => {
+      if (!seenUserIds.has(p.user_id)) {
+        seenUserIds.add(p.user_id);
+        result.push(p);
+      }
+    });
+    
+    // Add opponent if not already in list
+    if (!seenUserIds.has(match.opponent_id)) {
+      result.push(baseParticipants[1]);
+    }
+    
+    return result;
+  })();
   
   const getStatus = (): EventStatus => {
     if (match.status === 'completed') return 'completed';
