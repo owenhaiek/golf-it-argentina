@@ -14,7 +14,8 @@ import {
   Users,
   Clock,
   MapPin,
-  ArrowLeft
+  ArrowLeft,
+  List
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
@@ -227,7 +228,7 @@ const AdminPendingManagers = () => {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <div className="flex items-center gap-4 mb-6">
+          <div className="flex items-center gap-3 mb-6">
             <Button
               variant="outline"
               size="sm"
@@ -236,6 +237,15 @@ const AdminPendingManagers = () => {
             >
               <ArrowLeft className="h-4 w-4" />
               Volver
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate('/admin/course-edit-list')}
+              className="flex items-center gap-2 bg-zinc-900/50 border-zinc-700/50 text-zinc-300 hover:bg-zinc-800 hover:text-white rounded-xl"
+            >
+              <List className="h-4 w-4" />
+              Ver Campos
             </Button>
           </div>
           
