@@ -126,14 +126,29 @@ const AdminPendingManagers = () => {
   const handleApprove = async (pendingId: string) => {
     try {
       setActionLoading(pendingId);
-      const { error } = await supabase.rpc("approve_course_manager", {
+      const { data, error } = await supabase.rpc("approve_course_manager", {
         pending_id: pendingId,
       });
 
       if (error) {
+        // Handle duplicate email error
+        if (error.code === '23505' || error.message?.includes('duplicate key') || error.message?.includes('unique constraint')) {
+          toast({
+            title: "Ya existe",
+            description: "Este manager ya está registrado. Puedes eliminar la solicitud pendiente.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: error.message || "No se pudo aprobar el manager.",
+            variant: "destructive",
+          });
+        }
+      } else if (data === false) {
         toast({
           title: "Error",
-          description: "No se pudo aprobar el manager.",
+          description: "No se encontró la solicitud pendiente o ya fue procesada.",
           variant: "destructive",
         });
       } else {
@@ -144,11 +159,20 @@ const AdminPendingManagers = () => {
         fetchPendingManagers();
       }
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "No se pudo aprobar el manager.",
-        variant: "destructive",
-      });
+      // Handle duplicate email error from catch
+      if (error.code === '23505' || error.message?.includes('duplicate key') || error.message?.includes('unique constraint')) {
+        toast({
+          title: "Ya existe",
+          description: "Este manager ya está registrado. Puedes eliminar la solicitud pendiente.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: error.message || "No se pudo aprobar el manager.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setActionLoading(null);
     }
