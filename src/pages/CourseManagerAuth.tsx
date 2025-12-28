@@ -1,14 +1,17 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { hashPassword, verifyPassword, sanitizeInput, validateEmail, validatePassword, authRateLimiter, getPasswordStrength } from "@/utils/security";
-import { Building2, ArrowLeft, Mail, Lock, User, Phone, ArrowRight } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Building2, ArrowLeft, Mail, Lock, User, Phone, ArrowRight, Search } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
+import { Check } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const CourseManagerAuth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -18,6 +21,7 @@ const CourseManagerAuth = () => {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [selectedCourseId, setSelectedCourseId] = useState("");
+  const [courseSearchOpen, setCourseSearchOpen] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -145,7 +149,7 @@ const CourseManagerAuth = () => {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!name || !email || !password || !selectedCourseId) {
+    if (!name || !email || !password || !selectedCourseId || !phone) {
       toast({
         variant: "destructive",
         title: "Error",
@@ -178,7 +182,7 @@ const CourseManagerAuth = () => {
     try {
       const sanitizedName = sanitizeInput(name);
       const sanitizedEmail = sanitizeInput(email).toLowerCase();
-      const sanitizedPhone = phone ? sanitizeInput(phone) : null;
+      const sanitizedPhone = sanitizeInput(phone);
       const hashedPassword = await hashPassword(password.trim());
       
       const { error } = await supabase
@@ -292,27 +296,70 @@ const CourseManagerAuth = () => {
                     />
                   </div>
                   
-                  <Select value={selectedCourseId} onValueChange={setSelectedCourseId} required>
-                    <SelectTrigger className="h-12 bg-zinc-800/50 border-zinc-700/50 text-white rounded-xl focus:border-emerald-500/50">
-                      <Building2 className="h-5 w-5 text-zinc-500 mr-2" />
-                      <SelectValue placeholder="Seleccionar Campo de Golf" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-zinc-900 border-zinc-700">
-                      {golfCourses?.map((course) => (
-                        <SelectItem key={course.id} value={course.id} className="text-white hover:bg-zinc-800">
-                          {course.name} {course.city && `- ${course.city}`}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Popover open={courseSearchOpen} onOpenChange={setCourseSearchOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={courseSearchOpen}
+                        className="w-full h-12 justify-start bg-zinc-800/50 border-zinc-700/50 text-white rounded-xl hover:bg-zinc-800 hover:border-emerald-500/50"
+                      >
+                        <Building2 className="h-5 w-5 text-zinc-500 mr-2 shrink-0" />
+                        <span className={cn("truncate", !selectedCourseId && "text-zinc-500")}>
+                          {selectedCourseId
+                            ? golfCourses?.find((c) => c.id === selectedCourseId)?.name
+                            : "Buscar campo de golf..."}
+                        </span>
+                        <Search className="ml-auto h-4 w-4 shrink-0 text-zinc-500" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 bg-zinc-900 border-zinc-700" align="start">
+                      <Command className="bg-transparent">
+                        <CommandInput 
+                          placeholder="Buscar campo..." 
+                          className="h-11 text-white border-zinc-700"
+                        />
+                        <CommandList>
+                          <CommandEmpty className="text-zinc-500 py-6 text-center text-sm">
+                            No se encontraron campos
+                          </CommandEmpty>
+                          <CommandGroup className="max-h-60 overflow-auto">
+                            {golfCourses?.map((course) => (
+                              <CommandItem
+                                key={course.id}
+                                value={`${course.name} ${course.city || ''}`}
+                                onSelect={() => {
+                                  setSelectedCourseId(course.id);
+                                  setCourseSearchOpen(false);
+                                }}
+                                className="text-white hover:bg-zinc-800 cursor-pointer"
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    selectedCourseId === course.id ? "opacity-100 text-emerald-400" : "opacity-0"
+                                  )}
+                                />
+                                <span>{course.name}</span>
+                                {course.city && (
+                                  <span className="ml-2 text-zinc-500 text-sm">- {course.city}</span>
+                                )}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                   
                   <div className="relative">
                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-500" />
                     <Input
                       type="tel"
-                      placeholder="Teléfono (opcional)"
+                      placeholder="Teléfono"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
+                      required
                       className="pl-11 h-12 bg-zinc-800/50 border-zinc-700/50 text-white placeholder:text-zinc-500 focus:border-emerald-500/50 focus:ring-emerald-500/20 rounded-xl"
                     />
                   </div>
