@@ -23,27 +23,6 @@ const injectMarkerStyles = () => {
   const style = document.createElement('style');
   style.id = 'golf-marker-styles-v15';
   style.textContent = `
-    @keyframes marker-pulse {
-      0%, 100% {
-        box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.4), 0 5px 16px rgba(0, 0, 0, 0.4);
-      }
-      50% {
-        box-shadow: 0 0 0 8px rgba(34, 197, 94, 0.2), 0 5px 16px rgba(0, 0, 0, 0.4);
-      }
-    }
-    
-    @keyframes marker-grow {
-      0% {
-        transform: scale(1);
-      }
-      50% {
-        transform: scale(1.3);
-      }
-      100% {
-        transform: scale(1.25);
-      }
-    }
-    
     .golf-marker {
       width: 44px;
       height: 44px;
@@ -55,11 +34,7 @@ const injectMarkerStyles = () => {
       justify-content: center;
       cursor: pointer;
       box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
-      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, border-color 0.2s ease;
-      backface-visibility: hidden;
-      -webkit-backface-visibility: hidden;
-      transform-origin: center center;
-      contain: layout style;
+      transition: box-shadow 0.2s ease, border-color 0.2s ease;
     }
     
     .golf-marker:hover {
@@ -68,8 +43,7 @@ const injectMarkerStyles = () => {
     
     .golf-marker.active {
       border: 3px solid white;
-      transform: scale(1.25);
-      animation: marker-pulse 2s ease-in-out infinite;
+      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.4), 0 5px 16px rgba(0, 0, 0, 0.4);
       z-index: 100 !important;
     }
     
