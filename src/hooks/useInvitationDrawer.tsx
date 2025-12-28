@@ -1,33 +1,67 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 export const useInvitationDrawer = () => {
   const { user } = useAuth();
-  const [hasShownInvitation, setHasShownInvitation] = useState(false);
+  const [pendingCount, setPendingCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Since matches are now created as active (no pending state), 
-  // there are no pending invitations to show
-  const hasPendingInvitations = () => {
-    return false;
+  const fetchPendingInvitations = async () => {
+    if (!user?.id) {
+      setPendingCount(0);
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const { count, error } = await supabase
+        .from('match_participants')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('status', 'pending');
+
+      if (error) throw error;
+      setPendingCount(count || 0);
+    } catch (error) {
+      console.error('Error fetching pending invitations:', error);
+      setPendingCount(0);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const shouldShowInvitationDrawer = () => {
-    return false;
-  };
-
-  const markInvitationShown = () => {
-    setHasShownInvitation(true);
-  };
-
-  // Reset when user changes
   useEffect(() => {
-    setHasShownInvitation(false);
+    fetchPendingInvitations();
+
+    if (!user?.id) return;
+
+    // Listen for changes in match_participants
+    const channel = supabase
+      .channel('invitation-count')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'match_participants',
+          filter: `user_id=eq.${user.id}`
+        },
+        () => {
+          fetchPendingInvitations();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user?.id]);
 
   return {
-    shouldShowInvitationDrawer: false,
-    markInvitationShown,
-    hasPendingInvitations: false,
-    isLoading: false
+    pendingCount,
+    hasPendingInvitations: pendingCount > 0,
+    isLoading,
+    refetch: fetchPendingInvitations
   };
 };
