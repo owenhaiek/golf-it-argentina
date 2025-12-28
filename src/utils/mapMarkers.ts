@@ -22,6 +22,15 @@ const injectMarkerStyles = () => {
   const style = document.createElement('style');
   style.id = 'golf-marker-styles-v14';
   style.textContent = `
+    @keyframes marker-pulse {
+      0%, 100% {
+        box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.4), 0 5px 16px rgba(0, 0, 0, 0.4);
+      }
+      50% {
+        box-shadow: 0 0 0 8px rgba(34, 197, 94, 0.2), 0 5px 16px rgba(0, 0, 0, 0.4);
+      }
+    }
+    
     .golf-marker {
       width: 44px;
       height: 44px;
@@ -45,7 +54,7 @@ const injectMarkerStyles = () => {
     
     .golf-marker.active {
       border: 3px solid white;
-      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.4), 0 5px 16px rgba(0, 0, 0, 0.4);
+      animation: marker-pulse 2s ease-in-out infinite;
     }
     
     .golf-marker svg {
