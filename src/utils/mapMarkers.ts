@@ -1,3 +1,4 @@
+import { hapticMedium } from '@/hooks/useDespiaNative';
 
 interface GolfCourse {
   id: string;
@@ -90,6 +91,9 @@ export const createMarkerElement = (course: GolfCourse, onCourseSelect: (course:
   el.addEventListener("click", (e) => {
     e.preventDefault();
     e.stopPropagation();
+    
+    // Trigger haptic feedback on mobile
+    hapticMedium();
     
     // Remove active from previous
     if (activeMarkerId) {
