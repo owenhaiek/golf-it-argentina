@@ -33,12 +33,14 @@ const injectMarkerStyles = () => {
       justify-content: center;
       cursor: pointer;
       box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
-      transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+      transition: box-shadow 0.2s ease, border-color 0.2s ease;
+      will-change: box-shadow;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
     }
     
     .golf-marker:hover {
       box-shadow: 0 5px 16px rgba(0, 0, 0, 0.5);
-      transform: scale(1.05);
     }
     
     .golf-marker.active {
@@ -51,6 +53,10 @@ const injectMarkerStyles = () => {
       height: 20px;
       color: white;
       flex-shrink: 0;
+    }
+    
+    .mapboxgl-marker {
+      will-change: transform;
     }
   `;
   document.head.appendChild(style);
