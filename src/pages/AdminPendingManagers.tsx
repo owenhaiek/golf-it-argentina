@@ -15,7 +15,8 @@ import {
   Clock,
   MapPin,
   ArrowLeft,
-  List
+  List,
+  Trash2
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
@@ -177,6 +178,38 @@ const AdminPendingManagers = () => {
       toast({
         title: "Error",
         description: error.message || "No se pudo rechazar el manager.",
+        variant: "destructive",
+      });
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleDelete = async (pendingId: string) => {
+    try {
+      setActionLoading(pendingId);
+      const { error } = await supabase
+        .from('pending_course_managers')
+        .delete()
+        .eq('id', pendingId);
+
+      if (error) {
+        toast({
+          title: "Error",
+          description: "No se pudo eliminar el registro.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Éxito",
+          description: "Registro eliminado exitosamente.",
+        });
+        fetchPendingManagers();
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo eliminar el registro.",
         variant: "destructive",
       });
     } finally {
@@ -381,74 +414,109 @@ const AdminPendingManagers = () => {
                     </div>
                   </div>
                   
-                  {manager.status === 'pending' && (
-                    <div className="flex gap-2 flex-shrink-0">
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button 
-                            size="sm" 
-                            className="bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg"
-                            disabled={actionLoading === manager.id}
-                          >
-                            <Check className="w-4 h-4 mr-1" />
-                            Aprobar
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent className="bg-zinc-900 border-zinc-700">
-                          <AlertDialogHeader>
-                            <AlertDialogTitle className="text-white">Aprobar Manager</AlertDialogTitle>
-                            <AlertDialogDescription className="text-zinc-400">
-                              ¿Estás seguro de aprobar a {manager.name} como manager de {manager.golf_courses.name}?
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel className="bg-zinc-800 border-zinc-700 text-white hover:bg-zinc-700">
-                              Cancelar
-                            </AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => handleApprove(manager.id)}
-                              className="bg-emerald-600 hover:bg-emerald-500"
+                  <div className="flex gap-2 flex-shrink-0">
+                    {manager.status === 'pending' && (
+                      <>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button 
+                              size="sm" 
+                              className="bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg"
+                              disabled={actionLoading === manager.id}
                             >
+                              <Check className="w-4 h-4 mr-1" />
                               Aprobar
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent className="bg-zinc-900 border-zinc-700">
+                            <AlertDialogHeader>
+                              <AlertDialogTitle className="text-white">Aprobar Manager</AlertDialogTitle>
+                              <AlertDialogDescription className="text-zinc-400">
+                                ¿Estás seguro de aprobar a {manager.name} como manager de {manager.golf_courses.name}?
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel className="bg-zinc-800 border-zinc-700 text-white hover:bg-zinc-700">
+                                Cancelar
+                              </AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleApprove(manager.id)}
+                                className="bg-emerald-600 hover:bg-emerald-500"
+                              >
+                                Aprobar
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
 
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button 
-                            size="sm" 
-                            variant="destructive"
-                            className="rounded-lg"
-                            disabled={actionLoading === manager.id}
-                          >
-                            <X className="w-4 h-4 mr-1" />
-                            Rechazar
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent className="bg-zinc-900 border-zinc-700">
-                          <AlertDialogHeader>
-                            <AlertDialogTitle className="text-white">Rechazar Solicitud</AlertDialogTitle>
-                            <AlertDialogDescription className="text-zinc-400">
-                              ¿Estás seguro de rechazar la solicitud de {manager.name}?
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel className="bg-zinc-800 border-zinc-700 text-white hover:bg-zinc-700">
-                              Cancelar
-                            </AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => handleReject(manager.id)}
-                              className="bg-red-600 hover:bg-red-500"
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button 
+                              size="sm" 
+                              variant="destructive"
+                              className="rounded-lg"
+                              disabled={actionLoading === manager.id}
                             >
+                              <X className="w-4 h-4 mr-1" />
                               Rechazar
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
-                  )}
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent className="bg-zinc-900 border-zinc-700">
+                            <AlertDialogHeader>
+                              <AlertDialogTitle className="text-white">Rechazar Solicitud</AlertDialogTitle>
+                              <AlertDialogDescription className="text-zinc-400">
+                                ¿Estás seguro de rechazar la solicitud de {manager.name}?
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel className="bg-zinc-800 border-zinc-700 text-white hover:bg-zinc-700">
+                                Cancelar
+                              </AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleReject(manager.id)}
+                                className="bg-red-600 hover:bg-red-500"
+                              >
+                                Rechazar
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </>
+                    )}
+
+                    {/* Delete button - available for all statuses */}
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          className="rounded-lg border-zinc-700 text-zinc-400 hover:text-red-400 hover:border-red-500/50 hover:bg-red-500/10"
+                          disabled={actionLoading === manager.id}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent className="bg-zinc-900 border-zinc-700">
+                        <AlertDialogHeader>
+                          <AlertDialogTitle className="text-white">Eliminar Registro</AlertDialogTitle>
+                          <AlertDialogDescription className="text-zinc-400">
+                            ¿Estás seguro de eliminar permanentemente el registro de {manager.name}? Esta acción no se puede deshacer.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel className="bg-zinc-800 border-zinc-700 text-white hover:bg-zinc-700">
+                            Cancelar
+                          </AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => handleDelete(manager.id)}
+                            className="bg-red-600 hover:bg-red-500"
+                          >
+                            Eliminar
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
                 </div>
               </motion.div>
             ))}
