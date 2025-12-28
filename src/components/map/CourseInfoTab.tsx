@@ -1,10 +1,12 @@
-
 import { useState } from "react";
 import { X, MapPin, Phone, Globe, Flag, Navigation, Eye, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { motion, AnimatePresence, useDragControls, PanInfo } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import StarRating from "@/components/ui/StarRating";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface CourseInfoTabProps {
   course: {
@@ -31,6 +33,30 @@ export const CourseInfoTab = ({ course, isOpen, onClose }: CourseInfoTabProps) =
   const navigate = useNavigate();
   const dragControls = useDragControls();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  // Fetch average rating for this course
+  const { data: ratingData } = useQuery({
+    queryKey: ['course-rating', course?.id],
+    queryFn: async () => {
+      if (!course?.id) return { average: 0, count: 0 };
+      
+      const { data, error } = await supabase
+        .from('course_reviews')
+        .select('rating')
+        .eq('course_id', course.id);
+      
+      if (error) throw error;
+      
+      if (!data || data.length === 0) return { average: 0, count: 0 };
+      
+      const sum = data.reduce((acc, review) => acc + review.rating, 0);
+      return { 
+        average: sum / data.length,
+        count: data.length
+      };
+    },
+    enabled: !!course?.id,
+  });
 
   if (!course) return null;
 
@@ -227,6 +253,22 @@ export const CourseInfoTab = ({ course, isOpen, onClose }: CourseInfoTabProps) =
               <h2 className="text-lg font-bold text-foreground leading-tight line-clamp-2">
                 {course.name}
               </h2>
+              
+              {/* Star Rating */}
+              {ratingData && ratingData.count > 0 && (
+                <div className="flex items-center gap-2 mt-2">
+                  <StarRating rating={ratingData.average} size="md" showRating={true} />
+                  <span className="text-xs text-muted-foreground">
+                    ({ratingData.count} {ratingData.count === 1 ? 'reseña' : 'reseñas'})
+                  </span>
+                </div>
+              )}
+              {ratingData && ratingData.count === 0 && (
+                <div className="flex items-center gap-1.5 mt-2 text-sm text-muted-foreground">
+                  <StarRating rating={0} size="sm" showRating={false} />
+                  <span className="text-xs">Sin reseñas aún</span>
+                </div>
+              )}
               
               {(course.address || course.city) && (
                 <div className="flex items-center gap-1.5 text-sm text-muted-foreground mt-1.5">
