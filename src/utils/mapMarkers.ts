@@ -42,8 +42,8 @@ const injectMarkerStyles = () => {
     }
     
     .golf-marker.active {
-      border: 3px solid white;
-      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.4), 0 5px 16px rgba(0, 0, 0, 0.4);
+      border: 3px solid #22c55e;
+      box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.5), 0 0 12px rgba(34, 197, 94, 0.6), 0 5px 16px rgba(0, 0, 0, 0.4);
       z-index: 100 !important;
     }
     
