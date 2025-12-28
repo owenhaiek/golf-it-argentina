@@ -6,6 +6,7 @@ import { Plus, Flag, Trophy, Swords, Crown, Lock } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useSubscription } from "@/hooks/useSubscription";
 import { motion, AnimatePresence } from "framer-motion";
+import { hapticLight, hapticMedium } from "@/hooks/useDespiaNative";
 
 export const AddMenu = () => {
   const [open, setOpen] = useState(false);
@@ -13,15 +14,23 @@ export const AddMenu = () => {
   const { t, language } = useLanguage();
   const { isPremium, isLoading } = useSubscription();
 
+  const handleOpenChange = (newOpen: boolean) => {
+    if (newOpen) {
+      hapticMedium();
+    }
+    setOpen(newOpen);
+  };
+
   const handleAddRound = () => {
+    hapticLight();
     setOpen(false);
     navigate('/add-round');
   };
 
   const handleCreateTournament = () => {
+    hapticLight();
     setOpen(false);
     if (!isPremium) {
-      // Redirect to subscription page if not premium
       navigate('/subscription');
       return;
     }
@@ -29,6 +38,7 @@ export const AddMenu = () => {
   };
 
   const handleCreateMatch = () => {
+    hapticLight();
     setOpen(false);
     navigate('/create-match');
   };
@@ -65,7 +75,7 @@ export const AddMenu = () => {
   ];
 
   return (
-    <Drawer open={open} onOpenChange={setOpen}>
+    <Drawer open={open} onOpenChange={handleOpenChange}>
       <DrawerTrigger asChild>
         <button className="flex flex-col items-center justify-center gap-1 py-2 px-3 transition-all duration-200 min-h-[44px] rounded-md text-primary hover:bg-primary/10 active:scale-95 active:bg-primary/20 transform-gpu will-change-transform">
           <motion.div 
