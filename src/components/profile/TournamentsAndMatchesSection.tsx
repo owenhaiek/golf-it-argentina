@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Trophy, Swords, Calendar, Clock, CheckCircle, Flame } from "lucide-react";
+import { Trophy, Swords, Calendar, CheckCircle, Flame, ChevronRight } from "lucide-react";
 import { useTournamentsAndMatches } from "@/hooks/useTournamentsAndMatches";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,8 +14,9 @@ import { InteractiveMatchCard } from "@/components/profile/cards/InteractiveMatc
 import { InteractiveTournamentCard } from "@/components/profile/cards/InteractiveTournamentCard";
 import { MatchScoringCard } from "@/components/scoring/MatchScoringCard";
 import { TournamentScoringCard } from "@/components/scoring/TournamentScoringCard";
+import { motion, AnimatePresence } from "framer-motion";
 
-type ViewMode = 'tournaments' | 'matches';
+type FilterType = 'all' | 'active' | 'upcoming' | 'completed';
 
 export const TournamentsAndMatchesSection = () => {
   const { user } = useAuth();
@@ -31,7 +31,7 @@ export const TournamentsAndMatchesSection = () => {
     refetchAll
   } = useTournamentsAndMatches();
 
-  const [viewMode, setViewMode] = useState<ViewMode>('tournaments');
+  const [activeFilter, setActiveFilter] = useState<FilterType>('all');
   const [editTournamentDialog, setEditTournamentDialog] = useState<{ open: boolean; tournament: any }>({ open: false, tournament: null });
   const [editMatchDialog, setEditMatchDialog] = useState<{ open: boolean; match: any }>({ open: false, match: null });
   const [tournamentScoringDialog, setTournamentScoringDialog] = useState<{ open: boolean; tournament: any }>({ open: false, tournament: null });
@@ -89,6 +89,26 @@ export const TournamentsAndMatchesSection = () => {
     }
   };
 
+  // Combine all items with type indicator
+  const allItems = [
+    ...activeTournaments.map(t => ({ ...t, itemType: 'tournament' as const, status: 'active' as const })),
+    ...activeMatches.map(m => ({ ...m, itemType: 'match' as const, status: 'active' as const })),
+    ...upcomingTournaments.map(t => ({ ...t, itemType: 'tournament' as const, status: 'upcoming' as const })),
+    ...completedTournaments.map(t => ({ ...t, itemType: 'tournament' as const, status: 'completed' as const })),
+    ...completedMatches.map(m => ({ ...m, itemType: 'match' as const, status: 'completed' as const })),
+  ];
+
+  // Filter items based on active filter
+  const filteredItems = activeFilter === 'all' 
+    ? allItems 
+    : allItems.filter(item => item.status === activeFilter);
+
+  const totalTournaments = upcomingTournaments.length + activeTournaments.length + completedTournaments.length;
+  const totalMatches = activeMatches.length + completedMatches.length;
+  const activeCount = activeTournaments.length + activeMatches.length;
+  const upcomingCount = upcomingTournaments.length;
+  const completedCount = completedTournaments.length + completedMatches.length;
+
   if (isLoading) {
     return (
       <div className="w-full space-y-4">
@@ -108,17 +128,12 @@ export const TournamentsAndMatchesSection = () => {
                   <div className="h-3 w-1/2 bg-muted rounded" />
                 </div>
               </div>
-              <div className="h-10 bg-muted rounded-lg mb-3" />
-              <div className="h-20 bg-muted rounded-xl" />
             </div>
           ))}
         </div>
       </div>
     );
   }
-
-  const totalTournaments = upcomingTournaments.length + activeTournaments.length + completedTournaments.length;
-  const totalMatches = activeMatches.length + completedMatches.length;
 
   if (totalTournaments === 0 && totalMatches === 0) {
     return (
@@ -147,203 +162,111 @@ export const TournamentsAndMatchesSection = () => {
     );
   }
 
+  const filters: { key: FilterType; label: string; icon: any; count: number; color: string }[] = [
+    { key: 'all', label: 'Todos', icon: null, count: allItems.length, color: 'bg-zinc-500/20 text-zinc-400' },
+    { key: 'active', label: 'Activos', icon: Flame, count: activeCount, color: 'bg-emerald-500/20 text-emerald-400' },
+    { key: 'upcoming', label: 'Próximos', icon: Calendar, count: upcomingCount, color: 'bg-blue-500/20 text-blue-400' },
+    { key: 'completed', label: 'Finalizados', icon: CheckCircle, count: completedCount, color: 'bg-zinc-500/20 text-zinc-400' },
+  ];
+
   return (
     <div className="w-full space-y-4">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <div className={`p-2.5 rounded-xl transition-colors ${viewMode === 'tournaments' ? 'bg-amber-500/10' : 'bg-red-500/10'}`}>
-          {viewMode === 'tournaments' ? (
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 rounded-xl bg-gradient-to-br from-amber-500/20 to-red-500/10">
             <Trophy className="h-5 w-5 text-amber-500" />
-          ) : (
-            <Swords className="h-5 w-5 text-red-500" />
-          )}
+          </div>
+          <div>
+            <span className="font-semibold text-lg text-foreground">Torneos y Partidos</span>
+            <div className="flex items-center gap-2 mt-0.5">
+              <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-amber-500/10 text-amber-400 border-amber-500/20">
+                {totalTournaments} torneos
+              </Badge>
+              <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-red-500/10 text-red-400 border-red-500/20">
+                {totalMatches} partidos
+              </Badge>
+            </div>
+          </div>
         </div>
-        <span className="font-semibold text-lg text-foreground">
-          {viewMode === 'tournaments' ? 'Torneos' : 'Partidos'}
-        </span>
       </div>
       
-      {/* Mode Toggle */}
-      <div className="flex bg-muted/50 p-1 rounded-xl w-full border border-border/50">
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={() => setViewMode('tournaments')}
-          className={`flex-1 h-10 text-sm justify-center rounded-lg transition-all ${
-            viewMode === 'tournaments' 
-              ? 'bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 shadow-sm' 
-              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-          }`}
-        >
-          <Trophy className="h-4 w-4 mr-2" />
-          Torneos
-          {totalTournaments > 0 && (
-            <Badge className={`ml-2 text-xs h-5 px-1.5 border-0 ${
-              viewMode === 'tournaments' 
-                ? 'bg-amber-500/30 text-amber-300' 
-                : 'bg-muted text-muted-foreground'
-            }`}>
-              {totalTournaments}
-            </Badge>
-          )}
-        </Button>
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={() => setViewMode('matches')}
-          className={`flex-1 h-10 text-sm justify-center rounded-lg transition-all ${
-            viewMode === 'matches' 
-              ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30 shadow-sm' 
-              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-          }`}
-        >
-          <Swords className="h-4 w-4 mr-2" />
-          Partidos
-          {totalMatches > 0 && (
-            <Badge className={`ml-2 text-xs h-5 px-1.5 border-0 ${
-              viewMode === 'matches' 
-                ? 'bg-red-500/30 text-red-300' 
-                : 'bg-muted text-muted-foreground'
-            }`}>
-              {totalMatches}
-            </Badge>
-          )}
-        </Button>
+      {/* Filter Pills */}
+      <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
+        {filters.map(({ key, label, icon: Icon, count, color }) => (
+          <button
+            key={key}
+            onClick={() => setActiveFilter(key)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all ${
+              activeFilter === key
+                ? `${color} ring-1 ring-current/30`
+                : 'bg-muted/50 text-muted-foreground hover:bg-muted'
+            }`}
+          >
+            {Icon && <Icon className="h-3 w-3" />}
+            {label}
+            {count > 0 && (
+              <span className={`ml-1 px-1.5 py-0.5 rounded-full text-[10px] ${
+                activeFilter === key ? 'bg-background/20' : 'bg-muted'
+              }`}>
+                {count}
+              </span>
+            )}
+          </button>
+        ))}
       </div>
 
-      {/* Tabs Content */}
-      <Tabs defaultValue="active" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 h-10 rounded-xl bg-muted/50 border border-border/50 p-1">
-          <TabsTrigger 
-            value="active" 
-            className="flex items-center gap-1.5 text-xs rounded-lg data-[state=active]:bg-emerald-500/20 data-[state=active]:text-emerald-400 data-[state=active]:shadow-sm"
-          >
-            <Flame className="h-3.5 w-3.5" />
-            <span>Activos</span>
-          </TabsTrigger>
-          <TabsTrigger 
-            value="upcoming" 
-            className="flex items-center gap-1.5 text-xs rounded-lg data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-400 data-[state=active]:shadow-sm"
-          >
-            <Calendar className="h-3.5 w-3.5" />
-            <span>Próximos</span>
-          </TabsTrigger>
-          <TabsTrigger 
-            value="completed" 
-            className="flex items-center gap-1.5 text-xs rounded-lg data-[state=active]:bg-muted data-[state=active]:text-foreground data-[state=active]:shadow-sm"
-          >
-            <CheckCircle className="h-3.5 w-3.5" />
-            <span>Finalizados</span>
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="active" className="space-y-3 mt-4">
-          {viewMode === 'tournaments' ? (
-            <>
-              {activeTournaments.map((tournament) => (
-                <InteractiveTournamentCard
-                  key={tournament.id}
-                  tournament={tournament}
-                  onLoadScores={(tournament) => setTournamentScoringCard({ open: true, tournament })}
-                  onEdit={(tournament) => setEditTournamentDialog({ open: true, tournament })}
-                  onDelete={deleteTournament}
-                />
-              ))}
-              {activeTournaments.length === 0 && (
-                <EmptyState 
-                  icon={<Trophy className="h-8 w-8 text-zinc-600" />}
-                  message="Sin torneos activos"
-                />
-              )}
-            </>
+      {/* Items List */}
+      <div className="space-y-3">
+        <AnimatePresence mode="popLayout">
+          {filteredItems.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center py-8 bg-card rounded-2xl border border-border/50"
+            >
+              <div className="flex justify-center mb-2 opacity-50">
+                {activeFilter === 'active' && <Flame className="h-8 w-8 text-emerald-500" />}
+                {activeFilter === 'upcoming' && <Calendar className="h-8 w-8 text-blue-500" />}
+                {activeFilter === 'completed' && <CheckCircle className="h-8 w-8 text-zinc-500" />}
+                {activeFilter === 'all' && <Trophy className="h-8 w-8 text-amber-500" />}
+              </div>
+              <p className="text-muted-foreground text-sm">
+                {activeFilter === 'active' && 'Sin eventos activos'}
+                {activeFilter === 'upcoming' && 'Sin eventos próximos'}
+                {activeFilter === 'completed' && 'Sin eventos finalizados'}
+                {activeFilter === 'all' && 'Sin eventos'}
+              </p>
+            </motion.div>
           ) : (
-            <>
-              {activeMatches.map((match) => (
-                <InteractiveMatchCard
-                  key={match.id}
-                  match={match}
-                  onLoadScores={(match) => setMatchScoringCard({ open: true, match })}
-                  onEdit={(match) => setEditMatchDialog({ open: true, match })}
-                  onDelete={deleteMatch}
-                />
-              ))}
-              {activeMatches.length === 0 && (
-                <EmptyState 
-                  icon={<Swords className="h-8 w-8 text-zinc-600" />}
-                  message="Sin partidos activos"
-                />
-              )}
-            </>
+            filteredItems.map((item, index) => (
+              <motion.div
+                key={item.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ delay: index * 0.03 }}
+              >
+                {item.itemType === 'tournament' ? (
+                  <InteractiveTournamentCard
+                    tournament={item}
+                    onLoadScores={(tournament) => setTournamentScoringCard({ open: true, tournament })}
+                    onEdit={(tournament) => setEditTournamentDialog({ open: true, tournament })}
+                    onDelete={deleteTournament}
+                  />
+                ) : (
+                  <InteractiveMatchCard
+                    match={item}
+                    onLoadScores={(match) => setMatchScoringCard({ open: true, match })}
+                    onEdit={(match) => setEditMatchDialog({ open: true, match })}
+                    onDelete={deleteMatch}
+                  />
+                )}
+              </motion.div>
+            ))
           )}
-        </TabsContent>
-
-        <TabsContent value="upcoming" className="space-y-3 mt-4">
-          {viewMode === 'tournaments' ? (
-            <>
-              {upcomingTournaments.map((tournament) => (
-                <InteractiveTournamentCard
-                  key={tournament.id}
-                  tournament={tournament}
-                  onLoadScores={(tournament) => setTournamentScoringCard({ open: true, tournament })}
-                  onEdit={(tournament) => setEditTournamentDialog({ open: true, tournament })}
-                  onDelete={deleteTournament}
-                />
-              ))}
-              {upcomingTournaments.length === 0 && (
-                <EmptyState 
-                  icon={<Trophy className="h-8 w-8 text-zinc-600" />}
-                  message="Sin torneos próximos"
-                />
-              )}
-            </>
-          ) : (
-            <EmptyState 
-              icon={<Swords className="h-8 w-8 text-zinc-600" />}
-              message="Los partidos se crean directamente como activos"
-            />
-          )}
-        </TabsContent>
-
-        <TabsContent value="completed" className="space-y-3 mt-4">
-          {viewMode === 'tournaments' ? (
-            <>
-              {completedTournaments.map((tournament) => (
-                <InteractiveTournamentCard
-                  key={tournament.id}
-                  tournament={tournament}
-                  onLoadScores={(tournament) => setTournamentScoringCard({ open: true, tournament })}
-                  onEdit={(tournament) => setEditTournamentDialog({ open: true, tournament })}
-                  onDelete={deleteTournament}
-                />
-              ))}
-              {completedTournaments.length === 0 && (
-                <EmptyState 
-                  icon={<Trophy className="h-8 w-8 text-zinc-600" />}
-                  message="Sin torneos finalizados"
-                />
-              )}
-            </>
-          ) : (
-            <>
-              {completedMatches.map((match) => (
-                <InteractiveMatchCard
-                  key={match.id}
-                  match={match}
-                  onLoadScores={(match) => setMatchScoringCard({ open: true, match })}
-                  onEdit={(match) => setEditMatchDialog({ open: true, match })}
-                  onDelete={deleteMatch}
-                />
-              ))}
-              {completedMatches.length === 0 && (
-                <EmptyState 
-                  icon={<Swords className="h-8 w-8 text-zinc-600" />}
-                  message="Sin partidos finalizados"
-                />
-              )}
-            </>
-          )}
-        </TabsContent>
-      </Tabs>
+        </AnimatePresence>
+      </div>
 
       {/* Edit Dialogs */}
       <EditTournamentDialog
@@ -392,11 +315,3 @@ export const TournamentsAndMatchesSection = () => {
     </div>
   );
 };
-
-// Empty state component
-const EmptyState = ({ icon, message }: { icon: React.ReactNode; message: string }) => (
-  <div className="text-center py-8 bg-card rounded-2xl border border-border/50">
-    <div className="flex justify-center mb-2 opacity-50">{icon}</div>
-    <p className="text-muted-foreground text-sm">{message}</p>
-  </div>
-);
