@@ -51,7 +51,7 @@ export const InteractiveMatchCard = ({
       date={match.match_date}
       status={getStatus()}
       icon={<Swords className="h-5 w-5 text-red-400" />}
-      isCreator={isParticipant}
+      isCreator={isCreator}
       onLoadScores={() => onLoadScores?.(match)}
       onEdit={() => onEdit?.(match)}
       onDelete={() => onDelete?.(match.id)}

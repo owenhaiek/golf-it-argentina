@@ -119,7 +119,8 @@ export const EventCard = ({
         {children}
 
         {/* Actions */}
-        <div className="pt-1">
+        <div className="pt-1 space-y-2">
+          {/* Load Scores button for active matches - only for creator */}
           {status === 'active' && isCreator && onLoadScores && (
             <Button
               onClick={onLoadScores}
@@ -130,7 +131,8 @@ export const EventCard = ({
             </Button>
           )}
 
-          {status === 'upcoming' && isCreator && (
+          {/* Edit/Delete buttons for creator - show for both active and upcoming */}
+          {(status === 'active' || status === 'upcoming') && isCreator && (
             <div className="flex gap-2">
               <Button
                 onClick={onEdit}
