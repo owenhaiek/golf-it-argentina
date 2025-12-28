@@ -130,8 +130,8 @@ const Profile = () => {
             roundsLoading={roundsLoading}
             userId={user.id}
           />
-          <TournamentsAndMatchesSection />
           <RecentRounds />
+          <TournamentsAndMatchesSection />
         </div>
       </div>
     </div>

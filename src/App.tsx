@@ -33,6 +33,7 @@ import AdminCourseEdit from "./pages/AdminCourseEdit";
 import AdminCourseEditList from "./pages/AdminCourseEditList";
 import AdminPendingManagers from "./pages/AdminPendingManagers";
 import Subscription from "./pages/Subscription";
+import AllRounds from "./pages/AllRounds";
 
 const queryClient = new QueryClient();
 
@@ -91,6 +92,7 @@ function App() {
                         <Route path="/create-match" element={<CreateMatch />} />
                         <Route path="/settings" element={<Settings />} />
                         <Route path="/subscription" element={<Subscription />} />
+                        <Route path="/all-rounds" element={<AllRounds />} />
                       </Route>
                     </Routes>
                   </AuthGuard>
