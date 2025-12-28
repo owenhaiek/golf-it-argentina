@@ -8,6 +8,7 @@ import UserStatsCard from "@/components/profile/UserStatsCard";
 import { FriendsSection } from "@/components/profile/FriendsSection";
 import { FriendSuggestions } from "@/components/profile/FriendSuggestions";
 import { TournamentsAndMatchesSection } from "@/components/profile/TournamentsAndMatchesSection";
+import { InvitationDrawer } from "@/components/ui/InvitationDrawer";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion } from "framer-motion";
 import { Settings } from "lucide-react";
@@ -134,6 +135,9 @@ const Profile = () => {
           <TournamentsAndMatchesSection />
         </div>
       </div>
+      
+      {/* Invitation Drawer */}
+      <InvitationDrawer />
     </div>
   );
 };

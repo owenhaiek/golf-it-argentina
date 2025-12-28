@@ -115,12 +115,13 @@ const CreateMatch = () => {
       if (error) throw error;
 
       // Add all participants to match_participants table
+      // Creator is accepted, opponents are pending (they need to accept the invitation)
       const participants = [
         { match_id: match.id, user_id: user.id, status: 'accepted' }, // Creator
         ...formData.opponentIds.map(opponentId => ({
           match_id: match.id,
           user_id: opponentId,
-          status: 'accepted'
+          status: 'pending' // Opponents need to accept
         }))
       ];
 
