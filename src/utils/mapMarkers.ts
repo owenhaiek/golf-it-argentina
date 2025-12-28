@@ -48,7 +48,7 @@ const injectMarkerStyles = () => {
       width: 44px;
       height: 44px;
       border-radius: 50%;
-      background: #18181b;
+      background: #0a2820;
       border: 2.5px solid rgba(255, 255, 255, 0.9);
       display: flex;
       align-items: center;
@@ -56,10 +56,10 @@ const injectMarkerStyles = () => {
       cursor: pointer;
       box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
       transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, border-color 0.2s ease;
-      will-change: transform, box-shadow;
       backface-visibility: hidden;
       -webkit-backface-visibility: hidden;
       transform-origin: center center;
+      contain: layout style;
     }
     
     .golf-marker:hover {
@@ -78,10 +78,6 @@ const injectMarkerStyles = () => {
       height: 20px;
       color: white;
       flex-shrink: 0;
-    }
-    
-    .mapboxgl-marker {
-      will-change: transform;
     }
     
     .mapboxgl-marker:has(.golf-marker.active) {

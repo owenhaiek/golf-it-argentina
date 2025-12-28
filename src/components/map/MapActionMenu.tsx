@@ -237,13 +237,13 @@ export const MapActionMenu = ({ onOpenChange }: MapActionMenuProps) => {
           }}
           className={`
             h-14 w-14 rounded-full 
-            bg-gradient-to-br from-primary to-primary/80
-            shadow-xl shadow-primary/40 
+            bg-[#0a2820]
+            shadow-xl shadow-black/40 
             flex items-center justify-center
-            ${isOpen ? 'ring-4 ring-primary/20' : ''}
+            ${isOpen ? 'ring-4 ring-[#0a2820]/30' : ''}
           `}
         >
-          <Plus className="w-7 h-7 text-primary-foreground" strokeWidth={2.5} />
+          <Plus className="w-7 h-7 text-white" strokeWidth={2.5} />
         </motion.button>
       </div>
     </>
