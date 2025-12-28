@@ -69,7 +69,7 @@ const CoursesMap = () => {
   };
 
   // Fetch golf courses
-  const { data: courses = [], isLoading, error } = useQuery({
+  const { data: courses = [], isLoading, error, refetch } = useQuery({
     queryKey: ['golf-courses-map'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -109,6 +109,30 @@ const CoursesMap = () => {
     },
     staleTime: 5 * 60 * 1000,
   });
+
+  // Subscribe to real-time updates for golf course status changes
+  useEffect(() => {
+    const channel = supabase
+      .channel('golf-courses-status')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'golf_courses'
+        },
+        (payload) => {
+          console.log('Golf course updated:', payload);
+          // Refetch courses when any course is updated
+          refetch();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [refetch]);
 
   // Filter courses based on active filters
   const filteredCourses = useMemo(() => {
