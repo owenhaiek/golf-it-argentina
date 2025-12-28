@@ -760,6 +760,7 @@ export type Database = {
           updated_at: string
         }[]
       }
+      is_admin: { Args: never; Returns: boolean }
       reject_course_manager: { Args: { pending_id: string }; Returns: boolean }
       reject_friend_request: { Args: { request_id: string }; Returns: boolean }
       remove_friendship: { Args: { friend_user_id: string }; Returns: boolean }
