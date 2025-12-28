@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useSimpleMapbox } from "@/hooks/useSimpleMapbox";
-import { useMapClustering } from "@/hooks/useMapClustering";
+import { useMapMarkers } from "@/hooks/useMapMarkers";
 
 interface GolfCourse {
   id: string;
@@ -44,7 +44,7 @@ export const useMapboxWithMarkers = ({
   const initTimeoutRef = useRef<NodeJS.Timeout>();
   const coursesRef = useRef<GolfCourse[]>(courses);
   
-  const { initializeClustering, focusOnCourse, cleanup: cleanupClustering, updateMarkers } = useMapClustering(onCourseSelect);
+  const { addMarkersToMap, focusOnCourse, cleanup: cleanupMarkers, clearMarkers } = useMapMarkers(onCourseSelect);
 
   // Keep courses ref updated
   useEffect(() => {
@@ -60,12 +60,12 @@ export const useMapboxWithMarkers = ({
     onMapReady: (mapInstance) => {
       console.log("[MapboxWithMarkers] Map ready");
       
-      // Listen for style changes to re-initialize clustering
+      // Listen for style changes to re-add markers
       mapInstance.on('style.load', () => {
-        console.log("[MapboxWithMarkers] Style loaded, re-initializing clustering");
+        console.log("[MapboxWithMarkers] Style loaded, re-adding markers");
         setTimeout(() => {
           if (coursesRef.current && coursesRef.current.length > 0) {
-            initializeClustering(mapInstance, coursesRef.current, false);
+            addMarkersToMap(mapInstance, coursesRef.current, false);
           }
         }, 100);
       });
@@ -81,17 +81,17 @@ export const useMapboxWithMarkers = ({
     }
   });
 
-  // Initialize clustering when map and courses are ready
+  // Initialize markers when map and courses are ready
   useEffect(() => {
     if (!map || !courses || courses.length === 0 || isLoading || !isInitialized) {
       return;
     }
 
-    console.log("[MapboxWithMarkers] Initializing clustering for", courses.length, "courses");
+    console.log("[MapboxWithMarkers] Initializing markers for", courses.length, "courses");
     const shouldFitBounds = !focusCourseId;
-    initializeClustering(map, courses, shouldFitBounds);
+    addMarkersToMap(map, courses, shouldFitBounds);
     
-  }, [map, courses, isLoading, isInitialized, initializeClustering, focusCourseId]);
+  }, [map, courses, isLoading, isInitialized, addMarkersToMap, focusCourseId]);
 
   // Handle course focus - only for URL-based focus (not marker clicks)
   useEffect(() => {
@@ -116,7 +116,7 @@ export const useMapboxWithMarkers = ({
     // Mark this course as focused to prevent duplicates
     hasFocusedRef.current = focusCourseId;
     
-    // Focus on the course
+    // Just focus on the course, don't re-select (marker click already selected it)
     focusOnCourse(map, courseToFocus);
 
   }, [map, focusCourseId, courses, isInitialized, isLoading, focusOnCourse]);
@@ -141,6 +141,6 @@ export const useMapboxWithMarkers = ({
     map,
     isLoading,
     error,
-    cleanup: cleanupClustering
+    cleanup: cleanupMarkers
   };
 };
