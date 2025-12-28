@@ -34,6 +34,17 @@ export interface Tournament {
   }>;
 }
 
+export interface MatchParticipant {
+  id: string;
+  user_id: string;
+  status: string;
+  profile?: {
+    full_name?: string;
+    username?: string;
+    avatar_url?: string;
+  };
+}
+
 export interface Match {
   id: string;
   name: string;
@@ -61,6 +72,7 @@ export interface Match {
     username?: string;
     avatar_url?: string;
   };
+  participants?: MatchParticipant[];
 }
 
 export const useTournamentsAndMatches = () => {
@@ -127,12 +139,24 @@ export const useTournamentsAndMatches = () => {
       if (matchesError) throw matchesError;
       if (!matchesData) return [];
 
-      // Get unique user IDs from creator and opponent
+      // Get match IDs
+      const matchIds = matchesData.map(m => m.id);
+
+      // Fetch participants for all matches
+      const { data: participantsData, error: participantsError } = await supabase
+        .from('match_participants')
+        .select('*')
+        .in('match_id', matchIds);
+
+      if (participantsError) console.error('Error fetching participants:', participantsError);
+
+      // Get unique user IDs from creator, opponent, and participants
       const userIds = new Set<string>();
       matchesData.forEach(match => {
         userIds.add(match.creator_id);
         userIds.add(match.opponent_id);
       });
+      participantsData?.forEach(p => userIds.add(p.user_id));
 
       // Fetch profile data for all users
       const { data: profilesData, error: profilesError } = await supabase
@@ -148,11 +172,25 @@ export const useTournamentsAndMatches = () => {
         profilesMap.set(profile.id, profile);
       });
 
-      // Enrich matches with profile data
+      // Create participants map per match
+      const participantsMap = new Map<string, MatchParticipant[]>();
+      participantsData?.forEach(p => {
+        const matchParticipants = participantsMap.get(p.match_id) || [];
+        matchParticipants.push({
+          id: p.id,
+          user_id: p.user_id,
+          status: p.status,
+          profile: profilesMap.get(p.user_id) || null
+        });
+        participantsMap.set(p.match_id, matchParticipants);
+      });
+
+      // Enrich matches with profile data and participants
       const enrichedMatches = matchesData.map(match => ({
         ...match,
         creator: profilesMap.get(match.creator_id) || null,
         opponent: profilesMap.get(match.opponent_id) || null,
+        participants: participantsMap.get(match.id) || [],
       }));
 
       return enrichedMatches as Match[];
