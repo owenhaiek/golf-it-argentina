@@ -48,28 +48,43 @@ export const MatchScoringDialog = ({ match, open, onOpenChange, onSuccess }: Mat
   const initializePlayers = () => {
     if (!match || !user) return;
     
-    const isCreator = user.id === match.creator_id;
+    let playerScores: PlayerScore[] = [];
     
-    const playerScores: PlayerScore[] = [
-      {
-        user_id: match.creator_id || "",
-        name: match.creator?.full_name || 'Creador',
-        username: match.creator?.username || 'creator',
-        avatar_url: match.creator?.avatar_url,
+    // Check if match has multiple participants
+    if (match.participants && match.participants.length > 0) {
+      playerScores = match.participants.map(p => ({
+        user_id: p.user_id,
+        name: p.profile?.full_name || 'Jugador',
+        username: p.profile?.username || 'jugador',
+        avatar_url: p.profile?.avatar_url,
         hole_scores: new Array(18).fill(0),
         total_score: 0,
-        isCurrentUser: isCreator,
-      },
-      {
-        user_id: match.opponent_id || "",
-        name: match.opponent?.full_name || 'Oponente',
-        username: match.opponent?.username || 'opponent',
-        avatar_url: match.opponent?.avatar_url,
-        hole_scores: new Array(18).fill(0),
-        total_score: 0,
-        isCurrentUser: !isCreator,
-      }
-    ];
+        isCurrentUser: p.user_id === user.id,
+      }));
+    } else {
+      // Fallback to creator/opponent for 2-player matches
+      const isCreator = user.id === match.creator_id;
+      playerScores = [
+        {
+          user_id: match.creator_id || "",
+          name: match.creator?.full_name || 'Creador',
+          username: match.creator?.username || 'creator',
+          avatar_url: match.creator?.avatar_url,
+          hole_scores: new Array(18).fill(0),
+          total_score: 0,
+          isCurrentUser: isCreator,
+        },
+        {
+          user_id: match.opponent_id || "",
+          name: match.opponent?.full_name || 'Oponente',
+          username: match.opponent?.username || 'opponent',
+          avatar_url: match.opponent?.avatar_url,
+          hole_scores: new Array(18).fill(0),
+          total_score: 0,
+          isCurrentUser: !isCreator,
+        }
+      ];
+    }
     
     // Sort so current user is first
     playerScores.sort((a, b) => (b.isCurrentUser ? 1 : 0) - (a.isCurrentUser ? 1 : 0));
@@ -167,7 +182,7 @@ export const MatchScoringDialog = ({ match, open, onOpenChange, onSuccess }: Mat
   const isLastHole = activeHoleIndex >= 17;
   
   const currentPlayer = players[0];
-  const opponentPlayer = players[1];
+  const otherPlayers = players.slice(1);
 
   const getScoreDiff = (score: number, par: number) => {
     if (score === 0) return '';
@@ -197,14 +212,16 @@ export const MatchScoringDialog = ({ match, open, onOpenChange, onSuccess }: Mat
   };
 
   const getMatchStatus = () => {
-    if (!currentPlayer || !opponentPlayer) return null;
+    if (!currentPlayer || otherPlayers.length === 0) return null;
     
     const myTotal = currentPlayer.total_score;
-    const opponentTotal = opponentPlayer.total_score;
+    if (myTotal === 0) return null;
     
-    if (myTotal === 0 && opponentTotal === 0) return null;
+    // Find best score among other players
+    const bestOtherScore = Math.min(...otherPlayers.map(p => p.total_score).filter(s => s > 0));
+    if (bestOtherScore === Infinity) return null;
     
-    const diff = myTotal - opponentTotal;
+    const diff = myTotal - bestOtherScore;
     if (diff === 0) return { text: 'Empate', color: 'text-blue-500', bg: 'bg-blue-500/10' };
     if (diff < 0) return { text: `Ganando por ${Math.abs(diff)}`, color: 'text-green-500', bg: 'bg-green-500/10' };
     return { text: `Perdiendo por ${diff}`, color: 'text-red-500', bg: 'bg-red-500/10' };
@@ -244,9 +261,7 @@ export const MatchScoringDialog = ({ match, open, onOpenChange, onSuccess }: Mat
             <div className="px-3 py-2 border-b border-border/50 bg-muted/20">
               <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
                 {Array.from({ length: 18 }, (_, i) => {
-                  const myScore = currentPlayer?.hole_scores[i] || 0;
-                  const opponentScore = opponentPlayer?.hole_scores[i] || 0;
-                  const hasAnyScore = myScore > 0 || opponentScore > 0;
+                  const hasAnyScore = players.some(p => (p.hole_scores[i] || 0) > 0);
                   const isActive = i === activeHoleIndex;
                   
                   return (
@@ -371,26 +386,26 @@ export const MatchScoringDialog = ({ match, open, onOpenChange, onSuccess }: Mat
                     </div>
                   )}
 
-                  {/* Opponent Score */}
-                  {opponentPlayer && (
-                    <div className="bg-muted/30 rounded-2xl p-4 border border-border/50">
+                  {/* Other Players Scores */}
+                  {otherPlayers.map((player, idx) => (
+                    <div key={player.user_id} className="bg-muted/30 rounded-2xl p-4 border border-border/50">
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-2">
                           <Avatar className="h-10 w-10">
-                            <AvatarImage src={opponentPlayer.avatar_url} />
+                            <AvatarImage src={player.avatar_url} />
                             <AvatarFallback className="bg-orange-500/20 text-orange-600 font-bold">
-                              {opponentPlayer.name?.[0] || "?"}
+                              {player.name?.[0] || "?"}
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <p className="font-semibold text-sm">{opponentPlayer.name?.split(' ')[0]}</p>
-                            <p className="text-xs text-muted-foreground">Total: {opponentPlayer.total_score || '-'}</p>
+                            <p className="font-semibold text-sm">{player.name?.split(' ')[0]}</p>
+                            <p className="text-xs text-muted-foreground">Total: {player.total_score || '-'}</p>
                           </div>
                         </div>
                         
-                        {opponentPlayer.hole_scores[activeHoleIndex] > 0 && (
-                          <Badge className={`${getScoreBgColor(opponentPlayer.hole_scores[activeHoleIndex], currentPar)} text-white`}>
-                            {getScoreDiff(opponentPlayer.hole_scores[activeHoleIndex], currentPar)}
+                        {player.hole_scores[activeHoleIndex] > 0 && (
+                          <Badge className={`${getScoreBgColor(player.hole_scores[activeHoleIndex], currentPar)} text-white`}>
+                            {getScoreDiff(player.hole_scores[activeHoleIndex], currentPar)}
                           </Badge>
                         )}
                       </div>
@@ -400,8 +415,8 @@ export const MatchScoringDialog = ({ match, open, onOpenChange, onSuccess }: Mat
                           <Button
                             variant="outline"
                             size="icon"
-                            onClick={() => adjustScore(1, activeHoleIndex, -1)}
-                            disabled={opponentPlayer.hole_scores[activeHoleIndex] <= 0}
+                            onClick={() => adjustScore(idx + 1, activeHoleIndex, -1)}
+                            disabled={player.hole_scores[activeHoleIndex] <= 0}
                             className="h-12 w-12 rounded-full"
                           >
                             <Minus className="h-5 w-5" />
@@ -409,19 +424,19 @@ export const MatchScoringDialog = ({ match, open, onOpenChange, onSuccess }: Mat
                         </motion.div>
                         
                         <motion.div 
-                          key={opponentPlayer.hole_scores[activeHoleIndex]}
+                          key={player.hole_scores[activeHoleIndex]}
                           initial={{ scale: 0.8 }}
                           animate={{ scale: 1 }}
-                          className={`text-4xl font-bold min-w-[60px] text-center ${getScoreColor(opponentPlayer.hole_scores[activeHoleIndex], currentPar)}`}
+                          className={`text-4xl font-bold min-w-[60px] text-center ${getScoreColor(player.hole_scores[activeHoleIndex], currentPar)}`}
                         >
-                          {opponentPlayer.hole_scores[activeHoleIndex] || '-'}
+                          {player.hole_scores[activeHoleIndex] || '-'}
                         </motion.div>
                         
                         <motion.div whileTap={{ scale: 0.9 }}>
                           <Button
                             variant="outline"
                             size="icon"
-                            onClick={() => adjustScore(1, activeHoleIndex, 1)}
+                            onClick={() => adjustScore(idx + 1, activeHoleIndex, 1)}
                             className="h-12 w-12 rounded-full"
                           >
                             <Plus className="h-5 w-5" />
@@ -429,7 +444,7 @@ export const MatchScoringDialog = ({ match, open, onOpenChange, onSuccess }: Mat
                         </motion.div>
                       </div>
                     </div>
-                  )}
+                  ))}
                 </motion.div>
               </AnimatePresence>
             </div>

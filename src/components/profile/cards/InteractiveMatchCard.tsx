@@ -110,23 +110,23 @@ export const InteractiveMatchCard = ({
             </div>
           </div>
         ) : (
-          // Multi-player layout (3-4 players)
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 mb-2">
-              <Users className="h-4 w-4 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">{allParticipants.length} jugadores</span>
-            </div>
-            <div className="flex flex-wrap items-center justify-center gap-3">
-              {allParticipants.map((participant, index) => {
-                const isCurrentUser = participant.user_id === user?.id;
-                return (
-                  <div key={participant.id} className="flex flex-col items-center space-y-1">
-                    <Avatar className={`h-10 w-10 ring-2 ${isCurrentUser ? 'ring-emerald-500/50' : 'ring-red-500/30'}`}>
+          // Multi-player layout (3-4 players) with VS separators
+          <div className="flex items-center justify-center flex-wrap gap-1">
+            {allParticipants.map((participant, index) => {
+              const isCurrentUser = participant.user_id === user?.id;
+              const isLast = index === allParticipants.length - 1;
+              const colors = ['emerald', 'red', 'blue', 'amber'];
+              const color = colors[index % colors.length];
+              
+              return (
+                <div key={participant.id} className="flex items-center">
+                  <div className="flex flex-col items-center space-y-1 px-2">
+                    <Avatar className={`h-10 w-10 ring-2 ${isCurrentUser ? 'ring-emerald-500/50' : `ring-${color}-500/30`}`}>
                       <AvatarImage 
                         src={participant.profile?.avatar_url} 
                         alt={participant.profile?.full_name || 'Player'} 
                       />
-                      <AvatarFallback className={`font-semibold text-xs ${isCurrentUser ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'}`}>
+                      <AvatarFallback className={`font-semibold text-xs ${isCurrentUser ? 'bg-emerald-500/20 text-emerald-400' : `bg-${color}-500/20 text-${color}-400`}`}>
                         {participant.profile?.full_name?.[0] || participant.profile?.username?.[0] || 'P'}
                       </AvatarFallback>
                     </Avatar>
@@ -141,9 +141,16 @@ export const InteractiveMatchCard = ({
                       )}
                     </div>
                   </div>
-                );
-              })}
-            </div>
+                  
+                  {/* VS separator */}
+                  {!isLast && (
+                    <div className="flex flex-col items-center px-1">
+                      <span className="text-[10px] font-bold text-muted-foreground tracking-wider">vs</span>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
