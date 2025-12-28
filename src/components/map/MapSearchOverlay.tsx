@@ -138,7 +138,7 @@ export const MapSearchOverlay = ({ courses, onSelectCourse, onOpenChange }: MapS
           <Button
             onClick={() => navigate('/profile')}
             size="icon"
-            className="h-12 w-12 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/30 text-primary-foreground border-0"
+            className="h-12 w-12 bg-[#0a2820] hover:bg-[#0a2820]/80 shadow-lg shadow-black/30 text-white border-0"
             title="Mi perfil"
           >
             <User className="w-5 h-5" />
@@ -159,7 +159,7 @@ export const MapSearchOverlay = ({ courses, onSelectCourse, onOpenChange }: MapS
               <Button
                 onClick={() => setIsOpen(true)}
                 size="icon"
-                className="h-12 w-12 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/30 text-primary-foreground border-0"
+                className="h-12 w-12 bg-[#0a2820] hover:bg-[#0a2820]/80 shadow-lg shadow-black/30 text-white border-0"
                 title="Buscar"
               >
                 <Search className="w-5 h-5" />
