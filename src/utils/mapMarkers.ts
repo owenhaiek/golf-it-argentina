@@ -9,19 +9,19 @@ interface GolfCourse {
 
 let activeMarkerId: string | null = null;
 
-// Inject global styles once - Clean, stable markers without size changes
+// Inject global styles once - Clean, stable markers with grow effect on active
 const injectMarkerStyles = () => {
-  if (document.getElementById('golf-marker-styles-v14')) return;
+  if (document.getElementById('golf-marker-styles-v15')) return;
   
   // Remove old styles
-  const oldStyles = ['golf-marker-styles-v8', 'golf-marker-styles-v9', 'golf-marker-styles-v10', 'golf-marker-styles-v11', 'golf-marker-styles-v12', 'golf-marker-styles-v13'];
+  const oldStyles = ['golf-marker-styles-v8', 'golf-marker-styles-v9', 'golf-marker-styles-v10', 'golf-marker-styles-v11', 'golf-marker-styles-v12', 'golf-marker-styles-v13', 'golf-marker-styles-v14'];
   oldStyles.forEach(id => {
     const oldStyle = document.getElementById(id);
     if (oldStyle) oldStyle.remove();
   });
   
   const style = document.createElement('style');
-  style.id = 'golf-marker-styles-v14';
+  style.id = 'golf-marker-styles-v15';
   style.textContent = `
     @keyframes marker-pulse {
       0%, 100% {
@@ -29,6 +29,18 @@ const injectMarkerStyles = () => {
       }
       50% {
         box-shadow: 0 0 0 8px rgba(34, 197, 94, 0.2), 0 5px 16px rgba(0, 0, 0, 0.4);
+      }
+    }
+    
+    @keyframes marker-grow {
+      0% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.3);
+      }
+      100% {
+        transform: scale(1.25);
       }
     }
     
@@ -43,10 +55,11 @@ const injectMarkerStyles = () => {
       justify-content: center;
       cursor: pointer;
       box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
-      transition: box-shadow 0.2s ease, border-color 0.2s ease;
-      will-change: box-shadow;
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+      will-change: transform, box-shadow;
       backface-visibility: hidden;
       -webkit-backface-visibility: hidden;
+      transform-origin: center center;
     }
     
     .golf-marker:hover {
@@ -55,7 +68,9 @@ const injectMarkerStyles = () => {
     
     .golf-marker.active {
       border: 3px solid white;
+      transform: scale(1.25);
       animation: marker-pulse 2s ease-in-out infinite;
+      z-index: 100 !important;
     }
     
     .golf-marker svg {
@@ -67,6 +82,10 @@ const injectMarkerStyles = () => {
     
     .mapboxgl-marker {
       will-change: transform;
+    }
+    
+    .mapboxgl-marker:has(.golf-marker.active) {
+      z-index: 100 !important;
     }
   `;
   document.head.appendChild(style);
