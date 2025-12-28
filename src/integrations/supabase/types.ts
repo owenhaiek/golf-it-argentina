@@ -216,6 +216,38 @@ export type Database = {
         }
         Relationships: []
       }
+      match_participants: {
+        Row: {
+          created_at: string
+          id: string
+          match_id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          match_id: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          match_id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_participants_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       match_scores: {
         Row: {
           hole_scores: number[]

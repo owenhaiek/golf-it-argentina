@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ArrowLeft, Swords, Calendar, MapPin, Search, Flag, Check, ChevronRight, Zap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -42,7 +42,7 @@ const CreateMatch = () => {
   const [courseSearch, setCourseSearch] = useState("");
   const [formData, setFormData] = useState({
     name: "",
-    opponentId: "",
+    opponentIds: [] as string[],
     courseId: "",
     matchDate: "",
     matchTime: "",
@@ -59,7 +59,7 @@ const CreateMatch = () => {
   };
 
   const selectedCourse = courses.find(c => c.id === formData.courseId);
-  const selectedOpponent = friends.find(friend => friend.id === formData.opponentId);
+  const selectedOpponents = friends.filter(friend => formData.opponentIds.includes(friend.id));
   const filteredCourses = courses.filter(course => 
     course.name.toLowerCase().includes(courseSearch.toLowerCase()) ||
     course.city?.toLowerCase().includes(courseSearch.toLowerCase())
@@ -69,10 +69,26 @@ const CreateMatch = () => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  const handleOpponentToggle = (friendId: string) => {
+    setFormData(prev => {
+      const isSelected = prev.opponentIds.includes(friendId);
+      if (isSelected) {
+        return { ...prev, opponentIds: prev.opponentIds.filter(id => id !== friendId) };
+      } else {
+        // Max 3 opponents (4 players total including creator)
+        if (prev.opponentIds.length >= 3) {
+          toast.error("Máximo 4 jugadores en total");
+          return prev;
+        }
+        return { ...prev, opponentIds: [...prev.opponentIds, friendId] };
+      }
+    });
+  };
+
   const handleSubmit = async () => {
     if (!user) return;
     
-    if (!formData.name || !formData.opponentId || !formData.courseId || !formData.matchDate) {
+    if (!formData.name || formData.opponentIds.length === 0 || !formData.courseId || !formData.matchDate) {
       toast.error(t("matches", "fillRequiredFields"));
       return;
     }
@@ -80,22 +96,42 @@ const CreateMatch = () => {
     setIsLoading(true);
     
     try {
+      // Create match with the first opponent (for backward compatibility)
       const { data: match, error } = await supabase
         .from('matches')
         .insert({
           name: formData.name,
           creator_id: user.id,
-          opponent_id: formData.opponentId,
+          opponent_id: formData.opponentIds[0], // First opponent for backward compatibility
           course_id: formData.courseId,
           match_date: formData.matchDate,
           match_type: formData.matchType,
           stakes: formData.stakes || null,
-          status: 'accepted' // Always create as active/accepted
+          status: 'accepted'
         })
         .select()
         .single();
 
       if (error) throw error;
+
+      // Add all participants to match_participants table
+      const participants = [
+        { match_id: match.id, user_id: user.id, status: 'accepted' }, // Creator
+        ...formData.opponentIds.map(opponentId => ({
+          match_id: match.id,
+          user_id: opponentId,
+          status: 'accepted'
+        }))
+      ];
+
+      const { error: participantsError } = await supabase
+        .from('match_participants')
+        .insert(participants);
+
+      if (participantsError) {
+        console.error("Error adding participants:", participantsError);
+        // Match was created, just log the error
+      }
 
       toast.success("¡Partido creado!");
       navigate("/profile?tab=competitions");
@@ -108,7 +144,7 @@ const CreateMatch = () => {
   };
 
   const canProceedStep1 = !!formData.courseId;
-  const canProceedStep2 = !!formData.opponentId;
+  const canProceedStep2 = formData.opponentIds.length > 0;
   const canSubmit = canProceedStep1 && canProceedStep2 && !!formData.name && !!formData.matchDate && !!formData.matchTime;
   
   const isSameDay = formData.matchDate && new Date(formData.matchDate).toDateString() === new Date().toDateString();
@@ -307,43 +343,47 @@ const CreateMatch = () => {
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    {friends.map((friend, index) => (
-                      <motion.div
-                        key={friend.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.05 }}
-                        onClick={() => handleInputChange("opponentId", friend.id)}
-                        className={`flex items-center justify-between p-4 rounded-2xl cursor-pointer transition-all duration-200 ${
-                          formData.opponentId === friend.id
-                            ? 'bg-red-500/10 ring-1 ring-red-500/30'
-                            : 'bg-muted/50 hover:bg-muted'
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-14 w-14 ring-2 ring-background">
-                            <AvatarImage src={friend.avatar_url} />
-                            <AvatarFallback className="bg-red-500/10 text-red-600 font-semibold text-lg">
-                              {friend.full_name?.charAt(0) || friend.username?.charAt(0) || '?'}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="font-medium text-lg">
-                              {friend.full_name || friend.username || 'Unknown User'}
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                              @{friend.username || 'user'}
-                            </p>
+                    <p className="text-xs text-muted-foreground mb-2">
+                      Seleccionados: {formData.opponentIds.length}/3 oponentes ({formData.opponentIds.length + 1} jugadores)
+                    </p>
+                    {friends.map((friend, index) => {
+                      const isSelected = formData.opponentIds.includes(friend.id);
+                      return (
+                        <motion.div
+                          key={friend.id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.05 }}
+                          onClick={() => handleOpponentToggle(friend.id)}
+                          className={`flex items-center justify-between p-4 rounded-2xl cursor-pointer transition-all duration-200 ${
+                            isSelected
+                              ? 'bg-red-500/10 ring-1 ring-red-500/30'
+                              : 'bg-muted/50 hover:bg-muted'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-14 w-14 ring-2 ring-background">
+                              <AvatarImage src={friend.avatar_url} />
+                              <AvatarFallback className="bg-red-500/10 text-red-600 font-semibold text-lg">
+                                {friend.full_name?.charAt(0) || friend.username?.charAt(0) || '?'}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="font-medium text-lg">
+                                {friend.full_name || friend.username || 'Unknown User'}
+                              </p>
+                              <p className="text-sm text-muted-foreground">
+                                @{friend.username || 'user'}
+                              </p>
+                            </div>
                           </div>
-                        </div>
-                        <RadioGroup value={formData.opponentId}>
-                          <RadioGroupItem 
-                            value={friend.id} 
-                            className="h-6 w-6 border-2 text-red-500 border-muted-foreground/30 data-[state=checked]:border-red-500"
+                          <Checkbox
+                            checked={isSelected}
+                            className="h-6 w-6 border-2 data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500"
                           />
-                        </RadioGroup>
-                      </motion.div>
-                    ))}
+                        </motion.div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -384,42 +424,50 @@ const CreateMatch = () => {
             >
               <div className="p-4 pb-32 max-w-2xl mx-auto space-y-6">
                 {/* Match preview */}
-                {selectedOpponent && (
+                {selectedOpponents.length > 0 && (
                   <motion.div 
                     initial={{ scale: 0.95, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-red-500/10 to-red-600/5 p-6"
                   >
-                    <div className="flex items-center justify-center gap-6">
+                    <div className="flex items-center justify-center gap-4 flex-wrap">
+                      {/* Creator */}
                       <div className="text-center">
-                        <Avatar className="h-16 w-16 mx-auto ring-4 ring-red-500/20">
+                        <Avatar className="h-14 w-14 mx-auto ring-4 ring-red-500/20">
                           <AvatarImage src={user?.user_metadata?.avatar_url} />
-                          <AvatarFallback className="bg-red-500 text-white font-bold text-xl">
+                          <AvatarFallback className="bg-red-500 text-white font-bold text-lg">
                             {user?.user_metadata?.full_name?.charAt(0) || 'T'}
                           </AvatarFallback>
                         </Avatar>
-                        <p className="font-medium mt-2 text-sm">{t("matches", "you")}</p>
+                        <p className="font-medium mt-2 text-xs">{t("matches", "you")}</p>
                       </div>
                       
+                      {/* VS indicator */}
                       <div className="flex flex-col items-center">
-                        <div className="h-12 w-12 rounded-full bg-red-500/20 flex items-center justify-center">
-                          <Swords className="h-6 w-6 text-red-500" />
+                        <div className="h-10 w-10 rounded-full bg-red-500/20 flex items-center justify-center">
+                          <Swords className="h-5 w-5 text-red-500" />
                         </div>
                         <span className="text-xs font-medium text-red-500 mt-1">VS</span>
                       </div>
                       
-                      <div className="text-center">
-                        <Avatar className="h-16 w-16 mx-auto ring-4 ring-red-500/20">
-                          <AvatarImage src={selectedOpponent.avatar_url} />
-                          <AvatarFallback className="bg-red-500 text-white font-bold text-xl">
-                            {selectedOpponent.full_name?.charAt(0) || selectedOpponent.username?.charAt(0) || '?'}
-                          </AvatarFallback>
-                        </Avatar>
-                        <p className="font-medium mt-2 text-sm">
-                          {selectedOpponent.full_name?.split(' ')[0] || selectedOpponent.username}
-                        </p>
-                      </div>
+                      {/* Opponents */}
+                      {selectedOpponents.map((opponent) => (
+                        <div key={opponent.id} className="text-center">
+                          <Avatar className="h-14 w-14 mx-auto ring-4 ring-red-500/20">
+                            <AvatarImage src={opponent.avatar_url} />
+                            <AvatarFallback className="bg-red-500 text-white font-bold text-lg">
+                              {opponent.full_name?.charAt(0) || opponent.username?.charAt(0) || '?'}
+                            </AvatarFallback>
+                          </Avatar>
+                          <p className="font-medium mt-2 text-xs">
+                            {opponent.full_name?.split(' ')[0] || opponent.username}
+                          </p>
+                        </div>
+                      ))}
                     </div>
+                    <p className="text-center text-xs text-muted-foreground mt-4">
+                      {selectedOpponents.length + 1} jugadores
+                    </p>
                   </motion.div>
                 )}
 
