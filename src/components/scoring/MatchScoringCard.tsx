@@ -47,9 +47,11 @@ export const MatchScoringCard = ({ match, open, onOpenChange, onSuccess }: Match
     
     let playerScores: PlayerScore[] = [];
     
-    // Check if match has multiple participants
-    if (match.participants && match.participants.length > 0) {
-      playerScores = match.participants.map(p => ({
+    // Check if match has multiple participants (filter only accepted ones)
+    const acceptedParticipants = match.participants?.filter(p => p.status === 'accepted') || [];
+    
+    if (acceptedParticipants.length > 0) {
+      playerScores = acceptedParticipants.map(p => ({
         user_id: p.user_id,
         name: p.profile?.full_name || 'Jugador',
         username: p.profile?.username || 'jugador',
