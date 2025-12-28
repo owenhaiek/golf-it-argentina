@@ -20,12 +20,14 @@ import RoundScoreDialog from "@/components/profile/RoundScoreDialog";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const AllRounds = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
   const [selectedRound, setSelectedRound] = useState<any>(null);
   const [isScoreDialogOpen, setIsScoreDialogOpen] = useState(false);
   const [roundToDelete, setRoundToDelete] = useState<string | null>(null);
@@ -142,7 +144,7 @@ const AllRounds = () => {
             >
               <ArrowLeft size={16} className="text-muted-foreground" />
             </Button>
-            <h1 className="text-xl font-semibold text-foreground">Todas las Rondas</h1>
+            <h1 className="text-xl font-semibold text-foreground">{t("profile", "allRounds")}</h1>
           </div>
         </motion.div>
         <div className="flex-1 flex items-center justify-center">
@@ -169,8 +171,8 @@ const AllRounds = () => {
             <ArrowLeft size={16} className="text-muted-foreground" />
           </Button>
           <div>
-            <h1 className="text-xl font-semibold text-foreground">Todas las Rondas</h1>
-            <p className="text-xs text-muted-foreground">{rounds?.length || 0} rondas registradas</p>
+            <h1 className="text-xl font-semibold text-foreground">{t("profile", "allRounds")}</h1>
+            <p className="text-xs text-muted-foreground">{rounds?.length || 0} {t("profile", "totalRounds").toLowerCase()}</p>
           </div>
         </div>
       </motion.div>
@@ -186,12 +188,12 @@ const AllRounds = () => {
               <div className="h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
                 <Flag className="h-8 w-8 text-primary/50" />
               </div>
-              <p className="text-muted-foreground mb-4">No hay rondas registradas</p>
+              <p className="text-muted-foreground mb-4">{t("profile", "noRoundsRecorded")}</p>
               <Button 
                 onClick={() => navigate('/add-round')}
                 className="bg-primary hover:bg-primary/90"
               >
-                Registrar Primera Ronda
+                {t("profile", "recordFirstRound")}
               </Button>
             </motion.div>
           ) : (
@@ -284,7 +286,7 @@ const AllRounds = () => {
                               className="h-8 px-3 rounded-lg bg-zinc-800/80 hover:bg-zinc-700 text-foreground text-xs"
                             >
                               <Eye className="h-3.5 w-3.5 mr-1.5" />
-                              Ver Scorecard
+                              {t("profile", "viewScorecard")}
                             </Button>
                             <Button
                               variant="ghost"
@@ -320,9 +322,9 @@ const AllRounds = () => {
       <AlertDialog open={!!roundToDelete} onOpenChange={(open) => !open && cancelDelete()}>
         <AlertDialogContent className="bg-zinc-900/95 backdrop-blur-xl border-zinc-800">
           <AlertDialogHeader>
-            <AlertDialogTitle>Eliminar Ronda</AlertDialogTitle>
+            <AlertDialogTitle>{t("profile", "deleteRound")}</AlertDialogTitle>
             <AlertDialogDescription>
-              ¿Estás seguro de que deseas eliminar esta ronda? Esta acción no se puede deshacer.
+              {t("profile", "deleteRoundConfirm")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -330,13 +332,13 @@ const AllRounds = () => {
               onClick={cancelDelete}
               className="bg-zinc-800 border-zinc-700 hover:bg-zinc-700"
             >
-              Cancelar
+              {t("common", "cancel")}
             </AlertDialogCancel>
             <AlertDialogAction 
               onClick={confirmDelete} 
               className="bg-red-500 hover:bg-red-600 text-white"
             >
-              Eliminar
+              {t("common", "delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
