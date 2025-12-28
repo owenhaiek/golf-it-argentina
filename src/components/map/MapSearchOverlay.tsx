@@ -17,6 +17,7 @@ interface GolfCourse {
   image_url?: string;
   latitude?: number;
   longitude?: number;
+  is_open?: boolean;
 }
 
 interface UserProfile {
@@ -300,6 +301,14 @@ export const MapSearchOverlay = ({ courses, onSelectCourse, onOpenChange }: MapS
                                 </span>
                               </div>
                             </div>
+                            
+                            {/* Status indicator */}
+                            <div 
+                              className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${
+                                course.is_open !== false ? 'bg-green-500' : 'bg-red-500'
+                              }`}
+                              title={course.is_open !== false ? 'Abierto' : 'Cerrado'}
+                            />
                             
                             {/* Holes badge */}
                             <div className="flex-shrink-0 text-xs text-muted-foreground bg-muted px-2 py-1 rounded-lg font-medium">
