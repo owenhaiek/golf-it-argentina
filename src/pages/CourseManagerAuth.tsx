@@ -183,6 +183,55 @@ const CourseManagerAuth = () => {
       const sanitizedName = sanitizeInput(name);
       const sanitizedEmail = sanitizeInput(email).toLowerCase();
       const sanitizedPhone = sanitizeInput(phone);
+      
+      // Check if email already exists in course_managers (approved)
+      const { data: existingManager } = await supabase
+        .from('course_managers')
+        .select('email')
+        .eq('email', sanitizedEmail)
+        .maybeSingle();
+      
+      if (existingManager) {
+        toast({
+          variant: "destructive",
+          title: "Email ya registrado",
+          description: "Este email ya tiene una cuenta de manager activa. Usa 'Iniciar Sesión'.",
+        });
+        setIsLoading(false);
+        return;
+      }
+      
+      // Check if email already exists in pending_course_managers
+      const { data: existingPending } = await supabase
+        .from('pending_course_managers')
+        .select('email, status')
+        .eq('email', sanitizedEmail)
+        .maybeSingle();
+      
+      if (existingPending) {
+        if (existingPending.status === 'pending') {
+          toast({
+            variant: "destructive",
+            title: "Solicitud en proceso",
+            description: "Ya tienes una solicitud pendiente de aprobación con este email.",
+          });
+        } else if (existingPending.status === 'approved') {
+          toast({
+            variant: "destructive",
+            title: "Solicitud aprobada",
+            description: "Tu solicitud ya fue aprobada. Usa 'Iniciar Sesión' para acceder.",
+          });
+        } else if (existingPending.status === 'rejected') {
+          toast({
+            variant: "destructive",
+            title: "Solicitud rechazada",
+            description: "Tu solicitud anterior fue rechazada. Contacta al administrador para más información.",
+          });
+        }
+        setIsLoading(false);
+        return;
+      }
+      
       const hashedPassword = await hashPassword(password.trim());
       
       const { error } = await supabase
