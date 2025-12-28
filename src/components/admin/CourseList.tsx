@@ -326,34 +326,21 @@ const CourseList = ({ onEditCourse }: CourseListProps) => {
                         />
                       </PaginationItem>
                       
-                      {/* Show fewer page numbers on mobile */}
-                      {Array.from({ length: Math.min(3, totalPages) }, (_, i) => {
-                        let pageNum;
-                        if (totalPages <= 3) {
-                          pageNum = i + 1;
-                        } else if (currentPage <= 2) {
-                          pageNum = i + 1;
-                        } else if (currentPage >= totalPages - 1) {
-                          pageNum = totalPages - 2 + i;
-                        } else {
-                          pageNum = currentPage - 1 + i;
-                        }
-                        
-                        return (
-                          <PaginationItem key={pageNum} className="hidden sm:block">
-                            <PaginationLink 
-                              isActive={currentPage === pageNum}
-                              onClick={() => handlePageChange(pageNum)}
-                              className={currentPage === pageNum 
-                                ? "bg-green-500/20 border-green-500/30 text-green-400" 
-                                : "bg-zinc-800/50 border-zinc-700/50 text-zinc-300 hover:bg-zinc-700/50 hover:text-white cursor-pointer"
-                              }
-                            >
-                              {pageNum}
-                            </PaginationLink>
-                          </PaginationItem>
-                        );
-                      })}
+                      {/* Desktop: Show all page numbers */}
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
+                        <PaginationItem key={pageNum} className="hidden sm:block">
+                          <PaginationLink 
+                            isActive={currentPage === pageNum}
+                            onClick={() => handlePageChange(pageNum)}
+                            className={currentPage === pageNum 
+                              ? "bg-green-500/20 border-green-500/30 text-green-400" 
+                              : "bg-zinc-800/50 border-zinc-700/50 text-zinc-300 hover:bg-zinc-700/50 hover:text-white cursor-pointer"
+                            }
+                          >
+                            {pageNum}
+                          </PaginationLink>
+                        </PaginationItem>
+                      ))}
                       
                       {/* Mobile: Show current page indicator */}
                       <PaginationItem className="sm:hidden">
