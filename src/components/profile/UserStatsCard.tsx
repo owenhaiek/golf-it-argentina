@@ -104,7 +104,7 @@ const UserStatsCard = ({ rounds, roundsLoading, userId }: UserStatsCardProps) =>
     {
       icon: Flag,
       value: totalRounds.toString(),
-      label: "Rondas Totales",
+      label: t("profile", "totalRounds"),
       bgColor: "bg-blue-500/20",
       iconColor: "text-blue-400",
       valueColor: "text-blue-400"
@@ -112,7 +112,7 @@ const UserStatsCard = ({ rounds, roundsLoading, userId }: UserStatsCardProps) =>
     {
       icon: TrendingUp,
       value: averageVsPar > 0 ? `+${averageVsPar.toFixed(1)}` : averageVsPar.toFixed(1),
-      label: "Prom. vs Par",
+      label: t("profile", "avgVsPar"),
       bgColor: averageVsPar <= 0 ? "bg-green-500/20" : "bg-red-500/20",
       iconColor: averageVsPar <= 0 ? "text-green-400" : "text-red-400",
       valueColor: averageVsPar <= 0 ? "text-green-400" : "text-red-400"
@@ -120,7 +120,7 @@ const UserStatsCard = ({ rounds, roundsLoading, userId }: UserStatsCardProps) =>
     {
       icon: Star,
       value: bestRoundVsPar > 0 ? `+${bestRoundVsPar}` : bestRoundVsPar.toString(),
-      label: "Mejor Ronda",
+      label: t("profile", "bestRound"),
       bgColor: bestRoundVsPar <= 0 ? "bg-green-500/20" : "bg-amber-500/20",
       iconColor: bestRoundVsPar <= 0 ? "text-green-400" : "text-amber-400",
       valueColor: bestRoundVsPar <= 0 ? "text-green-400" : "text-amber-400"

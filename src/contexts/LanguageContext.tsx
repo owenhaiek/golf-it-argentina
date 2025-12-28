@@ -156,6 +156,7 @@ const translations: Record<LanguageType, TranslationDictionary> = {
       recordFirstRound: "Record your first round",
       allRounds: "All Rounds",
       viewAllRounds: "View All Rounds",
+      viewAll: "View all",
       showLess: "Show Less",
       deleteRound: "Delete Round",
       deleteRoundConfirm: "Are you sure you want to delete this round? This action cannot be undone.",
@@ -167,7 +168,11 @@ const translations: Record<LanguageType, TranslationDictionary> = {
       logout: "Logout",
       logoutConfirm: "Are you sure you want to log out?",
       logoutSuccess: "Logged out successfully",
-      logoutError: "Error logging out"
+      logoutError: "Error logging out",
+      totalRounds: "Total Rounds",
+      avgVsPar: "Avg vs Par",
+      bestRound: "Best Round",
+      viewScorecard: "View Scorecard"
     },
     filters: {
       showFavorites: "Show Favorites",
@@ -537,6 +542,7 @@ const translations: Record<LanguageType, TranslationDictionary> = {
       recordFirstRound: "Registra tu primera ronda",
       allRounds: "Todas las Rondas",
       viewAllRounds: "Ver Todas las Rondas",
+      viewAll: "Ver todas",
       showLess: "Mostrar Menos",
       deleteRound: "Eliminar Ronda",
       deleteRoundConfirm: "¿Estás seguro de que quieres eliminar esta ronda? Esta acción no se puede deshacer.",
@@ -548,7 +554,11 @@ const translations: Record<LanguageType, TranslationDictionary> = {
       logout: "Cerrar Sesión",
       logoutConfirm: "¿Estás seguro de que quieres cerrar sesión?",
       logoutSuccess: "Sesión cerrada exitosamente",
-      logoutError: "Error al cerrar sesión"
+      logoutError: "Error al cerrar sesión",
+      totalRounds: "Rondas Totales",
+      avgVsPar: "Prom. vs Par",
+      bestRound: "Mejor Ronda",
+      viewScorecard: "Ver Scorecard"
     },
     filters: {
       showFavorites: "Mostrar Canchas Favoritas",

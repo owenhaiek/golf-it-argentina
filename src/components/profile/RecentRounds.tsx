@@ -140,7 +140,7 @@ const RecentRounds = () => {
               onClick={() => navigate('/all-rounds')}
               className="text-primary hover:text-primary/80 text-xs gap-1"
             >
-              Ver todas
+              {t("profile", "viewAll")}
               <ChevronRight className="h-4 w-4" />
             </Button>
           )}
@@ -236,7 +236,7 @@ const RecentRounds = () => {
                             className="h-8 px-3 rounded-lg bg-zinc-800/80 hover:bg-zinc-700 text-foreground text-xs"
                           >
                             <Eye className="h-3.5 w-3.5 mr-1.5" />
-                            Ver Scorecard
+                            {t("profile", "viewScorecard")}
                           </Button>
                           <Button
                             variant="ghost"
