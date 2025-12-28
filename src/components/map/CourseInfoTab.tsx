@@ -21,6 +21,7 @@ interface CourseInfoTabProps {
     website?: string;
     latitude?: number;
     longitude?: number;
+    is_open?: boolean;
   } | null;
   isOpen: boolean;
   onClose: () => void;
@@ -202,10 +203,21 @@ export const CourseInfoTab = ({ course, isOpen, onClose }: CourseInfoTabProps) =
               )}
 
               {/* Badge overlay */}
-              <div className="absolute bottom-2 left-2 z-10">
+              <div className="absolute bottom-2 left-2 z-10 flex gap-1.5">
                 <Badge variant="secondary" className="text-xs bg-background/80 backdrop-blur-sm border-0">
                   <Flag className="w-3 h-3 mr-1" />
                   {course.holes}H{course.par && ` • Par ${course.par}`}
+                </Badge>
+                {/* Status Badge */}
+                <Badge 
+                  className={`text-xs backdrop-blur-sm border-0 ${
+                    course.is_open !== false
+                      ? 'bg-green-500/90 text-white hover:bg-green-500' 
+                      : 'bg-red-500/90 text-white hover:bg-red-500'
+                  }`}
+                >
+                  <div className={`w-1.5 h-1.5 rounded-full mr-1.5 ${course.is_open !== false ? 'bg-white animate-pulse' : 'bg-white/80'}`} />
+                  {course.is_open !== false ? 'Abierto' : 'Cerrado'}
                 </Badge>
               </div>
             </div>
