@@ -41,6 +41,7 @@ export const useMapboxWithMarkers = ({
 }: UseMapboxWithMarkersOptions) => {
   const [isInitialized, setIsInitialized] = useState(false);
   const hasFocusedRef = useRef<string | null>(null);
+  const hasInitialFitRef = useRef(false);
   const initTimeoutRef = useRef<NodeJS.Timeout>();
   const coursesRef = useRef<GolfCourse[]>(courses);
   
@@ -88,7 +89,14 @@ export const useMapboxWithMarkers = ({
     }
 
     console.log("[MapboxWithMarkers] Initializing markers for", courses.length, "courses");
-    const shouldFitBounds = !focusCourseId;
+    
+    // Only fit bounds on initial load, never after that
+    const shouldFitBounds = !hasInitialFitRef.current && !focusCourseId;
+    
+    if (shouldFitBounds) {
+      hasInitialFitRef.current = true;
+    }
+    
     addMarkersToMap(map, courses, shouldFitBounds);
     
   }, [map, courses, isLoading, isInitialized, addMarkersToMap, focusCourseId]);
