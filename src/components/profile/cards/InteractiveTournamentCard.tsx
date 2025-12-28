@@ -21,6 +21,7 @@ export const InteractiveTournamentCard = ({
   const { user } = useAuth();
   
   const isCreator = tournament.creator_id === user?.id;
+  const isParticipant = tournament.tournament_participants?.some(p => p.user_id === user?.id) || isCreator;
   
   const getStatus = (): EventStatus => {
     if (tournament.status === 'completed') return 'completed';
@@ -41,6 +42,7 @@ export const InteractiveTournamentCard = ({
       status={getStatus()}
       icon={<Trophy className="h-5 w-5 text-amber-400" />}
       isCreator={isCreator}
+      canLoadScores={isParticipant}
       onLoadScores={() => onLoadScores?.(tournament)}
       onEdit={() => onEdit?.(tournament)}
       onDelete={() => onDelete?.(tournament.id)}

@@ -19,6 +19,7 @@ interface EventCardProps {
   status: EventStatus;
   icon: ReactNode;
   isCreator: boolean;
+  canLoadScores?: boolean; // New prop: allows participants to load scores
   children?: ReactNode;
   onLoadScores?: () => void;
   onEdit?: () => void;
@@ -63,6 +64,7 @@ export const EventCard = ({
   status,
   icon,
   isCreator,
+  canLoadScores = false,
   children,
   onLoadScores,
   onEdit,
@@ -71,6 +73,9 @@ export const EventCard = ({
 }: EventCardProps) => {
   const config = statusConfig[status];
   const StatusIcon = config.icon;
+  
+  // Allow loading scores if user is creator or explicitly allowed
+  const showLoadScores = isCreator || canLoadScores;
 
   return (
     <div className="group relative overflow-hidden rounded-2xl bg-card border border-border/50 transition-all duration-300 hover:border-border active:scale-[0.99]">
@@ -120,8 +125,8 @@ export const EventCard = ({
 
         {/* Actions */}
         <div className="pt-1 space-y-2">
-          {/* Load Scores button for active matches - only for creator */}
-          {status === 'active' && isCreator && onLoadScores && (
+          {/* Load Scores button for active matches - for creator or allowed participants */}
+          {status === 'active' && showLoadScores && onLoadScores && (
             <Button
               onClick={onLoadScores}
               className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium h-11 rounded-xl shadow-lg shadow-primary/20"
