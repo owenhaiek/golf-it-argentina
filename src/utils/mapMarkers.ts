@@ -10,44 +10,45 @@ let activeMarkerId: string | null = null;
 
 // Inject global styles once - Clean, stable markers without size changes
 const injectMarkerStyles = () => {
-  if (document.getElementById('golf-marker-styles-v13')) return;
+  if (document.getElementById('golf-marker-styles-v14')) return;
   
   // Remove old styles
-  const oldStyles = ['golf-marker-styles-v8', 'golf-marker-styles-v9', 'golf-marker-styles-v10', 'golf-marker-styles-v11', 'golf-marker-styles-v12'];
+  const oldStyles = ['golf-marker-styles-v8', 'golf-marker-styles-v9', 'golf-marker-styles-v10', 'golf-marker-styles-v11', 'golf-marker-styles-v12', 'golf-marker-styles-v13'];
   oldStyles.forEach(id => {
     const oldStyle = document.getElementById(id);
     if (oldStyle) oldStyle.remove();
   });
   
   const style = document.createElement('style');
-  style.id = 'golf-marker-styles-v13';
+  style.id = 'golf-marker-styles-v14';
   style.textContent = `
     .golf-marker {
-      width: 32px;
-      height: 32px;
+      width: 44px;
+      height: 44px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-      border: 2px solid white;
+      background: #18181b;
+      border: 2.5px solid rgba(255, 255, 255, 0.9);
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-      transition: box-shadow 0.2s ease, border-color 0.2s ease;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
+      transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
     }
     
     .golf-marker:hover {
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 5px 16px rgba(0, 0, 0, 0.5);
+      transform: scale(1.05);
     }
     
     .golf-marker.active {
       border: 3px solid white;
-      box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.4), 0 5px 16px rgba(0, 0, 0, 0.4);
     }
     
     .golf-marker svg {
-      width: 14px;
-      height: 14px;
+      width: 20px;
+      height: 20px;
       color: white;
       flex-shrink: 0;
     }
