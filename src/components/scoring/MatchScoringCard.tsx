@@ -45,24 +45,39 @@ export const MatchScoringCard = ({ match, open, onOpenChange, onSuccess }: Match
   const initializePlayers = () => {
     if (!match) return;
     
-    const playerScores: PlayerScore[] = [
-      {
-        user_id: match.creator_id || "",
-        name: match.creator?.full_name || 'Creador',
-        username: match.creator?.username || 'creador',
-        avatar_url: match.creator?.avatar_url,
+    let playerScores: PlayerScore[] = [];
+    
+    // Check if match has multiple participants
+    if (match.participants && match.participants.length > 0) {
+      playerScores = match.participants.map(p => ({
+        user_id: p.user_id,
+        name: p.profile?.full_name || 'Jugador',
+        username: p.profile?.username || 'jugador',
+        avatar_url: p.profile?.avatar_url,
         hole_scores: new Array(18).fill(0),
         total_score: 0,
-      },
-      {
-        user_id: match.opponent_id || "",
-        name: match.opponent?.full_name || 'Oponente',
-        username: match.opponent?.username || 'oponente',
-        avatar_url: match.opponent?.avatar_url,
-        hole_scores: new Array(18).fill(0),
-        total_score: 0,
-      }
-    ];
+      }));
+    } else {
+      // Fallback to creator/opponent for 2-player matches
+      playerScores = [
+        {
+          user_id: match.creator_id || "",
+          name: match.creator?.full_name || 'Creador',
+          username: match.creator?.username || 'creador',
+          avatar_url: match.creator?.avatar_url,
+          hole_scores: new Array(18).fill(0),
+          total_score: 0,
+        },
+        {
+          user_id: match.opponent_id || "",
+          name: match.opponent?.full_name || 'Oponente',
+          username: match.opponent?.username || 'oponente',
+          avatar_url: match.opponent?.avatar_url,
+          hole_scores: new Array(18).fill(0),
+          total_score: 0,
+        }
+      ];
+    }
     setPlayers(playerScores);
   };
 
@@ -271,90 +286,61 @@ export const MatchScoringCard = ({ match, open, onOpenChange, onSuccess }: Match
         </div>
 
         <div className="px-4 pb-4 space-y-4">
-          {/* Players VS Section */}
+          {/* Players Section - Dynamic for multiple players */}
           <div className="bg-zinc-900 rounded-2xl p-4 border border-white/5">
-            <div className="flex items-center justify-between">
-              {/* Player 1 - Clickable */}
-              <button 
-                className={`flex flex-col items-center space-y-2 p-3 rounded-xl transition-all duration-300 flex-1 ${
-                  currentPlayerIndex === 0 
-                    ? 'bg-emerald-500/10 ring-2 ring-emerald-500/50 scale-105' 
-                    : 'hover:bg-zinc-800'
-                }`}
-                onClick={() => selectPlayer(0)}
-              >
-                <Avatar className={`h-14 w-14 ring-2 transition-all duration-300 ${
-                  currentPlayerIndex === 0 ? 'ring-emerald-500/70 shadow-lg shadow-emerald-500/20' : 'ring-zinc-700'
-                }`}>
-                  <AvatarImage src={players[0]?.avatar_url} alt={players[0]?.name} />
-                  <AvatarFallback className={`font-bold ${
-                    currentPlayerIndex === 0 ? 'bg-emerald-500/20 text-emerald-400' : 'bg-zinc-800 text-zinc-400'
-                  }`}>
-                    {players[0]?.name?.[0] || "P1"}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="text-center">
-                  <div className="font-medium text-sm truncate max-w-20 text-foreground">
-                    {players[0]?.name || 'Jugador 1'}
-                  </div>
-                  <Badge className={`text-xs mt-1 border-0 ${
-                    currentPlayerIndex === 0 ? 'bg-emerald-500/20 text-emerald-400' : 'bg-zinc-800 text-zinc-400'
-                  }`}>
-                    {players[0]?.total_score || 0}
-                  </Badge>
-                  <div className="text-[10px] text-zinc-500 mt-1">
-                    {getCurrentPlayerProgress(0)}/18
-                    {isPlayerComplete(0) && (
-                      <span className="text-emerald-400 ml-1">✓</span>
+            <div className="flex items-center justify-center flex-wrap gap-1">
+              {players.map((player, index) => {
+                const isLast = index === players.length - 1;
+                const colors = ['emerald', 'red', 'blue', 'amber'];
+                const color = colors[index % colors.length];
+                
+                return (
+                  <div key={player.user_id} className="flex items-center">
+                    <button 
+                      className={`flex flex-col items-center space-y-1 p-2 rounded-xl transition-all duration-300 ${
+                        currentPlayerIndex === index 
+                          ? `bg-${color}-500/10 ring-2 ring-${color}-500/50 scale-105` 
+                          : 'hover:bg-zinc-800'
+                      }`}
+                      onClick={() => selectPlayer(index)}
+                    >
+                      <Avatar className={`h-12 w-12 ring-2 transition-all duration-300 ${
+                        currentPlayerIndex === index ? `ring-${color}-500/70 shadow-lg shadow-${color}-500/20` : 'ring-zinc-700'
+                      }`}>
+                        <AvatarImage src={player.avatar_url} alt={player.name} />
+                        <AvatarFallback className={`font-bold text-sm ${
+                          currentPlayerIndex === index ? `bg-${color}-500/20 text-${color}-400` : 'bg-zinc-800 text-zinc-400'
+                        }`}>
+                          {player.name?.[0] || `P${index + 1}`}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="text-center">
+                        <div className="font-medium text-[10px] truncate max-w-[50px] text-foreground">
+                          {player.name?.split(' ')[0] || `Jugador ${index + 1}`}
+                        </div>
+                        <Badge className={`text-[9px] mt-0.5 border-0 ${
+                          currentPlayerIndex === index ? `bg-${color}-500/20 text-${color}-400` : 'bg-zinc-800 text-zinc-400'
+                        }`}>
+                          {player.total_score || 0}
+                        </Badge>
+                        <div className="text-[9px] text-zinc-500 mt-0.5">
+                          {getCurrentPlayerProgress(index)}/18
+                          {isPlayerComplete(index) && (
+                            <span className="text-emerald-400 ml-1">✓</span>
+                          )}
+                        </div>
+                      </div>
+                    </button>
+                    
+                    {/* VS separator */}
+                    {!isLast && (
+                      <div className="flex flex-col items-center px-1">
+                        <span className="text-[10px] font-bold text-zinc-600 tracking-wider">vs</span>
+                      </div>
                     )}
                   </div>
-                </div>
-              </button>
-
-              {/* VS Indicator */}
-              <div className="flex flex-col items-center px-2">
-                <div className="bg-gradient-to-br from-red-500/20 to-orange-500/20 p-3 rounded-full border border-red-500/30">
-                  <Zap className="h-5 w-5 text-red-400" />
-                </div>
-                <span className="text-xs font-bold text-zinc-600 mt-1.5 tracking-wider">VS</span>
-              </div>
-
-              {/* Player 2 - Clickable */}
-              <button 
-                className={`flex flex-col items-center space-y-2 p-3 rounded-xl transition-all duration-300 flex-1 ${
-                  currentPlayerIndex === 1 
-                    ? 'bg-red-500/10 ring-2 ring-red-500/50 scale-105' 
-                    : 'hover:bg-zinc-800'
-                }`}
-                onClick={() => selectPlayer(1)}
-              >
-                <Avatar className={`h-14 w-14 ring-2 transition-all duration-300 ${
-                  currentPlayerIndex === 1 ? 'ring-red-500/70 shadow-lg shadow-red-500/20' : 'ring-zinc-700'
-                }`}>
-                  <AvatarImage src={players[1]?.avatar_url} alt={players[1]?.name} />
-                  <AvatarFallback className={`font-bold ${
-                    currentPlayerIndex === 1 ? 'bg-red-500/20 text-red-400' : 'bg-zinc-800 text-zinc-400'
-                  }`}>
-                    {players[1]?.name?.[0] || "P2"}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="text-center">
-                  <div className="font-medium text-sm truncate max-w-20 text-foreground">
-                    {players[1]?.name || 'Jugador 2'}
-                  </div>
-                  <Badge className={`text-xs mt-1 border-0 ${
-                    currentPlayerIndex === 1 ? 'bg-red-500/20 text-red-400' : 'bg-zinc-800 text-zinc-400'
-                  }`}>
-                    {players[1]?.total_score || 0}
-                  </Badge>
-                  <div className="text-[10px] text-zinc-500 mt-1">
-                    {getCurrentPlayerProgress(1)}/18
-                    {isPlayerComplete(1) && (
-                      <span className="text-emerald-400 ml-1">✓</span>
-                    )}
-                  </div>
-                </div>
-              </button>
+                );
+              })}
             </div>
 
             {/* Current Player Indicator */}
