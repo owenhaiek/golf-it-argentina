@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Plus, Download, Upload, Loader2 } from "lucide-react";
+import { ArrowLeft, Plus, Download, Upload, Loader2, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AdminGolfCourseForm, GolfCourseTemplate } from "./AdminGolfCourseManager";
 import AdminCourseList from "@/components/admin/CourseList";
@@ -319,6 +319,16 @@ const AdminCourseEditList = () => {
             
             {!isEditing && (
               <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                {/* Pending Managers button */}
+                <Button
+                  variant="outline"
+                  onClick={() => navigate('/admin/pending-managers')}
+                  className="flex items-center justify-center gap-2 bg-zinc-900/50 border-zinc-700/50 text-zinc-300 hover:bg-zinc-800 hover:text-white rounded-xl"
+                >
+                  <Users className="h-4 w-4" />
+                  <span className="hidden sm:inline">Managers</span>
+                </Button>
+                
                 {/* Export/Import buttons */}
                 <div className="flex gap-2">
                   <Button
