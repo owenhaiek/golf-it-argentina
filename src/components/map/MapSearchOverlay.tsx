@@ -135,11 +135,15 @@ export const MapSearchOverlay = ({ courses, onSelectCourse, onOpenChange }: MapS
       {/* Top left controls - Profile & Search */}
       <div className="absolute left-4 z-10 flex flex-col gap-2" style={{ top: 'max(1rem, env(safe-area-inset-top, 1rem))' }}>
         {/* Profile button */}
-        <motion.div whileTap={{ scale: 0.95 }}>
+        <motion.div 
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.92 }}
+          transition={{ type: "spring", stiffness: 400, damping: 17 }}
+        >
           <Button
             onClick={() => navigate('/profile')}
             size="icon"
-            className="h-12 w-12 bg-[#0a2820] hover:bg-[#0a2820]/80 shadow-lg shadow-black/30 text-white border-0"
+            className="h-12 w-12 bg-[#0a2820] hover:bg-[#0a2820]/80 shadow-lg shadow-black/30 text-white border-0 transition-colors duration-200"
             title="Mi perfil"
           >
             <User className="w-5 h-5" />
@@ -154,13 +158,14 @@ export const MapSearchOverlay = ({ courses, onSelectCourse, onOpenChange }: MapS
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.12, ease: "easeOut" }}
-              whileTap={{ scale: 0.95 }}
+              transition={{ type: "spring", stiffness: 400, damping: 17 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.92 }}
             >
               <Button
                 onClick={() => setIsOpen(true)}
                 size="icon"
-                className="h-12 w-12 bg-[#0a2820] hover:bg-[#0a2820]/80 shadow-lg shadow-black/30 text-white border-0"
+                className="h-12 w-12 bg-[#0a2820] hover:bg-[#0a2820]/80 shadow-lg shadow-black/30 text-white border-0 transition-colors duration-200"
                 title="Buscar"
               >
                 <Search className="w-5 h-5" />

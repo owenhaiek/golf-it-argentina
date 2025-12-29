@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Crosshair, Satellite, Moon, Sun } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { motion } from "framer-motion";
 
 type MapStyleType = 'satellite' | 'street' | 'dark';
 
@@ -179,35 +180,47 @@ export const MapControls = ({ map, onStyleChange, currentStyle }: MapControlsPro
   return (
     <div className="absolute right-4 z-10 flex flex-col gap-2" style={{ top: 'max(1rem, env(safe-area-inset-top, 1rem))' }}>
       {/* Map Style Toggle */}
-      <Button
-        onClick={handleStyleToggle}
-        size={isMobile ? "icon" : "sm"}
-        className="bg-[#0a2820] hover:bg-[#0a2820]/80 shadow-lg shadow-black/30 h-12 w-12 sm:h-10 sm:w-auto sm:px-3 text-white border-0"
-        title={`Cambiar a ${currentStyle === 'dark' ? 'satélite' : currentStyle === 'satellite' ? 'calles' : 'oscuro'}`}
+      <motion.div
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.92 }}
+        transition={{ type: "spring", stiffness: 400, damping: 17 }}
       >
-        <StyleIcon className="w-5 h-5 sm:w-4 sm:h-4 sm:mr-2" />
-        {!isMobile && (
-          <span className="hidden sm:inline">
-            {currentStyle === 'dark' ? 'Satélite' : currentStyle === 'satellite' ? 'Calles' : 'Oscuro'}
-          </span>
-        )}
-      </Button>
+        <Button
+          onClick={handleStyleToggle}
+          size={isMobile ? "icon" : "sm"}
+          className="bg-[#0a2820] hover:bg-[#0a2820]/80 shadow-lg shadow-black/30 h-12 w-12 sm:h-10 sm:w-auto sm:px-3 text-white border-0 transition-colors duration-200"
+          title={`Cambiar a ${currentStyle === 'dark' ? 'satélite' : currentStyle === 'satellite' ? 'calles' : 'oscuro'}`}
+        >
+          <StyleIcon className="w-5 h-5 sm:w-4 sm:h-4 sm:mr-2" />
+          {!isMobile && (
+            <span className="hidden sm:inline">
+              {currentStyle === 'dark' ? 'Satélite' : currentStyle === 'satellite' ? 'Calles' : 'Oscuro'}
+            </span>
+          )}
+        </Button>
+      </motion.div>
       
       {/* My Location Button */}
-      <Button
-        onClick={handleFindMyLocation}
-        size={isMobile ? "icon" : "sm"}
-        disabled={locationLoading}
-        className="bg-[#0a2820] hover:bg-[#0a2820]/80 shadow-lg shadow-black/30 h-12 w-12 sm:h-10 sm:w-auto sm:px-3 text-white border-0"
-        title="Mi ubicación"
+      <motion.div
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.92 }}
+        transition={{ type: "spring", stiffness: 400, damping: 17 }}
       >
-        {locationLoading ? (
-          <div className="w-5 h-5 sm:w-4 sm:h-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-        ) : (
-          <Crosshair className="w-5 h-5 sm:w-4 sm:h-4 sm:mr-2" />
-        )}
-        {!isMobile && <span className="hidden sm:inline">Mi ubicación</span>}
-      </Button>
+        <Button
+          onClick={handleFindMyLocation}
+          size={isMobile ? "icon" : "sm"}
+          disabled={locationLoading}
+          className="bg-[#0a2820] hover:bg-[#0a2820]/80 shadow-lg shadow-black/30 h-12 w-12 sm:h-10 sm:w-auto sm:px-3 text-white border-0 transition-colors duration-200"
+          title="Mi ubicación"
+        >
+          {locationLoading ? (
+            <div className="w-5 h-5 sm:w-4 sm:h-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+          ) : (
+            <Crosshair className="w-5 h-5 sm:w-4 sm:h-4 sm:mr-2" />
+          )}
+          {!isMobile && <span className="hidden sm:inline">Mi ubicación</span>}
+        </Button>
+      </motion.div>
     </div>
   );
 };
