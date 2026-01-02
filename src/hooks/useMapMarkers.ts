@@ -71,9 +71,9 @@ export const useMapMarkers = (onCourseSelect: (course: GolfCourse) => void) => {
       try {
         const marker = new mapboxgl.Marker({
           element: markerElement,
-          anchor: 'center',
-          pitchAlignment: 'viewport',
-          rotationAlignment: 'viewport'
+          anchor: 'bottom',
+          pitchAlignment: 'map',
+          rotationAlignment: 'map'
         })
           .setLngLat([lng, lat])
           .addTo(mapInstance);
