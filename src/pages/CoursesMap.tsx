@@ -36,8 +36,10 @@ const CoursesMap = () => {
   const [filters, setFilters] = useState<MapFilters>({
     isOpen: null,
     holes: null,
-    topRated: false
+    topRated: false,
+    maxDistance: 0
   });
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const mapRef = useRef<any>(null);
   const [searchParams] = useSearchParams();
 
@@ -134,6 +136,36 @@ const CoursesMap = () => {
     };
   }, [refetch]);
 
+  // Calculate distance between two points (Haversine formula)
+  const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
+    const R = 6371; // Radius of the Earth in km
+    const dLat = (lat2 - lat1) * (Math.PI / 180);
+    const dLng = (lng2 - lng1) * (Math.PI / 180);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
+      Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  };
+
+  // Get user location
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          });
+        },
+        (error) => {
+          console.log('Geolocation error:', error);
+        }
+      );
+    }
+  }, []);
+
   // Filter courses based on active filters
   const filteredCourses = useMemo(() => {
     return courses.filter(course => {
@@ -153,10 +185,19 @@ const CoursesMap = () => {
         const rating = courseRatings[course.id];
         if (!rating || rating.average < 4) return false;
       }
+
+      // Filter by distance
+      if (filters.maxDistance > 0 && filters.maxDistance < 500 && userLocation && course.latitude && course.longitude) {
+        const distance = calculateDistance(
+          userLocation.lat, userLocation.lng,
+          course.latitude, course.longitude
+        );
+        if (distance > filters.maxDistance) return false;
+      }
       
       return true;
     });
-  }, [courses, filters, courseRatings]);
+  }, [courses, filters, courseRatings, userLocation]);
 
   // Entry animation
   useEffect(() => {
@@ -211,6 +252,7 @@ const CoursesMap = () => {
       <MapFilterMenu 
         filters={filters}
         onFiltersChange={setFilters}
+        userLocation={userLocation}
       />
       
       {/* Action menu (bottom right) */}

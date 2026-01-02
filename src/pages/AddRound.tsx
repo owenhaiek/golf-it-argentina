@@ -22,6 +22,7 @@ import {
 import AddRoundStep1 from "@/components/rounds/AddRoundStep1";
 import AddRoundStep2 from "@/components/rounds/AddRoundStep2";
 import AddRoundStep3 from "@/components/rounds/AddRoundStep3";
+import PostRoundReviewDialog from "@/components/rounds/PostRoundReviewDialog";
 
 const AddRound = () => {
   const navigate = useNavigate();
@@ -38,6 +39,7 @@ const AddRound = () => {
   const [selectedSide, setSelectedSide] = useState<"front" | "back">("front");
   const [scores, setScores] = useState<number[]>(Array(18).fill(0));
   const [showExitConfirmation, setShowExitConfirmation] = useState(false);
+  const [showReviewDialog, setShowReviewDialog] = useState(false);
 
   const handleExitToMap = () => {
     sessionStorage.setItem('map-entry-animation', 'true');
@@ -95,7 +97,8 @@ const AddRound = () => {
         title: t("addRound", "roundSaved") || "Round saved successfully!",
       });
       
-      navigate('/profile');
+      // Show review dialog instead of navigating immediately
+      setShowReviewDialog(true);
     },
     onError: (error) => {
       console.error('Error adding round:', error);
@@ -352,6 +355,20 @@ const AddRound = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Post-round review dialog */}
+      {selectedCourseData && (
+        <PostRoundReviewDialog
+          isOpen={showReviewDialog}
+          onClose={() => {
+            setShowReviewDialog(false);
+            navigate('/profile');
+          }}
+          courseId={selectedCourse}
+          courseName={selectedCourseData.name}
+          courseImage={selectedCourseData.image_url}
+        />
+      )}
     </div>
   );
 };
