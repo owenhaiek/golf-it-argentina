@@ -2,19 +2,22 @@ import { useState } from "react";
 import { Filter, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { hapticLight, hapticMedium } from "@/hooks/useDespiaNative";
+import { DistanceSlider } from "./DistanceSlider";
 
 export interface MapFilters {
   isOpen: boolean | null; // null = all, true = open, false = closed
   holes: number | null; // null = all, 9 or 18
   topRated: boolean;
+  maxDistance: number; // 0 = no limit
 }
 
 interface MapFilterMenuProps {
   filters: MapFilters;
   onFiltersChange: (filters: MapFilters) => void;
+  userLocation?: { lat: number; lng: number } | null;
 }
 
-export const MapFilterMenu = ({ filters, onFiltersChange }: MapFilterMenuProps) => {
+export const MapFilterMenu = ({ filters, onFiltersChange, userLocation }: MapFilterMenuProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const handleToggle = () => {
@@ -27,7 +30,14 @@ export const MapFilterMenu = ({ filters, onFiltersChange }: MapFilterMenuProps) 
     onFiltersChange({ ...filters, [key]: value });
   };
 
-  const hasActiveFilters = filters.isOpen !== null || filters.holes !== null || filters.topRated;
+  const hasActiveFilters = filters.isOpen !== null || filters.holes !== null || filters.topRated || (filters.maxDistance > 0 && filters.maxDistance < 500);
+
+  const activeFiltersCount = [
+    filters.isOpen !== null, 
+    filters.holes !== null, 
+    filters.topRated,
+    filters.maxDistance > 0 && filters.maxDistance < 500
+  ].filter(Boolean).length;
 
   const filterOptions = [
     {
@@ -65,7 +75,7 @@ export const MapFilterMenu = ({ filters, onFiltersChange }: MapFilterMenuProps) 
 
   const handleClearFilters = () => {
     hapticLight();
-    onFiltersChange({ isOpen: null, holes: null, topRated: false });
+    onFiltersChange({ isOpen: null, holes: null, topRated: false, maxDistance: 0 });
   };
 
   return (
@@ -92,7 +102,7 @@ export const MapFilterMenu = ({ filters, onFiltersChange }: MapFilterMenuProps) 
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ type: "spring", damping: 25, stiffness: 400 }}
-            className="absolute bottom-28 left-4 z-10 bg-zinc-900/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden"
+            className="absolute bottom-28 left-4 z-10 bg-zinc-900/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden w-72"
             style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
           >
             {/* Header */}
@@ -107,6 +117,16 @@ export const MapFilterMenu = ({ filters, onFiltersChange }: MapFilterMenuProps) 
                 </button>
               )}
             </div>
+
+            {/* Distance Slider Section */}
+            {userLocation && (
+              <div className="px-4 py-3 border-b border-white/5">
+                <DistanceSlider
+                  value={filters.maxDistance}
+                  onChange={(value) => handleFilterChange('maxDistance', value)}
+                />
+              </div>
+            )}
 
             {/* Filter options */}
             <div className="p-2">
@@ -157,6 +177,15 @@ export const MapFilterMenu = ({ filters, onFiltersChange }: MapFilterMenuProps) 
                 </motion.button>
               ))}
             </div>
+
+            {/* No location notice */}
+            {!userLocation && (
+              <div className="px-4 py-2 border-t border-white/5">
+                <p className="text-[10px] text-muted-foreground text-center">
+                  Activa tu ubicación para filtrar por distancia
+                </p>
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
@@ -201,7 +230,7 @@ export const MapFilterMenu = ({ filters, onFiltersChange }: MapFilterMenuProps) 
               className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-primary rounded-full flex items-center justify-center shadow-lg"
             >
               <span className="text-[10px] font-bold text-primary-foreground">
-                {[filters.isOpen !== null, filters.holes !== null, filters.topRated].filter(Boolean).length}
+                {activeFiltersCount}
               </span>
             </motion.div>
           )}
