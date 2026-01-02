@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { X, MapPin, Phone, Globe, Flag, Navigation, Eye, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -27,12 +27,33 @@ interface CourseInfoTabProps {
   } | null;
   isOpen: boolean;
   onClose: () => void;
+  userLocation?: { lat: number; lng: number } | null;
 }
 
-export const CourseInfoTab = ({ course, isOpen, onClose }: CourseInfoTabProps) => {
+// Calculate distance between two points (Haversine formula)
+const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
+  const R = 6371; // Radius of the Earth in km
+  const dLat = (lat2 - lat1) * (Math.PI / 180);
+  const dLng = (lng2 - lng1) * (Math.PI / 180);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
+    Math.sin(dLng / 2) * Math.sin(dLng / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+};
+
+export const CourseInfoTab = ({ course, isOpen, onClose, userLocation }: CourseInfoTabProps) => {
   const navigate = useNavigate();
   const dragControls = useDragControls();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  // Calculate distance to course if user location is available
+  const distanceToUser = useMemo(() => {
+    if (!userLocation || !course?.latitude || !course?.longitude) return null;
+    const dist = calculateDistance(userLocation.lat, userLocation.lng, course.latitude, course.longitude);
+    return dist;
+  }, [userLocation, course?.latitude, course?.longitude]);
 
   // Fetch average rating for this course
   const { data: ratingData } = useQuery({
@@ -276,6 +297,14 @@ export const CourseInfoTab = ({ course, isOpen, onClose }: CourseInfoTabProps) =
                   <span className="line-clamp-1">
                     {[course.city, course.state].filter(Boolean).join(', ')}
                   </span>
+                  {distanceToUser !== null && (
+                    <span className="ml-auto flex items-center gap-1 text-xs font-medium text-primary">
+                      <Navigation className="w-3 h-3" />
+                      {distanceToUser < 1 
+                        ? `${Math.round(distanceToUser * 1000)}m` 
+                        : `${distanceToUser.toFixed(1)} km`}
+                    </span>
+                  )}
                 </div>
               )}
             </div>
