@@ -263,6 +263,7 @@ const CoursesMap = () => {
         course={selectedCourse}
         isOpen={!!selectedCourse}
         onClose={handleCloseInfoTab}
+        userLocation={userLocation}
       />
     </motion.div>
   );
