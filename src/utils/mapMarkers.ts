@@ -32,26 +32,12 @@ const injectMarkerStyles = () => {
       }
     }
     
-    @keyframes pinDrop {
-      0% { 
-        transform: translateY(-20px);
-        opacity: 0;
-      }
-      60% { 
-        transform: translateY(4px);
-      }
-      100% { 
-        transform: translateY(0);
-        opacity: 1;
-      }
-    }
-    
     .golf-pin-container {
       display: flex;
       flex-direction: column;
       align-items: center;
       cursor: pointer;
-      animation: pinDrop 0.4s ease-out;
+      /* No transforms on container - let Mapbox handle positioning */
     }
     
     .golf-pin-head {
@@ -64,29 +50,25 @@ const injectMarkerStyles = () => {
       align-items: center;
       justify-content: center;
       transform: rotate(-45deg);
+      transform-origin: center center;
       box-shadow: 
         0 4px 12px rgba(0, 0, 0, 0.4),
         0 2px 4px rgba(0, 0, 0, 0.2),
         inset 0 1px 0 rgba(255, 255, 255, 0.1);
       transition: 
-        transform 0.2s ease,
         box-shadow 0.2s ease,
-        border-color 0.2s ease;
+        border-color 0.2s ease,
+        background 0.2s ease;
       position: relative;
       z-index: 2;
     }
     
     .golf-pin-head:hover {
-      transform: rotate(-45deg) scale(1.1);
       box-shadow: 
         0 6px 16px rgba(0, 0, 0, 0.45),
         0 3px 6px rgba(0, 0, 0, 0.25),
         inset 0 1px 0 rgba(255, 255, 255, 0.15);
       border-color: rgba(255, 255, 255, 1);
-    }
-    
-    .golf-pin-head:active {
-      transform: rotate(-45deg) scale(0.95);
     }
     
     .golf-pin-icon {
@@ -118,7 +100,6 @@ const injectMarkerStyles = () => {
     .golf-pin-container.active .golf-pin-head {
       background: linear-gradient(145deg, #14532d, #0d3429);
       border: 3px solid #22c55e;
-      transform: rotate(-45deg) scale(1.15);
       box-shadow: 
         0 0 0 4px rgba(34, 197, 94, 0.25),
         0 6px 20px rgba(34, 197, 94, 0.35),
