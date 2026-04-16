@@ -172,7 +172,14 @@ const translations: Record<LanguageType, TranslationDictionary> = {
       totalRounds: "Total Rounds",
       avgVsPar: "Avg vs Par",
       bestRound: "Best Round",
-      viewScorecard: "View Scorecard"
+      viewScorecard: "View Scorecard",
+      saveChanges: "Save Changes",
+      profileUpdateSuccess: "Profile updated successfully",
+      profileUpdateError: "Error updating profile",
+      fullName: "Full Name",
+      username: "Username",
+      anonymous: "Anonymous",
+      saving: "Saving..."
     },
     filters: {
       showFavorites: "Show Favorites",
@@ -558,7 +565,14 @@ const translations: Record<LanguageType, TranslationDictionary> = {
       totalRounds: "Rondas Totales",
       avgVsPar: "Prom. vs Par",
       bestRound: "Mejor Ronda",
-      viewScorecard: "Ver Scorecard"
+      viewScorecard: "Ver Scorecard",
+      saveChanges: "Guardar Cambios",
+      profileUpdateSuccess: "Perfil actualizado exitosamente",
+      profileUpdateError: "Error al actualizar el perfil",
+      fullName: "Nombre Completo",
+      username: "Nombre de Usuario",
+      anonymous: "Anónimo",
+      saving: "Guardando..."
     },
     filters: {
       showFavorites: "Mostrar Canchas Favoritas",
