@@ -8,6 +8,7 @@ const CustomGolfAnimation = () => {
         src={golfSwingGif}
         alt="Loading"
         className="w-40 h-40 sm:w-48 sm:h-48 object-contain"
+        style={{ mixBlendMode: 'screen' }}
       />
     </div>
   );
