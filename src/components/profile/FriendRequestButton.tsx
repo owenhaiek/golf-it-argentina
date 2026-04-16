@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { UserPlus, UserCheck, Clock, UserX, Loader2 } from "lucide-react";
 import { useFriendsData } from "@/hooks/useFriendsData";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface FriendRequestButtonProps {
   userId: string;
@@ -11,6 +12,7 @@ interface FriendRequestButtonProps {
 
 export const FriendRequestButton = ({ userId, size = "sm" }: FriendRequestButtonProps) => {
   const { user } = useAuth();
+  const { language } = useLanguage();
   const { sendFriendRequest, sendingFriendRequest, useFriendshipStatus } = useFriendsData();
   
   // Use React Query for status management
@@ -39,7 +41,7 @@ export const FriendRequestButton = ({ userId, size = "sm" }: FriendRequestButton
     return (
       <Button size={size} variant="outline" disabled className="flex items-center gap-2">
         <Loader2 className="h-4 w-4 animate-spin" />
-        {size !== "sm" && "Loading..."}
+        {size !== "sm" && (language === "es" ? "Cargando..." : "Loading...")}
       </Button>
     );
   }
@@ -49,7 +51,7 @@ export const FriendRequestButton = ({ userId, size = "sm" }: FriendRequestButton
       case 'friends':
         return {
           icon: <UserCheck className="h-4 w-4" />,
-          text: 'Friends',
+          text: language === "es" ? 'Amigos' : 'Friends',
           variant: 'secondary' as const,
           disabled: true,
           className: 'bg-green-50 text-green-700 border-green-200 hover:bg-green-50'
@@ -57,7 +59,7 @@ export const FriendRequestButton = ({ userId, size = "sm" }: FriendRequestButton
       case 'sent':
         return {
           icon: <Clock className="h-4 w-4 animate-pulse" />,
-          text: 'Sent',
+          text: language === "es" ? 'Enviada' : 'Sent',
           variant: 'outline' as const,
           disabled: true,
           className: 'bg-amber-50 text-amber-600 border-amber-200'
@@ -65,7 +67,7 @@ export const FriendRequestButton = ({ userId, size = "sm" }: FriendRequestButton
       case 'received':
         return {
           icon: <UserX className="h-4 w-4" />,
-          text: 'Pending',
+          text: language === "es" ? 'Pendiente' : 'Pending',
           variant: 'outline' as const,
           disabled: true,
           className: 'bg-blue-50 text-blue-600 border-blue-200'
@@ -73,7 +75,7 @@ export const FriendRequestButton = ({ userId, size = "sm" }: FriendRequestButton
       default:
         return {
           icon: <UserPlus className="h-4 w-4" />,
-          text: 'Add Friend',
+          text: language === "es" ? 'Agregar' : 'Add Friend',
           variant: 'default' as const,
           disabled: sendingFriendRequest,
           className: 'hover:scale-105 transition-transform duration-150'
@@ -97,7 +99,7 @@ export const FriendRequestButton = ({ userId, size = "sm" }: FriendRequestButton
         ) : (
           buttonContent.icon
         )}
-        {size !== "sm" && (sendingFriendRequest ? "Sending..." : buttonContent.text)}
+        {size !== "sm" && (sendingFriendRequest ? (language === "es" ? "Enviando..." : "Sending...") : buttonContent.text)}
       </Button>
       
       {/* Success animation indicator */}
