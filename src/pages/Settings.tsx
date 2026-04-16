@@ -23,7 +23,7 @@ const Settings = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { language, setLanguage, t } = useLanguage();
-  const { isPremium, isLoading: isLoadingSubscription, refreshSubscription, openCustomerPortal } = useSubscription();
+  const { isPremium, isLoading: isLoadingSubscription, refreshSubscription, openCustomerPortal, startCheckout } = useSubscription();
 
   const handleLanguageChange = (lang: string) => {
     setLanguage(lang as LanguageType);
@@ -203,6 +203,7 @@ const Settings = () => {
                 </div>
               </button>
             </div>
+          </div>
         </div>
 
         {/* Language Settings */}
