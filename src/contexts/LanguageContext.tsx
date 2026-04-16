@@ -172,7 +172,14 @@ const translations: Record<LanguageType, TranslationDictionary> = {
       totalRounds: "Total Rounds",
       avgVsPar: "Avg vs Par",
       bestRound: "Best Round",
-      viewScorecard: "View Scorecard"
+      viewScorecard: "View Scorecard",
+      saveChanges: "Save Changes",
+      profileUpdateSuccess: "Profile updated successfully",
+      profileUpdateError: "Error updating profile",
+      fullName: "Full Name",
+      username: "Username",
+      anonymous: "Anonymous",
+      saving: "Saving..."
     },
     filters: {
       showFavorites: "Show Favorites",
