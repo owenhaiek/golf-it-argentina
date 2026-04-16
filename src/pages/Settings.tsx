@@ -14,9 +14,8 @@ import {
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useSubscription } from "@/hooks/useSubscription";
-import { restorePurchases } from "@/services/revenueCat";
 import { motion } from "framer-motion";
-import { Capacitor } from "@capacitor/core";
+import { toast as sonnerToast } from "sonner";
 
 type LanguageType = "en" | "es";
 
