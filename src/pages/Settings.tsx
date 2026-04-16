@@ -120,14 +120,13 @@ const Settings = () => {
               }`}>
                 <div className="flex items-center justify-between mb-2">
                   <span className="font-semibold text-white">{language === "en" ? "Free" : "Gratis"}</span>
-                  <span className="text-lg font-bold text-white">$0<span className="text-xs text-zinc-500 font-normal">/{language === "en" ? "mo" : "mes"}</span></span>
+                  {!isPremium && (
+                    <div className="flex items-center gap-1">
+                      <Check className="h-3 w-3 text-primary" />
+                      <span className="text-[10px] text-primary font-medium">{language === "en" ? "Current plan" : "Plan actual"}</span>
+                    </div>
+                  )}
                 </div>
-                {!isPremium && (
-                  <div className="flex items-center gap-1 mb-2">
-                    <Check className="h-3 w-3 text-primary" />
-                    <span className="text-[10px] text-primary font-medium">{language === "en" ? "Current plan" : "Plan actual"}</span>
-                  </div>
-                )}
                 <div className="space-y-1.5">
                   <div className="flex items-center gap-2">
                     <Check className="h-3 w-3 text-zinc-500 flex-shrink-0" />
@@ -142,6 +141,9 @@ const Settings = () => {
                     <span className="text-xs text-zinc-400">{language === "en" ? "Course map & info" : "Mapa y info de canchas"}</span>
                   </div>
                 </div>
+                <div className="flex justify-end mt-3">
+                  <span className="text-lg font-bold text-white">$0<span className="text-xs text-zinc-500 font-normal">/{language === "en" ? "mo" : "mes"}</span></span>
+                </div>
               </div>
 
               {/* Premium Plan */}
@@ -150,18 +152,9 @@ const Settings = () => {
                   ? 'border-amber-500/50 bg-gradient-to-br from-amber-500/10 to-amber-600/5' 
                   : 'border-amber-500/30 bg-gradient-to-br from-amber-500/5 to-transparent'
               }`}>
-                {isPremium && (
-                  <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/20">
-                    <Check className="h-3 w-3 text-amber-400" />
-                    <span className="text-[10px] font-medium text-amber-400">{language === "en" ? "Active" : "Activo"}</span>
-                  </div>
-                )}
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <Crown className="h-4 w-4 text-amber-400" />
-                    <span className="font-semibold text-white">Premium</span>
-                  </div>
-                  <span className="text-lg font-bold text-amber-400">$4.99<span className="text-xs text-zinc-500 font-normal">/{language === "en" ? "mo" : "mes"}</span></span>
+                <div className="flex items-center gap-2 mb-2">
+                  <Crown className="h-4 w-4 text-amber-400" />
+                  <span className="font-semibold text-white">Premium</span>
                 </div>
                 <div className="space-y-1.5">
                   <div className="flex items-center gap-2">
@@ -180,6 +173,15 @@ const Settings = () => {
                     <Check className="h-3 w-3 text-amber-400 flex-shrink-0" />
                     <span className="text-xs text-zinc-300">{language === "en" ? "Priority support" : "Soporte prioritario"}</span>
                   </div>
+                </div>
+                <div className="flex items-center justify-end gap-2 mt-3">
+                  {isPremium && (
+                    <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/20">
+                      <Check className="h-3 w-3 text-amber-400" />
+                      <span className="text-[10px] font-medium text-amber-400">{language === "en" ? "Active" : "Activo"}</span>
+                    </div>
+                  )}
+                  <span className="text-lg font-bold text-amber-400">$4.99<span className="text-xs text-zinc-500 font-normal">/{language === "en" ? "mo" : "mes"}</span></span>
                 </div>
               </div>
             </div>
