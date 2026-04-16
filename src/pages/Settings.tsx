@@ -33,17 +33,6 @@ const Settings = () => {
     });
   };
 
-  const handleManageSubscription = async () => {
-    try {
-      await openCustomerPortal();
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: language === "en" ? "Could not open subscription portal" : "No se pudo abrir el portal de suscripción",
-        variant: "destructive",
-      });
-    }
-  };
 
   return (
     <div className="min-h-screen bg-background">
