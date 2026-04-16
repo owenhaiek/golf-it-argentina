@@ -172,7 +172,7 @@ export const MapActionMenu = ({ onOpenChange }: MapActionMenuProps) => {
                     bg-zinc-900/95 backdrop-blur-xl 
                     border border-white/10
                     shadow-2xl rounded-2xl p-4 
-                    min-w-[280px] 
+                    w-[280px] h-[72px]
                     transition-colors duration-200
                     ${isLocked ? 'opacity-60' : 'hover:bg-zinc-800/95'}
                   `}

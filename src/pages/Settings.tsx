@@ -89,7 +89,7 @@ const Settings = () => {
       </motion.div>
       
       <div className="p-4 space-y-4 pb-28">
-        {/* Subscription Section */}
+        {/* Subscription Plans Section */}
         <div className="bg-zinc-900 rounded-2xl overflow-hidden">
           <div className="p-4">
             <div className="flex items-center gap-3 mb-4">
@@ -108,62 +108,103 @@ const Settings = () => {
                     : (language === "en" ? "Free Plan" : "Plan Gratuito")}
                 </p>
               </div>
-              {isPremium && (
-                <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-amber-500/20">
-                  <Check className="h-3 w-3 text-amber-400" />
-                  <span className="text-xs font-medium text-amber-400">Premium</span>
-                </div>
-              )}
             </div>
 
-            {/* Current Plan */}
-            <div className={`p-4 rounded-xl mb-3 ${
-              isPremium 
-                ? 'bg-gradient-to-br from-amber-500/10 to-amber-600/5 border border-amber-500/20' 
-                : 'bg-zinc-800'
-            }`}>
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-semibold text-white">
-                  {isPremium 
-                    ? (language === "en" ? "Premium" : "Premium") 
-                    : (language === "en" ? "Free" : "Gratis")}
-                </span>
-                {isPremium && (
-                  <span className="text-xs text-amber-400 font-medium">
-                    {language === "en" ? "Active" : "Activo"}
-                  </span>
+            {/* Plans comparison */}
+            <div className="space-y-3">
+              {/* Free Plan */}
+              <div className={`p-4 rounded-xl border ${
+                !isPremium 
+                  ? 'border-primary/50 bg-primary/5' 
+                  : 'border-zinc-800 bg-zinc-800/50'
+              }`}>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-semibold text-white">{language === "en" ? "Free" : "Gratis"}</span>
+                  <span className="text-lg font-bold text-white">$0<span className="text-xs text-zinc-500 font-normal">/{language === "en" ? "mo" : "mes"}</span></span>
+                </div>
+                {!isPremium && (
+                  <div className="flex items-center gap-1 mb-2">
+                    <Check className="h-3 w-3 text-primary" />
+                    <span className="text-[10px] text-primary font-medium">{language === "en" ? "Current plan" : "Plan actual"}</span>
+                  </div>
                 )}
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2">
+                    <Check className="h-3 w-3 text-zinc-500 flex-shrink-0" />
+                    <span className="text-xs text-zinc-400">{language === "en" ? "Add rounds" : "Añadir rondas"}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="h-3 w-3 text-zinc-500 flex-shrink-0" />
+                    <span className="text-xs text-zinc-400">{language === "en" ? "Challenge friends" : "Desafiar amigos"}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="h-3 w-3 text-zinc-500 flex-shrink-0" />
+                    <span className="text-xs text-zinc-400">{language === "en" ? "Course map & info" : "Mapa y info de canchas"}</span>
+                  </div>
+                </div>
               </div>
-              <p className="text-xs text-zinc-400">
-                {isPremium 
-                  ? (language === "en" 
-                      ? "Unlimited tournaments, detailed stats, and priority support" 
-                      : "Torneos ilimitados, estadísticas detalladas y soporte prioritario")
-                  : (language === "en" 
-                      ? "Add rounds and challenge friends" 
-                      : "Añadir rondas y desafiar amigos")}
-              </p>
+
+              {/* Premium Plan */}
+              <div className={`p-4 rounded-xl border relative overflow-hidden ${
+                isPremium 
+                  ? 'border-amber-500/50 bg-gradient-to-br from-amber-500/10 to-amber-600/5' 
+                  : 'border-amber-500/30 bg-gradient-to-br from-amber-500/5 to-transparent'
+              }`}>
+                {isPremium && (
+                  <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/20">
+                    <Check className="h-3 w-3 text-amber-400" />
+                    <span className="text-[10px] font-medium text-amber-400">{language === "en" ? "Active" : "Activo"}</span>
+                  </div>
+                )}
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <Crown className="h-4 w-4 text-amber-400" />
+                    <span className="font-semibold text-white">Premium</span>
+                  </div>
+                  <span className="text-lg font-bold text-amber-400">$4.99<span className="text-xs text-zinc-500 font-normal">/{language === "en" ? "mo" : "mes"}</span></span>
+                </div>
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2">
+                    <Check className="h-3 w-3 text-amber-400 flex-shrink-0" />
+                    <span className="text-xs text-zinc-300">{language === "en" ? "Everything in Free" : "Todo lo del plan Gratis"}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="h-3 w-3 text-amber-400 flex-shrink-0" />
+                    <span className="text-xs text-zinc-300">{language === "en" ? "Create tournaments" : "Crear torneos"}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="h-3 w-3 text-amber-400 flex-shrink-0" />
+                    <span className="text-xs text-zinc-300">{language === "en" ? "Detailed statistics" : "Estadísticas detalladas"}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="h-3 w-3 text-amber-400 flex-shrink-0" />
+                    <span className="text-xs text-zinc-300">{language === "en" ? "Priority support" : "Soporte prioritario"}</span>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Action Button */}
-            {!isPremium ? (
-              <Button
-                onClick={() => navigate('/subscription')}
-                className="w-full h-12 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-semibold"
-              >
-                <Crown className="h-4 w-4 mr-2" />
-                {language === "en" ? "Upgrade to Premium" : "Obtener Premium"}
-              </Button>
-            ) : (
-              <Button
-                onClick={handleRestorePurchases}
-                variant="outline"
-                className="w-full h-12 rounded-xl"
-              >
-                <RefreshCw className="h-4 w-4 mr-2" />
-                {language === "en" ? "Restore Purchases" : "Restaurar Compras"}
-              </Button>
-            )}
+            <div className="mt-3">
+              {!isPremium ? (
+                <Button
+                  onClick={() => navigate('/subscription')}
+                  className="w-full h-12 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-semibold"
+                >
+                  <Crown className="h-4 w-4 mr-2" />
+                  {language === "en" ? "Upgrade to Premium — $4.99/mo" : "Obtener Premium — $4.99/mes"}
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleRestorePurchases}
+                  variant="outline"
+                  className="w-full h-12 rounded-xl"
+                >
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  {language === "en" ? "Restore Purchases" : "Restaurar Compras"}
+                </Button>
+              )}
+            </div>
           </div>
         </div>
 

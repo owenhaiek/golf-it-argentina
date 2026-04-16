@@ -242,7 +242,7 @@ const Subscription = () => {
             ) : (
               <>
                 <Crown className="h-5 w-5 mr-2" />
-                {language === "en" ? "Get Premium" : "Obtener Premium"}
+                {language === "en" ? "Get Premium — $4.99/mo" : "Obtener Premium — $4.99/mes"}
               </>
             )}
           </Button>
