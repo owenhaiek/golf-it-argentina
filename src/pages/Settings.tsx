@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Settings as SettingsIcon, Languages, Shield, FileText, HelpCircle, ChevronRight, ChevronLeft, Crown, Check } from "lucide-react";
+import { Settings as SettingsIcon, Languages, Shield, FileText, HelpCircle, ChevronRight, ChevronLeft, Crown, Check, RefreshCw } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -23,7 +23,7 @@ const Settings = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { language, setLanguage, t } = useLanguage();
-  const { isPremium, isLoading: isLoadingSubscription, refreshSubscription, openCustomerPortal, startCheckout } = useSubscription();
+  const { isPremium, isLoading: isLoadingSubscription, refreshSubscription, openCustomerPortal } = useSubscription();
 
   const handleLanguageChange = (lang: string) => {
     setLanguage(lang as LanguageType);
@@ -33,6 +33,17 @@ const Settings = () => {
     });
   };
 
+  const handleManageSubscription = async () => {
+    try {
+      await openCustomerPortal();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: language === "en" ? "Could not open subscription portal" : "No se pudo abrir el portal de suscripción",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -85,29 +96,12 @@ const Settings = () => {
 
             {/* Plans comparison */}
             <div className="space-y-3">
-              {/* Free Plan - clickable */}
-              <button
-                onClick={() => {
-                  if (isPremium) {
-                    if (window.confirm(language === "en" 
-                      ? "Are you sure you want to switch to the Free plan?" 
-                      : "¿Estás seguro que quieres cambiar al plan Gratis?")) {
-                      openCustomerPortal().catch(() => {
-                        toast({
-                          title: "Error",
-                          description: language === "en" ? "Could not open subscription portal" : "No se pudo abrir el portal de suscripción",
-                          variant: "destructive",
-                        });
-                      });
-                    }
-                  }
-                }}
-                className={`w-full text-left p-4 rounded-xl border transition-all ${
-                  !isPremium 
-                    ? 'border-primary/50 bg-primary/5' 
-                    : 'border-zinc-800 bg-zinc-800/50 hover:border-zinc-700 cursor-pointer'
-                }`}
-              >
+              {/* Free Plan */}
+              <div className={`p-4 rounded-xl border ${
+                !isPremium 
+                  ? 'border-primary/50 bg-primary/5' 
+                  : 'border-zinc-800 bg-zinc-800/50'
+              }`}>
                 <div className="flex items-center justify-between mb-2">
                   <span className="font-semibold text-white">{language === "en" ? "Free" : "Gratis"}</span>
                   {!isPremium && (
@@ -134,31 +128,14 @@ const Settings = () => {
                 <div className="flex justify-end mt-3">
                   <span className="text-lg font-bold text-white">$0<span className="text-xs text-zinc-500 font-normal">/{language === "en" ? "mo" : "mes"}</span></span>
                 </div>
-              </button>
+              </div>
 
-              {/* Premium Plan - clickable */}
-              <button
-                onClick={() => {
-                  if (!isPremium) {
-                    if (window.confirm(language === "en" 
-                      ? "Are you sure you want to switch to the Premium plan?" 
-                      : "¿Estás seguro que quieres cambiar al plan Premium?")) {
-                      startCheckout().catch(() => {
-                        toast({
-                          title: "Error",
-                          description: language === "en" ? "Could not start checkout" : "No se pudo iniciar el checkout",
-                          variant: "destructive",
-                        });
-                      });
-                    }
-                  }
-                }}
-                className={`w-full text-left p-4 rounded-xl border relative overflow-hidden transition-all ${
-                  isPremium 
-                    ? 'border-amber-500/50 bg-gradient-to-br from-amber-500/10 to-amber-600/5' 
-                    : 'border-amber-500/30 bg-gradient-to-br from-amber-500/5 to-transparent hover:border-amber-500/50 cursor-pointer'
-                }`}
-              >
+              {/* Premium Plan */}
+              <div className={`p-4 rounded-xl border relative overflow-hidden ${
+                isPremium 
+                  ? 'border-amber-500/50 bg-gradient-to-br from-amber-500/10 to-amber-600/5' 
+                  : 'border-amber-500/30 bg-gradient-to-br from-amber-500/5 to-transparent'
+              }`}>
                 <div className="flex items-center gap-2 mb-2">
                   <Crown className="h-4 w-4 text-amber-400" />
                   <span className="font-semibold text-white">Premium</span>
@@ -190,7 +167,29 @@ const Settings = () => {
                   )}
                   <span className="text-lg font-bold text-amber-400">$4.99<span className="text-xs text-zinc-500 font-normal">/{language === "en" ? "mo" : "mes"}</span></span>
                 </div>
-              </button>
+              </div>
+            </div>
+
+            {/* Action Button */}
+            <div className="mt-3">
+              {!isPremium ? (
+                <Button
+                  onClick={() => navigate('/subscription')}
+                  className="w-full h-12 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-semibold"
+                >
+                  <Crown className="h-4 w-4 mr-2" />
+                  {language === "en" ? "Upgrade to Premium — $4.99/mo" : "Obtener Premium — $4.99/mes"}
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleManageSubscription}
+                  variant="outline"
+                  className="w-full h-12 rounded-xl"
+                >
+                  <Crown className="h-4 w-4 mr-2" />
+                  {language === "en" ? "Manage Subscription" : "Gestionar Suscripción"}
+                </Button>
+              )}
             </div>
           </div>
         </div>
