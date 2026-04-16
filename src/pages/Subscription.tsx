@@ -1,45 +1,38 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useSubscription } from "@/hooks/useSubscription";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Crown, Check, Trophy, Swords, Flag, Star, Zap } from "lucide-react";
+import { ArrowLeft, Crown, Check, Trophy, Flag, Star, Zap, Swords, ExternalLink } from "lucide-react";
 import { motion } from "framer-motion";
-import { Capacitor } from "@capacitor/core";
-import { purchasePackage } from "@/services/revenueCat";
 import { toast } from "sonner";
+import { useEffect } from "react";
 
 const Subscription = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { language } = useLanguage();
-  const { offerings, isPremium, refreshSubscription, setWebPremiumStatus } = useSubscription();
+  const { isPremium, refreshSubscription, startCheckout, openCustomerPortal } = useSubscription();
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const handlePurchase = async (packageToPurchase?: any) => {
-    if (!Capacitor.isNativePlatform()) {
-      // Web demo - simulate purchase
-      setWebPremiumStatus(true);
-      toast.success(language === "en" ? "Premium activated!" : "¡Premium activado!");
-      navigate(-1);
-      return;
+  // Handle return from Stripe checkout
+  useEffect(() => {
+    if (searchParams.get("success") === "true") {
+      toast.success(language === "en" ? "Subscription activated! Refreshing..." : "¡Suscripción activada! Actualizando...");
+      refreshSubscription();
     }
-
-    if (!packageToPurchase) {
-      toast.error(language === "en" ? "No package available" : "No hay paquete disponible");
-      return;
+    if (searchParams.get("canceled") === "true") {
+      toast.info(language === "en" ? "Checkout canceled" : "Checkout cancelado");
     }
+  }, [searchParams]);
 
+  const handlePurchase = async () => {
     setIsProcessing(true);
     try {
-      const result = await purchasePackage(packageToPurchase);
-      if (result) {
-        toast.success(language === "en" ? "Purchase successful!" : "¡Compra exitosa!");
-        refreshSubscription();
-        navigate(-1);
-      }
+      await startCheckout();
     } catch (error) {
       console.error("Purchase error:", error);
-      toast.error(language === "en" ? "Purchase failed" : "Error en la compra");
+      toast.error(language === "en" ? "Error starting checkout" : "Error al iniciar el checkout");
     } finally {
       setIsProcessing(false);
     }
@@ -86,11 +79,6 @@ const Subscription = () => {
     }
   ];
 
-  // Get the monthly package from offerings if available
-  const monthlyPackage = offerings?.current?.availablePackages?.find(
-    (pkg: any) => pkg.packageType === 'MONTHLY'
-  ) || offerings?.current?.availablePackages?.[0];
-
   if (isPremium) {
     return (
       <div className="min-h-screen bg-background">
@@ -110,7 +98,7 @@ const Subscription = () => {
           </div>
         </div>
 
-        <div className="p-6 max-w-2xl mx-auto text-center">
+        <div className="p-6 max-w-2xl mx-auto text-center space-y-6">
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
@@ -127,6 +115,21 @@ const Subscription = () => {
               ? "Enjoy all premium features" 
               : "Disfruta de todas las funciones premium"}
           </p>
+
+          <Button
+            onClick={async () => {
+              try {
+                await openCustomerPortal();
+              } catch {
+                toast.error(language === "en" ? "Error opening portal" : "Error al abrir el portal");
+              }
+            }}
+            variant="outline"
+            className="gap-2"
+          >
+            <ExternalLink className="h-4 w-4" />
+            {language === "en" ? "Manage Subscription" : "Gestionar Suscripción"}
+          </Button>
         </div>
       </div>
     );
@@ -134,7 +137,6 @@ const Subscription = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <div className="p-4 bg-background/80 backdrop-blur-lg border-b border-border/50">
         <div className="flex items-center gap-3 max-w-2xl mx-auto">
           <Button
@@ -152,7 +154,6 @@ const Subscription = () => {
       </div>
 
       <div className="p-6 max-w-2xl mx-auto space-y-8 pb-32">
-        {/* Hero */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -177,7 +178,6 @@ const Subscription = () => {
           </p>
         </motion.div>
 
-        {/* Premium Features */}
         <div className="space-y-3">
           <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
             {language === "en" ? "Premium Features" : "Funciones Premium"}
@@ -201,7 +201,6 @@ const Subscription = () => {
           ))}
         </div>
 
-        {/* Free Features */}
         <div className="space-y-3">
           <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
             {language === "en" ? "Free Features" : "Funciones Gratis"}
@@ -229,11 +228,10 @@ const Subscription = () => {
         </div>
       </div>
 
-      {/* Fixed CTA */}
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background via-background to-transparent pt-8 pb-[calc(1rem+var(--safe-area-bottom))]">
         <div className="max-w-2xl mx-auto space-y-3">
           <Button
-            onClick={() => handlePurchase(monthlyPackage)}
+            onClick={handlePurchase}
             disabled={isProcessing}
             className="w-full h-14 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-semibold text-lg shadow-lg shadow-amber-500/25"
           >
@@ -248,8 +246,8 @@ const Subscription = () => {
           </Button>
           <p className="text-center text-muted-foreground text-sm">
             {language === "en" 
-              ? "Cancel anytime • Restore purchases in settings" 
-              : "Cancela cuando quieras • Restaura compras en ajustes"}
+              ? "Cancel anytime • Manage in settings" 
+              : "Cancela cuando quieras • Gestiona en ajustes"}
           </p>
         </div>
       </div>
