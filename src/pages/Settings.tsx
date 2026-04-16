@@ -14,9 +14,8 @@ import {
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useSubscription } from "@/hooks/useSubscription";
-import { restorePurchases } from "@/services/revenueCat";
 import { motion } from "framer-motion";
-import { Capacitor } from "@capacitor/core";
+import { toast as sonnerToast } from "sonner";
 
 type LanguageType = "en" | "es";
 
@@ -24,7 +23,7 @@ const Settings = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { language, setLanguage, t } = useLanguage();
-  const { isPremium, isLoading: isLoadingSubscription, refreshSubscription } = useSubscription();
+  const { isPremium, isLoading: isLoadingSubscription, refreshSubscription, openCustomerPortal } = useSubscription();
 
   const handleLanguageChange = (lang: string) => {
     setLanguage(lang as LanguageType);
@@ -34,28 +33,13 @@ const Settings = () => {
     });
   };
 
-  const handleRestorePurchases = async () => {
-    if (!Capacitor.isNativePlatform()) {
-      toast({
-        title: language === "en" ? "Web Mode" : "Modo Web",
-        description: language === "en" ? "Restore purchases is only available on mobile" : "Restaurar compras solo está disponible en móvil",
-      });
-      return;
-    }
-
+  const handleManageSubscription = async () => {
     try {
-      const result = await restorePurchases();
-      if (result) {
-        refreshSubscription();
-        toast({
-          title: language === "en" ? "Purchases Restored" : "Compras Restauradas",
-          description: language === "en" ? "Your purchases have been restored" : "Tus compras han sido restauradas",
-        });
-      }
+      await openCustomerPortal();
     } catch (error) {
       toast({
         title: "Error",
-        description: language === "en" ? "Failed to restore purchases" : "Error al restaurar compras",
+        description: language === "en" ? "Could not open subscription portal" : "No se pudo abrir el portal de suscripción",
         variant: "destructive",
       });
     }
@@ -198,12 +182,12 @@ const Settings = () => {
                 </Button>
               ) : (
                 <Button
-                  onClick={handleRestorePurchases}
+                  onClick={handleManageSubscription}
                   variant="outline"
                   className="w-full h-12 rounded-xl"
                 >
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  {language === "en" ? "Restore Purchases" : "Restaurar Compras"}
+                  <Crown className="h-4 w-4 mr-2" />
+                  {language === "en" ? "Manage Subscription" : "Gestionar Suscripción"}
                 </Button>
               )}
             </div>

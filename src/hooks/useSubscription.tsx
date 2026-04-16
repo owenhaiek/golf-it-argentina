@@ -1,17 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Capacitor } from '@capacitor/core';
-import { 
-  getCustomerInfo, 
-  hasActiveSubscription as checkSubscription,
-  identifyUser,
-  getOfferings
-} from '@/services/revenueCat';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface SubscriptionState {
   isPremium: boolean;
   isLoading: boolean;
-  offerings: any | null;
+  subscriptionEnd: string | null;
 }
 
 export const useSubscription = () => {
@@ -19,62 +13,76 @@ export const useSubscription = () => {
   const [state, setState] = useState<SubscriptionState>({
     isPremium: false,
     isLoading: true,
-    offerings: null
+    subscriptionEnd: null,
   });
 
   const checkSubscriptionStatus = useCallback(async () => {
-    // On web, check localStorage for demo purposes (in production, check against backend)
-    if (!Capacitor.isNativePlatform()) {
-      const webPremiumStatus = localStorage.getItem('golf_premium_status');
-      setState({
-        isPremium: webPremiumStatus === 'true',
-        isLoading: false,
-        offerings: null
-      });
+    if (!user) {
+      setState({ isPremium: false, isLoading: false, subscriptionEnd: null });
       return;
     }
 
     try {
-      // Identify user in RevenueCat
-      if (user?.id) {
-        await identifyUser(user.id);
-      }
-
-      // Check for active subscription
-      const hasPremium = await checkSubscription('premium');
-      const offerings = await getOfferings();
+      const { data, error } = await supabase.functions.invoke('check-subscription');
+      if (error) throw error;
 
       setState({
-        isPremium: hasPremium,
+        isPremium: data?.subscribed ?? false,
         isLoading: false,
-        offerings
+        subscriptionEnd: data?.subscription_end ?? null,
       });
     } catch (error) {
       console.error('Error checking subscription:', error);
       setState(prev => ({ ...prev, isLoading: false }));
     }
-  }, [user?.id]);
+  }, [user]);
 
   useEffect(() => {
     checkSubscriptionStatus();
   }, [checkSubscriptionStatus]);
+
+  // Auto-refresh every 60 seconds
+  useEffect(() => {
+    if (!user) return;
+    const interval = setInterval(checkSubscriptionStatus, 60000);
+    return () => clearInterval(interval);
+  }, [user, checkSubscriptionStatus]);
 
   const refreshSubscription = useCallback(() => {
     setState(prev => ({ ...prev, isLoading: true }));
     checkSubscriptionStatus();
   }, [checkSubscriptionStatus]);
 
-  // For web demo/testing purposes
-  const setWebPremiumStatus = useCallback((isPremium: boolean) => {
-    if (!Capacitor.isNativePlatform()) {
-      localStorage.setItem('golf_premium_status', isPremium.toString());
-      setState(prev => ({ ...prev, isPremium }));
+  const startCheckout = useCallback(async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('create-checkout');
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, '_blank');
+      }
+    } catch (error) {
+      console.error('Error creating checkout:', error);
+      throw error;
+    }
+  }, []);
+
+  const openCustomerPortal = useCallback(async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('customer-portal');
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, '_blank');
+      }
+    } catch (error) {
+      console.error('Error opening customer portal:', error);
+      throw error;
     }
   }, []);
 
   return {
     ...state,
     refreshSubscription,
-    setWebPremiumStatus
+    startCheckout,
+    openCustomerPortal,
   };
 };
