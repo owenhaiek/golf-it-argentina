@@ -37,12 +37,25 @@ export const TournamentScoringCard = ({ tournament, open, onOpenChange, onSucces
   const [currentParticipantIndex, setCurrentParticipantIndex] = useState(0);
   const [currentRound, setCurrentRound] = useState(1);
 
+  const [initialized, setInitialized] = useState(false);
+
   useEffect(() => {
     if (open && tournament?.id) {
+      setInitialized(false);
       fetchParticipants();
       fetchCoursePars();
     }
-  }, [open, tournament?.id]);
+  }, [open, tournament?.id, currentRound]);
+
+  // Auto-save (debounced) so progress persists if dialog is closed
+  useEffect(() => {
+    if (!open || !initialized || !user?.id || participants.length === 0) return;
+    const timer = setTimeout(() => {
+      autoSaveScores();
+    }, 800);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [participants, open, initialized, currentRound]);
 
   const fetchParticipants = async () => {
     try {
@@ -56,6 +69,7 @@ export const TournamentScoringCard = ({ tournament, open, onOpenChange, onSucces
 
       if (!participantsData || participantsData.length === 0) {
         setParticipants([]);
+        setInitialized(true);
         return;
       }
 
@@ -67,7 +81,7 @@ export const TournamentScoringCard = ({ tournament, open, onOpenChange, onSucces
 
       if (profilesError) throw profilesError;
 
-      const participantScores: ParticipantScore[] = participantsData.map(p => {
+      let participantScores: ParticipantScore[] = participantsData.map(p => {
         const profile = profilesData?.find(profile => profile.id === p.user_id);
         return {
           user_id: p.user_id,
@@ -79,7 +93,34 @@ export const TournamentScoringCard = ({ tournament, open, onOpenChange, onSucces
         };
       });
 
+      // Load any previously saved scores for this round (uses participant_id = user_id, matching submitScores)
+      try {
+        const { data: existingScores } = await supabase
+          .from('tournament_scores')
+          .select('participant_id, hole_scores, total_score')
+          .eq('tournament_id', tournament.id)
+          .eq('round_number', currentRound);
+
+        if (existingScores && existingScores.length > 0) {
+          participantScores = participantScores.map(p => {
+            const existing = existingScores.find((e: any) => e.participant_id === p.user_id);
+            if (existing) {
+              const holes = (existing.hole_scores as number[]) || new Array(18).fill(0);
+              return {
+                ...p,
+                hole_scores: holes,
+                total_score: existing.total_score || holes.reduce((a, b) => a + b, 0),
+              };
+            }
+            return p;
+          });
+        }
+      } catch (err) {
+        console.error('Error loading existing tournament scores:', err);
+      }
+
       setParticipants(participantScores);
+      setInitialized(true);
     } catch (error) {
       console.error('Error fetching participants:', error);
       toast({
@@ -87,6 +128,31 @@ export const TournamentScoringCard = ({ tournament, open, onOpenChange, onSucces
         description: "No se pudieron cargar los participantes.",
         variant: "destructive"
       });
+    }
+  };
+
+  const autoSaveScores = async () => {
+    if (!user?.id || !tournament?.id || participants.length === 0) return;
+    try {
+      const scores = participants
+        .filter(p => p.hole_scores.some(s => s > 0))
+        .map(p => ({
+          tournament_id: tournament.id,
+          participant_id: p.user_id,
+          round_number: currentRound,
+          hole_scores: p.hole_scores,
+          total_score: p.total_score,
+          submitted_by: user.id,
+        }));
+
+      if (scores.length === 0) return;
+
+      const { error } = await supabase
+        .from('tournament_scores')
+        .upsert(scores, { onConflict: 'tournament_id,participant_id,round_number' });
+      if (error) console.error('Auto-save tournament scores error:', error);
+    } catch (error) {
+      console.error('Error auto-saving tournament scores:', error);
     }
   };
 

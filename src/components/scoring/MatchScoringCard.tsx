@@ -35,14 +35,27 @@ export const MatchScoringCard = ({ match, open, onOpenChange, onSuccess }: Match
   const [currentHoleIndex, setCurrentHoleIndex] = useState(0);
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
 
+  const [initialized, setInitialized] = useState(false);
+
   useEffect(() => {
     if (open && match?.id) {
+      setInitialized(false);
       initializePlayers();
       fetchCoursePars();
     }
   }, [open, match?.id]);
 
-  const initializePlayers = () => {
+  // Auto-save (debounced) whenever scores change so progress persists if dialog is closed
+  useEffect(() => {
+    if (!open || !initialized || !user?.id || players.length === 0) return;
+    const timer = setTimeout(() => {
+      autoSaveScores();
+    }, 800);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [players, open, initialized]);
+
+  const initializePlayers = async () => {
     if (!match) return;
     
     let playerScores: PlayerScore[] = [];
@@ -80,7 +93,58 @@ export const MatchScoringCard = ({ match, open, onOpenChange, onSuccess }: Match
         }
       ];
     }
+
+    // Load any previously saved scores so the user can resume
+    try {
+      const { data: existingScores } = await supabase
+        .from('match_scores')
+        .select('user_id, hole_scores, total_score')
+        .eq('match_id', match.id);
+
+      if (existingScores && existingScores.length > 0) {
+        playerScores = playerScores.map(p => {
+          const existing = existingScores.find((e: any) => e.user_id === p.user_id);
+          if (existing) {
+            const holes = (existing.hole_scores as number[]) || new Array(18).fill(0);
+            return {
+              ...p,
+              hole_scores: holes,
+              total_score: existing.total_score || holes.reduce((a, b) => a + b, 0),
+            };
+          }
+          return p;
+        });
+      }
+    } catch (err) {
+      console.error('Error loading existing match scores:', err);
+    }
+
     setPlayers(playerScores);
+    setInitialized(true);
+  };
+
+  const autoSaveScores = async () => {
+    if (!user?.id || !match?.id || players.length === 0) return;
+    try {
+      const scores = players
+        .filter(p => p.hole_scores.some(s => s > 0))
+        .map(p => ({
+          match_id: match.id,
+          user_id: p.user_id,
+          hole_scores: p.hole_scores,
+          total_score: p.total_score,
+          submitted_by: user.id,
+        }));
+
+      if (scores.length === 0) return;
+
+      const { error } = await supabase
+        .from('match_scores')
+        .upsert(scores, { onConflict: 'match_id,user_id' });
+      if (error) console.error('Auto-save match scores error:', error);
+    } catch (error) {
+      console.error('Error auto-saving match scores:', error);
+    }
   };
 
   const fetchCoursePars = async () => {
