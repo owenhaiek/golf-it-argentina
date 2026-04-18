@@ -9,7 +9,7 @@ import { Tournament } from "@/hooks/useTournamentsAndMatches";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, ArrowRight, Check, Trophy, Users, MapPin, Minus, Plus } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Trophy, Users, MapPin, Minus, Plus, X } from "lucide-react";
 
 interface TournamentScoringCardProps {
   tournament: Tournament;
@@ -253,17 +253,26 @@ export const TournamentScoringCard = ({ tournament, open, onOpenChange, onSucces
         {/* Header */}
         <div className="sticky top-0 z-10 bg-zinc-950/95 backdrop-blur-xl border-b border-white/5 p-4">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/20">
-                <Trophy className="h-5 w-5 text-amber-400" />
+            <DialogTitle className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 flex-shrink-0">
+                  <Trophy className="h-5 w-5 text-amber-400" />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-lg font-semibold text-foreground block truncate">{tournament?.name || "Cargar Puntajes"}</span>
+                  <p className="text-sm text-zinc-500 flex items-center gap-1.5 mt-0.5 truncate">
+                    <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
+                    <span className="truncate">{tournament?.golf_courses?.name || 'Campo de Golf'}</span>
+                  </p>
+                </div>
               </div>
-              <div>
-                <span className="text-lg font-semibold text-foreground">{tournament?.name || "Cargar Puntajes"}</span>
-                <p className="text-sm text-zinc-500 flex items-center gap-1.5 mt-0.5">
-                  <MapPin className="h-3.5 w-3.5" />
-                  {tournament?.golf_courses?.name || 'Campo de Golf'}
-                </p>
-              </div>
+              <button
+                onClick={() => onOpenChange(false)}
+                aria-label="Cerrar"
+                className="flex-shrink-0 h-9 w-9 rounded-full bg-zinc-800 hover:bg-zinc-700 flex items-center justify-center text-zinc-300 transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
             </DialogTitle>
           </DialogHeader>
         </div>
