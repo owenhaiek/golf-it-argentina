@@ -40,14 +40,27 @@ export const TournamentScoringDialog = ({ tournament, open, onOpenChange, onSucc
   const [activeHoleIndex, setActiveHoleIndex] = useState(0);
   const [viewMode, setViewMode] = useState<'single' | 'all'>('single');
 
+  const [initialized, setInitialized] = useState(false);
+
   useEffect(() => {
     if (open && tournament?.id) {
+      setInitialized(false);
       fetchParticipants();
       fetchCoursePars();
       setActiveHoleIndex(0);
       setActiveParticipantIndex(0);
     }
-  }, [open, tournament?.id]);
+  }, [open, tournament?.id, roundNumber]);
+
+  // Auto-save (debounced) whenever scores change
+  useEffect(() => {
+    if (!open || !initialized || !user?.id || participants.length === 0) return;
+    const timer = setTimeout(() => {
+      autoSaveScores();
+    }, 800);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [participants, open, initialized, roundNumber]);
 
   const fetchParticipants = async () => {
     try {
