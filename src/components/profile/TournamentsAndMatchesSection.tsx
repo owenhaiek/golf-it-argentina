@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 type FilterType = 'all' | 'active' | 'upcoming' | 'completed';
+type TypeFilter = 'all' | 'tournament' | 'match';
 
 export const TournamentsAndMatchesSection = () => {
   const { user } = useAuth();
@@ -48,6 +49,7 @@ export const TournamentsAndMatchesSection = () => {
   } = useTournamentsAndMatches();
 
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
+  const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
   const [editTournamentDialog, setEditTournamentDialog] = useState<{ open: boolean; tournament: any }>({ open: false, tournament: null });
   const [editMatchDialog, setEditMatchDialog] = useState<{ open: boolean; match: any }>({ open: false, match: null });
   const [tournamentScoringDialog, setTournamentScoringDialog] = useState<{ open: boolean; tournament: any }>({ open: false, tournament: null });
@@ -131,10 +133,10 @@ export const TournamentsAndMatchesSection = () => {
     ...completedMatches.map(m => ({ ...m, itemType: 'match' as const, status: 'completed' as const })),
   ];
 
-  // Filter items based on active filter
-  const filteredItems = activeFilter === 'all' 
-    ? allItems 
-    : allItems.filter(item => item.status === activeFilter);
+  // Filter items based on active filter and type filter
+  const filteredItems = allItems
+    .filter(item => activeFilter === 'all' || item.status === activeFilter)
+    .filter(item => typeFilter === 'all' || item.itemType === typeFilter);
 
   const totalTournaments = upcomingTournaments.length + activeTournaments.length + completedTournaments.length;
   const totalMatches = activeMatches.length + completedMatches.length;
@@ -224,7 +226,44 @@ export const TournamentsAndMatchesSection = () => {
         </div>
       </div>
       
-      {/* Filter Dropdown */}
+      {/* Type Filter Tabs (Todos / Torneos / Partidos) */}
+      <div className="flex gap-1.5 p-1 bg-muted/40 rounded-xl border border-border/50">
+        {([
+          { key: 'all', label: 'Todos', icon: null, count: allItems.length, accent: 'from-amber-500 to-red-500' },
+          { key: 'tournament', label: 'Torneos', icon: Trophy, count: totalTournaments, accent: 'from-amber-500 to-amber-600' },
+          { key: 'match', label: 'Partidos', icon: Swords, count: totalMatches, accent: 'from-red-500 to-red-600' },
+        ] as { key: TypeFilter; label: string; icon: any; count: number; accent: string }[]).map(({ key, label, icon: Icon, count, accent }) => {
+          const isActive = typeFilter === key;
+          return (
+            <button
+              key={key}
+              onClick={() => setTypeFilter(key)}
+              className="relative flex-1 flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg text-xs font-medium transition-colors"
+            >
+              {isActive && (
+                <motion.div
+                  layoutId="typeFilterPill"
+                  className={`absolute inset-0 rounded-lg bg-gradient-to-r ${accent} shadow-md`}
+                  transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                />
+              )}
+              <span className={`relative z-10 flex items-center gap-1.5 ${isActive ? 'text-white' : 'text-muted-foreground'}`}>
+                {Icon && <Icon className="h-3.5 w-3.5" />}
+                {label}
+                {count > 0 && (
+                  <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-semibold ${
+                    isActive ? 'bg-white/20 text-white' : 'bg-muted text-muted-foreground'
+                  }`}>
+                    {count}
+                  </span>
+                )}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Status Filter Dropdown */}
       <div className="flex">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
