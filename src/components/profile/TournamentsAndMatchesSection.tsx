@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Trophy, Swords, Calendar, CheckCircle, Flame, ChevronRight, AlertTriangle } from "lucide-react";
+import { Trophy, Swords, Calendar, CheckCircle, Flame, ChevronRight, AlertTriangle, ChevronDown } from "lucide-react";
 import { useTournamentsAndMatches } from "@/hooks/useTournamentsAndMatches";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,6 +25,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 type FilterType = 'all' | 'active' | 'upcoming' | 'completed';
 
@@ -218,29 +224,51 @@ export const TournamentsAndMatchesSection = () => {
         </div>
       </div>
       
-      {/* Filter Pills */}
-      <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
-        {filters.map(({ key, label, icon: Icon, count, color }) => (
-          <button
-            key={key}
-            onClick={() => setActiveFilter(key)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all ${
-              activeFilter === key
-                ? `${color} ring-1 ring-current/30`
-                : 'bg-muted/50 text-muted-foreground hover:bg-muted'
-            }`}
-          >
-            {Icon && <Icon className="h-3 w-3" />}
-            {label}
-            {count > 0 && (
-              <span className={`ml-1 px-1.5 py-0.5 rounded-full text-[10px] ${
-                activeFilter === key ? 'bg-background/20' : 'bg-muted'
-              }`}>
-                {count}
-              </span>
-            )}
-          </button>
-        ))}
+      {/* Filter Dropdown */}
+      <div className="flex">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-all bg-muted/50 hover:bg-muted text-foreground border border-border/50`}
+            >
+              {(() => {
+                const active = filters.find(f => f.key === activeFilter);
+                const ActiveIcon = active?.icon;
+                return (
+                  <>
+                    {ActiveIcon && <ActiveIcon className="h-3.5 w-3.5" />}
+                    <span>{active?.label}</span>
+                    {active && active.count > 0 && (
+                      <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-background/40">
+                        {active.count}
+                      </span>
+                    )}
+                    <ChevronDown className="h-3.5 w-3.5 ml-1 opacity-60" />
+                  </>
+                );
+              })()}
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="w-48">
+            {filters.map(({ key, label, icon: Icon, count }) => (
+              <DropdownMenuItem
+                key={key}
+                onClick={() => setActiveFilter(key)}
+                className={`flex items-center gap-2 cursor-pointer ${
+                  activeFilter === key ? 'bg-muted/60' : ''
+                }`}
+              >
+                {Icon && <Icon className="h-3.5 w-3.5" />}
+                <span className="flex-1">{label}</span>
+                {count > 0 && (
+                  <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-muted">
+                    {count}
+                  </span>
+                )}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* Items List */}
