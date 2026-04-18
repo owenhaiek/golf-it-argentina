@@ -93,19 +93,19 @@ const HandicapInfoDialog = ({ open, onOpenChange, handicap }: HandicapInfoDialog
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.25, delay: 0.1 }}
-            className="rounded-2xl bg-zinc-800/40 border border-white/5 p-4"
+            className="rounded-2xl bg-zinc-800/40 border border-white/5 p-3 sm:p-4"
           >
             <div className="flex items-center gap-2 mb-2">
-              <ListChecks className="w-4 h-4 text-primary" />
+              <ListChecks className="w-4 h-4 text-primary shrink-0" />
               <h4 className="text-sm font-semibold text-white">{t.requirementsTitle}</h4>
             </div>
-            <ul className="space-y-2 text-sm text-zinc-300">
+            <ul className="space-y-1.5 text-[13px] sm:text-sm text-zinc-300 leading-snug">
               <li className="flex gap-2">
-                <span className="text-primary">•</span>
+                <span className="text-primary shrink-0">•</span>
                 <span>{t.req1}</span>
               </li>
               <li className="flex gap-2">
-                <span className="text-primary">•</span>
+                <span className="text-primary shrink-0">•</span>
                 <span>{t.req2}</span>
               </li>
             </ul>
@@ -116,19 +116,19 @@ const HandicapInfoDialog = ({ open, onOpenChange, handicap }: HandicapInfoDialog
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.25, delay: 0.15 }}
-            className="rounded-2xl bg-zinc-800/40 border border-white/5 p-4"
+            className="rounded-2xl bg-zinc-800/40 border border-white/5 p-3 sm:p-4"
           >
             <div className="flex items-center gap-2 mb-2">
-              <TrendingDown className="w-4 h-4 text-primary" />
+              <TrendingDown className="w-4 h-4 text-primary shrink-0" />
               <h4 className="text-sm font-semibold text-white">{t.tipsTitle}</h4>
             </div>
-            <ul className="space-y-2 text-sm text-zinc-300">
+            <ul className="space-y-1.5 text-[13px] sm:text-sm text-zinc-300 leading-snug">
               <li className="flex gap-2">
-                <span className="text-primary">•</span>
+                <span className="text-primary shrink-0">•</span>
                 <span>{t.tip1}</span>
               </li>
               <li className="flex gap-2">
-                <span className="text-primary">•</span>
+                <span className="text-primary shrink-0">•</span>
                 <span>{t.tip2}</span>
               </li>
             </ul>
