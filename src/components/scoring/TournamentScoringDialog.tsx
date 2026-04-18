@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Tournament } from "@/hooks/useTournamentsAndMatches";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Trophy, Flag, ChevronLeft, ChevronRight, Minus, Plus } from "lucide-react";
+import { Trophy, Flag, ChevronLeft, ChevronRight, Minus, Plus, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface TournamentScoringDialogProps {
@@ -192,7 +192,7 @@ export const TournamentScoringDialog = ({ tournament, open, onOpenChange, onSucc
                 </div>
               </div>
             </div>
-            <div className="flex gap-1">
+            <div className="flex items-center gap-1">
               <Button
                 variant={viewMode === 'single' ? 'default' : 'outline'}
                 size="sm"
@@ -208,6 +208,15 @@ export const TournamentScoringDialog = ({ tournament, open, onOpenChange, onSucc
                 className="h-7 text-[10px] px-2"
               >
                 Todos
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => onOpenChange(false)}
+                className="h-7 w-7 rounded-full ml-1"
+                aria-label="Cerrar"
+              >
+                <X className="h-4 w-4" />
               </Button>
             </div>
           </div>
