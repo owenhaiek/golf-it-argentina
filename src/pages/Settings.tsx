@@ -232,6 +232,48 @@ const Settings = () => {
           </div>
         </div>
         
+        {/* Push Notifications */}
+        {pushSupported && (
+          <div className="bg-zinc-900 rounded-2xl overflow-hidden">
+            <div className="p-4">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center">
+                  {pushSubscribed ? (
+                    <Bell className="h-4 w-4 text-primary" />
+                  ) : (
+                    <BellOff className="h-4 w-4 text-zinc-400" />
+                  )}
+                </div>
+                <div className="flex-1">
+                  <span className="font-medium text-white">
+                    {language === "en" ? "Push Notifications" : "Notificaciones Push"}
+                  </span>
+                  <p className="text-xs text-zinc-500">
+                    {language === "en"
+                      ? "Receive challenges, friend requests and tournament invites"
+                      : "Recibí desafíos, solicitudes de amistad e invitaciones a torneos"}
+                  </p>
+                </div>
+                <Switch
+                  checked={pushSubscribed}
+                  disabled={pushLoading}
+                  onCheckedChange={(checked) => {
+                    if (checked) subscribePush();
+                    else unsubscribePush();
+                  }}
+                />
+              </div>
+              {!pushSubscribed && (
+                <p className="text-[11px] text-zinc-600 leading-relaxed">
+                  {language === "en"
+                    ? "Tip: install the app to your home screen for the best experience."
+                    : "Tip: instalá la app en tu pantalla de inicio para la mejor experiencia."}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Legal Documents */}
         <div className="bg-zinc-900 rounded-2xl overflow-hidden">
           <div className="p-4 pb-2">
