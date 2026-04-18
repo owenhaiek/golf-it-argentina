@@ -1,7 +1,10 @@
+import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { FriendRequestButton } from "./FriendRequestButton";
+import HandicapInfoDialog from "./HandicapInfoDialog";
+import { Info } from "lucide-react";
 
 interface UserProfileData {
   username?: string;
@@ -18,6 +21,7 @@ interface UserProfileCardProps {
 
 const UserProfileCard = ({ profile, profileLoading, userId }: UserProfileCardProps) => {
   const { t } = useLanguage();
+  const [handicapInfoOpen, setHandicapInfoOpen] = useState(false);
 
   if (profileLoading) {
     return (
@@ -56,12 +60,18 @@ const UserProfileCard = ({ profile, profileLoading, userId }: UserProfileCardPro
             </p>
           )}
           <div className="flex items-center justify-center mt-3">
-            <span className="text-sm font-medium inline-flex items-center gap-1 bg-zinc-800 text-zinc-300 px-4 py-1.5 rounded-full border border-zinc-700">
+            <button
+              type="button"
+              onClick={() => setHandicapInfoOpen(true)}
+              aria-label={t("profile", "handicap")}
+              className="text-sm font-medium inline-flex items-center gap-1.5 bg-zinc-800 text-zinc-300 px-4 py-1.5 rounded-full border border-zinc-700 hover:bg-zinc-700 hover:border-primary/40 active:scale-95 transition-all duration-200 cursor-pointer"
+            >
               {profile?.handicap !== null && profile?.handicap !== undefined 
                 ? `${t("profile", "handicap")}: ${profile.handicap}` 
                 : t("profile", "noHandicapYet")
               }
-            </span>
+              <Info className="h-3.5 w-3.5 text-zinc-400" />
+            </button>
           </div>
         </div>
       </CardHeader>
@@ -71,6 +81,12 @@ const UserProfileCard = ({ profile, profileLoading, userId }: UserProfileCardPro
           {userId && <FriendRequestButton userId={userId} size="default" />}
         </div>
       </CardContent>
+
+      <HandicapInfoDialog
+        open={handicapInfoOpen}
+        onOpenChange={setHandicapInfoOpen}
+        handicap={profile?.handicap}
+      />
     </Card>
   );
 };
