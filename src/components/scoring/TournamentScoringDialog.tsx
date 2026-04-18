@@ -80,7 +80,7 @@ export const TournamentScoringDialog = ({ tournament, open, onOpenChange, onSucc
 
       if (error) throw error;
 
-      const participantScores: ParticipantScore[] = (data || []).map((p: any) => ({
+      let participantScores: ParticipantScore[] = (data || []).map((p: any) => ({
         participant_id: p.id,
         user_id: p.user_id,
         username: p.profiles?.username || 'Unknown',
@@ -90,7 +90,34 @@ export const TournamentScoringDialog = ({ tournament, open, onOpenChange, onSucc
         total_score: 0,
       }));
 
+      // Load any previously saved scores for this round
+      try {
+        const { data: existingScores } = await supabase
+          .from('tournament_scores')
+          .select('participant_id, hole_scores, total_score')
+          .eq('tournament_id', tournament.id)
+          .eq('round_number', roundNumber);
+
+        if (existingScores && existingScores.length > 0) {
+          participantScores = participantScores.map(p => {
+            const existing = existingScores.find((e: any) => e.participant_id === p.participant_id);
+            if (existing) {
+              const holes = (existing.hole_scores as number[]) || new Array(18).fill(0);
+              return {
+                ...p,
+                hole_scores: holes,
+                total_score: existing.total_score || holes.reduce((a, b) => a + b, 0),
+              };
+            }
+            return p;
+          });
+        }
+      } catch (err) {
+        console.error('Error loading existing tournament scores:', err);
+      }
+
       setParticipants(participantScores);
+      setInitialized(true);
     } catch (error) {
       console.error('Error fetching participants:', error);
       toast({
@@ -98,6 +125,30 @@ export const TournamentScoringDialog = ({ tournament, open, onOpenChange, onSucc
         description: "No se pudieron cargar los participantes.",
         variant: "destructive",
       });
+    }
+  };
+
+  const autoSaveScores = async () => {
+    if (!user?.id || participants.length === 0) return;
+    try {
+      const scores = participants
+        .filter(p => p.hole_scores.some(s => s > 0))
+        .map(p => ({
+          tournament_id: tournament.id,
+          participant_id: p.participant_id,
+          round_number: roundNumber,
+          hole_scores: p.hole_scores,
+          total_score: p.total_score,
+          submitted_by: user.id,
+        }));
+
+      if (scores.length === 0) return;
+
+      await supabase
+        .from('tournament_scores')
+        .upsert(scores, { onConflict: 'tournament_id,participant_id,round_number' });
+    } catch (error) {
+      console.error('Error auto-saving tournament scores:', error);
     }
   };
 
