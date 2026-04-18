@@ -27,6 +27,8 @@ const Settings = () => {
   const { language, setLanguage, t } = useLanguage();
   const { isPremium, isLoading: isLoadingSubscription, refreshSubscription, openCustomerPortal } = useSubscription();
 
+  const { isSupported: pushSupported, isSubscribed: pushSubscribed, loading: pushLoading, subscribe: subscribePush, unsubscribe: unsubscribePush } = useWebPush();
+
   const handleLanguageChange = (lang: string) => {
     setLanguage(lang as LanguageType);
     toast({
