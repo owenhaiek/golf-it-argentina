@@ -802,6 +802,39 @@ export type Database = {
           },
         ]
       }
+      web_push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          endpoint: string
+          id: string
+          p256dh: string
+          updated_at: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          endpoint: string
+          id?: string
+          p256dh: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          endpoint?: string
+          id?: string
+          p256dh?: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -838,6 +871,15 @@ export type Database = {
       reject_course_manager: { Args: { pending_id: string }; Returns: boolean }
       reject_friend_request: { Args: { request_id: string }; Returns: boolean }
       remove_friendship: { Args: { friend_user_id: string }; Returns: boolean }
+      send_web_push: {
+        Args: {
+          notif_body: string
+          notif_data?: Json
+          notif_title: string
+          target_user_id: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
