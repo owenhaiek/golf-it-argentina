@@ -100,13 +100,14 @@ const Profile = () => {
   }
 
   return (
-    <div className="h-screen flex flex-col">
+    <div className="min-h-screen bg-background">
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex-shrink-0 px-4 py-3 bg-background/80 backdrop-blur-xl border-b border-white/5 sticky top-0 z-40 touch-none"
+        className="sticky top-0 z-40 bg-background backdrop-blur-xl border-b border-white/5"
+        style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
       >
-        <div className="flex items-center justify-between">
+        <div className="px-4 py-3 flex items-center justify-between">
           <h1 className="text-xl font-semibold text-foreground">{t("common", "profile")}</h1>
           <Button 
             variant="ghost" 
@@ -119,7 +120,7 @@ const Profile = () => {
         </div>
       </motion.div>
       
-      <div className="flex-1">
+      <div>
         <div className="p-4 space-y-6 pb-28">
           <ProfileCard 
             user={user} 
@@ -135,7 +136,7 @@ const Profile = () => {
           <TournamentsAndMatchesSection />
         </div>
       </div>
-      
+
       {/* Invitation Drawer */}
       <InvitationDrawer />
     </div>
