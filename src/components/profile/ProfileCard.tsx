@@ -352,6 +352,11 @@ const ProfileCard = ({
             </AlertDialog>
           </div>}
       </CardContent>
+      <HandicapInfoDialog
+        open={handicapInfoOpen}
+        onOpenChange={setHandicapInfoOpen}
+        handicap={profile?.handicap}
+      />
     </Card>;
 };
 
