@@ -1,5 +1,7 @@
 import { useNavigate } from "react-router-dom";
-import { Settings as SettingsIcon, Languages, Shield, FileText, HelpCircle, ChevronRight, ChevronLeft, Crown, Check, RefreshCw } from "lucide-react";
+import { Settings as SettingsIcon, Languages, Shield, FileText, HelpCircle, ChevronRight, ChevronLeft, Crown, Check, RefreshCw, Bell, BellOff } from "lucide-react";
+import { useWebPush } from "@/hooks/useWebPush";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -24,6 +26,8 @@ const Settings = () => {
   const { toast } = useToast();
   const { language, setLanguage, t } = useLanguage();
   const { isPremium, isLoading: isLoadingSubscription, refreshSubscription, openCustomerPortal } = useSubscription();
+
+  const { isSupported: pushSupported, isSubscribed: pushSubscribed, loading: pushLoading, subscribe: subscribePush, unsubscribe: unsubscribePush } = useWebPush();
 
   const handleLanguageChange = (lang: string) => {
     setLanguage(lang as LanguageType);
@@ -228,6 +232,48 @@ const Settings = () => {
           </div>
         </div>
         
+        {/* Push Notifications */}
+        {pushSupported && (
+          <div className="bg-zinc-900 rounded-2xl overflow-hidden">
+            <div className="p-4">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center">
+                  {pushSubscribed ? (
+                    <Bell className="h-4 w-4 text-primary" />
+                  ) : (
+                    <BellOff className="h-4 w-4 text-zinc-400" />
+                  )}
+                </div>
+                <div className="flex-1">
+                  <span className="font-medium text-white">
+                    {language === "en" ? "Push Notifications" : "Notificaciones Push"}
+                  </span>
+                  <p className="text-xs text-zinc-500">
+                    {language === "en"
+                      ? "Receive challenges, friend requests and tournament invites"
+                      : "Recibí desafíos, solicitudes de amistad e invitaciones a torneos"}
+                  </p>
+                </div>
+                <Switch
+                  checked={pushSubscribed}
+                  disabled={pushLoading}
+                  onCheckedChange={(checked) => {
+                    if (checked) subscribePush();
+                    else unsubscribePush();
+                  }}
+                />
+              </div>
+              {!pushSubscribed && (
+                <p className="text-[11px] text-zinc-600 leading-relaxed">
+                  {language === "en"
+                    ? "Tip: install the app to your home screen for the best experience."
+                    : "Tip: instalá la app en tu pantalla de inicio para la mejor experiencia."}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Legal Documents */}
         <div className="bg-zinc-900 rounded-2xl overflow-hidden">
           <div className="p-4 pb-2">
