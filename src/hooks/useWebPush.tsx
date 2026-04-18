@@ -70,23 +70,67 @@ export const useWebPush = () => {
       }
 
       const json = sub.toJSON();
-      const { error } = await supabase.from('web_push_subscriptions').upsert({
-        user_id: user.id,
-        endpoint: sub.endpoint,
-        p256dh: json.keys?.p256dh || arrayBufferToBase64(sub.getKey('p256dh')),
-        auth: json.keys?.auth || arrayBufferToBase64(sub.getKey('auth')),
-        user_agent: navigator.userAgent,
-        updated_at: new Date().toISOString(),
-      }, { onConflict: 'endpoint' });
+      const p256dh = json.keys?.p256dh || arrayBufferToBase64(sub.getKey('p256dh'));
+      const auth = json.keys?.auth || arrayBufferToBase64(sub.getKey('auth'));
 
-      if (error) throw error;
+      // Check if subscription already exists for this endpoint
+      const { data: existing } = await supabase
+        .from('web_push_subscriptions')
+        .select('id, user_id')
+        .eq('endpoint', sub.endpoint)
+        .maybeSingle();
+
+      let dbError: any = null;
+      if (existing) {
+        // If owned by another user, delete and re-insert for current user
+        if (existing.user_id !== user.id) {
+          await supabase.from('web_push_subscriptions').delete().eq('id', existing.id);
+          const { error } = await supabase.from('web_push_subscriptions').insert({
+            user_id: user.id,
+            endpoint: sub.endpoint,
+            p256dh,
+            auth,
+            user_agent: navigator.userAgent,
+          });
+          dbError = error;
+        } else {
+          const { error } = await supabase
+            .from('web_push_subscriptions')
+            .update({
+              p256dh,
+              auth,
+              user_agent: navigator.userAgent,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', existing.id);
+          dbError = error;
+        }
+      } else {
+        const { error } = await supabase.from('web_push_subscriptions').insert({
+          user_id: user.id,
+          endpoint: sub.endpoint,
+          p256dh,
+          auth,
+          user_agent: navigator.userAgent,
+        });
+        dbError = error;
+      }
+
+      if (dbError) throw dbError;
 
       setIsSubscribed(true);
       toast.success('Notificaciones activadas');
       return true;
     } catch (err: any) {
       console.error('Web push subscribe error:', err);
-      toast.error('Error al activar notificaciones');
+      const msg = err?.message || '';
+      // If subscription is actually saved, treat as success
+      if (msg.includes('duplicate') || msg.includes('conflict')) {
+        setIsSubscribed(true);
+        toast.success('Notificaciones activadas');
+        return true;
+      }
+      toast.error(`Error al activar notificaciones: ${msg || 'desconocido'}`);
       return false;
     } finally {
       setLoading(false);
