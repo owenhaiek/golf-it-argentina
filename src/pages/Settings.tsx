@@ -1,5 +1,7 @@
 import { useNavigate } from "react-router-dom";
-import { Settings as SettingsIcon, Languages, Shield, FileText, HelpCircle, ChevronRight, ChevronLeft, Crown, Check, RefreshCw } from "lucide-react";
+import { Settings as SettingsIcon, Languages, Shield, FileText, HelpCircle, ChevronRight, ChevronLeft, Crown, Check, RefreshCw, Bell, BellOff } from "lucide-react";
+import { useWebPush } from "@/hooks/useWebPush";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
