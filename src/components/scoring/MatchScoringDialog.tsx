@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Match } from "@/hooks/useTournamentsAndMatches";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Swords, Flag, ChevronLeft, ChevronRight, Minus, Plus, ArrowLeft, ArrowRight, Check, Grid } from "lucide-react";
+import { Swords, Flag, ChevronLeft, ChevronRight, Minus, Plus, ArrowLeft, ArrowRight, Check, Grid, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface MatchScoringDialogProps {
@@ -246,14 +246,25 @@ export const MatchScoringDialog = ({ match, open, onOpenChange, onSuccess }: Mat
                 <p className="text-xs text-muted-foreground">{match?.golf_courses?.name}</p>
               </div>
             </div>
-            <Button
-              variant={viewMode === 'all' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setViewMode(viewMode === 'all' ? 'single' : 'all')}
-              className="h-8 px-2"
-            >
-              <Grid className="h-4 w-4" />
-            </Button>
+            <div className="flex items-center gap-1">
+              <Button
+                variant={viewMode === 'all' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode(viewMode === 'all' ? 'single' : 'all')}
+                className="h-8 px-2"
+              >
+                <Grid className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => onOpenChange(false)}
+                className="h-8 w-8 rounded-full"
+                aria-label="Cerrar"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </DrawerHeader>
 
