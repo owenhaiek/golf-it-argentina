@@ -37,15 +37,28 @@ export const MatchScoringDialog = ({ match, open, onOpenChange, onSuccess }: Mat
   const [activeHoleIndex, setActiveHoleIndex] = useState(0);
   const [viewMode, setViewMode] = useState<'single' | 'all'>('single');
 
+  const [initialized, setInitialized] = useState(false);
+
   useEffect(() => {
     if (open && match?.id) {
+      setInitialized(false);
       initializePlayers();
       fetchCoursePars();
       setActiveHoleIndex(0);
     }
   }, [open, match?.id]);
 
-  const initializePlayers = () => {
+  // Auto-save (debounced) whenever scores change
+  useEffect(() => {
+    if (!open || !initialized || !user?.id || players.length === 0) return;
+    const timer = setTimeout(() => {
+      autoSaveScores();
+    }, 800);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [players, open, initialized]);
+
+  const initializePlayers = async () => {
     if (!match || !user) return;
     
     let playerScores: PlayerScore[] = [];
@@ -90,7 +103,58 @@ export const MatchScoringDialog = ({ match, open, onOpenChange, onSuccess }: Mat
     
     // Sort so current user is first
     playerScores.sort((a, b) => (b.isCurrentUser ? 1 : 0) - (a.isCurrentUser ? 1 : 0));
+
+    // Load any previously saved scores for this match
+    try {
+      const { data: existingScores } = await supabase
+        .from('match_scores')
+        .select('user_id, hole_scores, total_score')
+        .eq('match_id', match.id);
+
+      if (existingScores && existingScores.length > 0) {
+        playerScores = playerScores.map(p => {
+          const existing = existingScores.find((e: any) => e.user_id === p.user_id);
+          if (existing) {
+            const holes = (existing.hole_scores as number[]) || new Array(18).fill(0);
+            return {
+              ...p,
+              hole_scores: holes,
+              total_score: existing.total_score || holes.reduce((a, b) => a + b, 0),
+            };
+          }
+          return p;
+        });
+      }
+    } catch (err) {
+      console.error('Error loading existing match scores:', err);
+    }
+
     setPlayers(playerScores);
+    setInitialized(true);
+  };
+
+  const autoSaveScores = async () => {
+    if (!user?.id || players.length === 0) return;
+    try {
+      // Only save players that have at least one score entered
+      const scores = players
+        .filter(p => p.hole_scores.some(s => s > 0))
+        .map(p => ({
+          match_id: match.id,
+          user_id: p.user_id,
+          hole_scores: p.hole_scores,
+          total_score: p.total_score,
+          submitted_by: user.id,
+        }));
+
+      if (scores.length === 0) return;
+
+      await supabase
+        .from('match_scores')
+        .upsert(scores, { onConflict: 'match_id,user_id' });
+    } catch (error) {
+      console.error('Error auto-saving match scores:', error);
+    }
   };
 
   const fetchCoursePars = async () => {
