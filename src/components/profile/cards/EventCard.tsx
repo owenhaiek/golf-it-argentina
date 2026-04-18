@@ -149,8 +149,7 @@ export const EventCard = ({
               </Button>
               <Button
                 onClick={onDelete}
-                variant="outline"
-                className="flex-1 h-10 rounded-xl bg-destructive/10 border-destructive/20 text-destructive hover:bg-destructive/20"
+                className="flex-1 h-10 rounded-xl bg-red-600 hover:bg-red-500 text-white font-medium shadow-lg shadow-red-600/30 border-0"
               >
                 <Trash2 className="h-4 w-4 mr-1.5" />
                 Eliminar
