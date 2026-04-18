@@ -42,29 +42,31 @@ const HandicapInfoDialog = ({ open, onOpenChange, handicap }: HandicapInfoDialog
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md mx-3 sm:mx-auto bg-zinc-900/95 backdrop-blur-xl border border-white/10 max-h-[85vh] overflow-y-auto">
-        <DialogHeader>
-          <div className="mx-auto mb-3 w-14 h-14 rounded-full bg-primary/15 flex items-center justify-center">
-            <Calculator className="w-7 h-7 text-primary" />
+      <DialogContent
+        className="w-[calc(100vw-1.5rem)] max-w-md sm:mx-auto bg-zinc-900/95 backdrop-blur-xl border border-white/10 max-h-[85vh] overflow-y-auto p-4 sm:p-6 rounded-2xl"
+      >
+        <DialogHeader className="space-y-2">
+          <div className="mx-auto mb-1 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-primary/15 flex items-center justify-center">
+            <Calculator className="w-6 h-6 sm:w-7 sm:h-7 text-primary" />
           </div>
-          <DialogTitle className="text-xl text-center text-foreground">
+          <DialogTitle className="text-lg sm:text-xl text-center text-foreground leading-tight">
             {t.title}
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4 mt-2">
+        <div className="space-y-3 mt-2">
           {/* Current handicap */}
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.25 }}
-            className="rounded-2xl bg-zinc-800/60 border border-white/5 p-4 flex items-center justify-between"
+            className="rounded-2xl bg-zinc-800/60 border border-white/5 p-3 sm:p-4 flex items-center justify-between gap-3"
           >
-            <div className="flex items-center gap-3">
-              <Trophy className="w-5 h-5 text-primary" />
-              <span className="text-sm text-zinc-300">{t.yourHandicap}</span>
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <Trophy className="w-5 h-5 text-primary shrink-0" />
+              <span className="text-sm text-zinc-300 truncate">{t.yourHandicap}</span>
             </div>
-            <span className="text-2xl font-bold text-white">
+            <span className="text-xl sm:text-2xl font-bold text-white shrink-0">
               {handicap !== null && handicap !== undefined ? handicap : "—"}
             </span>
           </motion.div>
@@ -74,16 +76,16 @@ const HandicapInfoDialog = ({ open, onOpenChange, handicap }: HandicapInfoDialog
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.25, delay: 0.05 }}
-            className="rounded-2xl bg-zinc-800/40 border border-white/5 p-4"
+            className="rounded-2xl bg-zinc-800/40 border border-white/5 p-3 sm:p-4"
           >
             <div className="flex items-center gap-2 mb-2">
-              <Info className="w-4 h-4 text-primary" />
+              <Info className="w-4 h-4 text-primary shrink-0" />
               <h4 className="text-sm font-semibold text-white">{t.formulaTitle}</h4>
             </div>
-            <div className="rounded-xl bg-zinc-950/60 border border-white/5 px-3 py-2 text-center font-mono text-sm text-primary">
+            <div className="rounded-xl bg-zinc-950/60 border border-white/5 px-3 py-2 text-center font-mono text-[11px] sm:text-sm text-primary break-words">
               {t.formulaText}
             </div>
-            <p className="text-xs text-zinc-400 mt-2">{t.formulaHint}</p>
+            <p className="text-xs text-zinc-400 mt-2 leading-snug">{t.formulaHint}</p>
           </motion.div>
 
           {/* Requirements */}
