@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Trophy, Swords, Calendar, CheckCircle, Flame, ChevronRight, AlertTriangle, ChevronDown } from "lucide-react";
@@ -48,8 +49,37 @@ export const TournamentsAndMatchesSection = () => {
     refetchAll
   } = useTournamentsAndMatches();
 
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialType = (searchParams.get('type') as TypeFilter) || 'all';
+  const highlightId = searchParams.get('highlight');
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
-  const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
+  const [typeFilter, setTypeFilter] = useState<TypeFilter>(initialType);
+  const highlightRef = useRef<HTMLDivElement | null>(null);
+
+  // React to URL changes (e.g. notification click while already on /profile)
+  useEffect(() => {
+    const t = (searchParams.get('type') as TypeFilter) || null;
+    if (t && t !== typeFilter) setTypeFilter(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
+  // Scroll to and highlight the targeted item when present
+  useEffect(() => {
+    if (!highlightId) return;
+    const timer = setTimeout(() => {
+      if (highlightRef.current) {
+        highlightRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Clean the highlight param after a few seconds so the ring fades out cleanly
+        setTimeout(() => {
+          const next = new URLSearchParams(searchParams);
+          next.delete('highlight');
+          setSearchParams(next, { replace: true });
+        }, 3500);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [highlightId, isLoading]);
   const [editTournamentDialog, setEditTournamentDialog] = useState<{ open: boolean; tournament: any }>({ open: false, tournament: null });
   const [editMatchDialog, setEditMatchDialog] = useState<{ open: boolean; match: any }>({ open: false, match: null });
   const [tournamentScoringDialog, setTournamentScoringDialog] = useState<{ open: boolean; tournament: any }>({ open: false, tournament: null });
