@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Trophy, Swords, Calendar, CheckCircle, Flame, ChevronRight, AlertTriangle, ChevronDown } from "lucide-react";
@@ -48,8 +49,37 @@ export const TournamentsAndMatchesSection = () => {
     refetchAll
   } = useTournamentsAndMatches();
 
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialType = (searchParams.get('type') as TypeFilter) || 'all';
+  const highlightId = searchParams.get('highlight');
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
-  const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
+  const [typeFilter, setTypeFilter] = useState<TypeFilter>(initialType);
+  const highlightRef = useRef<HTMLDivElement | null>(null);
+
+  // React to URL changes (e.g. notification click while already on /profile)
+  useEffect(() => {
+    const t = (searchParams.get('type') as TypeFilter) || null;
+    if (t && t !== typeFilter) setTypeFilter(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
+  // Scroll to and highlight the targeted item when present
+  useEffect(() => {
+    if (!highlightId) return;
+    const timer = setTimeout(() => {
+      if (highlightRef.current) {
+        highlightRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Clean the highlight param after a few seconds so the ring fades out cleanly
+        setTimeout(() => {
+          const next = new URLSearchParams(searchParams);
+          next.delete('highlight');
+          setSearchParams(next, { replace: true });
+        }, 3500);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [highlightId, isLoading]);
   const [editTournamentDialog, setEditTournamentDialog] = useState<{ open: boolean; tournament: any }>({ open: false, tournament: null });
   const [editMatchDialog, setEditMatchDialog] = useState<{ open: boolean; match: any }>({ open: false, match: null });
   const [tournamentScoringDialog, setTournamentScoringDialog] = useState<{ open: boolean; tournament: any }>({ open: false, tournament: null });
@@ -333,37 +363,42 @@ export const TournamentsAndMatchesSection = () => {
               </p>
             </motion.div>
           ) : (
-            filteredItems.map((item, index) => (
-              <motion.div
-                key={item.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ delay: index * 0.03 }}
-              >
-                {item.itemType === 'tournament' ? (
-                  <InteractiveTournamentCard
-                    tournament={item}
-                    onLoadScores={(tournament) => setTournamentScoringCard({ open: true, tournament })}
-                    onEdit={(tournament) => setEditTournamentDialog({ open: true, tournament })}
-                    onDelete={(tournamentId) => {
-                      const tournament = [...upcomingTournaments, ...activeTournaments, ...completedTournaments].find(t => t.id === tournamentId);
-                      setDeleteDialog({ open: true, type: 'tournament', id: tournamentId, name: tournament?.name || 'este torneo' });
-                    }}
-                  />
-                ) : (
-                  <InteractiveMatchCard
-                    match={item}
-                    onLoadScores={(match) => setMatchScoringCard({ open: true, match })}
-                    onEdit={(match) => setEditMatchDialog({ open: true, match })}
-                    onDelete={(matchId) => {
-                      const match = [...activeMatches, ...completedMatches].find(m => m.id === matchId);
-                      setDeleteDialog({ open: true, type: 'match', id: matchId, name: match?.name || 'este partido' });
-                    }}
-                  />
-                )}
-              </motion.div>
-            ))
+            filteredItems.map((item, index) => {
+              const isHighlighted = highlightId === item.id;
+              return (
+                <motion.div
+                  key={item.id}
+                  ref={isHighlighted ? highlightRef : undefined}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ delay: index * 0.03 }}
+                  className={isHighlighted ? 'rounded-2xl ring-2 ring-primary ring-offset-2 ring-offset-background animate-pulse' : ''}
+                >
+                  {item.itemType === 'tournament' ? (
+                    <InteractiveTournamentCard
+                      tournament={item}
+                      onLoadScores={(tournament) => setTournamentScoringCard({ open: true, tournament })}
+                      onEdit={(tournament) => setEditTournamentDialog({ open: true, tournament })}
+                      onDelete={(tournamentId) => {
+                        const tournament = [...upcomingTournaments, ...activeTournaments, ...completedTournaments].find(t => t.id === tournamentId);
+                        setDeleteDialog({ open: true, type: 'tournament', id: tournamentId, name: tournament?.name || 'este torneo' });
+                      }}
+                    />
+                  ) : (
+                    <InteractiveMatchCard
+                      match={item}
+                      onLoadScores={(match) => setMatchScoringCard({ open: true, match })}
+                      onEdit={(match) => setEditMatchDialog({ open: true, match })}
+                      onDelete={(matchId) => {
+                        const match = [...activeMatches, ...completedMatches].find(m => m.id === matchId);
+                        setDeleteDialog({ open: true, type: 'match', id: matchId, name: match?.name || 'este partido' });
+                      }}
+                    />
+                  )}
+                </motion.div>
+              );
+            })
           )}
         </AnimatePresence>
       </div>

@@ -34,6 +34,7 @@ import AdminCourseEditList from "./pages/AdminCourseEditList";
 import AdminPendingManagers from "./pages/AdminPendingManagers";
 import Subscription from "./pages/Subscription";
 import AllRounds from "./pages/AllRounds";
+import { NotificationClickHandler } from "./components/NotificationClickHandler";
 
 const queryClient = new QueryClient();
 
@@ -52,6 +53,7 @@ function App() {
             <Toaster />
             <Sonner />
             <BrowserRouter>
+              <NotificationClickHandler />
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />

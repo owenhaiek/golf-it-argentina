@@ -35,19 +35,31 @@ self.addEventListener('push', (event) => {
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const url = event.notification.data?.url || '/notifications';
+  const data = event.notification.data || {};
+  const targetUrl = data.url || '/notifications';
 
-  event.waitUntil(
-    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-      for (const client of clientList) {
-        if ('focus' in client) {
-          client.navigate(url);
-          return client.focus();
+  event.waitUntil((async () => {
+    const allClients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    // Try to focus an existing window from the same origin
+    for (const client of allClients) {
+      try {
+        const clientUrl = new URL(client.url);
+        if (clientUrl.origin === self.location.origin) {
+          // Post message so the SPA can navigate without a full reload
+          client.postMessage({ type: 'NOTIFICATION_CLICK', url: targetUrl, data });
+          if ('focus' in client) {
+            try { await client.focus(); } catch (_) {}
+          }
+          // Also navigate as fallback (some browsers ignore postMessage on background tabs)
+          if ('navigate' in client) {
+            try { await client.navigate(targetUrl); } catch (_) {}
+          }
+          return;
         }
-      }
-      if (self.clients.openWindow) {
-        return self.clients.openWindow(url);
-      }
-    })
-  );
+      } catch (_) {}
+    }
+    if (self.clients.openWindow) {
+      await self.clients.openWindow(targetUrl);
+    }
+  })());
 });
