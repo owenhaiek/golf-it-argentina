@@ -46,3 +46,7 @@ verify_jwt = true
 # Configuration for the check-event-reminders edge function (cron job)
 [functions.check-event-reminders]
 verify_jwt = false
+
+# Configuration for the send-web-push edge function (called from DB triggers via pg_net)
+[functions.send-web-push]
+verify_jwt = false
