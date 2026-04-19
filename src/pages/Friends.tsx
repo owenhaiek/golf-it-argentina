@@ -70,8 +70,8 @@ const Friends = () => {
               <span className="text-sm">{t("common", "profile") || "Perfil"}</span>
             </button>
             <div className="flex items-center gap-2">
-             <h1 className="text-lg font-semibold text-white">
-                {language === "es" ? "Jugadores" : t("profile", "friends")}
+              <h1 className="text-lg font-semibold text-white">
+                Jugadores
               </h1>
               <Users className="h-5 w-5 text-primary" />
             </div>

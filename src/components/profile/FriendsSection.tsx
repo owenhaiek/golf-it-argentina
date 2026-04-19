@@ -44,7 +44,7 @@ export const FriendsSection = () => {
         >
           <div className="flex items-center justify-center gap-2">
             <Users className="h-4 w-4" />
-            <span>{t("profile", "friends")} ({friends.length})</span>
+            <span>Amigos ({friends.length})</span>
           </div>
         </button>
         <button
@@ -57,7 +57,7 @@ export const FriendsSection = () => {
         >
           <div className="flex items-center justify-center gap-2">
             <UserPlus className="h-4 w-4" />
-            <span>{t("friends", "requests") || "Solicitudes"}</span>
+            <span>Solicitudes</span>
             {pendingRequestsCount > 0 && (
               <span className="absolute -top-1 -right-1 h-5 min-w-5 px-1.5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center">
                 {pendingRequestsCount}
