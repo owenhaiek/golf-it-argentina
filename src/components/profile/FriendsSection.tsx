@@ -282,7 +282,7 @@ export const FriendsSection = () => {
               </div>
               <p className="text-zinc-400 font-medium">{t("friends", "noFriends") || "Sin Amigos"}</p>
               <p className="text-xs text-zinc-600 mt-1">
-                {t("friends", "startConnecting") || "Busca y conecta con amigos!"}
+                {t("friends", "startConnecting") || "Empeza a conectar con amigos!"}
               </p>
             </div>
           )}

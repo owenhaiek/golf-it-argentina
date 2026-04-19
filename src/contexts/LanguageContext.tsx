@@ -812,7 +812,7 @@ const translations: Record<LanguageType, TranslationDictionary> = {
       noFriends: "Sin Amigos",
       noRequests: "Sin solicitudes",
       findFriends: "Busca amigos para conectar",
-      startConnecting: "¡Busca y conecta con amigos!",
+      startConnecting: "Empeza a conectar con amigos!",
       removeFriend: "¿Eliminar amigo?",
       removeFriendDesc: "Esto eliminará al usuario de tu lista de amigos.",
       receivedRequests: "Solicitudes recibidas",
