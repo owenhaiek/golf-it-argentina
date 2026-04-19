@@ -71,7 +71,7 @@ const Friends = () => {
             </button>
             <div className="flex items-center gap-2">
              <h1 className="text-lg font-semibold text-white">
-                {language === "es" ? "Amigos" : t("profile", "friends")}
+                {language === "es" ? "Jugadores" : t("profile", "friends")}
               </h1>
               <Users className="h-5 w-5 text-primary" />
             </div>
