@@ -280,7 +280,7 @@ export const FriendsSection = () => {
               <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-zinc-800 flex items-center justify-center">
                 <Users className="h-8 w-8 text-zinc-600" />
               </div>
-              <p className="text-zinc-400 font-medium">{t("friends", "noFriends") || "Sin amigos"}</p>
+              <p className="text-zinc-400 font-medium">{t("friends", "noFriends") || "Sin Amigos"}</p>
               <p className="text-xs text-zinc-600 mt-1">
                 {t("friends", "startConnecting") || "Busca y conecta con amigos!"}
               </p>
