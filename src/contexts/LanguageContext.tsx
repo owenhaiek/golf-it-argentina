@@ -403,6 +403,17 @@ const translations: Record<LanguageType, TranslationDictionary> = {
       matchDeclinedTitle: "Match Declined",
       matchDeclinedMessage: "declined your match challenge",
       unknownUser: "Unknown User"
+    },
+    friends: {
+      noFriends: "No Friends",
+      noRequests: "No Requests",
+      findFriends: "Find friends to connect with",
+      startConnecting: "Find and connect with friends!",
+      removeFriend: "Remove Friend?",
+      removeFriendDesc: "This will remove the user from your friends list.",
+      receivedRequests: "Received Requests",
+      sentRequests: "Sent Requests",
+      pending: "Pending"
     }
   },
   es: {
@@ -796,6 +807,17 @@ const translations: Record<LanguageType, TranslationDictionary> = {
       matchDeclinedTitle: "Match Rechazado",
       matchDeclinedMessage: "rechazó tu desafío de match",
       unknownUser: "Usuario Desconocido"
+    },
+    friends: {
+      noFriends: "Sin Amigos",
+      noRequests: "Sin solicitudes",
+      findFriends: "Busca amigos para conectar",
+      startConnecting: "¡Busca y conecta con amigos!",
+      removeFriend: "¿Eliminar amigo?",
+      removeFriendDesc: "Esto eliminará al usuario de tu lista de amigos.",
+      receivedRequests: "Solicitudes recibidas",
+      sentRequests: "Solicitudes enviadas",
+      pending: "Pendiente"
     }
   }
 };
