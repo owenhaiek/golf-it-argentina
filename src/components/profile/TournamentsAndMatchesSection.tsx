@@ -363,37 +363,42 @@ export const TournamentsAndMatchesSection = () => {
               </p>
             </motion.div>
           ) : (
-            filteredItems.map((item, index) => (
-              <motion.div
-                key={item.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ delay: index * 0.03 }}
-              >
-                {item.itemType === 'tournament' ? (
-                  <InteractiveTournamentCard
-                    tournament={item}
-                    onLoadScores={(tournament) => setTournamentScoringCard({ open: true, tournament })}
-                    onEdit={(tournament) => setEditTournamentDialog({ open: true, tournament })}
-                    onDelete={(tournamentId) => {
-                      const tournament = [...upcomingTournaments, ...activeTournaments, ...completedTournaments].find(t => t.id === tournamentId);
-                      setDeleteDialog({ open: true, type: 'tournament', id: tournamentId, name: tournament?.name || 'este torneo' });
-                    }}
-                  />
-                ) : (
-                  <InteractiveMatchCard
-                    match={item}
-                    onLoadScores={(match) => setMatchScoringCard({ open: true, match })}
-                    onEdit={(match) => setEditMatchDialog({ open: true, match })}
-                    onDelete={(matchId) => {
-                      const match = [...activeMatches, ...completedMatches].find(m => m.id === matchId);
-                      setDeleteDialog({ open: true, type: 'match', id: matchId, name: match?.name || 'este partido' });
-                    }}
-                  />
-                )}
-              </motion.div>
-            ))
+            filteredItems.map((item, index) => {
+              const isHighlighted = highlightId === item.id;
+              return (
+                <motion.div
+                  key={item.id}
+                  ref={isHighlighted ? highlightRef : undefined}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ delay: index * 0.03 }}
+                  className={isHighlighted ? 'rounded-2xl ring-2 ring-primary ring-offset-2 ring-offset-background animate-pulse' : ''}
+                >
+                  {item.itemType === 'tournament' ? (
+                    <InteractiveTournamentCard
+                      tournament={item}
+                      onLoadScores={(tournament) => setTournamentScoringCard({ open: true, tournament })}
+                      onEdit={(tournament) => setEditTournamentDialog({ open: true, tournament })}
+                      onDelete={(tournamentId) => {
+                        const tournament = [...upcomingTournaments, ...activeTournaments, ...completedTournaments].find(t => t.id === tournamentId);
+                        setDeleteDialog({ open: true, type: 'tournament', id: tournamentId, name: tournament?.name || 'este torneo' });
+                      }}
+                    />
+                  ) : (
+                    <InteractiveMatchCard
+                      match={item}
+                      onLoadScores={(match) => setMatchScoringCard({ open: true, match })}
+                      onEdit={(match) => setEditMatchDialog({ open: true, match })}
+                      onDelete={(matchId) => {
+                        const match = [...activeMatches, ...completedMatches].find(m => m.id === matchId);
+                        setDeleteDialog({ open: true, type: 'match', id: matchId, name: match?.name || 'este partido' });
+                      }}
+                    />
+                  )}
+                </motion.div>
+              );
+            })
           )}
         </AnimatePresence>
       </div>
