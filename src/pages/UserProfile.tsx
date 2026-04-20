@@ -46,7 +46,12 @@ const UserProfile = () => {
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="sticky top-0 z-40 bg-zinc-900/95 backdrop-blur-sm border-b border-zinc-800"
+        className="sticky z-40 bg-zinc-900/95 backdrop-blur-sm border-b border-zinc-800"
+        style={{ 
+          top: 'calc(env(safe-area-inset-top, 0px) * -1)',
+          marginTop: 'calc(env(safe-area-inset-top, 0px) * -1)',
+          paddingTop: 'env(safe-area-inset-top, 0px)'
+        }}
       >
         <div className="px-4 py-4">
           <div className="flex items-center justify-between">
