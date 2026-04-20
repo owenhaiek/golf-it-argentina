@@ -104,8 +104,12 @@ const Profile = () => {
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="sticky top-0 z-40 bg-background backdrop-blur-xl border-b border-white/5"
-        style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
+        className="sticky z-40 bg-background/95 backdrop-blur-xl border-b border-white/5 -mx-px"
+        style={{ 
+          top: 'calc(env(safe-area-inset-top, 0px) * -1)',
+          marginTop: 'calc(env(safe-area-inset-top, 0px) * -1)',
+          paddingTop: 'env(safe-area-inset-top, 0px)'
+        }}
       >
         <div className="px-4 py-3 flex items-center justify-between">
           <h1 className="text-xl font-semibold text-foreground">{t("common", "profile")}</h1>
